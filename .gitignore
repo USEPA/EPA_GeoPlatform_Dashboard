@@ -29,3 +29,12 @@ node_modules
 
 #mongo DB
 mongodata
+
+#Web Storm Settings
+.idea
+
+#AGOL credentials
+utilities/AGOLcredentials.json
+
+#Local config file
+config/env/local.js
