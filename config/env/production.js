@@ -1,4 +1,4 @@
 module.exports = {
-    "AGOLadminUsername":""
-    ,"AGOLadminPassword":""
+    AGOLadminCredentials:
+    {username: "",password: ""}
 };
