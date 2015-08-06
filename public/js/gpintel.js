@@ -26,7 +26,7 @@ function populateTable(vTable) {
   var tableContent = '';
 
   // jQuery AJAX call for JSON
-  $.getJSON('/gpoitems/gpoitemslist', function(data) {
+  $.getJSON('/gpoitems/list', function(data) {
     console.log(data);
     // For each item in our JSON, add a table row and cells to the content string
     $.each(data, function() {

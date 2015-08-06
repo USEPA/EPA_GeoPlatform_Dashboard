@@ -1,5 +1,6 @@
 # https://github.com/github/gitignore/blob/master/Node.gitignore
 # Logs
+logs
 *.log
 
 # Runtime data
@@ -26,3 +27,14 @@ build/Release
 # https://docs.npmjs.com/misc/faq#should-i-check-my-node-modules-folder-into-git
 node_modules
 
+#mongo DB
+mongodata
+
+#Web Storm Settings
+.idea
+
+#AGOL credentials
+utilities/AGOLcredentials.json
+
+#Local config file
+config/env/local.js
