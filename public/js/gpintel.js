@@ -2,12 +2,27 @@
 
 
 $(document).ready(function() {
-  populateTable();
+
+  $(document).on('click', '.nav-sidebar li', function() {
+       $(".nav-sidebar li").removeClass("active");
+       $(this).addClass("active");
+    
+       // alert($(this).find(":first").attr("id"));
+       var view = $(this).find(":first").attr("id");
+       $('#' + view +'View').collapse('show');
+
+       $('.view').not(document.getElementById( view )).collapse('hide');
+
+   });
+
+  populateTable("gpoitemtable1");
+  populateTable("gpoitemtable2");
+  populateTable("gpoitemtable3");
 });
 
 
 // Fill table with data queried out of Mongo via Express/Monk
-function populateTable() {
+function populateTable(vTable) {
   var tableContent = '';
 
   // jQuery AJAX call for JSON
@@ -26,6 +41,6 @@ function populateTable() {
     });
 
     // Inject the whole content string into our existing HTML table
-    $('#gpoitemtable').prepend(tableContent);
+    $('#' + vTable).prepend(tableContent);
   });
 };
