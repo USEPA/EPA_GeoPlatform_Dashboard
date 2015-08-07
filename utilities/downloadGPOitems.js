@@ -1,3 +1,5 @@
+var getTokenOnly=false;
+
 var request = require('request');
 var Q = require('q');
 
@@ -25,7 +27,6 @@ catch (e) {
 //This where we store the output from REST calls like token and OrgID so it can be used by handlers
 var output = {};
 
-//var itemStart = 1;
 var itemCount = 100;
 
 output.nextStart=1;
@@ -37,6 +38,13 @@ var gpoitemcollection = db.get('GPOitems');
 //clear out any existing
 gpoitemcollection.remove({});
 
+if (getTokenOnly===true) {
+    getToken()
+        .catch(function(err) {
+            console.error('Error received:', err);
+        })
+        .done(function() {console.log(output.token);process.exit();});
+}else {
 //String along aysn function calls to AGOL REST API
 getToken()
     .then(getOrgId)
@@ -45,6 +53,7 @@ getToken()
         console.error('Error received:', err);
     })
     .done(function() {process.exit();});
+}
 
 //Simply finish the script using process.exit()
 
@@ -72,6 +81,8 @@ function getOrgIdPromise(token) {
 
     var url = portal + '/sharing/rest/portals/self';
 
+    console.log("token " + token);
+
     var parameters = {'token' : token,'f' : 'json'};
 //Pass parameters via form attribute
     var requestPars = {method:'get', url:url, qs:parameters };
@@ -91,7 +102,6 @@ function getGPOitemsPromise(orgID) {
 //Pass parameters via form attribute
 
     var requestPars = {method:'get', url:url, qs:parameters };
-//    itemStart = itemStart + itemCount;
     return Q.nfcall(request, requestPars);
 }
 
