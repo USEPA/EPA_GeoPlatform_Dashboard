@@ -1,4 +1,5 @@
 module.exports = {
     AGOLadminCredentials:
-    {username: "",password: ""}
+    {username: "",password: ""},
+    UseCORS: false
 };
