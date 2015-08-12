@@ -35,3 +35,6 @@ mongodata
 
 #Local config file
 config/env/local.js
+
+#config file for node-inspector
+.node-inspectorrc

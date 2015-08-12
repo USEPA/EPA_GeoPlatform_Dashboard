@@ -6,6 +6,7 @@
     "start": "node ./bin/www"
     ,"super": "supervisor -n exit ./bin/www"
     ,"nodemon": "nodemon ./bin/www"
+  ,"debug": "node-debug ./bin/www"
   },
   "dependencies": {
     "body-parser": "~1.13.1",
