@@ -1,15 +1,16 @@
 var express = require('express');
 var fs = require('fs')
 var path = require('path');
+var merge = require('merge');
 var favicon = require('serve-favicon');
 var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
-
+var session = require('express-session');
+var mongoStore = require('connect-mongo')(session);
 
 var mongo = require('mongodb');
 var monk = require('monk');
-var db = monk('localhost:27017/egam');
 
 var routes = require('./routes/index');
 var gpoitems = require('./routes/gpoitems');
@@ -21,6 +22,12 @@ var app = express();
 //  req.db = db;
 //  next();
 //});
+
+//get the enviromental variables from config file and save for later
+var config = require('./config/env');
+app.set('config',config);
+
+var db = monk(config.mongoDBurl);
 app.set('monk',db);
 
 // gpintel, no engine needed - view engine setup
@@ -46,6 +53,19 @@ app.use(bodyParser.urlencoded({
 }));
 app.use(cookieParser());
 
+//The session is stored in Mongo
+//tag mongo store onto the session options using env specific store options
+//note I merge the config.mongoStoreOption because mongoStore constructor alters it
+console.log(config);
+var mongoStoreInstance = new mongoStore(merge(true,config.mongoStoreOption));
+//create copy of config sessionOptions so that is is not altered
+var sessionOptions = merge(true,config.sessionOptions);
+sessionOptions.store = mongoStoreInstance;
+//Allow persistent session data (eg: username of logged in user)
+app.use(session(sessionOptions));
+
+console.log(config);
+
 // All standard routes above here
 // endpoint for API calls to MongoDB via Monk
 //pp.post('/api', handler.POST.getPosts);
@@ -53,8 +73,7 @@ app.use(cookieParser());
 // Static route for serving out our front-end Tool
 app.use(express.static(path.join(__dirname, 'public')));
 
-
-//app.use('/', routes);
+app.use('/', routes(app));
 app.use('/gpoitems', gpoitems(app));
 
 // catch 404 and forward to error handler

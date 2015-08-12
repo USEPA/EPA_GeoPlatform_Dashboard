@@ -41,6 +41,7 @@ function populateTable(vTable) {
     });
 
     // Inject the whole content string into our existing HTML table
-    $('#' + vTable).prepend(tableContent);
+    $('#' + vTable + ' tbody').empty();
+    $('#' + vTable + ' tbody').prepend(tableContent);
   });
 };

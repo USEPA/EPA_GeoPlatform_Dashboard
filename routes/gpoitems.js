@@ -7,9 +7,20 @@ module.exports = function(app) {
     var db = app.get('monk');
     
     var collection = db.get('GPOitems');
-    collection.find({}, {}, function(e, docs) {
-      res.json(docs);
-    });
+
+    var query = {};
+
+    var username = "";
+    if ('session' in req && req.session.username) username=req.session.username;
+//Only return gpo itmes where this user is the owner (or later probably group admin)
+    query.owner = username;
+
+//    res.send("username= " + username);return;
+
+//      collection.find(query, ['owner','title'], function(e, docs) {
+      collection.find(query, {}, function(e, docs) {
+        res.json(docs);
+      });
   });
   
   return router;
