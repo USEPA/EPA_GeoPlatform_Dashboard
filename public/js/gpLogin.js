@@ -5,7 +5,7 @@ require([
   ], function (arcgisPortal, OAuthInfo, esriId,
     domStyle, domAttr, dom, on, arrayUtils){
     var info = new OAuthInfo({
-      appId: "y3nEkDDXjHlX0pCZ",
+      appId: "CXkB0iPulNZP9xQo",
       // Uncomment the next line and update if using your own portal
       portalUrl: "http://epa.maps.arcgis.com",
       // Uncomment the next line to prevent the user's signed in state from being shared
@@ -40,12 +40,21 @@ require([
 
     on(dom.byId("sign-out"), "click", function (){
       esriId.destroyCredentials();
+//log out of the express server
+      $.get('/logout');
       window.location.reload();
     });
 
     function displayItems(){
       new arcgisPortal.Portal(info.portalUrl).signIn().then(
         function (portalUser){
+//after sign in also login to backend using the token and username
+          $.post('/login',{username:portalUser.username,token:portalUser.credential.token },function(){
+//This work flow is just temporary to see if username takes. Probably should have one function that is called after signing in.
+            populateTable("gpoitemtable1");
+            populateTable("gpoitemtable2");
+            populateTable("gpoitemtable3");
+
           console.log("Signed in to the portal: ", portalUser);
 
           //domAttr.set("userId", "innerHTML", portalUser.fullName);
@@ -56,6 +65,7 @@ require([
           domStyle.set("mainWindow", "display", "block");
 
           queryPortal(portalUser);
+          });
         }
       ).otherwise(
         function (error){

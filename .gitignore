@@ -33,8 +33,8 @@ mongodata
 #Web Storm Settings
 .idea
 
-#AGOL credentials
-utilities/AGOLcredentials.json
-
 #Local config file
 config/env/local.js
+
+#config file for node-inspector
+.node-inspectorrc
