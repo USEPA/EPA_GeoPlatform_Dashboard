@@ -5,7 +5,7 @@ require([
   ], function (arcgisPortal, OAuthInfo, esriId,
     domStyle, domAttr, dom, on, arrayUtils){
     var info = new OAuthInfo({
-      appId: "y3nEkDDXjHlX0pCZ",
+      appId: "CXkB0iPulNZP9xQo",
       // Uncomment the next line and update if using your own portal
       portalUrl: "http://epa.maps.arcgis.com",
       // Uncomment the next line to prevent the user's signed in state from being shared
