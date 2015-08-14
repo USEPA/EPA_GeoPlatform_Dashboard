@@ -5,12 +5,14 @@ var Q = require('q');
 
 console.log('process.env.NODE_ENV ' + process.env.NODE_ENV);
 
-var env = require('../config/env');
+var appRoot=require('app-root-path');
+var config = require(appRoot + '/config/env');
+//var config = require('../config/env');
 
 try {
-    var username = env.AGOLadminCredentials.username;
-    var password = env.AGOLadminCredentials.password;
-    var portal = env.portal;
+    var username = config.AGOLadminCredentials.username;
+    var password = config.AGOLadminCredentials.password;
+    var portal = config.portal;
 }
 catch (e) {
     console.log("AGOL admin username and password or portal not defined in config file");
@@ -18,11 +20,10 @@ catch (e) {
 }
 
 var hrClass = require('./handleGPOresponses');
-var hr = new hrClass(env);
+var hr = new hrClass(config);
 console.log(hr);
 
 //process.exit()
-
 
 //var itemStart = 1;
 var itemCount = 100;
@@ -34,24 +35,24 @@ var monk = require('monk');
 var db = monk('localhost:27017/egam');
 
 var gpoitemcollection = db.get('GPOitems');
-//clear out any existing
-gpoitemcollection.remove({});
 
 if (getTokenOnly===true) {
-    getToken()
-        .catch(function(err) {
-            console.error('Error received:', err);
-        })
-        .done(function() {console.log(hr.saved.token);process.exit();});
+  getToken()
+      .catch(function(err) {
+          console.error('Error received:', err);
+      })
+      .done(function() {console.log(hr.saved.token);process.exit();});
 }else {
+//clear out any existing
+  gpoitemcollection.remove({});
 //String along aysn function calls to AGOL REST API
-    getToken()
-        .then(getOrgId)
-        .then(getGPOitems)
-        .catch(function(err) {
-            console.error('Error received:', err);
-        })
-        .done(function() {process.exit();});
+  getToken()
+      .then(getOrgId)
+      .then(getGPOitems)
+      .catch(function(err) {
+          console.error('Error received:', err);
+      })
+      .done(function() {process.exit();});
 //Simply finish the script using process.exit()
 }
 
@@ -94,7 +95,7 @@ function getGPOitemsChunk() {
 }
 
 function getGPOitems() {
-    return hr.promiseWhile(function() {return hr.saved.nextStart>0}, getGPOitemsChunk);
+    return hr.promiseWhile(function() {return hr.saved.nextStart>0;}, getGPOitemsChunk);
 }
 
 function HandleGPOitemsResponse(body) {

@@ -52,8 +52,9 @@ require([
           $.post('/login',{username:portalUser.username,token:portalUser.credential.token },function(){
 //This work flow is just temporary to see if username takes. Probably should have one function that is called after signing in.
             populateTable("gpoitemtable1");
-            populateTable("gpoitemtable2");
-            populateTable("gpoitemtable3");
+//Make other tables filter out some stuff.....
+            populateTable("gpoitemtable2",{access:"private"});
+            populateTable("gpoitemtable3",{thumbnail:null});
 
           console.log("Signed in to the portal: ", portalUser);
 

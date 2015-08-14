@@ -1,3 +1,4 @@
+//Aaron Evans Jr. adsfsad
 var express = require('express');
 var fs = require('fs')
 var path = require('path');
@@ -17,15 +18,14 @@ var gpoitems = require('./routes/gpoitems');
 
 var app = express();
 
-// Make db accessible to router
-//app.use(function(req, res, next) {
-//  req.db = db;
-//  next();
-//});
-
 //get the enviromental variables from config file and save for later
 var config = require('./config/env');
 app.set('config',config);
+
+//Get the app root if it is not in config file
+var appRoot=config.appRoot;
+if (! appRoot) appRoot = require('app-root-path') + '/';
+app.set('appRoot',appRoot);
 
 var db = monk(config.mongoDBurl);
 app.set('monk',db);
@@ -52,6 +52,7 @@ app.use(bodyParser.urlencoded({
   extended: false
 }));
 app.use(cookieParser());
+
 
 //The session is stored in Mongo
 //tag mongo store onto the session options using env specific store options
@@ -84,6 +85,7 @@ app.use(function(req, res, next) {
 });
 
 // error handlers
+console.log('test');
 
 // development error handler
 // will print stacktrace
@@ -91,11 +93,18 @@ console.log('app.get(env) = ' + app.get('env'));
 
 if (app.get('env') !== 'production') {
   app.use(function(err, req, res, next) {
+    console.log(err.status);
     res.status(err.status || 500);
-    res.json({
+
+    console.log(err);
+
+    res.json(
+      {error: {
       message: err.message,
-      error: err
-    });
+      code: "ApplicationError",
+      stack: err.stack
+      },body:null}
+    );
   });
 }
 
@@ -103,10 +112,12 @@ if (app.get('env') !== 'production') {
 // no stacktraces leaked to user
 app.use(function(err, req, res, next) {
     res.status(err.status || 500);
-    res.json({
-      message: err.message,
-      error: {}
-    });
+    res.json(
+        {error: {
+          message: err.message,
+          code: "ApplicationError"
+        },body:null}
+    );
 });
 
 

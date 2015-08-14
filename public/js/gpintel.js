@@ -15,18 +15,19 @@ $(document).ready(function() {
 
    });
 
-  populateTable("gpoitemtable1");
-  populateTable("gpoitemtable2");
-  populateTable("gpoitemtable3");
 });
 
 
 // Fill table with data queried out of Mongo via Express/Monk
-function populateTable(vTable) {
+function populateTable(vTable,query) {
+//    console.log(vTable);
+//    console.log(query);
   var tableContent = '';
+//for query pass a string because things like null were being converted to empty string
+  query=JSON.stringify(query)
 
   // jQuery AJAX call for JSON
-  $.getJSON('/gpoitems/list', function(data) {
+  $.getJSON('/gpoitems/list', {query:query}, function(data) {
     console.log(data);
     // For each item in our JSON, add a table row and cells to the content string
     $.each(data, function() {
