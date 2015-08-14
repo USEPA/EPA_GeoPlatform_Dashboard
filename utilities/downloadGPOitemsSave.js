@@ -97,7 +97,7 @@ function getGPOitemsPromise(orgID) {
 }
 
 function getGPOitems() {
-    return promiseWhile(function() {return output.nextStart>0}, getGPOitemsChunk);
+    return promiseWhile(function() {return output.nextStart>0;}, getGPOitemsChunk);
 }
 
 function getGPOitemsChunk() {
@@ -138,12 +138,12 @@ function promiseWhile(condition, promiseFunction) {
 function getHandleResponsePromise(key,outputkey) {
     return function(data) {
         return Q.fcall(handleResponse,data[0],data[1],key,outputkey);
-    }
+    };
 }
 function getHandleResponse(key,outputkey) {
     return function(data) {
         return handleResponse(data[0],data[1],key,outputkey);
-    }
+    };
 }
 
 function handleResponse(response,body,key,outputkey) {

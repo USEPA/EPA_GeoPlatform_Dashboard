@@ -16,7 +16,7 @@ HandleGPOreponse.prototype.getHandleResponsePromise = function (savedKeys,savedK
 //Don't think this needs to actually return a promise
 //        return Q.fcall(handleResponse,data[0],key,outputkey);
         return self.handleResponse(data[0],savedKeys,savedKeyMap);
-    }
+    };
 };
 
 //This get generic response handler.
@@ -68,11 +68,11 @@ HandleGPOreponse.prototype.getAGOLcallPromise = function (requestPars) {
     var request = require('request');
 
     return Q.nfcall(request, requestPars);
-}
+};
 
 HandleGPOreponse.prototype.callAGOL = function (requestPars,savedKeys,savedKeyMap) {
     return this.getAGOLcallPromise(requestPars).then(this.getHandleResponsePromise(savedKeys,savedKeyMap));
-}
+};
 
 HandleGPOreponse.prototype.promiseWhile = function (condition, promiseFunction) {
     var Q = require('q');

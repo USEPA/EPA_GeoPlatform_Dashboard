@@ -6,7 +6,7 @@
     "start": "node ./bin/www"
     ,"super": "supervisor -n exit ./bin/www"
     ,"nodemon": "nodemon ./bin/www"
-  ,"debug": "node-debug ./bin/www"
+    ,"debug": "node-debug ./bin/www"
   },
   "dependencies": {
     "body-parser": "~1.13.1",
@@ -21,6 +21,20 @@
     "q": "~1.4.1",
     "express-session": "~1.11.3",
     "connect-mongo": "~0.8.2",
-    "merge": "1.2.0"
+    "merge": "1.2.0",
+    "app-root-path": "1.0.0"
+  },
+  "devDependencies": {
+    "grunt": "~0.4.5",
+    "grunt-env": "~0.4.4",
+    "grunt-nodemon": "~0.4.0",
+    "grunt-node-inspector": "~0.2.0",
+    "grunt-concurrent": "~2.0.1",
+    "grunt-open": "~0.2.3",
+    "grunt-run": "~0.3.0",
+    "grunt-contrib-watch": "~0.6.1",
+    "grunt-contrib-jshint": "~0.11.2",
+    "grunt-rerun": "~0.0.4",
+    "grunt-forever": "~0.4.7"
   }
 }

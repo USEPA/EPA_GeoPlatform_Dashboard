@@ -5,10 +5,18 @@ module.exports = function(app) {
 
   /* GET home page. */
   router.use('/login', function (req, res, next) {
+    var utilities = require(app.get('appRoot') + 'utilities');
+
     var config = app.get('config');
     var url = config.portal + '/sharing/rest/portals/self';
-    var token = req.param("token");
-    var username = req.param("username");
+
+    var errors = [];
+    var inputs = utilities.getCleanRequestInputs(req,errors);
+
+    if (errors.length>0) res.json({error: {message:errors.join("\n"), code: "DirtyRequestInput"}, body: null});
+
+    var token=inputs.token;
+    var username=inputs.username;
 
 //    console.log("token");
     var qsPars = {'token': token, 'f': 'json'};
@@ -47,4 +55,4 @@ module.exports = function(app) {
   });
 
   return router;
-}
+};
