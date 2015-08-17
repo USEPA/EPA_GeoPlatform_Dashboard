@@ -1,6 +1,6 @@
 //Aaron Evans Jr. adsfsad
 var express = require('express');
-var fs = require('fs')
+var fs = require('fs');
 var path = require('path');
 var merge = require('merge');
 var favicon = require('serve-favicon');
@@ -85,7 +85,7 @@ app.use(function(req, res, next) {
 });
 
 // error handlers
-console.log('test');
+console.log('test2');
 
 // development error handler
 // will print stacktrace

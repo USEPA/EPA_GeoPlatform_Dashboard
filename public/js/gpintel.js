@@ -33,7 +33,7 @@ function populateTable(vTable,query) {
     $.each(data, function() {
       tableContent += '<tr>';
       tableContent += '<td>' + this.id + '</td>';
-      tableContent += '<td>' + this.name + '</td>';
+      tableContent += '<td>' + this.title + '</td>';
       tableContent += '<td>' + this.access + '</td>';
       tableContent += '<td>' + this.tags + '</td>';
       tableContent += '<td>' + this.thumbnail + '</td>';

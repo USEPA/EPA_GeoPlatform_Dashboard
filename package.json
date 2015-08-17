@@ -35,6 +35,8 @@
     "grunt-contrib-watch": "~0.6.1",
     "grunt-contrib-jshint": "~0.11.2",
     "grunt-rerun": "~0.0.4",
-    "grunt-forever": "~0.4.7"
+    "grunt-forever": "~0.4.7",
+    "grunt-reload": "~0.2.0",
+    "grunt-express": "~1.4.1"
   }
 }
