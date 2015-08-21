@@ -21,9 +21,10 @@
     "q": "~1.4.1",
     "express-session": "~1.11.3",
     "connect-mongo": "~0.8.2",
-    "merge": "1.2.0",
-    "app-root-path": "1.0.0",
-    "async": "1.4.2"
+    "merge": "~1.2.0",
+    "app-root-path": "~1.0.0",
+    "async": "~1.4.2",
+    "gridfs-stream": "~1.1.1"
   },
   "devDependencies": {
     "grunt": "~0.4.5",
