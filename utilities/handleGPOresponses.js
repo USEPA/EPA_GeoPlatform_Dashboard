@@ -10,20 +10,24 @@ var HandleGPOreponse =  function(config){
 //saveKeys [respKey1,respKey2] or just "respKey1" will save these keys under same name
 //savedKeyMap={respKey1:savedKey1,respKey2:savedKey2} will save under new name
 //Note: if object passed for savedKeys then it is actually savedKeyMap
-HandleGPOreponse.prototype.getHandleResponsePromise = function (savedKeys,savedKeyMap) {
+HandleGPOreponse.prototype.getHandleResponsePromise = function (savedKeys,savedKeyMap,requestMethod) {
     var self = this;
     return function(data) {
 //Don't think this needs to actually return a promise
 //        return Q.fcall(handleResponse,data[0],key,outputkey);
-        return self.handleResponse(data[0],savedKeys,savedKeyMap);
-    };
+        return self.handleResponse(data[0],savedKeys,savedKeyMap,requestMethod);
+    }
 };
 
 //This get generic response handler.
-HandleGPOreponse.prototype.handleResponse = function (response,savedKeys,savedKeyMap) {
+HandleGPOreponse.prototype.handleResponse = function (response,savedKeys,savedKeyMap,requestMethod) {
     var error=null;
 
     var body=response.body;
+
+    if (requestMethod==="head") {
+      return response.headers
+    }
 
     if (response.statusCode == 200) {
 //            console.log(body);
@@ -63,6 +67,7 @@ HandleGPOreponse.prototype.handleResponse = function (response,savedKeys,savedKe
     return this.current;
 };
 
+
 HandleGPOreponse.prototype.getAGOLcallPromise = function (requestPars) {
     var Q = require('q');
     var request = require('request');
@@ -71,8 +76,8 @@ HandleGPOreponse.prototype.getAGOLcallPromise = function (requestPars) {
 };
 
 HandleGPOreponse.prototype.callAGOL = function (requestPars,savedKeys,savedKeyMap) {
-    return this.getAGOLcallPromise(requestPars).then(this.getHandleResponsePromise(savedKeys,savedKeyMap));
-};
+    return this.getAGOLcallPromise(requestPars).then(this.getHandleResponsePromise(savedKeys,savedKeyMap,requestPars.method));
+}
 
 HandleGPOreponse.prototype.promiseWhile = function (condition, promiseFunction) {
     var Q = require('q');
