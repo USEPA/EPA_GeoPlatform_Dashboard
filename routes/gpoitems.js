@@ -21,7 +21,7 @@ module.exports = function(app) {
     var username = "";
     if ('session' in req && req.session.username) username=req.session.username;
 //Only return gpo itmes where this user is the owner (or later probably group admin)
-      query.owner = username;
+      //query.owner = username;
 //    res.send("username= " + username);return;
 
 //      collection.find(query, ['owner','title'], function(e, docs) {
