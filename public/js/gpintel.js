@@ -70,6 +70,8 @@ function populateTable(vTable,query) {
   });
   
 };
+
+
 //populate tables for GPO User view
 function populateUserTables(query){
   query=JSON.stringify(query)
@@ -79,5 +81,6 @@ function populateUserTables(query){
     console.log(data);
     
     ko.applyBindings({content: data});
+    //ko.applyBindings(new AppViewModel(data));
   });
 };
