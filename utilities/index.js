@@ -26,4 +26,34 @@ utilities.getCleanRequestInputs = function(req,errors) {
   return inputs;
 };
 
+//Not on a big JSON object this can be VERY sloq where it basically isn't pratical
+utilities.removeJSONkeyDots = function(json) {
+//get rids of dots in JSON keys. Mongo doesn't like it for one.
+  var JafarClass = require('jafar');
+
+  var jafar = new JafarClass({
+    json: json
+  } );
+
+  var allKeys = jafar.listAllKeys();
+
+  allKeys.forEach(function (key) {
+    newkey=key.replace(/\./g,"");
+    jafar.replaceKey(key, newkey, true, true);
+  })
+
+  return jafar.json;
+};
+
+utilities.streamify = function(text) {
+//Converts a string to a stream
+  var stream = require('stream');
+  var s = new stream.Readable();
+  s.push(text);
+  s.push(null);
+  return s;
+};
+
+
 module.exports = utilities;
+

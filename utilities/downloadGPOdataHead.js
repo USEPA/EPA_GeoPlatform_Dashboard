@@ -176,11 +176,15 @@ function getGPOheadersAsync() {
     GPOids= hr.saved.GPOids;
   }
 
+  //need to get the value of currentGPOrow when this function is called because getSingleGPOheader changes it
+  //THis is basically the currentGPOrow when the async loop started
+  var asyncStartCurrentGPOrow = hr.saved.currentGPOrow;
+
   console.log(hr.saved.currentGPOrow + ' ' + GPOids.length)
 
   async.forEachOf(GPOids, function (value, key, done) {
 //      console.log(key+hr.saved.currentGPOrow)
-      getSingleGPOheader(key+hr.saved.currentGPOrow)
+      getSingleGPOheader(key+asyncStartCurrentGPOrow)
         .then(function () {
 //                console.log(String(key+1) + 'done');
                 done();})

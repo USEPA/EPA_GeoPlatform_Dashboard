@@ -1,4 +1,4 @@
-var getTokenOnly=false;
+var getTokenOnly=true;
 
 var useSync=false;
 //How many aysnc requests can be run at one time. too many and things crash
@@ -47,14 +47,14 @@ hr.saved.currentRequest=1;
 var monk = require('monk');
 var db = monk('localhost:27017/egam');
 
-var gpoitemcollection = db.get('GPOitems');
+var gpoitemcollection = db.get('GPOitemsRemote');
 
 if (getTokenOnly===true) {
   getToken()
       .catch(function(err) {
           console.error('Error received:', err);
       })
-      .done(function() {console.log(hr.saved.token);process.exit();});
+      .done(function() {console.log("\n" + hr.saved.token);process.exit();});
 }else {
 //clear out any existing
   gpoitemcollection.remove({});
@@ -153,7 +153,7 @@ function HandleGPOitemsResponseSync(body) {
 function HandleGPOitemsResponseAsync(body) {
 //  console.log('current Row ' + hr.saved.currentRow + ' to ' + (hr.saved.currentRow + body.results.length-1));
 //  console.log('current Request ' + hr.saved.currentRequest );
-  console.log('request Start ' + (body.nextStart - body.results.length ) + ' to ' + (body.nextStart -1) + ' (items retrieved: ' + (hr.saved.currentRow + body.results.length-1) + ')');
+  console.log('request Start ' + body.start + ' to ' + (body.start + body.results.length -1) + ' (items retrieved: ' + (hr.saved.currentRow + body.results.length-1) + ')');
 //next start is not neccessarily found in order so use currentRow to konw how far along
   hr.saved.currentRow += body.results.length;
   hr.saved.currentRequest += 1
@@ -161,10 +161,10 @@ function HandleGPOitemsResponseAsync(body) {
 }
 
 function getGPOitemsHybrid() {
-  return   getRequestStartArray().then(HandleGPOitemsResponseAsync).then(getGPOitemsHybridStartArray)
+  return   getRequestStartArray().then(HandleGPOitemsResponseAsync).then(getGPOitemsHybridFromStartArray)
 }
 
-function getGPOitemsHybridStartArray() {
+function getGPOitemsHybridFromStartArray() {
   return hr.promiseWhile(function() {return hr.saved.currentRow<=hr.saved.totalRows;}, getGPOitemsAsyncFromStartArray);
 }
 
