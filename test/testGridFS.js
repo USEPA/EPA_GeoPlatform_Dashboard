@@ -1,5 +1,5 @@
 var testReading=false;
-//var testReading=true;
+var testReading=true;
 
 var request = require('request');
 var Q = require('q');
@@ -17,9 +17,11 @@ var hr = new hrClass(config);
 var testUrls = ["http://tegasigns.com/sitemakr/media/tega/tega/home/home-pagemap.jpg","http://tegasigns.com"];
 var testUrlNames = ["home.jpg","index.html"];
 
-var token="OdPajFIyOwOT_iolwh6x8ohGiYEOSZt3jIrbADajBoPcCkNDEr2GrtbzefXCUzkP8_NJ0D61ERl5eu0I5IJ0ntPN6KryL0AqwK3o6LzzBc_f3z6PUCqMTISkER6AuXRSFjRTZmiXadHSno9jLwWfow..";
+
+var token="q5-lGLqEWTuo_vi53hBjppKEtorHgfgHqmpP08SwTfAxAeorSm_rhvuyXwTFnSqnKYOaBDToDTEbD4b3iRTSIbZGdOog3CDaXWLVAOhkzY-RGYyXryfvgCFlCKj4CmpURuAsCXlFRRaM9Ho5hfcLyg..";
 var testUrls = ["http://tegasigns.com","https://epa.maps.arcgis.com/sharing/rest/content/items/b1f88ef123c342879eae983888837c5d/data?&token="+token,"https://epa.maps.arcgis.com/sharing/rest/content/items/c38ed2fdf2644cccab8433789e560817/data?&token=OdPajFIyOwOT_iolwh6x8ohGiYEOSZt3jIrbADajBoPcCkNDEr2GrtbzefXCUzkP8_NJ0D61ERl5eu0I5IJ0ntPN6KryL0AqwK3o6LzzBc_f3z6PUCqMTISkER6AuXRSFjRTZmiXadHSno9jLwWfow.."];
-var testUrlNames = ["index.html","ShapeFile.zip","WebMap.json"];
+testUrls.push("https://epa.maps.arcgis.com/sharing/rest/content/items/2b21ade2abbc423693762526f797272e/data?&token="+token);
+var testUrlNames = ["index.html","ShapeFile.zip","WebMap.html","Attach.zip"];
 
 
 https://epa.maps.arcgis.com/sharing/rest/content/items/c38ed2fdf2644cccab8433789e560817/data?&token=OdPajFIyOwOT_iolwh6x8ohGiYEOSZt3jIrbADajBoPcCkNDEr2GrtbzefXCUzkP8_NJ0D61ERl5eu0I5IJ0ntPN6KryL0AqwK3o6LzzBc_f3z6PUCqMTISkER6AuXRSFjRTZmiXadHSno9jLwWfow..
@@ -89,6 +91,7 @@ db.open(function (err) {
             done();
           });
 
+          console.log(value);
           response.pipe(writestream);
         });
     }
