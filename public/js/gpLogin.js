@@ -51,12 +51,15 @@ require([
 //after sign in also login to backend using the token and username
           $.post('/login',{username:portalUser.username,token:portalUser.credential.token },function(){
 //This work flow is just temporary to see if username takes. Probably should have one function that is called after signing in.
-            populateTable("gpoitemtable1");
+            //populateTable("gpoitemtable1",{$or:[{access:"private"}, {tag:"Tern"}]});
+            //populateTable("gpoitemtable1", {});
+
 //Make other tables filter out some stuff.....
-            populateTable("gpoitemtable2",{access:"private"});
-            populateTable("gpoitemtable3",{thumbnail:null});
+            // populateTable("gpoitemtable2",{access:"private"});
+            // populateTable("gpoitemtable3",{thumbnail:null});
 
           console.log("Signed in to the portal: ", portalUser);
+
 
           //domAttr.set("userId", "innerHTML", portalUser.fullName);
           domAttr.set("userId", "innerHTML", "<a>Welcome " + portalUser.fullName + "</a>");
@@ -65,7 +68,15 @@ require([
           domStyle.set("personalizedPanel", "display", "block");
           domStyle.set("mainWindow", "display", "block");
 
-          queryPortal(portalUser);
+          //Is User Admin or lower
+          if(portalUser.role == "org_admin"){
+            //for now site is the same for both but in furture
+            //call function to set up page for Admin
+            queryPortal(portalUser);
+          }else{
+            queryPortal(portalUser);
+          }
+          
           });
         }
       ).otherwise(
@@ -89,15 +100,18 @@ require([
 
       portal.queryItems(queryParams).then(createGallery);
 
-
+      //Display number of groups User has access to
       portalUser.getGroups().then(function(groups){
-        //alert(groups.length);
         var htmlFragment = "";
        htmlFragment = "<a >" + groups.length + "</a>";
        dom.byId("agoGroups").innerHTML = htmlFragment;
 
       });
-      
+
+      //Query Mongo db
+      //and populat user table in the user view
+      populateUserTables({});
+
       /*var queryParamsGroup = {
         q: "owner:Region9_EPA",
         //sortField: "numViews",
