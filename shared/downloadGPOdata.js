@@ -10,13 +10,15 @@ var AsyncRequestLimit=50;
 //setting to 0 or 1 is the same as useSync=true
 var AsyncRowLimit=25;
 
+var AsyncAuditRowLimit = 100;
+
 //******FOR TESTING ONLY
 //For testing to only get metadata set to true, usually set to false
-var onlyGetMetaData = false;
+var onlyGetMetaData = true;
 //For testing saving json and text only set to true, usuall set to false
 var dontSaveBinary = false;
 //For testing download of specific slash data, usually set to null
-HardCodeSlashDataTestIDs =null;
+var HardCodeSlashDataTestIDs =null;
 if (HardCodeSlashDataTestIDs) {
   HardCodeSlashDataTestIDs.push('091f277d34aa4e4996d142b2585bd12c');
   HardCodeSlashDataTestIDs.push('2868c888528f4735b17721f0cf416b9a');
@@ -46,8 +48,8 @@ catch (e) {
     process.exit();
 }
 
-var utilities=require(appRoot + '/utilities');
-var hrClass = require(appRoot + '/utilities/handleGPOresponses');
+var utilities=require(appRoot + '/shared/utilities');
+var hrClass = require(appRoot + '/shared/handleGPOresponses');
 var hr = new hrClass(config);
 //console.log(hr);
 
@@ -90,6 +92,9 @@ hr.saved.modifiedGPOids = [];
 
 hr.saved.historyGPOitems = [];
 
+//Audit stuff
+var AuditClass=require(appRoot + '/shared/Audit');
+
 //getSingleGPOTest();
 //getSingleGPOTest(1).then(function () {console.log('resolve');});
 //return;
@@ -120,6 +125,7 @@ if (useSync) {
   }
 }
 
+
 //Just for testing if opnly want meta data this is just a dummy pass through function
 if (onlyGetMetaData) {getGPOdata = function () {return true}};
 
@@ -132,6 +138,7 @@ connectDB()
   .then(getLocalGPOids)
   .then(getGPOitems)
   .then(getGPOdata)
+  .then(getGPOaudit)
 //  .then(getSingleGridFS)
   .then(removeLocalGPOitems)
   .catch(function (err) {
@@ -297,7 +304,8 @@ function saveModifiedGPOitems(modifiedGPOids,modifiedGPOitems) {
   if (modifiedGPOitems.length > 0) {
     return Q(itemscollection.remove( {id:{$in:modifiedGPOids}} ))
       .then(function () {return Q(itemscollection.insert(modifiedGPOitems))})
-      .then(function () {return Q(historycollection.insert(historyGPOitems))});
+      .then(function () {return Q(historycollection.insert(historyGPOitems))})
+      .then(function () {return getGPOaudit(modifiedGPOitems);});
   }else {
     return Q(true);
   }
@@ -684,3 +692,100 @@ function handleLocalGPOidsPromise(docs) {
   return docs;
 }
 
+//**** Beginning of the auditing
+//
+
+function getGPOaudit(modifiedGPOitems) {
+  var useSyncAudit=false;
+  if (AsyncAuditRowLimit===0 || AsyncAuditRowLimit===1)  useSyncAudit=true;
+
+  hr.saved.auditGPOrow = 1;
+  hr.saved.auditGPOcount = modifiedGPOitems.length;
+  hr.saved.auditGPOitems = modifiedGPOitems;
+
+//String along aysn function calls to AGOL REST API
+  var getGPOauditVersion=null;
+  if (useSyncAudit) {
+    console.log('Perform Audit  using Sync');
+    getGPOauditVersion = getGPOauditSync;
+  } else {
+    if(AsyncAuditRowLimit===null){
+      console.log('Perform Audit using Full Async ');
+      getGPOauditVersion =getGPOauditAsync;
+    }else {
+      console.log('Perform Audit using Hybrid ');
+      getGPOauditVersion =getGPOauditHybrid;
+    }
+  }
+
+  return getGPOauditVersion();
+}
+
+function getSingleGPOaudit(auditGPOitem) {
+//Have to have an audit class for each audit because they are going on concurrently when async
+  var audit=new AuditClass();
+
+  //if async loop then have to pass the item
+  //for sync don't pass but get from current row
+  if (! auditGPOitem) {
+    auditGPOitem = hr.saved.auditGPOitems[hr.saved.auditGPOrow-1];
+  }
+
+  //Note: this not usd for pure async, for hybrid it only determines modifiedGPOrow at start of each aysnc foreach loop
+  hr.saved.auditGPOrow += 1;
+
+  audit.validate(auditGPOitem);
+
+  return Q(itemscollection.update({id:auditGPOitem.id},{$set:{AuditData:audit.results}}))
+    .then(function () {delete audit;return true})
+    .catch(function(err) {
+      console.error("Error updating Audit Data for " + id + " : " + err);
+    })
+}
+
+
+function getGPOauditSync(GPOids) {
+  return hr.promiseWhile(function() {return hr.saved.auditGPOrow<=hr.saved.auditGPOcount;}, getSingleGPOaudit);
+}
+
+function getGPOauditHybrid() {
+  return hr.promiseWhile(function() {return hr.saved.auditGPOrow<=hr.saved.auditGPOcount;}, getGPOauditAsync);
+}
+
+function getGPOauditAsync() {
+  var async = require('async');
+
+  var defer = Q.defer();
+
+  var GPOitems;
+  if (AsyncAuditRowLimit) {
+//take slice form current row to async row limit
+    GPOitems= hr.saved.auditGPOitems.slice(hr.saved.auditGPOrow-1,hr.saved.auditGPOrow-1+AsyncAuditRowLimit);
+  }else {
+    GPOitems= hr.saved.auditGPOitems;
+  }
+
+  console.log("Audit Data download from row " + hr.saved.auditGPOrow + " to " + (hr.saved.auditGPOrow + GPOitems.length -1));
+
+  async.forEachOf(GPOitems, function (gpoItem, index, done) {
+      getSingleGPOaudit(gpoItem)
+        .catch(function(err) {
+          console.error('For Each Single GPO Audit Error :', err);
+        })
+        .done(function() {
+          done();
+//          console.log('for loop success')
+        });
+    }
+    , function (err) {
+      if (err) console.error('For Each GPO Audit Error :' + err.message);
+//resolve this promise
+//      console.log('resolve')
+      defer.resolve();
+    });
+
+//I have to return a promise here for so that chain waits until everything is done until it runs process.exit in done.
+//chain was NOT waiting before and process exit was executing and data data not being retrieved
+  return defer.promise
+}
+//***End of audit stuff ***//

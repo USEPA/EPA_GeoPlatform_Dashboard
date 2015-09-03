@@ -21,7 +21,7 @@ module.exports = function(grunt) {
         script: 'bin/www',
         options: {
           ext: '.js',
-          watch: ['app.js',]
+          watch: ['bin/www','app.js','config/**/*.js','routes/**/*.js','shared/**/*.js']
         }
       },
       debug: {
@@ -29,18 +29,18 @@ module.exports = function(grunt) {
         options: {
           nodeArgs: ['--debug'],
           ext: '.js',
-          watch: ['app.js',]
+          watch: ['bin/www','app.js','config/**/*.js','routes/**/*.js','shared/**/*.js']
         }
       }
     },
     jshint: {
       all: {
-        src: ['bin/www','app.js','config/**/*.js','routes/**/*.js','utilities/**/*.js']
+        src: ['bin/www','app.js','config/**/*.js','routes/**/*.js','shared/**/*.js']
       }
     },
     concurrent: {
       dev: {
-        tasks: ['nodemon','watch'],
+        tasks: ['nodemon','watch:lint'],
         options: {
           logConcurrentOutput: true
         }
@@ -66,31 +66,38 @@ module.exports = function(grunt) {
       }
     },
     watch: {
-      js: {
-        files: ['bin/www','app.js','config/**/*.js','routes/**/*.js','utilities/**/*.js'],
+      lint: {
+        files: ['bin/www', 'app.js', 'config/**/*.js', 'routes/**/*.js', 'shared/**/*.js'],
         tasks: ['lint']
 //        tasks: ['forever:egam:restart']
 //        cmd: 'node-debug ./bin/www'
-      }
+      },
+      reload: {
+        files: 'public/**/*',
+        options: {
+          livereload: true
+        }
+      },
     },
     run: {
       debug: {
         options:{wait:true},
-//        cmd: 'node-debug ./bin/www'
+//        cmd: "node-debug",args: ['.\bin\www']
 //Not sure why the above will not work and I have to put the command in debug.bat
         cmd: 'debug.bat'
       }
+    },
+    express: {
+      all: {
+        options: {
+          bases: ['C:\\egam\\public'],
+          server: 'C:\\egam\\app.js',
+          port: 3000,
+          hostname: 'localhost',
+          livereload: true
+        }
+      }
     }
-//    ,express: {
-//      dev: {
-//        options: {
-//          port: 3000,
-//          bases: ['/public'],
-//          keepalive: true,
-//         server: './bin/www'
-//        }
-//     }
-//    }
 //    ,rerun: {
 //      dev: {
 //        options: {
@@ -116,6 +123,7 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-run');
   grunt.loadNpmTasks('grunt-contrib-watch');
   grunt.loadNpmTasks('grunt-contrib-jshint');
+  grunt.loadNpmTasks('grunt-express');
 //  grunt.loadNpmTasks('grunt-rerun');
 //  grunt.loadNpmTasks('grunt-forever');
 
@@ -130,6 +138,8 @@ module.exports = function(grunt) {
 //  grunt.registerTask('debug', ['env:dev','run:debug','watch']);
 //  grunt.registerTask('debug', ['run:debug']);
   grunt.registerTask('lint', ['jshint']);
+
+  grunt.registerTask('reload', ['express','open:dev','watch:reload']);
 
 //to change env before running app: grunt env:stg default
 //to open browser and change env before running app: grunt env:stg browse default

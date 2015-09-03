@@ -5,7 +5,7 @@ module.exports = function(app) {
 
   /* GET home page. */
   router.use('/login', function (req, res, next) {
-    var utilities = require(app.get('appRoot') + 'utilities');
+    var utilities = require(app.get('appRoot') + '/shared/utilities');
 
     var config = app.get('config');
     var url = config.portal + '/sharing/rest/portals/self';
@@ -23,7 +23,7 @@ module.exports = function(app) {
 //Pass parameters via form attribute
     var requestPars = {method: 'get', url: url, qs: qsPars};
 
-    var hrClass = require('../utilities/handleGPOresponses');
+    var hrClass = require(app.get('appRoot') + '/shared/HandleGPOresponses');
     var hr = new hrClass(config);
 
     function handleResponse(body) {

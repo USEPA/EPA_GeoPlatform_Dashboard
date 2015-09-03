@@ -11,7 +11,7 @@ var appRoot=require('app-root-path');
 var config = require(appRoot + '/config/env');
 //var config = require('../config/env');
 
-var hrClass = require(appRoot + '/utilities/handleGPOresponses');
+var hrClass = require(appRoot + '/shared/handleGPOresponses');
 var hr = new hrClass(config);
 
 var testUrls = ["http://tegasigns.com/sitemakr/media/tega/tega/home/home-pagemap.jpg","http://tegasigns.com"];
