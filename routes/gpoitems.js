@@ -3,7 +3,7 @@ module.exports = function(app) {
   var router = express.Router();
 
   router.use('/list', function(req, res) {
-    var utilities = require(app.get('appRoot') + 'utilities');
+    var utilities = require(app.get('appRoot') + '/shared/utilities');
 //    var db = req.db;
     var db = app.get('monk');
     
