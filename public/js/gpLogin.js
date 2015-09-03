@@ -112,6 +112,7 @@ require([
       //and populat user table in the user view
       populateUserTables({});
 
+
       /*var queryParamsGroup = {
         q: "owner:Region9_EPA",
         //sortField: "numViews",

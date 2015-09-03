@@ -204,8 +204,7 @@
 
 <!-- Begin overView -->
           <div class="view collapse in" id="overviewView" >
-
-          <div id="overviewTable" class="table-responsive">   
+          <div id="overviewTable" class="table-responsive">
            <h2 class="sub-header">Overview</h2>
             <table id="gpoitemtable1" class="table table-striped table-hover">
               <thead>
@@ -221,7 +220,7 @@
                 </tr>
               </thead>
                 <tbody data-bind="foreach: content">
-                  <tr>
+                  <tr onclick="rowSelect(this)">
                     <!-- <td data-bind="text: id"></td> -->
                     <td data-bind="if: type">
                       <!-- ko if:type=='Web Map' -->
@@ -239,14 +238,53 @@
                     <td data-bind="text: type"></td>
                     <td data-bind="text: numViews"></td>
                     <td data-bind="text: owner"></td>
-                    <td ><img src="../img/warningyellow.jpg" style="width:25px"></td>
+                    <td >
+                        <div data-bind="if: AuditData.compliant">
+                            <img src="../img/greenOK.jpg" style="width:25px">
+                        </div>
+                        <div data-bind="ifnot: AuditData.compliant">
+                            <img src="../img/warningyellow.jpg" style="width:25px">
+                        </div>
                   </tr>
                 </tbody>
             </table>
-          </div> 
+          </div>
           
           </div>
 <!-- End  overView -->
+            <!--<button type="button" class="btn btn-primary btn-lg" data-toggle="modal" data-target="#myModal">-->
+            <!--Launch demo modal-->
+            <!--</button>-->
+            <!-- Modal -->
+            <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close" ><span aria-hidden="true">&times;</span></button>
+                            <h4 class="modal-title" id="myModalLabel">Item Details</h4>
+                        </div>
+                        <div class="modal-body">
+                            <form role="form" data-bind>
+                                <div class="form-group">
+                                    <label for="inputdefault">Title</label>
+                                    <input class="form-control" id="inputdefault" type="text">
+                                </div>
+                                <div class="form-group">
+                                    <!--<div class="col-md-12">-->
+                                    <label for="inputdefault">Description</label>
+                                    <textarea class="form-control" id="inputdefault" style="overflow:auto;resize:vertical" rows="3" placeholder="Description"></textarea>
+                                    <!--</div>-->
+                                </div>
+                            </form>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                            <button type="button" class="btn btn-primary">Save changes</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
 
 <!-- Metrics View -->
           <div class="view collapse" id="metricsView" >
