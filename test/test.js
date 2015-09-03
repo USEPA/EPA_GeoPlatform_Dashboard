@@ -1,10 +1,60 @@
-var utilities=require('../utilities');
+var util = require('util');
+var utilities=require('../shared/utilities');
 
 
 utilities.streamify('foo\n').pipe(process.stdout);
 
 
 disp = 'attachment; filename="SCAT.sd"'
+
+var AuditClass=require('../shared/Audit');
+var audit = new AuditClass();
+
+var doc = {};
+//Remember to escape the escape characters
+
+doc.access = "public";
+doc.type = "Web Mapping Application";
+doc.title = "My name is Aaron Evans joke-copy test";
+doc.tags = ["tag 1 is a test","tag 2 is a -copy"];
+doc.snippet = "<div>testing snippet test</div>";
+doc.description = "contains four words test";
+doc.thumbnail = null;
+
+audit.validate(doc);
+
+//audit.checkForbiddenWords("title",doc,[" test ","-copy "]);
+//audit.checkForbiddenWords("tags",doc,[" test ","-copy "]);
+
+//audit.checkForbiddenWords(["title","tags"],doc,[" test ","-copy "]);
+
+//audit.checkForbiddenWords(["snippet","description"],doc,[" test "]);
+
+//audit.checkWordLimit("description",doc,5,10);
+
+//audit.checkArrayLimit("tags",doc,3);
+
+//audit.checkRequiredField("thumbnail",doc);
+
+//audit.checkInArray("tags",doc,[" dogs ", " usepa "]);
+
+console.log(util.inspect(audit, false, null))
+return;
+
+var mapcheck = audit.mapFunctionToArray(audit.checkForbiddenWords,tags,comp);
+console.log(mapcheck);
+
+var arrcheck = audit.checkArrayLimits(tags,3);
+console.log(arrcheck );
+
+var reqcheck = audit.checkRequiredWords(test,comp);
+console.log(reqcheck);
+
+var mapcheck = audit.mapFunctionToArray(audit.checkRequiredWords,tags,comp);
+console.log(mapcheck);
+
+var wordcheck = audit.checkWordLimits(test,4);
+console.log(wordcheck  );
 
 return;
 
