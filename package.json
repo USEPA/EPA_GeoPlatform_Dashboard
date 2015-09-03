@@ -26,7 +26,7 @@
     "async": "~1.4.2",
     "gridfs-stream": "~1.1.1",
     "array-extended": "~0.0.11",
-    "ajar": "~1.0.0",
+    "jafar": "~1.0.0",
     "content-disposition": "~0.5.0"
   },
   "devDependencies": {

@@ -138,7 +138,6 @@ connectDB()
   .then(getLocalGPOids)
   .then(getGPOitems)
   .then(getGPOdata)
-  .then(getGPOaudit)
 //  .then(getSingleGridFS)
   .then(removeLocalGPOitems)
   .catch(function (err) {
