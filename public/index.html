@@ -220,18 +220,24 @@
                 </tr>
               </thead>
                 <tbody data-bind="foreach: content">
-                  <tr onclick="rowSelect(this)">
+                  <tr data-bind="click: $parent.select" data-toggle="modal" data-target="#myModal" >
                     <!-- <td data-bind="text: id"></td> -->
                     <td data-bind="if: type">
-                      <!-- ko if:type=='Web Map' -->
-                      <img src="http://cdn.arcgis.com/cdn/7000/js/jsapi/esri/css/images/item_type_icons/maps16.png">
-                      <!-- /ko -->
-                      <!-- ko if:type=='Web Mapping Application' -->
-                      <img src="http://cdn.arcgis.com/cdn/7000/js/jsapi/esri/css/images/item_type_icons/apps16.png">
-                      <!-- /ko -->
-                      <!-- ko if:type=='Feature Layer' -->
-                      <img src="http://cdn.arcgis.com/cdn/7000/js/jsapi/esri/css/images/item_type_icons/featureshosted16.png">
-                      <!-- /ko -->
+                        <!-- ko if:type()=='Web Map' -->
+                        <img src="http://cdn.arcgis.com/cdn/7000/js/jsapi/esri/css/images/item_type_icons/maps16.png">
+                        <!-- /ko -->
+                        <!-- ko if:type()=='Web Mapping Application' -->
+                         <img src="http://cdn.arcgis.com/cdn/7000/js/jsapi/esri/css/images/item_type_icons/apps16.png">
+                        <!-- /ko -->
+                        <!-- ko if:type()=='Feature Layer' -->
+                        <img src="http://cdn.arcgis.com/cdn/7000/js/jsapi/esri/css/images/item_type_icons/featureshosted16.png">
+                        <!-- /ko -->
+                        <!-- ko if:type()=='Service Definition' -->
+                        <img src="http://cdn.arcgis.com/cdn/7000/js/jsapi/esri/css/images/item_type_icons/datafiles16.png">
+                        <!-- /ko -->
+                        <!-- ko if:type()=='Map Image layer' -->
+                        <img src="http://cdn.arcgis.com/cdn/7000/js/jsapi/esri/css/images/item_type_icons/mapimages16.png">
+                        <!-- /ko -->
                     </td>
                     <td data-bind="text: title" ></td>
                     <td data-bind="text: access"></td>
@@ -239,12 +245,13 @@
                     <td data-bind="text: numViews"></td>
                     <td data-bind="text: owner"></td>
                     <td >
-                        <div data-bind="if: AuditData.compliant">
+                        <div data-bind="if: AuditData">
                             <img src="../img/greenOK.jpg" style="width:25px">
                         </div>
-                        <div data-bind="ifnot: AuditData.compliant">
+                        <div data-bind="ifnot: AuditData">
                             <img src="../img/warningyellow.jpg" style="width:25px">
                         </div>
+                      </td >
                   </tr>
                 </tbody>
             </table>
@@ -255,7 +262,9 @@
             <!--<button type="button" class="btn btn-primary btn-lg" data-toggle="modal" data-target="#myModal">-->
             <!--Launch demo modal-->
             <!--</button>-->
-            <!-- Modal -->
+            <!--<input type="text" name="ID" data-bind="value: selected().title"/>-->
+
+            <!-- Modal for Editing -->
             <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
                 <div class="modal-dialog" role="document">
                     <div class="modal-content">
@@ -267,24 +276,28 @@
                             <form role="form" data-bind>
                                 <div class="form-group">
                                     <label for="inputdefault">Title</label>
-                                    <input class="form-control" id="inputdefault" type="text">
+                                    <input class="form-control" id="inputdefault" data-bind="value: selected().title" type="text">
                                 </div>
                                 <div class="form-group">
                                     <!--<div class="col-md-12">-->
                                     <label for="inputdefault">Description</label>
-                                    <textarea class="form-control" id="inputdefault" style="overflow:auto;resize:vertical" rows="3" placeholder="Description"></textarea>
+                                    <textarea class="form-control" id="inputdefault" style="overflow:auto;resize:vertical" data-bind="value: selected().description" rows="3" placeholder="Description"></textarea>
                                     <!--</div>-->
+                                </div>
+                                <div class="form-group">
+                                    <label for="inputdefault">Tags</label>
+                                    <input class="form-control" id="inputdefault" data-bind="value: selected().tags" type="text">
                                 </div>
                             </form>
                         </div>
                         <div class="modal-footer">
-                            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                            <button type="button" class="btn btn-primary">Save changes</button>
+                            <button type="button" class="btn btn-default" data-dismiss="modal" >Close</button>
+                            <button type="button" class="btn btn-primary" data-dismiss="modal">Save changes</button>
                         </div>
                     </div>
                 </div>
             </div>
-
+            <!--End Modal for Editing-->
 
 <!-- Metrics View -->
           <div class="view collapse" id="metricsView" >

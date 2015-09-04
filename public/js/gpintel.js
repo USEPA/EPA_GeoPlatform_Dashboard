@@ -90,11 +90,10 @@ var gpoData = [];
 
 function rowSelect(x){
     alert(x.rowIndex);
+    //alert("hello");
 
     //alert(gpoData[x.rowIndex-1].title);
-
-
-    $('#myModal').modal('show');
+    //$('#myModal').modal('show');
 };
 
 //populate tables for GPO User view
@@ -106,11 +105,36 @@ function populateUserTables(query){
     console.log(data);
 
       gpoData = data;
-      ko.applyBindings({content: data});
+      //ko.applyBindings({content: data});
       //alert("hello");
 
+      var rowModel = function (title, type, description, tags, access, numViews, owner, audit) {
+          this.title = ko.observable(title);
+          this.access = ko.observable(access);
+          this.type = ko.observable(type);
+          this.description = ko.observable(description);
+          this.tags = ko.observable(tags);
+          this.numViews = ko.observable(numViews);
+          this.owner = ko.observable(owner);
+          this.AuditData = ko.observable(audit);
+      };
 
-          //ko.applyBindings(new AppViewModel(data));
+      var RootViewModel = function(data){
+          var self = this;
+
+          self.content = ko.observableArray(data.map(function(i){
+              return new rowModel(i.title, i.type, i.description, i.tags, i.access, i.numViews, i.owner, i.AuditData.compliant);
+          }));
+
+          self.select = function(item){
+            self.selected(item);
+          };
+
+          self.selected = ko.observable(self.content()[0]);
+
+
+      };
+      ko.applyBindings(new RootViewModel(data));
   });
 
 };
