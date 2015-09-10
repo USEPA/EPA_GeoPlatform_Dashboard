@@ -132,9 +132,13 @@ function populateUserTables(query){
 
           self.selected = ko.observable(self.content()[0]);
 
-
       };
       ko.applyBindings(new RootViewModel(data));
+
+      //apply data table magic
+      $('#gpoitemtable1').DataTable({
+          "order": [[1,"asc"]]
+      });
   });
 
 };
