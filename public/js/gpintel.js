@@ -135,10 +135,13 @@ function populateUserTables(query){
       };
       ko.applyBindings(new RootViewModel(data));
 
-      //apply data table magic
+      //apply data table magic, ordered ascending by title
       $('#gpoitemtable1').DataTable({
           "order": [[1,"asc"]]
       });
+
+
   });
+
 
 };
