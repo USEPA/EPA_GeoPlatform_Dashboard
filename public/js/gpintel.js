@@ -16,11 +16,19 @@ $(document).ready(function() {
 
    });
 
+    //$('#myModal').on('show.bs.modal', function (e) {
+    //    alert("Modal Opening");
+    //})
+
 
 
 });
+//function to  apply error checking
+function titleCheck(e){
+   //alert("here");
+    e.validate('validate');
 
-
+};
 // function AppViewModel() {
 //         this.firstName = ko.observable("Bert");
 //         this.lastName = ko.observable("Bertington");

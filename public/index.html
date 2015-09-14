@@ -273,11 +273,15 @@
                             <h4 class="modal-title" id="myModalLabel">Item Details</h4>
                         </div>
                         <div class="modal-body">
-                            <form role="form" data-bind>
-                                <div class="form-group">
-                                    <label for="inputdefault">Title</label>
-                                    <input class="form-control" id="inputdefault" data-bind="value: selected().title" type="text">
+                            <form role="form">
+                                <!-- ko if: selected().title -->
+                                <div data-bind="validationElement: selected().title">
+                                    <label for="inputTitle">Title</label>
+                                    <input class="form-control"  id="inputTitle" data-bind="value: selected().title" type="text">
+                                    <!--<span class="glyphicon glyphicon-remove form-control-feedback" aria-hidden="true" aria-describedby="inputError2Status"></span>-->
+                                    <!--<span id="inputError2Status" class="sr-only">(error)</span>-->
                                 </div>
+                                <!-- /ko -->
                                 <div class="form-group">
                                     <!--<div class="col-md-12">-->
                                     <label for="inputdefault">Description</label>
