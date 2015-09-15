@@ -305,7 +305,7 @@ Audit.prototype.addErrorMessage = function (field,doc,template,result) {
     if (result.index!==null) {
       if (! this.results.errors[field].items) this.results.errors[field].items = {};
       if (! this.results.errors[field].items[result.index]) this.results.errors[field].items[result.index] = [];
-  //if there was an error add it to errors object
+      //if there was an error add it to errors object
       if (! result.pass) {
         this.results.errors[field].items[result.index].push(error);
         this.results.errors[field].compliant=false;
