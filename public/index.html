@@ -274,6 +274,11 @@
                         </div>
                         <div class="modal-body">
                             <form role="form">
+                                <div class="form-group">
+                                    <label for="inputdefault">Thumbnail</label>
+                                    <input class="form-control" id="inputdefault" data-bind="value: selected().thumbnail" type="text">
+                                </div>
+
                                 <!-- ko if: selected().title -->
                                 <div data-bind="validationElement: selected().title">
                                     <label for="inputTitle">Title</label>
