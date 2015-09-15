@@ -11,17 +11,21 @@ var AuditClass=require('../shared/Audit');
 var audit = new AuditClass();
 
 var doc = {};
-//Remember to escape the escape characters
 
+//Remember to escape the escape characters
 doc.access = "public";
+//doc.access = "private";
 doc.type = "Web Mapping Application";
+//doc.type = "File Geodatabase";
 doc.title = "My name is Aaron Evans joke-copy test";
 doc.tags = ["tag 1 is a test","tag 2 is a -copy"];
 doc.snippet = "<div>testing snippet test</div>";
 doc.description = "contains four words test";
 doc.thumbnail = null;
 
-audit.validate(doc);
+audit.validate(doc,["description","tags"]);
+
+audit.validate(doc,["thumbnail"]);
 
 //audit.checkForbiddenWords("title",doc,[" test ","-copy "]);
 //audit.checkForbiddenWords("tags",doc,[" test ","-copy "]);
@@ -39,6 +43,17 @@ audit.validate(doc);
 //audit.checkInArray("tags",doc,[" dogs ", " usepa "]);
 
 console.log(util.inspect(audit, false, null))
+
+audit.clear();
+
+var config = require('../config/env');
+monk = require('monk')
+var db = monk(config.mongoDBurl);
+
+db.get('GPOitems').find({id:"3ec8c9c352674bd69f6477d747f2cae2"},{},function (e,docs) {
+  audit.validate(docs[0]);
+  console.log(util.inspect(audit, false, null))
+})
 return;
 
 var mapcheck = audit.mapFunctionToArray(audit.checkForbiddenWords,tags,comp);

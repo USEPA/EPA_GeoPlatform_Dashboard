@@ -11,6 +11,7 @@ var AsyncRequestLimit=50;
 var AsyncRowLimit=25;
 
 var AsyncAuditRowLimit = 100;
+//var AsyncAuditRowLimit = null;
 
 //******FOR TESTING ONLY
 //For testing to only get metadata set to true, usually set to false
@@ -206,6 +207,9 @@ function getGPOitemsChunk(requestStart,HandleGPOitemsResponse) {
   var url= portal + '/sharing/rest/search';
 
   var parameters = {'q':'orgid:'+hr.saved.orgID,'token' : hr.saved.token,'f' : 'json','start':requestStart,'num':requestItemCount };
+//testing single ID
+//  var parameters = {'q':'id:e58dcd33a6d4474caf9d0dd7ea75778e','token' : hr.saved.token,'f' : 'json','start':requestStart,'num':requestItemCount };
+
 //Pass parameters via form attribute
 
   var requestPars = {method:'get', url:url, qs:parameters };
@@ -698,9 +702,12 @@ function getGPOaudit(modifiedGPOitems) {
   var useSyncAudit=false;
   if (AsyncAuditRowLimit===0 || AsyncAuditRowLimit===1)  useSyncAudit=true;
 
-  hr.saved.auditGPOrow = 1;
-  hr.saved.auditGPOcount = modifiedGPOitems.length;
-  hr.saved.auditGPOitems = modifiedGPOitems;
+//need this new object itemsContext since can't use hr.saved to save row, count and item info
+// because multiple getGPOaudit running called by async getmetadata calls
+  var itemsContext = {};
+  itemsContext.row = 1;
+  itemsContext.count = modifiedGPOitems.length;
+  itemsContext.items = modifiedGPOitems;
 
 //String along aysn function calls to AGOL REST API
   var getGPOauditVersion=null;
@@ -717,21 +724,21 @@ function getGPOaudit(modifiedGPOitems) {
     }
   }
 
-  return getGPOauditVersion();
+  return getGPOauditVersion(itemsContext);
 }
 
-function getSingleGPOaudit(auditGPOitem) {
+function getSingleGPOaudit(itemsContext,auditGPOitem) {
 //Have to have an audit class for each audit because they are going on concurrently when async
   var audit=new AuditClass();
 
   //if async loop then have to pass the item
   //for sync don't pass but get from current row
   if (! auditGPOitem) {
-    auditGPOitem = hr.saved.auditGPOitems[hr.saved.auditGPOrow-1];
+    auditGPOitem = itemsContext.items[itemsContext.row-1];
   }
 
   //Note: this not usd for pure async, for hybrid it only determines modifiedGPOrow at start of each aysnc foreach loop
-  hr.saved.auditGPOrow += 1;
+  itemsContext.row += 1;
 
   audit.validate(auditGPOitem);
 
@@ -743,15 +750,17 @@ function getSingleGPOaudit(auditGPOitem) {
 }
 
 
-function getGPOauditSync(GPOids) {
-  return hr.promiseWhile(function() {return hr.saved.auditGPOrow<=hr.saved.auditGPOcount;}, getSingleGPOaudit);
+function getGPOauditSync(itemsContext) {
+  return hr.promiseWhile(function() {return itemsContext.row<=itemsContext.count;}, function () {return getSingleGPOaudit(itemsContext);});
 }
 
-function getGPOauditHybrid() {
-  return hr.promiseWhile(function() {return hr.saved.auditGPOrow<=hr.saved.auditGPOcount;}, getGPOauditAsync);
+function getGPOauditHybrid(itemsContext) {
+  return hr.promiseWhile(function() {return itemsContext.row<=itemsContext.count;}, function () {return getGPOauditAsync(itemsContext);});
 }
 
-function getGPOauditAsync() {
+function getGPOauditAsync(itemsContext) {
+//itemsContext is like hr.saved but just for this particular chunk of modified metadata
+//hr.saved can not be used because it would be referenced by multiple getAudit calls by async getMetaData
   var async = require('async');
 
   var defer = Q.defer();
@@ -759,15 +768,15 @@ function getGPOauditAsync() {
   var GPOitems;
   if (AsyncAuditRowLimit) {
 //take slice form current row to async row limit
-    GPOitems= hr.saved.auditGPOitems.slice(hr.saved.auditGPOrow-1,hr.saved.auditGPOrow-1+AsyncAuditRowLimit);
+    GPOitems= itemsContext.items.slice(itemsContext.row-1,itemsContext.row-1+AsyncAuditRowLimit);
   }else {
-    GPOitems= hr.saved.auditGPOitems;
+    GPOitems= itemsContext.items;
   }
 
-  console.log("Audit Data download from row " + hr.saved.auditGPOrow + " to " + (hr.saved.auditGPOrow + GPOitems.length -1));
+  console.log("Audit Data download from row " + itemsContext.row + " to " + (itemsContext.row + GPOitems.length -1));
 
   async.forEachOf(GPOitems, function (gpoItem, index, done) {
-      getSingleGPOaudit(gpoItem)
+      getSingleGPOaudit(itemsContext,gpoItem)
         .catch(function(err) {
           console.error('For Each Single GPO Audit Error :', err);
         })
