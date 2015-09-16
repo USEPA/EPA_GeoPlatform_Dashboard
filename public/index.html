@@ -274,28 +274,45 @@
                         </div>
                         <div class="modal-body">
                             <form role="form">
-                                <div class="form-group">
-                                    <label for="inputdefault">Thumbnail</label>
-                                    <input class="form-control" id="inputdefault" data-bind="value: selected().thumbnail" type="text">
-                                </div>
+                                <div class="row form-group">
+                                    <div class="col-md-4">
+                                        <div class="upload-drop-zone" id="drop-zone">
+                                            Just drag and drop file here
+                                        </div>
+                                        <!--<label for="inputdefault">Thumbnail</label>-->
+                                        <form action="" method="post" enctype="multipart/form-data" id="js-upload-form">
+                                            <div class="form-inline">
+                                                <div class="form-group">
+                                                    <input type="file" name="files[]" id="js-upload-files" multiple>
+                                                </div>
+                                                <!--<button type="submit" class="btn btn-sm btn-primary" id="js-upload-submit">Upload files</button>-->
+                                            </div>
+                                        </form>
 
-                                <!-- ko if: selected().title -->
-                                <div data-bind="validationElement: selected().title">
-                                    <label for="inputTitle">Title</label>
-                                    <input class="form-control"  id="inputTitle" data-bind="value: selected().title" type="text">
-                                    <!--<span class="glyphicon glyphicon-remove form-control-feedback" aria-hidden="true" aria-describedby="inputError2Status"></span>-->
-                                    <!--<span id="inputError2Status" class="sr-only">(error)</span>-->
+                                        <!--<input class="form-control" id="inputdefault" data-bind="value: selected().thumbnail" type="text">-->
+                                    </div>
+                                    <div class="col-md-8" >
+                                        <div class="form-group" data-bind="validationElement: selected().title">
+                                            <label for="inputTitle">Title</label>
+                                            <input class="form-control"  id="inputTitle" data-bind="value: selected().title" type="text">
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="inputTitle">Summary</label>
+                                            <input class="form-control"  id="inputTitle" data-bind="value: selected().snippet" type="text">
+                                        </div>
+                                    </div>
                                 </div>
-                                <!-- /ko -->
-                                <div class="form-group">
-                                    <!--<div class="col-md-12">-->
-                                    <label for="inputdefault">Description</label>
-                                    <textarea class="form-control" id="inputdefault" style="overflow:auto;resize:vertical" data-bind="value: selected().description" rows="3" placeholder="Description"></textarea>
-                                    <!--</div>-->
+                                <div class="row form-group">
+                                    <div class="col-md-12">
+                                        <label for="inputdefault">Description</label>
+                                        <textarea class="form-control" id="inputdefault" style="overflow:auto;resize:vertical" data-bind="value: selected().description" rows="3" placeholder="Description"></textarea>
+                                    </div>
                                 </div>
-                                <div class="form-group">
-                                    <label for="inputdefault">Tags</label>
-                                    <input class="form-control" id="inputdefault" data-bind="value: selected().tags" type="text">
+                                <div class="row form-group">
+                                    <div class="col-md-12">
+                                        <label for="inputdefault">Tags</label>
+                                        <input class="form-control" id="inputdefault" data-bind="value: selected().tags" type="text">
+                                    </div>
                                 </div>
                             </form>
                         </div>

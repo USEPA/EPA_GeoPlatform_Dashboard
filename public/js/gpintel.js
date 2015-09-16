@@ -16,6 +16,8 @@ $(document).ready(function() {
 
    });
 
+
+
     //$('#myModal').on('show.bs.modal', function (e) {
     //    alert("Modal Opening");
     //})
@@ -116,12 +118,13 @@ function populateUserTables(query){
       //ko.applyBindings({content: data});
       //alert("hello");
 
-      var rowModel = function (title, type, description, tags, thumbnail, access, numViews, owner, audit) {
+      var rowModel = function (title, type, description, tags, snippet, thumbnail, access, numViews, owner, audit) {
           this.title = ko.observable(title);
           this.access = ko.observable(access);
           this.type = ko.observable(type);
           this.description = ko.observable(description);
           this.tags = ko.observable(tags);
+          this.snippet = ko.observable(snippet);
           this.thunbnail = ko.observable(thumbnail);
           this.numViews = ko.observable(numViews);
           this.owner = ko.observable(owner);
@@ -132,7 +135,7 @@ function populateUserTables(query){
           var self = this;
 
           self.content = ko.observableArray(data.map(function(i){
-              return new rowModel(i.title, i.type, i.description, i.tags, i.thumbnail, i.access, i.numViews, i.owner, i.AuditData.compliant);
+              return new rowModel(i.title, i.type, i.description, i.tags, i.snippet, i.thumbnail, i.access, i.numViews, i.owner, i.AuditData.compliant);
           }));
 
           self.select = function(item){
