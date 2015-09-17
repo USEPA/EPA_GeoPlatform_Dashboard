@@ -266,7 +266,7 @@
 
             <!-- Modal for Editing -->
             <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
-                <div class="modal-dialog" role="document">
+                <div class="modal-dialog modal-lg" role="document">
                     <div class="modal-content">
                         <div class="modal-header">
                             <button type="button" class="close" data-dismiss="modal" aria-label="Close" ><span aria-hidden="true">&times;</span></button>
@@ -276,10 +276,11 @@
                             <form role="form">
                                 <div class="row form-group">
                                     <div class="col-md-4">
+                                        <label for="inputdefault">For best results, the image should be 200 pixels wide by 133 pixels high. Other sizes will be adjusted to fit. Acceptable image formats are: PNG, GIF and JPEG.</label>
                                         <div class="upload-drop-zone" id="drop-zone">
-                                            Just drag and drop file here
+                                            Just drag and drop file
                                         </div>
-                                        <!--<label for="inputdefault">Thumbnail</label>-->
+                                        <!--<label for="inputdefault"></label>-->
                                         <form action="" method="post" enctype="multipart/form-data" id="js-upload-form">
                                             <div class="form-inline">
                                                 <div class="form-group">
@@ -297,28 +298,53 @@
                                             <input class="form-control"  id="inputTitle" data-bind="value: selected().title" type="text">
                                         </div>
                                         <div class="form-group">
-                                            <label for="inputTitle">Summary</label>
-                                            <input class="form-control"  id="inputTitle" data-bind="value: selected().snippet" type="text">
+                                            <label for="inputSnippet">Summary</label>
+                                            <input class="form-control"  id="inputSnippet" data-bind="value: selected().snippet" type="text">
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="inputDesc">Description</label>
+                                            <textarea class="form-control" id="inputDesc" style="overflow:auto;resize:vertical" data-bind="value: selected().description" rows="6" placeholder="Description"></textarea>
                                         </div>
                                     </div>
                                 </div>
                                 <div class="row form-group">
-                                    <div class="col-md-12">
-                                        <label for="inputdefault">Description</label>
-                                        <textarea class="form-control" id="inputdefault" style="overflow:auto;resize:vertical" data-bind="value: selected().description" rows="3" placeholder="Description"></textarea>
+                                    <div class="col-md-4" >
+                                        <label for="inputTags">Tags</label>
                                     </div>
                                 </div>
                                 <div class="row form-group">
                                     <div class="col-md-12">
-                                        <label for="inputdefault">Tags</label>
-                                        <input class="form-control" id="inputdefault" data-bind="value: selected().tags" type="text">
+                                        <form data-bind="submit:addItem">
+                                            Add item: <input type="text" data-bind='value: tagItemToAdd, valueUpdate: "afterkeydown"' />
+                                            <button type="submit" onclick="addItem" data-bind="enable: tagItemToAdd().length > 0">Add</button>
+                                        </form>
+                                        <select multiple="multiple" height="5" data-bind="options: selected().tags"> </select>
+                                    </div>
+                                    <!--<input class="form-control" id="inputTags" data-bind="value: selected().tags" type="text">-->
+                                </div>
+                                <div class="row form-group">
+                                    <div class="col-md-12">
+                                        <label for="inputLicenseInfo">Credits</label>
+                                        <input class="form-control" id="inputLicenseInfo" data-bind="value: selected().licenseInfo" type="text">
+                                    </div>
+                                </div>
+                                <div class="row form-group">
+                                    <div class="col-md-12">
+                                        <label for="inputAccessInfo">Access and use Constraints</label>
+                                        <input class="form-control" id="inputAccessInfo" data-bind="value: selected().accessInformation" type="text">
+                                    </div>
+                                </div>
+                                <div class="row form-group">
+                                    <div class="col-md-12">
+                                        <label for="inputUrl">Url</label>
+                                        <input class="form-control" id="inputUrl" data-bind="value: selected().url" type="url">
                                     </div>
                                 </div>
                             </form>
                         </div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-default" data-dismiss="modal" >Close</button>
-                            <button type="button" class="btn btn-primary" data-dismiss="modal">Save changes</button>
+                            <button type="button" onclick="javascript: postData();" class="btn btn-primary" data-dismiss="modal">Save changes</button>
                         </div>
                     </div>
                 </div>

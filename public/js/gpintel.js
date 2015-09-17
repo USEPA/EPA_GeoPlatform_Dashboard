@@ -106,6 +106,10 @@ function rowSelect(x){
     //$('#myModal').modal('show');
 };
 
+function postData(){
+    alert("Posting Data");
+}
+
 //populate tables for GPO User view
 function populateUserTables(query){
   query=JSON.stringify(query)
@@ -118,24 +122,31 @@ function populateUserTables(query){
       //ko.applyBindings({content: data});
       //alert("hello");
 
-      var rowModel = function (title, type, description, tags, snippet, thumbnail, access, numViews, owner, audit) {
+      var rowModel = function (title, type, description, tags, snippet, thumbnail, accessInformation, licenseInfo, access, numViews, owner, url, audit) {
           this.title = ko.observable(title);
           this.access = ko.observable(access);
           this.type = ko.observable(type);
           this.description = ko.observable(description);
-          this.tags = ko.observable(tags);
+          this.tags = ko.observableArray(tags);
           this.snippet = ko.observable(snippet);
           this.thunbnail = ko.observable(thumbnail);
+          this.accessInformation = ko.observable(accessInformation);
+          this.licenseInfo = ko.observable(licenseInfo);
           this.numViews = ko.observable(numViews);
           this.owner = ko.observable(owner);
+          this.url = ko.observable(url);
           this.AuditData = ko.observable(audit);
+          this.tagItemToAdd = ko.observable("");
+
+
       };
 
       var RootViewModel = function(data){
           var self = this;
 
           self.content = ko.observableArray(data.map(function(i){
-              return new rowModel(i.title, i.type, i.description, i.tags, i.snippet, i.thumbnail, i.access, i.numViews, i.owner, i.AuditData.compliant);
+              return new rowModel(i.title, i.type, i.description, i.tags, i.snippet, i.thumbnail, i.accessInformation, i.licenseInfo, i.access, i.numViews
+                  , i.owner, i.url, i.AuditData.compliant);
           }));
 
           self.select = function(item){
@@ -144,6 +155,12 @@ function populateUserTables(query){
 
           self.selected = ko.observable(self.content()[0]);
 
+          self.addItem = function () {
+              alert("here");
+              //if ((this.tagItemToAdd() != "") && (this.selected().tags.indexOf(this.tagItemToAdd()) < 0)) // Prevent blanks and duplicates
+              //    this.selected().tags.push(this.tagItemToAdd());
+              //this.tagItemToAdd(""); // Clear the text box
+          };
 
       };
       ko.applyBindings(new RootViewModel(data));
