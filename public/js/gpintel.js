@@ -137,7 +137,19 @@ function populateUserTables(query){
           this.url = ko.observable(url);
           this.AuditData = ko.observable(audit);
           this.tagItemToAdd = ko.observable("");
+          this.selectedItems = ko.observableArray([""]);
 
+          //Add tag to array
+          this.addItem = function () {
+              //alert("here");
+              if ((this.selected().tagItemToAdd() != "") && (this.selected().tags.indexOf(this.selected().tagItemToAdd()) < 0)) // Prevent blanks and duplicates
+                  this.selected().tags.push(this.selected().tagItemToAdd());
+              this.selected().tagItemToAdd(""); // Clear the text box
+          };
+          this.removeSelected = function () {
+              this.selected().tags.removeAll(this.selected().selectedItems());
+              this.selected().selectedItems([]); // Clear selection
+          };
 
       };
 
@@ -155,12 +167,13 @@ function populateUserTables(query){
 
           self.selected = ko.observable(self.content()[0]);
 
-          self.addItem = function () {
-              alert("here");
-              //if ((this.tagItemToAdd() != "") && (this.selected().tags.indexOf(this.tagItemToAdd()) < 0)) // Prevent blanks and duplicates
-              //    this.selected().tags.push(this.tagItemToAdd());
-              //this.tagItemToAdd(""); // Clear the text box
-          };
+          //self.tagItemToAdd = ko.observable("");
+          //self.addItem = function () {
+          //    //alert("here");
+          //    if ((this.tagItemToAdd() != "") && (this.selected().tags.indexOf(this.tagItemToAdd()) < 0)) // Prevent blanks and duplicates
+          //        this.selected().tags.push(this.tagItemToAdd());
+          //    this.tagItemToAdd(""); // Clear the text box
+          //};
 
       };
       ko.applyBindings(new RootViewModel(data));
