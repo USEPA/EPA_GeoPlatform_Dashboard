@@ -131,7 +131,8 @@ DownloadGPOdata.prototype.download = function () {
 //Now run the promise chain using desired getGPOitems/getGPOdata (sync vs async vs hybrid)
 
   return self.connectDB()
-    .delay(30000)
+//For testing simultaneous log ins
+//    .delay(30000)
     .then(self.getSelfInvokedFunction(self.getToken))
     .then(self.getSelfInvokedFunction(self.getOrgId))
     .then(self.getSelfInvokedFunction(self.getLocalGPOids))
