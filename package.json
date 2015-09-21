@@ -27,7 +27,8 @@
     "gridfs-stream": "~1.1.1",
     "array-extended": "~0.0.11",
     "jafar": "~1.0.0",
-    "content-disposition": "~0.5.0"
+    "content-disposition": "~0.5.0",
+    "tasks-queue": "~0.0.2"
   },
   "devDependencies": {
     "grunt": "~0.4.5",

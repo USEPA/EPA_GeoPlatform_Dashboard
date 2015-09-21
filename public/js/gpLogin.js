@@ -41,15 +41,25 @@ require([
     on(dom.byId("sign-out"), "click", function (){
       esriId.destroyCredentials();
 //log out of the express server
-      $.get('/logout');
-      window.location.reload();
+      $.get('/logout',function () {
+        window.location.reload();
+      }).fail(
+        function (){
+          console.log("Error occurred while signing out.");
+        }
+      );
     });
 
     function displayItems(){
       new arcgisPortal.Portal(info.portalUrl).signIn().then(
         function (portalUser){
 //after sign in also login to backend using the token and username
-          $.post('/login',{username:portalUser.username,token:portalUser.credential.token },function(){
+          $.post('/login',{username:portalUser.username,token:portalUser.credential.token },function(response){
+            if (response.error) {
+              alert("Error logging in to Server: " + response.error.message);
+              console.error();
+              return;
+            }
 //This work flow is just temporary to see if username takes. Probably should have one function that is called after signing in.
             //populateTable("gpoitemtable1",{$or:[{access:"private"}, {tag:"Tern"}]});
             //populateTable("gpoitemtable1", {});
