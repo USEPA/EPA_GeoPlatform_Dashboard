@@ -30,6 +30,10 @@ app.set('appRoot',appRoot);
 var db = monk(config.mongoDBurl);
 app.set('monk',db);
 
+//When somebody logins we wil need to have DB update of modified items run in a queue so they aren't updating same stuff on accident
+var TasksQueues = require(appRoot + '/shared/TasksQueues');
+app.set('tasksQueues',new TasksQueues(500));
+
 // gpintel, no engine needed - view engine setup
 //app.set('views', path.join(__dirname, 'views'));
 //app.set('view engine', 'jade');

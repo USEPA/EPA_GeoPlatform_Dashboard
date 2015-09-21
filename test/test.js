@@ -2,7 +2,103 @@ var util = require('util');
 var utilities=require('../shared/utilities');
 
 
-utilities.streamify('foo\n').pipe(process.stdout);
+function test2() {
+  tq = require('../shared/TasksQueues');
+
+  var Q = require('q');
+
+  var long = function () {
+    for (var i = 1; i <= 100; i=i+1) {
+      console.log(i);
+    }
+    return Q(true);
+  };
+
+  var short = function () {
+    console.log("short");
+    return Q(true);
+  };
+
+  tq.add('sample task',long);
+  tq.add('sample task',short);
+
+}
+test2();
+return;
+
+function test1() {
+
+var TasksQueue = require('tasks-queue');
+
+var Q = require('q');
+
+tq = new TasksQueue({autostop:false});
+
+// The queue should not execute more than one task in 500 ms.
+tq.setMinTime(500);
+tq.setVar('value',0);
+
+tq.execute();
+
+tq.on('sample task', process);
+
+
+var long = function () {
+  for (var i = 1; i <= 100000; i=i+1) {
+    console.log(i);
+  }
+  return Q(true);
+};
+
+var short = function () {
+    console.log("short");
+  return Q(true);
+};
+
+tq.pushTask('sample task',long);
+tq.pushTask('sample task',short);
+
+function process(jinn,promise) {
+  console.log("process");
+  promise().then(function () {jinn.done()}); // important!
+}
+
+}
+
+test1();
+
+if (1==0) {
+
+  q = new TasksQueue({autostop:false});
+
+// The queue should not execute more than one task in 500 ms.
+  q.setMinTime(500);
+  q.setVar('value',0);
+
+  q.on('sample task', process);
+  q.on('stop', logResults);
+
+  q.execute();
+
+  q.pushTask('sample task',{n:5});
+  q.pushTask('sample task',{n:32});
+  q.pushTask('sample task',{n:98});
+  q.pushTask('sample task',{n:33});
+
+  function process(jinn,data) {
+    var q = jinn.getQueue();
+    q.setVar('value', data.n + ' ' + q.getVar('value'));
+    console.log(q.getVar('value'));
+    jinn.done(); // important!
+  }
+
+  function logResults(jinn) {
+    console.log( jinn.getQueue().getVar('value') );
+  }
+
+return
+
+  utilities.streamify('foo\n').pipe(process.stdout);
 
 
 disp = 'attachment; filename="SCAT.sd"'
@@ -104,3 +200,5 @@ history2.find({},{}, function (e,doc) {
   console.log(doc);
 });
 
+
+}
