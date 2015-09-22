@@ -110,7 +110,7 @@ require([
 
       //Query Mongo db
       //and populat user table in the user view
-      populateUserTables({});
+      populateUserTables({},portalUser.credential.token );
 
 
       /*var queryParamsGroup = {
@@ -145,6 +145,10 @@ require([
 
       //dom.byId("itemGallery").innerHTML = htmlFragment;
     }
+
+
+
+
 
     function searchGroups(groups){
       alert(groups.results.length);

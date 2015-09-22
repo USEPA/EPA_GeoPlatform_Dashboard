@@ -142,23 +142,27 @@ body {
     cursor: pointer;
     text-decoration: underline;
   }
-
-.upload-drop-zone {
-  height: 133px;
-  border-width: 2px;
-  margin-bottom: 20px;
+.container {
+  max-width: 750px;
+  height: 100px;
+  padding: 15px;
 }
+/*.upload-drop-zone {*/
+  /*height: 133px;*/
+  /*border-width: 2px;*/
+  /*margin-bottom: 20px;*/
+/*}*/
 
-/* skin.css Style*/
-.upload-drop-zone {
-  color: #ccc;
-  border-style: dashed;
-  border-color: #ccc;
-  line-height: 200px;
-  text-align: center
-}
+/*/!* skin.css Style*!/*/
+/*.upload-drop-zone {*/
+  /*color: #ccc;*/
+  /*border-style: dashed;*/
+  /*border-color: #ccc;*/
+  /*line-height: 200px;*/
+  /*text-align: center*/
+/*}*/
 
-.upload-drop-zone.drop {
-  color: #222;
-  border-color: #222;
-}
+/*.upload-drop-zone.drop {*/
+  /*color: #222;*/
+  /*border-color: #222;*/
+/*}*/

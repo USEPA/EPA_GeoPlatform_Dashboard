@@ -111,7 +111,7 @@ function postData(){
 }
 
 //populate tables for GPO User view
-function populateUserTables(query){
+function populateUserTables(query, utoken){
   query=JSON.stringify(query)
 
   // jQuery AJAX call for JSON
@@ -122,7 +122,8 @@ function populateUserTables(query){
       //ko.applyBindings({content: data});
       //alert("hello");
 
-      var rowModel = function (title, type, description, tags, snippet, thumbnail, accessInformation, licenseInfo, access, numViews, owner, url, audit) {
+      var rowModel = function (id, title, type, description, tags, snippet, thumbnail, accessInformation, licenseInfo, access, numViews, owner, url, audit) {
+          this.id = ko.observable(id);
           this.title = ko.observable(title);
           this.access = ko.observable(access);
           this.type = ko.observable(type);
@@ -136,16 +137,18 @@ function populateUserTables(query){
           this.owner = ko.observable(owner);
           this.url = ko.observable(url);
           this.AuditData = ko.observable(audit);
+          //tags
           this.tagItemToAdd = ko.observable("");
           this.selectedItems = ko.observableArray([""]);
 
-          //Add tag to array
+          //Add tag to tags array
           this.addItem = function () {
               //alert("here");
               if ((this.selected().tagItemToAdd() != "") && (this.selected().tags.indexOf(this.selected().tagItemToAdd()) < 0)) // Prevent blanks and duplicates
                   this.selected().tags.push(this.selected().tagItemToAdd());
               this.selected().tagItemToAdd(""); // Clear the text box
           };
+          //Remove tag from tags array
           this.removeSelected = function () {
               this.selected().tags.removeAll(this.selected().selectedItems());
               this.selected().selectedItems([]); // Clear selection
@@ -157,7 +160,7 @@ function populateUserTables(query){
           var self = this;
 
           self.content = ko.observableArray(data.map(function(i){
-              return new rowModel(i.title, i.type, i.description, i.tags, i.snippet, i.thumbnail, i.accessInformation, i.licenseInfo, i.access, i.numViews
+              return new rowModel(i.id, i.title, i.type, i.description, i.tags, i.snippet, i.thumbnail, i.accessInformation, i.licenseInfo, i.access, i.numViews
                   , i.owner, i.url, i.AuditData.compliant);
           }));
 
