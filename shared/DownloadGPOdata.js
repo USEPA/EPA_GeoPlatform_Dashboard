@@ -458,7 +458,7 @@ DownloadGPOdata.prototype.getSingleGPOdata = function (modifiedGPOrow) {
     .on('response', this.getHandleGPOdata(defer,modifiedGPOrow))
     .on('error',function (err) {defer.reject('Error downloading Slash Data for ' + currentGPOid + ' : ' + err);});
 
-//  return this.Qnfcall(request, requestPars).then(getHandleGPOdata(modifiedGPOrow));
+//  return this.Q.nfcall(request, requestPars).then(getHandleGPOdata(modifiedGPOrow));
 
   return defer.promise;
 };

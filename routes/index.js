@@ -40,11 +40,9 @@ module.exports = function(app) {
         .then(handleResponse)
         .then(getOwnerIDs)
         .then(updateDBonLogin)
-        .catch(handleError)
+        .catch(utilities.getHandleError(resObject,"LoginError"))
 //Now that update is done we can finally return result
-        .done(function () {
-          res.json(resObject)
-        });
+        .done(function () {res.json(resObject)});
     }
 
     function handleResponse(body) {
@@ -59,11 +57,6 @@ module.exports = function(app) {
       } else {
         resObject = {error: {message: "Username does not match token", code: "UsernameTokenMismatch"}, body: null};
       }
-    }
-
-    function handleError(error) {
-//      resObject = {error: {message: error, code: "BadToken"}, body: null};
-      resObject = {error: {message: error.message, code: "LoginError"}, body: null};
     }
 
     function getOwnerIDs() {
@@ -159,13 +152,14 @@ module.exports = function(app) {
   });
 
   router.use('/logout', function (req, res, next) {
-    console.log("logout before: " + req.session.username)
     if ('session' in req) {
-      req.session.username = null;
-      req.session.token = null;
-      req.session.user = null;
+      console.log("logout: " + req.session.username)
+      req.session.destroy();
+//      req.session.username = null;
+//      req.session.token = null;
+//      req.session.user = null;
+//      console.log("logout after: " + req.session.username)
     }
-    console.log("logout after: " + req.session.username)
     res.json({error: null, body: {}});
   });
 

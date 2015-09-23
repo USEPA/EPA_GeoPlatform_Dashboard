@@ -54,6 +54,24 @@ utilities.streamify = function(text) {
   return s;
 };
 
+utilities.getHandleError = function (resObject,code) {
+  return function(error) {
+    resObject = {error: {message: error.message, code: code}, body: null};
+  }
+};
+
+utilities.writeStreamPromise = function (stream,text,encoding) {
+  var Q = require('q');
+//writes text to stream and returns promise
+//NOTE: If text is empty then does not write
+  if (text===0) text="0";
+  if (text) {
+    return Q.ninvoke(stream, "write", text,encoding);
+  }else {
+    return Q(true);
+  }
+};
+
 
 module.exports = utilities;
 
