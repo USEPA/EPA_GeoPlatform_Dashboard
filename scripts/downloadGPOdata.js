@@ -1,7 +1,7 @@
 //For tracking when script started
 var startTime = new Date();
 
-var getTokenOnly=false;
+var getTokenOnly=true;
 
 var appRoot=require('app-root-path');
 var config = require(appRoot + '/config/env');
