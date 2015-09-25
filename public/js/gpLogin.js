@@ -108,6 +108,7 @@ require([
 
       });
 
+      getThumbnailURL("3965e443bcf445faa0f91123a574ebad", portal);
       //Query Mongo db
       //and populat user table in the user view
       populateUserTables({},portalUser.credential.token );
@@ -120,6 +121,20 @@ require([
         num: 100
       };
       portal.queryGroups(queryParamsGroup).then(searchGroups);*/
+    }
+
+    function getThumbnailURL(itemID, portal){
+      var queryParams = {
+        q: "id:" + itemID,
+        sortField: "numViews",
+        sortOrder: "desc",
+        num: 100
+      };
+      portal.queryItems(queryParams).then(function(items){
+        //alert(items.results[0].thumbnailUrl);
+      });
+
+
     }
 
     function createGallery(items){
@@ -153,5 +168,7 @@ require([
     function searchGroups(groups){
       alert(groups.results.length);
     }
+
+
 
   });

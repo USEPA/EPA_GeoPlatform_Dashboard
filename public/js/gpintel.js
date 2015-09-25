@@ -15,7 +15,10 @@ $(document).ready(function() {
        $('.view').not(document.getElementById( view )).collapse('hide');
 
    });
-
+    $('#myModal').on('shown.bs.modal', function (e) {
+        //alert("hello");
+        $('#modalForm').validator('validate');
+    })
 
 
     //$('#myModal').on('show.bs.modal', function (e) {
@@ -106,10 +109,6 @@ function rowSelect(x){
     //$('#myModal').modal('show');
 };
 
-function postData(){
-    alert("Posting Data");
-}
-
 //populate tables for GPO User view
 function populateUserTables(query, utoken){
   query=JSON.stringify(query)
@@ -141,6 +140,10 @@ function populateUserTables(query, utoken){
           this.tagItemToAdd = ko.observable("");
           this.selectedItems = ko.observableArray([""]);
 
+          this.tnURLs = ko.computed(function(){
+              return "http://epa.maps.arcgis.com/sharing/rest/content/items/" + id + "/info/" + thumbnail + "?token=" + utoken;
+          });
+
           //Add tag to tags array
           this.addItem = function () {
               //alert("here");
@@ -153,6 +156,20 @@ function populateUserTables(query, utoken){
               this.selected().tags.removeAll(this.selected().selectedItems());
               this.selected().selectedItems([]); // Clear selection
           };
+
+          this.postback = function() {
+
+              //$.ajax({
+              //    type: "POST",
+              //    url: "GPOitems/update",
+              //    data: updateData,
+              //    success: success,
+              //    dataType: dataType
+              //});
+              console.log("Post back updated Items");
+          }
+
+
 
       };
 
@@ -170,6 +187,9 @@ function populateUserTables(query, utoken){
 
           self.selected = ko.observable(self.content()[0]);
 
+          //this.postback2 = function() {
+          //    alert(self.content);
+          //};
           //self.tagItemToAdd = ko.observable("");
           //self.addItem = function () {
           //    //alert("here");
