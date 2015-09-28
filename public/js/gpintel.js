@@ -15,6 +15,15 @@ $(document).ready(function() {
        $('.view').not(document.getElementById( view )).collapse('hide');
 
    });
+
+    //$('#modalForm').validator({
+    //    tagInput: function($tagsList){
+    //        alert("made it");
+    //        return false;
+    //    },
+    //    errors: {tags: '1 or more required'}
+    //});
+
     $('#myModal').on('shown.bs.modal', function (e) {
         //alert("hello");
         $('#modalForm').validator('validate');
