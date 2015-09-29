@@ -17,15 +17,6 @@ $(document).ready(function() {
    });
 
 
-    //$('#modalForm').validator({
-    //    tagCount: function($tagsList){
-    //        alert("made it");
-    //        return false;
-    //    },
-    //    errors: {tags: '1 or more required'}
-    //});
-
-
     $('#myModal').on('shown.bs.modal', function (e) {
         //validate everytime the form opens
         $('#modalForm').validator('validate');
@@ -208,17 +199,6 @@ function populateUserTables(query, utoken){
           };
 
           self.selected = ko.observable(self.content()[0]);
-
-          //this.postback2 = function() {
-          //    alert(self.content);
-          //};
-          //self.tagItemToAdd = ko.observable("");
-          //self.addItem = function () {
-          //    //alert("here");
-          //    if ((this.tagItemToAdd() != "") && (this.selected().tags.indexOf(this.tagItemToAdd()) < 0)) // Prevent blanks and duplicates
-          //        this.selected().tags.push(this.tagItemToAdd());
-          //    this.tagItemToAdd(""); // Clear the text box
-          //};
 
       };
       ko.applyBindings(new RootViewModel(data));
