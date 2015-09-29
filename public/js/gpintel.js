@@ -3,7 +3,6 @@
 
 $(document).ready(function() {
 
-
   $(document).on('click', '.nav-sidebar li', function() {
        $(".nav-sidebar li").removeClass("active");
        $(this).addClass("active");
@@ -16,18 +15,31 @@ $(document).ready(function() {
 
    });
 
+
     //$('#modalForm').validator({
-    //    tagInput: function($tagsList){
+    //    tagCount: function($tagsList){
     //        alert("made it");
     //        return false;
     //    },
     //    errors: {tags: '1 or more required'}
     //});
 
+
     $('#myModal').on('shown.bs.modal', function (e) {
-        //alert("hello");
+        //validate everytime the form opens
         $('#modalForm').validator('validate');
-    })
+    });
+
+    //$('#modalForm').validator({
+    //    custom: {
+    //        tCount: function ($el) {
+    //            return false;
+    //        }
+    //    },
+    //    errors: {
+    //        tCount: 'Field is invalid'
+    //    }
+    //});
 
 
     //$('#myModal').on('show.bs.modal', function (e) {
@@ -37,12 +49,12 @@ $(document).ready(function() {
 
 
 });
-//function to  apply error checking
-function titleCheck(e){
-   //alert("here");
-    e.validate('validate');
-
-};
+////function to  apply error checking
+//function titleCheck(e){
+//   //alert("here");
+//    e.validate('validate');
+//
+//};
 // function AppViewModel() {
 //         this.firstName = ko.observable("Bert");
 //         this.lastName = ko.observable("Bertington");

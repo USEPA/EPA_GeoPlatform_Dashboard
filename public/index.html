@@ -326,20 +326,17 @@
                                                 <label for="inputTags">Tags</label>
                                                 <div class="form-inline">
                                                 <button id="inputTags" class="btn btn-default"  type="submit" data-bind="click: selected().addItem, enable: selected().tagItemToAdd().length > 0">Add</button>
-                                                <input class="form-control" id="tagInput" data-tagInput="" type="text" data-bind='value: selected().tagItemToAdd, valueUpdate: "afterkeydown"' />
+                                                <input class="form-control" id="tagInput" type="text" data-bind='value: selected().tagItemToAdd, valueUpdate: "afterkeydown"'/>
                                                 </div>
                                             </div>
-                                            <div class="form-group">
+                                            <div class="form-group has-feedback">
                                                 <select id="tagsList" class="form-control" multiple="multiple" height="5" data-bind="options: selected().tags, selectedOptions: selected().selectedItems"> </select>
-
+                                                <span class="help-block with-errors"></span>
                                             </div>
                                             <div class="form-group">
                                                 <button class="btn btn-default" data-bind="click: selected().removeSelected, enable: selected().selectedItems().length > 0">Remove</button>
                                             </div>
                                         <!--</form>-->
-
-
-                                        <!--<input class="form-control" id="inputdefault" data-bind="value: selected().thumbnail" type="text">-->
                                     </div>
                                     <div class="col-md-8" >
                                         <div class="form-group has-feedback" data-bind="validationElement: selected().AuditData">
@@ -468,8 +465,8 @@
     <!-- Bootstrap core JavaScript
     ================================================== -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
-    <script src="../bsdist/js/validator.min.js"></script>
     <script src="../bsdist/js/bootstrap.min.js"></script>
+    <script src="../bsdist/js/validator.min.js"></script>
     <script src="../bsdist/js/jasny-bootstrap.min.js"></script>
     <script src="../js/gpintel.js"></script>
     <script src="http://js.arcgis.com/3.14/"></script>
