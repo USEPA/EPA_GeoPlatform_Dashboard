@@ -1,4 +1,4 @@
-//Aaron Evans Jr. adsfsad
+//Aaron Evans Jr.
 var express = require('express');
 var fs = require('fs')
 var path = require('path');
@@ -11,7 +11,7 @@ var session = require('express-session');
 var mongoStore = require('connect-mongo')(session);
 
 var mongo = require('mongodb');
-var monk = require('monk');
+var MonkClass = require('monk');
 
 var routes = require('./routes/index');
 var gpoitems = require('./routes/gpoitems');
@@ -27,8 +27,17 @@ var appRoot=config.appRoot;
 if (! appRoot) appRoot = require('app-root-path') + '/';
 app.set('appRoot',appRoot);
 
-var db = monk(config.mongoDBurl);
-app.set('monk',db);
+var monk = MonkClass(config.mongoDBurl);
+app.set('monk',monk);
+//db is database connection needed for grid fs
+var url = require('url');
+var mongoURL = url.parse(config.mongoDBurl);
+var db = new mongo.Db(mongoURL.pathname.replace("/",""), new mongo.Server(mongoURL.hostname,mongoURL.port));
+app.set('db',db);
+//Grid FS set up in this function because db needs to be connected first
+//Note this is a promise to return gfs but it also sets app('gfs') which should be ready by time somebody wants to use gfs
+var utilities = require(appRoot + '/shared/utilities');
+utilities.getGridFSobject(app);
 
 //When somebody logins we wil need to have DB update of modified items run in a queue so they aren't updating same stuff on accident
 var TasksQueues = require(appRoot + '/shared/TasksQueues');

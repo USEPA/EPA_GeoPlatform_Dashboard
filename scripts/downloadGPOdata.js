@@ -1,7 +1,7 @@
 //For tracking when script started
 var startTime = new Date();
 
-var getTokenOnly=true;
+var getTokenOnly=false;
 
 var appRoot=require('app-root-path');
 var config = require(appRoot + '/config/env');
@@ -17,16 +17,20 @@ downloadGPOdata.useSync=false;
 //set to null to run all at one time (can crash for large data sets)
 //setting to 0 or 1 is the same as useSync=true
 downloadGPOdata.AsyncRequestLimit=50;
-//How many aysnc requests can be run at one time. too many and things crash
+//How many aysnc slash data rows can be downloaded at one time. too many and things crash
 //set to null to run all at one time (can crash for large data sets)
 //setting to 0 or 1 is the same as useSync=true
 downloadGPOdata.AsyncRowLimit=25;
 
 downloadGPOdata.AsyncAuditRowLimit = 100;
 
-//For testing to only get metadata set to true, usually set to false
+//For overnight script we want to get slash and metadata so set to false
+// For testing overnight to only get metadata set it to true, will be much faster
+//Other application of DownloadGPOdata.
 downloadGPOdata.onlyGetMetaData = false;
 //This will make execution must faster since we don not have to download all remote items and only need to download modified
+//Set this to false for the overnight download so that we don't keep the removed items locally
+//But don't do this if you are downloading the entire DB at first because querying on AGOL by Modified Date is actually slow over entire data set
 downloadGPOdata.dontRemoveGPOitems= false;
 //For testing saving json and text only set to true, usually set to false
 downloadGPOdata.dontSaveBinary = false;
@@ -34,9 +38,6 @@ downloadGPOdata.dontSaveBinary = false;
 downloadGPOdata.HardCodeSlashDataTestIDs =null;
 if (downloadGPOdata.HardCodeSlashDataTestIDs) {
   downloadGPOdata.HardCodeSlashDataTestIDs.push('091f277d34aa4e4996d142b2585bd12c');
-  downloadGPOdata.HardCodeSlashDataTestIDs.push('2868c888528f4735b17721f0cf416b9a');
-  downloadGPOdata.HardCodeSlashDataTestIDs.push('2e1e236db6c34503854229c664318299');
-  downloadGPOdata.HardCodeSlashDataTestIDs.push('e4e09182312f4569886165e530708406');
 }
 //This is just for testing if we don't want all docs, usually set to null
 downloadGPOdata.TotalRowLimit=null;
@@ -89,8 +90,12 @@ if (getTokenOnly) {
     });
 }else {
   downloadGPOdata.download()
+    .catch(function (err) {
+      console.error('Error received:', err);
+    })
     .done(function () {
-      console.log("Download Done");
+      console.log("Start Time: " + startTime);
+      console.log("End Time: " + new Date());
       process.exit();
     });
 }

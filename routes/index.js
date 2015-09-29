@@ -80,11 +80,18 @@ module.exports = function(app) {
 
 //This is the number of items downloaded from AGOL in one request (max is 100)
       downloadGPOdata.requestItemCount = 100;
-      downloadGPOdata.AsyncRequestLimit = 50;
+//For some reason when doing Modified Only (dontRemoveGPOitems = true) if AsyncRequestLimit is large response results were mysteriously dropping
+//I think it is because doing Modified Only takes MUCH longer (order of 5000 ms) while getting all is faster (order of 500ms)
+//Note: This only occurs when there are A LOT of total rows in the Modified Date Range of query. Something to do with paging slowing down maybe....
+//But usually finding Modified Only doesn't entail retrieving a lot of rows so for updating when logging in should get modifided Only (dontRemoveGPOitems =true)
+//Set AsyncRequestLimit=5 just to be safe but probably will never even have this many modified (500) in one day
+      downloadGPOdata.AsyncRequestLimit = 5;
       downloadGPOdata.AsyncRowLimit = 25;
       downloadGPOdata.AsyncAuditRowLimit = 100;
 
+//Only get the meta data because getting slash data would be WAY TOO Slow....
       downloadGPOdata.onlyGetMetaData = true;
+//Don't remove the gpo items because then we would have to query ENTIRE DB from AGOL to find which were removed on AGOL
       downloadGPOdata.dontRemoveGPOitems = true;
 //set in token
       downloadGPOdata.token = req.session.token;

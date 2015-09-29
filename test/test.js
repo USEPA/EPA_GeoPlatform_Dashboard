@@ -1,3 +1,42 @@
+var Q = require('q');
+var MonkClass = require('monk');
+var monk = MonkClass('mongodb://localhost:27017/egam');
+var historycollection = monk.get('GPOhistory');
+var GPOid = "a5ca9de470064ae791647fc5c85dce09";
+
+//orderBy like this doesn't work
+Q(historycollection.findOne({$query:{id:GPOid},$orderBy:{_id:-1}},{fields:{_id:1}}))
+  .then(function (doc) {
+//    console.log(historycollection.id(doc._id));
+    if (! doc) return null;
+    return doc._id});
+
+
+Q(historycollection.findOne({id:GPOid},{sort:{_id:-1}}))
+  .then(function (doc) {
+    console.log(doc.date);
+    console.log(historycollection.id(doc._id));
+    if (! doc) return null;
+    return doc._id});
+
+//Get just ID
+Q(historycollection.findOne({id:GPOid},{sort:{_id:-1},fields:{_id:1}}))
+  .then(function (doc) {
+    console.log(historycollection.id(doc._id));
+    if (! doc) return null;
+    historycollection.update({_id:historycollection.id(doc._id)},{$set:{"doc.description":"test"}});
+    return doc._id});
+
+
+Q(historycollection.find({id:GPOid},{sort:{_id:-1}}))
+  .then(function (docs) {
+    console.log(docs[0].date);
+    console.log(docs[11].date);
+    if (!docs) return null;
+  });
+
+return;
+
 var util = require('util');
 var utilities=require('../shared/utilities');
 
