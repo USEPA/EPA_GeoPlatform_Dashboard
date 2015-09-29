@@ -3,6 +3,7 @@
 
 $(document).ready(function() {
 
+
   $(document).on('click', '.nav-sidebar li', function() {
        $(".nav-sidebar li").removeClass("active");
        $(this).addClass("active");
