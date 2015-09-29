@@ -72,6 +72,23 @@ utilities.writeStreamPromise = function (stream,text,encoding) {
   }
 };
 
+utilities.getGridFSobject = function (app) {
+  var Q = require('q');
+  var GridFSstream = require('gridfs-stream');
+  var mongo = require('mongodb');
+
+  var db = app.get('db');
+
+  //if gfs object hasn't been created yet then get now
+  //need db connection open before gfs can be created
+  return Q.ninvoke(db,"open")
+    .then(function () {
+      var gfs = app.get('gfs');
+      if (! gfs) gfs = GridFSstream(db, mongo);
+      app.set('gfs',gfs);
+      return gfs;
+    });
+};
 
 module.exports = utilities;
 
