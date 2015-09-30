@@ -90,12 +90,19 @@ HandleGPOreponse.prototype.promiseWhile = function(condition, promiseFunction) {
     // Use `when`, in case `promiseFunction` does not return a promise.
     // When it completes loop again otherwise, if it fails, reject the
     // done promise
-    Q.when(promiseFunction(), loop, done.reject);
+    try {
+      Q.when(promiseFunction(), loop, done.reject);
+    }catch (ex) {
+//Use try catch and reject if there is an exception otherwise crash app when Q throws err when running first loop with q.nextTick
+      done.reject(ex);
+    }
+
   }
 
   // Start running the loop in the next tick so that this function is
   // completely async. It would be unexpected if `promiseFunction` was called
   // synchronously the first time.
+
   Q.nextTick(loop);
 
   // The promise

@@ -288,8 +288,9 @@ DownloadGPOdata.prototype.HandleGPOitemsResponseAsync = function (body) {
   this.hr.saved.remoteGPOrow += body.results.length;
   this.hr.saved.currentRequest += 1;
 
-  if (body.results.length===0) {
-//This is catatrosphic error that should never happen. If this happens then need to make sure hybrid loop will exit and resolve promise.
+  if (this.hr.saved.remoteGPOcount>0 && body.results.length===0) {
+//This is catatrosphic error that should never happen if remote GPO items exist.
+// If this happens then need to make sure hybrid loop will exit and resolve promise.
 //Should probably email this to admin
     console.error("Catastrophic Error. No body results probably because AsyncRequestLimit set too high.");
     this.hr.saved.remoteGPOrow=this.hr.saved.remoteGPOcount+1;
@@ -403,8 +404,8 @@ DownloadGPOdata.prototype.getGPOitemsAsyncFromStartArray = function () {
 
   console.log(this.hr.saved.remoteGPOrow + ' ' + requestStartArray.length);
 
-  if (requestStartArray.length===0) {
-//This is catatrosphic error that should never happen. If this happens then need to make sure hybrid loop will exit and resolve promise.
+  if (this.hr.saved.remoteGPOcount>0 && requestStartArray.length===0) {
+//This is catatrosphic error that should never happen if remote GPO items exist. If this happens then need to make sure hybrid loop will exit and resolve promise.
 //Should probably email this to admin
     console.error("Catastrophic Error. No start array probably because AsyncRequestLimit set too high.");
     self.hr.saved.remoteGPOrow=self.hr.saved.remoteGPOcount+1;
