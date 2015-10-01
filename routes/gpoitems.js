@@ -144,132 +144,139 @@ module.exports = function(app) {
     var hr = new hrClass(config);
 
     var itemscollection = monk.get('GPOitems');
+    var gfs = app.get('gfs');
 
     var error=null;
 //This function gets input for both post and get for now
-    var updateDoc = utilities.getRequestInputs(req).updateDoc;
+    var updateDocs = utilities.getRequestInputs(req).updateDocs;
     try {
-      updateDoc = JSON.parse(updateDoc);
+      updateDocs = JSON.parse(updateDocs);
     }catch (ex){
       return res.json({error: {message: "Update Doc is not valid JSON", code: "InvalidJSON"}, body: null})
     }
 
-//Don't need owner or SlashData on the update doc in case it is passed by user
-    delete updateDoc.owner;
-    delete updateDoc.SlashData;
-//Owner of item that will be updated
-    var updateOwner=null;
-//SlashData object that will be updated
-    var updateSlashData=null;
-
 //Now get the thumbnail file from request
     var thumbnail = req.file;
-//This is global result object that will be passed back to user
-    var resObject = {};
+//If they pass an array of docs don't support multiple thumbnails for now.
+// Can add later when we know how front end will pass them
+    if (Array.isArray(updateDocs)) {
+      if (updateDocs>1) thumbnail = null;
+    }else {
+      updateDocs=[updateDocs];
+    }
 
-    getOwnerID()
-    .then(function (ownerID) {
-        updateOwner=ownerID;
-        if (updateOwner) {
-//Update Local and Remote GPO item in DB including thumbnail
-          return Q.all([updateRemoteGPOitem(),updateLocalGPOitem()])
-            .then(function () {if (thumbnail.path) return Q.ninvoke(fs,"unlink",thumbnail.path)})
-        }else {
-          resObject={error: {message: "You do not have Access to Update this GPO item", code: "InvalidAccess"}, body: null};
-        }})
-    .catch(utilities.getHandleError(resObject,"UpdateError"))
-    .done(function () {
-//Now that update is done we can finally return result
-        res.json(resObject)
+    //Update the thumbnail field in the metadata doc and
+    if (thumbnail) updateDocs[0].thumbnail="thumbnail/" + thumbnail.originalname;
+
+//Don't need owner or SlashData on the update doc in case it is passed by user
+    updateDocs.forEach(function(doc) {
+      delete doc.owner;
+      delete doc.SlashData;
     });
 
-    function getOwnerID() {
-      return Q(itemscollection.findOne({id:updateDoc.id},{fields:{owner:1,SlashData:1}}))
-        .then(function (doc) {
-//Make sure SlashData is at least an empty object for updating later
-          updateSlashData = doc.SlashData || {};
-//If owner ID of this object is accessible by user then update otherwise return error
-          if (req.session.ownerIDs.indexOf(doc.owner)>=0) {
-            return doc.owner;
-          }else {
-            return null;
-          }
-        });
+    //This is global result object that will be passed back to user
+    var resObjects = {errors:[]};
+//Class that will do all the updating for each document
+    var UpdateGPOitemClass = require(app.get('appRoot') + '/shared/UpdateGPOitem');
+    var updateGPOitem = null;
+//To keep count when looping over promises
+    var updateGPOitemRow = 1;
+    var updateGPOitemCount = updateDocs.length;
+//Set up the method to run the updates with
+    var useSync=false;
+    var AsyncRowLimit=5;
+//function we will use to update set with this variable
+    var updateGPOitemsFunction=null;
+
+    if (useSync) {
+      console.log('Updating using Sync');
+      updateGPOitemsFunction=updateGPOitemsSync;
+    } else {
+      if(AsyncRowLimit===null){
+        console.log('Updating using Full Async ');
+        updateGPOitemsFunction=updateGPOitemsAsync;
+      }else {
+        console.log('Updating using Hybrid ');
+        updateGPOitemsFunction=updateGPOitemsHybrid;
+      }
     }
 
-    function updateRemoteGPOitem() {
-      var fs = require('fs');
-      var merge = require('merge');
-      var formData = merge.recursive(true,updateDoc);
+//Now update gpo items using method (sync, async, hybrid) chosen
+    updateGPOitemsFunction()
+      .catch(function (err) {
+        console.error('Error received running updateGPOitemsFunction :' + err.stack);
+        resObjects.errors.push(err.message);
+      })
+      .done(function () {
+        res.json(resObjects);
+      });
 
-//get read stream from uploaded thumb file and add to form data with name
-      if (thumbnail) formData.thumbnail={value:fs.createReadStream(thumbnail.path),
-                                        options: {filename: updateDoc.thumbnail,
-                                                  contentType: thumbnail.mimetype}};
+    function updateSingleGPOitem(updateDoc,async) {
+//If in async mode need to create new updateGPOitem instance each time so each will have it's own data
+      if (! updateGPOitem || async===true) updateGPOitem=new UpdateGPOitemClass(itemscollection,req.session,config,gfs);
+//Pass thumbnail file upload object if exists
+      if (thumbnail) updateGPOitem.thumbnail = thumbnail;
 
-      var url= config.portal + '/sharing/rest/content/users/' + updateOwner + '/items/' + updateDoc.id + '/update';
-//      console.log(url);
-      var qs = {token: req.session.token,f:'json'};
-//      console.log(req.session.token);
+      if (! updateDoc) updateDoc=updateDocs[updateGPOitemRow-1];
 
-//Pass parameters via form attribute
+      updateGPOitemRow += 1;
 
-      var requestPars = {method:'post', url:url, formData:formData, qs:qs };
-
-      return hr.callAGOL(requestPars)
-          .then(handleUpdateResponse)
+      return updateGPOitem.update(updateDoc)
+      .then(function (){
+//update the resObjects and update the count
+          if (updateGPOitem.resObject.error) resObjects.errors.push(updateGPOitem.resObject.error);
+        })
+        .catch(function (err) {resObjects.errors.push("Error updating " + updateDoc.id + " : " + err.message);
+                                console.error("Error updating Single GPO item " + updateDoc.id + " : " + err.stack)})
+    }
+    function updateGPOitemsSync() {
+      return hr.promiseWhile(function() {return updateGPOitemRow<=updateGPOitemCount;}, updateSingleGPOitem);
     }
 
-    function handleUpdateResponse(body) {
-      resObject = {error: null, body: {}};
+    function updateGPOitemsHybrid() {
+      return hr.promiseWhile(function() {return updateGPOitemRow<=updateGPOitemCount;}, updateGPOitemsAsync);
     }
 
-    function updateLocalGPOitem() {
-//Update the thumbnail field in the metadata doc and
-      if (thumbnail) updateDoc.thumbnail="thumbnail/" + thumbnail.originalname;
-      return Q.all([
-        Q(itemscollection.update({id:updateDoc.id},{$set:updateDoc})),
-        saveThumbnailToGridFS()
-      ]);
-
-    }
-
-    function saveThumbnailToGridFS() {
-      if (! thumbnail) return false;
+    function updateGPOitemsAsync () {
+      var Q = require('q');
       var defer = Q.defer();
-      var gfs = app.get('gfs');
 
-//use gpo item id as name of file in grid fs
-      var writestream = gfs.createWriteStream(
-        {
-          filename: thumbnail.originalname,
-          metadata: {id: updateDoc.id, type: "thumbnail"}
-        }
-      );
-//when done writing need to resolve the promise
-      writestream.on('close', function (file) {
-        console.log('Thumb File with id = ' + updateDoc.id + ' and file = ' + thumbnail.originalname + ' written to GridFS');
+      var async = require('async');
+      var updateDocsAsync;
+      if (AsyncRowLimit) {
+//take slice form current row to async row limit
+        updateDocsAsync= updateDocs.slice(updateGPOitemRow-1,updateGPOitemRow-1+AsyncRowLimit);
+      }else {
+        updateDocsAsync= updateDocs;
+      }
 
-//now update thumbnailID in DB
-        updateSlashData.thumbnailID = file._id;
+      console.log("Updating from row " + updateGPOitemRow + " to " + (updateGPOitemRow + updateDocsAsync.length -1));
 
-        Q(itemscollection.update({id: updateDoc.id}, {$set: {SlashData: updateSlashData}}))
+      async.forEachOf(updateDocsAsync, function (value, key, done) {
+          updateSingleGPOitem(value,true)
             .catch(function(err) {
-              defer.reject("Error updating Thumbnail Binary ID for " + updateDoc.id + " : " + err);
+              resObjects.errors.push("Error updating " + value.id + " : " + err.message);
+              console.error('Async For Each Single Update GPO item Error :', err.stack);
             })
-            .done(function () {
-              defer.resolve();
+            .done(function() {
+              done();
+//          console.log('for loop success')
             });
-      });
-      //handle error due to writing
-      writestream.on('error', function (err) {
-        defer.reject('Error writing thumbnail stream to GridFS : ' + err);
-      });
-//Now actually pipe response into gfs writestream
-      fs.createReadStream(thumbnail.path).pipe(writestream);
+        }
+        , function (err) {
+          if (err) console.error('Async For Each Update GPO items Error :' + err.stack);
+//resolve this promise
+//      console.log('resolve')
+          defer.resolve();
+        });
 
-      return defer.promise;
+//I have to return a promise here for so that chain waits until everything is done until it runs process.exit in done.
+//chain was NOT waiting before and process exit was executing and data data not being retrieved
+      return defer.promise
     }
+
+
+//end of update endpoint
   });
 
   return router;

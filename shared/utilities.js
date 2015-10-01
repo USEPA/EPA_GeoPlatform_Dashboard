@@ -56,7 +56,11 @@ utilities.streamify = function(text) {
 
 utilities.getHandleError = function (resObject,code) {
   return function(error) {
-    resObject = {error: {message: error.message, code: code}, body: null};
+//Pass an empty object else it will keep old fields in here
+//Have to keep the same reference so can't just reassign
+    resObject.error = {message: error.message, code: code};
+    resObject.body = null;
+    console.log("getHandleError  " + resObject.error.message);
   }
 };
 
