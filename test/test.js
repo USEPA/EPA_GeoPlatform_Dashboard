@@ -1,5 +1,23 @@
 var Q = require('q');
 var MonkClass = require('monk');
+
+var nodemailer = require('nodemailer');
+var transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: 'evansaaroncgi@gmail.com',
+    pass: '9699257tag'
+  }
+});
+transporter.sendMail({
+  from: 'evansaaroncgi@gmail.com',
+  to: 'aaron.evans@cgi.com',
+  subject: 'hello',
+  text: 'hello world!'
+});
+
+return
+
 var monk = MonkClass('mongodb://localhost:27017/egam');
 var historycollection = monk.get('GPOhistory');
 var GPOid = "a5ca9de470064ae791647fc5c85dce09";

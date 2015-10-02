@@ -77,7 +77,32 @@ sessionOptions.store = mongoStoreInstance;
 //Allow persistent session data (eg: username of logged in user)
 app.use(session(sessionOptions));
 
-//console.log(config);
+//Now setup the email transporter
+if (config.email && config.email.admins && config.email.disabled!==true) {
+  var nodemailer = require('nodemailer');
+  var transporter = nodemailer.createTransport({
+
+    service: config.email.smtp.service,
+    auth: {
+      user: config.email.smtp.user,
+      pass: config.email.smtp.password
+    }
+  });
+  //Save the nodemailer instance in the app to use for emails
+  app.set('nodemailer',transporter);
+
+  transporter.sendMail({
+    from: config.email.defaultFrom,
+    to: config.email.admins,
+    subject: 'EGAM Express Server Started',
+    text: 'EGAM Express server was started on ' + new Date() + '. This could possibly be due to automatic restart after server crash due to uncaught exceptions. Check logs/errors.log for uncaught exceptions.'
+  },function (error) {
+    if (error) console.error('Error sending restart email: ' + error.message);
+  });
+}
+//console.log(app.get('nodemailer'));
+
+console.log(config);
 
 // All standard routes above here
 // endpoint for API calls to MongoDB via Monk
