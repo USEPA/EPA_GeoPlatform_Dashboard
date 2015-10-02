@@ -1,5 +1,8 @@
 //For tracking when script started
 var startTime = new Date();
+
+var getTokenOnly=false;
+
 var useSync=false;
 //How many aysnc requests can be run at one time. too many and things crash
 //set to null to run all at one time (can crash for large data sets)
@@ -11,11 +14,14 @@ var AsyncRequestLimit=50;
 var AsyncRowLimit=25;
 
 var AsyncAuditRowLimit = 100;
+//var AsyncAuditRowLimit = null;
 
 //******FOR TESTING ONLY
 //For testing to only get metadata set to true, usually set to false
 var onlyGetMetaData = true;
-//For testing saving json and text only set to true, usuall set to false
+//This will make execution must faster since we don not have to download all remote items and only need to download modified
+var dontRemoveGPOitems= true;
+//For testing saving json and text only set to true, usually set to false
 var dontSaveBinary = false;
 //For testing download of specific slash data, usually set to null
 var HardCodeSlashDataTestIDs =null;
@@ -27,6 +33,9 @@ if (HardCodeSlashDataTestIDs) {
 }
 //This is just for testing if we don't want all docs, usually set to null
 var TotalRowLimit=null;
+//Harcode in token
+var token = "tkmrXzs65d8WmS7Glfw5veSRjwxyb7tG9H-PV4XgnRlfdq3L5ofxFzlmH0pC-47VLRt-XHYqsTy2KE8oVegDAHBSkYmkDbP5yv0jo1K_Imz6v9KowfFONlvxf2R7nHhEOYfRkB4eU4Lfa19JVXWKfg.."
+token = null;
 //*******END FOR TESTING only
 
 var request = require('request');
@@ -104,6 +113,7 @@ if (AsyncRowLimit===0 || AsyncRowLimit===1)  useSync=true;
 
 //String along aysn function calls to AGOL REST API
 var getGPOdata=null;
+var getGPOitems=null;
 if (useSync) {
   console.log('Getting All Data using Sync');
   getGPOitems=getGPOitemsSync;
@@ -126,34 +136,45 @@ if (useSync) {
 }
 
 
-//Just for testing if opnly want meta data this is just a dummy pass through function
+//If only want meta data this is just a dummy pass through function
 if (onlyGetMetaData) {getGPOdata = function () {return true}};
 
-//Note calling metadata items and slashdata data
-
-//Now run the promise chain using desired getGPOdata (sync vs async vs hybrid)
-connectDB()
-  .then(getToken)
-  .then(getOrgId)
-  .then(getLocalGPOids)
-  .then(getGPOitems)
-  .then(getGPOdata)
+if (getTokenOnly===true) {
+  getToken()
+    .catch(function (err) {
+      console.error('Error received:', err);
+    })
+    .done(function () {
+      console.log("\n" + hr.saved.token);
+      process.exit();
+    });
+}else {
+//Note getting metadata items and slashdata and removing dropped items unless set not to above
+//Now run the promise chain using desired getGPOitems/getGPOdata (sync vs async vs hybrid)
+  connectDB()
+    .then(getToken)
+    .then(getOrgId)
+    .then(getLocalGPOids)
+    .then(getGPOitems)
+    .then(getGPOdata)
 //  .then(getSingleGridFS)
-  .then(removeLocalGPOitems)
-  .catch(function (err) {
-    console.error('Error received:', err);
-  })
-  .done(function () {
+    .then(removeLocalGPOitems)
+    .catch(function (err) {
+      console.error('Error received:', err);
+    })
+    .done(function () {
 //    console.log(hr.saved.localGPOids);
 //    console.log(hr.saved.localGPOcount);
-    var endTime = new Date();
-    console.log("Start Time: " + startTime);
-    console.log("End Time: " + endTime);
-    db.on('close', function () {process.exit()});
-    db.close();
-  });
+      var endTime = new Date();
+      console.log("Start Time: " + startTime);
+      console.log("End Time: " + endTime);
+      db.on('close', function () {
+        process.exit()
+      });
+      db.close();
+    });
 //Simply finish the script using process.exit() after db is closed
-
+}
 
 function connectDB() {
   var gfs = GridFSstream(db, mongo);
@@ -167,6 +188,10 @@ function connectDB() {
 
 
 function getToken() {
+    if (token) {
+      hr.saved.token = token;
+      return token;
+    }
 
     var tokenURL = portal + '/sharing/rest/generateToken?';
 
@@ -205,10 +230,37 @@ function getGPOitemsChunk(requestStart,HandleGPOitemsResponse) {
 
   var url= portal + '/sharing/rest/search';
 
-  var parameters = {'q':'orgid:'+hr.saved.orgID,'token' : hr.saved.token,'f' : 'json','start':requestStart,'num':requestItemCount };
+  var parameters;
+//If not removing local gpo items that have been removed from AGOL then only need to download modified items
+  if (dontRemoveGPOitems) {
+//have to pad modified ms from 1970
+    var now = (new Date()).getTime();
+    var query = 'modified:[' + padNumber(hr.saved.localMaxModifiedDate) + ' TO ' + padNumber(now) + '] AND orgid:' + hr.saved.orgID;
+    console.log(query);
+    console.log(1442435671000-hr.saved.localMaxModifiedDate);
+    console.log(1442435671000-now);
+    console.log(requestStart);
+    console.log(requestItemCount);
+    parameters = {'q':query,'token' : hr.saved.token,'f' : 'json','start':requestStart,'num':requestItemCount };
+  }else {
+    parameters = {'q':'orgid:'+hr.saved.orgID,'token' : hr.saved.token,'f' : 'json','start':requestStart,'num':requestItemCount };
+  }
+
+//testing single ID
+//  var parameters = {'q':'id:e58dcd33a6d4474caf9d0dd7ea75778e','token' : hr.saved.token,'f' : 'json','start':requestStart,'num':requestItemCount };
+
 //Pass parameters via form attribute
 
+//  url = "https://epa.maps.arcgis.com/sharing/rest/search?start=1&num=100&f=json&q=modified:[0000001442434881000 TO 0000001442436425667] AND orgid:cJ9YHowT8TU7DUyn&token=" + hr.saved.token
+
+//  url = "https://epa.maps.arcgis.com/sharing/rest/search?start=1&num=100&f=json&q=modified:[0000001442434881000%20TO%200000001442436425667]%20AND%20orgid:cJ9YHowT8TU7DUyn&token=E4RU0tZofURyP8C45u2L8aguhUkO43PMAfs5_DkAlsOeuf5nB9eJwxfdMFKFTzxvcx3W-wV2sxt-IavYekPe0xn02w_nzwL2qBHKM9JLX_buz6eBDgx1i9TF09NSRa1lfof_A3HGgO4MoPfm7sJ1ebeArSA.."
+
+//  url = "https://epa.maps.arcgis.com/sharing/rest/search?start=1&num=100&f=json&q=orgid:cJ9YHowT8TU7DUyn&token=" + hr.saved.token
+
   var requestPars = {method:'get', url:url, qs:parameters };
+//  console.log(parameters);
+//  var requestPars = {method:'get', url:url};
+
   if (! HandleGPOitemsResponse) {
     if (useSync) {
 //      console.log('HandleGPOitemsResponseSync');
@@ -222,6 +274,13 @@ function getGPOitemsChunk(requestStart,HandleGPOitemsResponse) {
     }
   }
   return hr.callAGOL(requestPars).then(HandleGPOitemsResponse);
+}
+
+function padNumber(num, size) {
+  if (! size) size=19 //This is for AGOL modified date
+  var s = num+"";
+  while (s.length < size) s = "0" + s;
+  return s;
 }
 
 function getGPOitemsSync() {
@@ -245,6 +304,10 @@ function HandleGPOitemsResponseSync(body) {
 }
 
 function HandleGPOitemsResponseAsync(body) {
+  if ('error' in body) {
+    console.error("Error getting GPO items: " + body.error.message)
+    return true;
+  }
 //  console.log('current Row ' + hr.saved.newGPOrow + ' to ' + (hr.saved.newGPOrow + body.results.length-1));
 //  console.log('current Request ' + hr.saved.currentRequest );
   console.log('request Start ' + (body.start ) + ' to ' + (body.start + body.results.length -1) + ' (items retrieved: ' + (hr.saved.newGPOrow + body.results.length-1) + ')');
@@ -641,6 +704,9 @@ function getGPOdataAsync() {
 
 
 function removeLocalGPOitems() {
+//if not removing local gpo items (so we can get away with not downloading all of them) just return
+  if (dontRemoveGPOitems) return Q(true);
+
   arrayExtended = require('array-extended');
 //  find the difference of local and remote. This need to be removed
 //need to get array of local GPO ids only instead of id,mod pair
@@ -698,9 +764,12 @@ function getGPOaudit(modifiedGPOitems) {
   var useSyncAudit=false;
   if (AsyncAuditRowLimit===0 || AsyncAuditRowLimit===1)  useSyncAudit=true;
 
-  hr.saved.auditGPOrow = 1;
-  hr.saved.auditGPOcount = modifiedGPOitems.length;
-  hr.saved.auditGPOitems = modifiedGPOitems;
+//need this new object itemsContext since can't use hr.saved to save row, count and item info
+// because multiple getGPOaudit running called by async getmetadata calls
+  var itemsContext = {};
+  itemsContext.row = 1;
+  itemsContext.count = modifiedGPOitems.length;
+  itemsContext.items = modifiedGPOitems;
 
 //String along aysn function calls to AGOL REST API
   var getGPOauditVersion=null;
@@ -717,21 +786,21 @@ function getGPOaudit(modifiedGPOitems) {
     }
   }
 
-  return getGPOauditVersion();
+  return getGPOauditVersion(itemsContext);
 }
 
-function getSingleGPOaudit(auditGPOitem) {
+function getSingleGPOaudit(itemsContext,auditGPOitem) {
 //Have to have an audit class for each audit because they are going on concurrently when async
   var audit=new AuditClass();
 
   //if async loop then have to pass the item
   //for sync don't pass but get from current row
   if (! auditGPOitem) {
-    auditGPOitem = hr.saved.auditGPOitems[hr.saved.auditGPOrow-1];
+    auditGPOitem = itemsContext.items[itemsContext.row-1];
   }
 
   //Note: this not usd for pure async, for hybrid it only determines modifiedGPOrow at start of each aysnc foreach loop
-  hr.saved.auditGPOrow += 1;
+  itemsContext.row += 1;
 
   audit.validate(auditGPOitem);
 
@@ -743,15 +812,17 @@ function getSingleGPOaudit(auditGPOitem) {
 }
 
 
-function getGPOauditSync(GPOids) {
-  return hr.promiseWhile(function() {return hr.saved.auditGPOrow<=hr.saved.auditGPOcount;}, getSingleGPOaudit);
+function getGPOauditSync(itemsContext) {
+  return hr.promiseWhile(function() {return itemsContext.row<=itemsContext.count;}, function () {return getSingleGPOaudit(itemsContext);});
 }
 
-function getGPOauditHybrid() {
-  return hr.promiseWhile(function() {return hr.saved.auditGPOrow<=hr.saved.auditGPOcount;}, getGPOauditAsync);
+function getGPOauditHybrid(itemsContext) {
+  return hr.promiseWhile(function() {return itemsContext.row<=itemsContext.count;}, function () {return getGPOauditAsync(itemsContext);});
 }
 
-function getGPOauditAsync() {
+function getGPOauditAsync(itemsContext) {
+//itemsContext is like hr.saved but just for this particular chunk of modified metadata
+//hr.saved can not be used because it would be referenced by multiple getAudit calls by async getMetaData
   var async = require('async');
 
   var defer = Q.defer();
@@ -759,15 +830,15 @@ function getGPOauditAsync() {
   var GPOitems;
   if (AsyncAuditRowLimit) {
 //take slice form current row to async row limit
-    GPOitems= hr.saved.auditGPOitems.slice(hr.saved.auditGPOrow-1,hr.saved.auditGPOrow-1+AsyncAuditRowLimit);
+    GPOitems= itemsContext.items.slice(itemsContext.row-1,itemsContext.row-1+AsyncAuditRowLimit);
   }else {
-    GPOitems= hr.saved.auditGPOitems;
+    GPOitems= itemsContext.items;
   }
 
-  console.log("Audit Data download from row " + hr.saved.auditGPOrow + " to " + (hr.saved.auditGPOrow + GPOitems.length -1));
+  console.log("Audit Data download from row " + itemsContext.row + " to " + (itemsContext.row + GPOitems.length -1));
 
   async.forEachOf(GPOitems, function (gpoItem, index, done) {
-      getSingleGPOaudit(gpoItem)
+      getSingleGPOaudit(itemsContext,gpoItem)
         .catch(function(err) {
           console.error('For Each Single GPO Audit Error :', err);
         })

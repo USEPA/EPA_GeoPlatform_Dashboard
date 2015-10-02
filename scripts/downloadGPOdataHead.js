@@ -26,7 +26,7 @@ catch (e) {
     process.exit();
 }
 
-var hrClass = require('./HandleGPOresponses');
+var hrClass = require('./../shared/HandleGPOresponses');
 var hr = new hrClass(config);
 console.log(hr);
 

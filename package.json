@@ -6,6 +6,8 @@
     "start": "node ./bin/www"
     ,"super": "supervisor -n exit ./bin/www"
     ,"nodemon": "nodemon ./bin/www"
+    ,"forever": "foreverStart.bat"
+    ,"foreverStop": "forever stop egam"
     ,"debug": "node-debug ./bin/www"
   },
   "dependencies": {
@@ -27,7 +29,9 @@
     "gridfs-stream": "~1.1.1",
     "array-extended": "~0.0.11",
     "jafar": "~1.0.0",
-    "content-disposition": "~0.5.0"
+    "content-disposition": "~0.5.0",
+    "tasks-queue": "~0.0.2",
+    "multer": "~1.0.5"
   },
   "devDependencies": {
     "grunt": "~0.4.5",

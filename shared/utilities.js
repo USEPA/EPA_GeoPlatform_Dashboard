@@ -54,6 +54,45 @@ utilities.streamify = function(text) {
   return s;
 };
 
+utilities.getHandleError = function (resObject,code) {
+  return function(error) {
+//Pass an empty object else it will keep old fields in here
+//Have to keep the same reference so can't just reassign
+    resObject.error = {message: error.message, code: code};
+    resObject.body = null;
+    console.log("getHandleError  " + resObject.error.message);
+  }
+};
+
+utilities.writeStreamPromise = function (stream,text,encoding) {
+  var Q = require('q');
+//writes text to stream and returns promise
+//NOTE: If text is empty then does not write
+  if (text===0) text="0";
+  if (text) {
+    return Q.ninvoke(stream, "write", text,encoding);
+  }else {
+    return Q(true);
+  }
+};
+
+utilities.getGridFSobject = function (app) {
+  var Q = require('q');
+  var GridFSstream = require('gridfs-stream');
+  var mongo = require('mongodb');
+
+  var db = app.get('db');
+
+  //if gfs object hasn't been created yet then get now
+  //need db connection open before gfs can be created
+  return Q.ninvoke(db,"open")
+    .then(function () {
+      var gfs = app.get('gfs');
+      if (! gfs) gfs = GridFSstream(db, mongo);
+      app.set('gfs',gfs);
+      return gfs;
+    });
+};
 
 module.exports = utilities;
 

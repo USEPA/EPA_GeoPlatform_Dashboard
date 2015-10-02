@@ -149,8 +149,10 @@ module.exports = function(grunt) {
 //  grunt.loadNpmTasks('grunt-forever');
 
   // Default task.
-//  grunt.registerTask('default', ['nodemon','open:dev']);
-  grunt.registerTask('default', ['concurrent:dev']);
+  grunt.registerTask('default', ['open:dev','nodemon']);
+//Just let default grunt run nodemon for now until we figure out where front end scripts will be away from mini libs
+//  grunt.registerTask('default', ['concurrent:dev']);
+
   grunt.registerTask('inspector', ['concurrent:inspector']);
 //Note using task name open didn't work
   grunt.registerTask('browse', ['open:dev']);

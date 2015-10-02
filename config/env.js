@@ -35,7 +35,7 @@
     try {config = require('./env/' + env);}
     catch(e) {console.log('Configuration File: ' + env + '.js does not exist');}
 
-// now merge in devconfig if it exists
+// now merge in stgconfig if it exists
     if (stgconfig) {
 //        extend(config,  stgconfig);
         merge.recursive(config,stgconfig);
