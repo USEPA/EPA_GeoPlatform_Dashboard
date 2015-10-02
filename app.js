@@ -70,7 +70,6 @@ app.use(cookieParser());
 //The session is stored in Mongo
 //tag mongo store onto the session options using env specific store options
 //note I merge the config.mongoStoreOption because mongoStore constructor alters it
-console.log(config);
 var mongoStoreInstance = new mongoStore(merge(true,config.mongoStoreOption));
 //create copy of config sessionOptions so that is is not altered
 var sessionOptions = merge(true,config.sessionOptions);
@@ -78,7 +77,7 @@ sessionOptions.store = mongoStoreInstance;
 //Allow persistent session data (eg: username of logged in user)
 app.use(session(sessionOptions));
 
-console.log(config);
+//console.log(config);
 
 // All standard routes above here
 // endpoint for API calls to MongoDB via Monk

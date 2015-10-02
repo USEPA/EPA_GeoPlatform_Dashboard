@@ -6,6 +6,8 @@
     "start": "node ./bin/www"
     ,"super": "supervisor -n exit ./bin/www"
     ,"nodemon": "nodemon ./bin/www"
+    ,"forever": "foreverStart.bat"
+    ,"foreverStop": "forever stop egam"
     ,"debug": "node-debug ./bin/www"
   },
   "dependencies": {
