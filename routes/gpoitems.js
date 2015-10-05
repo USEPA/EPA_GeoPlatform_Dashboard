@@ -25,7 +25,7 @@ module.exports = function(app) {
 //This function gets input for both post and get for now
     var query = utilities.getRequestInputs(req).query;
 
-//parse JSON query in object
+//parse JSON querdfy in object
     if (typeof query ==="string") query = JSON.parse(query);
 //If query is falsey make it empty object
     if (! query) query = {};
@@ -53,7 +53,8 @@ module.exports = function(app) {
     if (!('fields' in projection)) projection.fields = {};
     projection.fields.SlashData=0;
 //Let front end decided on getting only public
-      query.access = "public";
+      //query.access = "public";
+    query.owner = "Yarnell.David_EPA";
 
 //    res.send("username= " + username);return;
 

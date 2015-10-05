@@ -13,6 +13,7 @@
 
       <!-- Bootstrap core CSS -->
       <link href="../bsdist/css/bootstrap.min.css" rel="stylesheet">
+      <link href="../bsdist/css/jasny-bootstrap.min.css" rel="stylesheet">
       <!-- Bootstrap datatable CSS -->
       <link href="https://cdn.datatables.net/1.10.9/css/dataTables.bootstrap.min.css" rel="stylesheet">
 
@@ -269,33 +270,106 @@
 
             <!-- Modal for Editing -->
             <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
-                <div class="modal-dialog" role="document">
+                <div class="modal-dialog modal-lg" role="document">
                     <div class="modal-content">
                         <div class="modal-header">
                             <button type="button" class="close" data-dismiss="modal" aria-label="Close" ><span aria-hidden="true">&times;</span></button>
                             <h4 class="modal-title" id="myModalLabel">Item Details</h4>
                         </div>
                         <div class="modal-body">
-                            <form role="form" data-bind>
-                                <div class="form-group">
-                                    <label for="inputdefault">Title</label>
-                                    <input class="form-control" id="inputdefault" data-bind="value: selected().title" type="text">
+                            <form id="modalForm" role="form" data-toggle="validator" data-disable="false">
+                                <div class="row form-group">
+                                    <div class="col-md-4">
+                                        <div class="form-group">
+                                            <label>For best results, the image should be 200 pixels wide by 133 pixels high. Other sizes will be adjusted to fit. Acceptable image formats are: PNG, GIF and JPEG.</label>
+                                            <div class="fileinput fileinput-exists" data-provides="fileinput">
+                                                <div class="fileinput-preview thumbnail" data-trigger="fileinput" style="width: 200px; height: 135px;">
+                                                    <!-- ko if: selected().thunbnail -->
+                                                    <img data-bind="attr: {src: selected().tnURLs}">
+                                                    <!-- /ko -->
+                                                    <!-- ko ifnot: selected().thunbnail -->
+                                                    <img src="../img/noImage.png">
+                                                    <!-- /ko -->
+                                                </div>
+
+                                                <div>
+                                                    <span class="btn btn-default btn-file"><span class="fileinput-new">Select image</span><span class="fileinput-exists">Change</span><input type="file" name="..."></span>
+                                                    <a href="#" class="btn btn-default fileinput-exists" data-dismiss="fileinput">Remove</a>
+                                                </div>
+                                            </div>
+
+                                        </div>
+                                        <!--<form >  data-bind="submit:selected().addItem" type="submit"-->
+                                        <!--<form id="tagForm" data-toggle="validator" data-disable="false" data-bind="submit:selected().addItem" >-->
+                                        <div class="form-group">
+
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="inputTags">Tags</label>
+                                            <div class="form-inline">
+                                                <button id="inputTags" class="btn btn-default"  type="submit" data-bind="click: selected().addItem, enable: selected().tagItemToAdd().length > 0">Add</button>
+                                                <input class="form-control" id="tagInput" type="text" data-bind='value: selected().tagItemToAdd, valueUpdate: "afterkeydown"'/>
+                                            </div>
+                                        </div>
+                                        <div class="form-group has-feedback">
+                                            <select id="tagsList" class="form-control" multiple="multiple" height="5" data-bind="options: selected().tags, selectedOptions: selected().selectedItems"> </select>
+                                            <span class="help-block with-errors"></span>
+                                        </div>
+                                        <div class="form-group">
+                                            <button class="btn btn-default" data-bind="click: selected().removeSelected, enable: selected().selectedItems().length > 0">Remove</button>
+                                        </div>
+                                        <!--</form>-->
+                                    </div>
+                                    <div class="col-md-8" >
+                                        <!--<div class="form-group has-feedback" >-->
+                                            <!--<label for="updateDoc">Title</label>-->
+                                            <!--<input class="form-control"  id="updateDoc" name="updateDoc" data-bind="value: selected().id" data-error="Required" type="text" required>-->
+                                            <!--<span class="help-block with-errors"></span>-->
+                                        <!--</div>-->
+                                        <div class="form-group has-feedback">
+                                            <label for="title">Title</label>
+                                            <input class="form-control"  id="title" data-bind="value: selected().title" data-error="Required" type="text" required>
+                                            <span class="help-block with-errors"></span>
+                                        </div>
+                                        <div class="form-group has-feedback">
+                                            <label for="inputSnippet">Summary</label>
+                                            <input class="form-control"  id="inputSnippet" data-bind="value: selected().snippet" data-error="Required" type="text" required>
+                                            <span class="help-block with-errors"></span>
+                                        </div>
+                                        <div class="form-group has-feedback">
+                                            <label for="inputDesc">Description</label>
+                                            <textarea class="form-control" id="inputDesc" style="overflow:auto;resize:vertical" data-bind="value: selected().description" rows="6" placeholder="Description" data-minlength="5" data-error="Required" required></textarea>
+                                            <span class="help-block with-errors"></span>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="inputLicenseInfo">Credits</label>
+                                            <input class="form-control" id="inputLicenseInfo" data-bind="value: selected().licenseInfo" type="text">
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="inputAccessInfo">Access and use Constraints</label>
+                                            <input class="form-control" id="inputAccessInfo" data-bind="value: selected().accessInformation" type="text">
+                                        </div>
+                                        <div class="form-group has-feedback">
+                                            <label for="inputUrl">Url</label>
+                                            <input class="form-control" id="inputUrl" data-bind="value: selected().url" data-error="Not a valid URL" type="url">
+                                            <span class="help-block with-errors"></span>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="form-group">
-                                    <!--<div class="col-md-12">-->
-                                    <label for="inputdefault">Description</label>
-                                    <textarea class="form-control" id="inputdefault" style="overflow:auto;resize:vertical" data-bind="value: selected().description" rows="3" placeholder="Description"></textarea>
-                                    <!--</div>-->
-                                </div>
-                                <div class="form-group">
-                                    <label for="inputdefault">Tags</label>
-                                    <input class="form-control" id="inputdefault" data-bind="value: selected().tags" type="text">
-                                </div>
+
                             </form>
+                            <!--<form action="gpoitems/update" enctype="multipart/form-data" method="post">-->
+                                <!--<div class="form-group">-->
+                                    <!--<input type="text" id="updateDoc" name="updateDoc" data-bind="value: selected().uDoc"/><br>-->
+                                <!--</div>-->
+                                <!--<div class="form-group">-->
+                                    <!--<input type="submit" id="submit" name="submit" />-->
+                                <!--</div>-->
+                            <!--</form>-->
                         </div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-default" data-dismiss="modal" >Close</button>
-                            <button type="button" class="btn btn-primary" data-dismiss="modal">Save changes</button>
+                            <button type="button" class="btn btn-primary" data-bind="click: selected().postback" data-dismiss="modal">Save changes</button>
                         </div>
                     </div>
                 </div>
@@ -379,7 +453,10 @@
     <script src="../bsdist/js/bootstrap.min.js"></script>
     <script src="https://cdn.datatables.net/1.10.9/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.datatables.net/1.10.9/js/dataTables.bootstrap.min.js"></script>
+    <script src="../bsdist/js/validator.min.js"></script>
+    <script src="../bsdist/js/jasny-bootstrap.min.js"></script>
     <script src="../js/gpintel.js"></script>
+    <script src="../js/Audit.js"></script>
     <script src="http://js.arcgis.com/3.14/"></script>
     <script src="../js/gpLogin.js"></script>
     <script src="js/Audit.js"></script>
