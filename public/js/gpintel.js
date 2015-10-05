@@ -174,7 +174,7 @@ function populateUserTables(query, utoken){
               //alert("hello");
               ////$.post('gpoitems/update', updateDoc, function(){alert("yes!")},"json");
               var mydata = new FormData();
-              var updateDocs = JSON.stringify({"id" : "40894bca74de46d4b92abd8fd0a5160e","title" : "AATest"});
+              var updateDocs = JSON.stringify([{"id" : "40894bca74de46d4b92abd8fd0a5160e","title" : "AATest"}]);
               mydata.append("updateDocs",updateDocs);
               //mydata.append("updateDocs",updateDocs);
               $.ajax({
@@ -187,16 +187,16 @@ function populateUserTables(query, utoken){
                   contentType: false, // Set content type to false as jQuery will tell the server its a query string request
                   success: function(dataP, textStatus, jqXHR)
                   {
-                      //if(! dataP.errors.length)
-                      //{
-                      //    // Success so call function to process the form
-                      //    console.log('success: ' + dataP);
-                      //}
-                      //else
-                      //{
-                      //    // Handle errors here
-                      //    console.log('ERRORS: ' + dataP);
-                      //}
+                      if(! dataP.errors.length)
+                      {
+                          // Success so call function to process the form
+                          console.log('success: ' + dataP);
+                      }
+                      else
+                      {
+                          // Handle errors here
+                          console.log('ERRORS: ' + dataP);
+                      }
                   },
                   error: function(jqXHR, textStatus, errorThrown)
                   {
