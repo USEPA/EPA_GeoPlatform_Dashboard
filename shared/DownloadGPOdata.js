@@ -30,6 +30,11 @@ var DownloadGPOdata =  function(){
 //If token is already available then set token on object. Don't need to request and download another one.
   this.token = null;
 //Otherwise if no token then need to set credentials
+//Can use appLogin with secret using oauth/token endpoint
+  this.appID = null;
+  this.appSecret = null;
+  this.expiration = null;
+//or can use userLogin using getToken endpoint
   this.username=null;
   this.password=null;
 //Need to set the portal
@@ -176,18 +181,48 @@ DownloadGPOdata.prototype.getToken = function () {
       return this.token;
     }
 
-    var tokenURL = this.portal + '/sharing/rest/generateToken?';
-
-    var parameters = {'username' : this.username,
-        'password' : this.password,
-        'client' : 'referer',
-        'referer': this.portal,
-        'expiration': 60,
-        'f' : 'json'};
+  var tokenURL=null;
+  var parameters=null;
+  var tokenFieldName=null;
+  if (this.appID && this.appSecret) {
+    tokenURL = this.portal + '/sharing/oauth2/token?';
+    parameters = {
+      'client_id': this.appID,
+      'client_secret': this.appSecret,
+      'grant_type': 'client_credentials',
+      'expiration': this.expiration
+    };
+    tokenFieldName='access_token';
+  }else {
+    tokenURL = this.portal + '/sharing/rest/generateToken?';
+    parameters = {
+      'username' : this.username,
+      'password' : this.password,
+      'client' : 'referer',
+      'referer': this.portal,
+      'expiration': this.expiration,
+      'f' : 'json'};
+      tokenFieldName='token';
+  }
 //Pass parameters via form attribute
-    var requestPars = {method:'post', url:tokenURL, form:parameters };
+  var requestPars = {method:'post', url:tokenURL, form:parameters };
 
-    return this.hr.callAGOL(requestPars,'token');
+  var keyMap = {};
+  keyMap[tokenFieldName] = 'token';
+  return this.hr.callAGOL(requestPars,keyMap);
+};
+
+DownloadGPOdata.prototype.getToken2 = function () {
+  console.log("Get Token Pass");
+  if (this.token) {
+    this.hr.saved.token = this.token;
+    return this.token;
+  }
+
+//Pass parameters via form attribute
+  var requestPars = {method:'post', url:tokenURL, form:parameters };
+
+  return this.hr.callAGOL(requestPars,'token');
 };
 
 DownloadGPOdata.prototype.getOrgId = function () {

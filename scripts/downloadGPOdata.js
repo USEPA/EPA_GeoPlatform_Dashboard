@@ -27,7 +27,7 @@ downloadGPOdata.AsyncAuditRowLimit = 100;
 //For overnight script we want to get slash and metadata so set to false
 // For testing overnight to only get metadata set it to true, will be much faster
 //Other application of DownloadGPOdata.
-downloadGPOdata.onlyGetMetaData = false;
+downloadGPOdata.onlyGetMetaData = true;
 //This will make execution must faster since we don not have to download all remote items and only need to download modified
 //Set this to false for the overnight download so that we don't keep the removed items locally
 //But don't do this if you are downloading the entire DB at first because querying on AGOL by Modified Date is actually slow over entire data set
@@ -48,13 +48,29 @@ downloadGPOdata.token = null;
 
 console.log('Running with NODE_ENV = ' + process.env.NODE_ENV);
 
+
 try {
-  downloadGPOdata.username = config.AGOLadminCredentials.username;
-  downloadGPOdata.password = config.AGOLadminCredentials.password;
+  downloadGPOdata.appID = config.AGOLadminCredentials.appID ;
+  downloadGPOdata.appSecret = config.AGOLadminCredentials.appSecret;
+  if (! downloadGPOdata.appID  || ! downloadGPOdata.appSecret) throw "";
 }
 catch (e) {
-    console.log("AGOL admin username and password or portal not defined in config file");
+  console.log("AGOL app ID or secret not defined in config file, trying usename/password");
+  try {
+    downloadGPOdata.username = config.AGOLadminCredentials.username;
+    downloadGPOdata.password = config.AGOLadminCredentials.password;
+  }
+  catch (e) {
+    console.log("AGOL admin username and password not defined in config file");
     process.exit();
+  }
+}
+
+try {
+  downloadGPOdata.expiration = config.AGOLadminCredentials.expiration;
+}
+catch (e) {
+  downloadGPOdata.expiration = null;
 }
 
 try {
