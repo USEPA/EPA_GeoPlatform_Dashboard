@@ -141,9 +141,11 @@ function populateUserTables(query, utoken){
           this.uDoc = ko.computed(function(){
               var jsonDoc = {
                   "id": this.id(),
-                  "owner": this.owner(),
-                  "title": this.title()
-              };
+                  "title": this.title(),
+                  "description": this.description(),
+                  "tags": this.tags(),
+                  "snippet": this.snippet()
+              }
               return jsonDoc
           }, this);
 
@@ -161,21 +163,11 @@ function populateUserTables(query, utoken){
           };
 
           this.postback = function() {
-              //alert(this.selected().title);
-              //var myDoc = {"id": "7ba6b875453c41e4afb3e3f1055d0da4", "owner": "Yarnell.David_EPA", "title": "A ATest"};
-              //var updateDoc = JSON.stringify(myDoc, null, 2)
-              //  var updateDoc = {
-              //    "id": this.selected().id(),
-              //    "owner": "Yarnell.David_EPA",
-              //    "title": this.selected().title()
-              //}
-              //
 
-              //alert("hello");
-              ////$.post('gpoitems/update', updateDoc, function(){alert("yes!")},"json");
               var mydata = new FormData();
-              var updateDocs = JSON.stringify([{"id" : "40894bca74de46d4b92abd8fd0a5160e","title" : "AATest"}]);
-              mydata.append("updateDocs",updateDocs);
+              //var updateDocs = $("#updateDocs")[0].value; {"id" : "40894bca74de46d4b92abd8fd0a5160e","title" : "AChangeTest2"}
+              mydata.append("updateDoc",JSON.stringify(this.selected().uDoc()));
+              //mydata.append("updateDocs",updateDocs);
               //mydata.append("updateDocs",updateDocs);
               $.ajax({
                   url: 'gpoitems/update',
@@ -185,17 +177,17 @@ function populateUserTables(query, utoken){
                   dataType: 'json',
                   processData: false, // Don't process the files
                   contentType: false, // Set content type to false as jQuery will tell the server its a query string request
-                  success: function(dataP, textStatus, jqXHR)
+                  success: function(data, textStatus, jqXHR)
                   {
-                      if(! dataP.errors.length)
+                      if(! data.error) //will need to change to data.errors.length when merged back to sprint 3
                       {
                           // Success so call function to process the form
-                          console.log('success: ' + dataP);
+                          console.log('success: ' + data);
                       }
                       else
                       {
                           // Handle errors here
-                          console.log('ERRORS: ' + dataP);
+                          console.log('ERRORS: ' + data);
                       }
                   },
                   error: function(jqXHR, textStatus, errorThrown)
@@ -205,55 +197,6 @@ function populateUserTables(query, utoken){
                       // STOP LOADING SPINNER
                   }
               });
-
-
-              //$.ajax({
-              //    url: 'gpoitems/update',
-              //    type: 'POST',
-              //    data: data2,
-              //    cache: false,
-              //    dataType: 'json',
-              //    processData: false,
-              //    contentType: false,
-              //    success: function(data2, textStatus, jqXHR)
-              //    {
-              //        if(typeof data2.error === 'undefined')
-              //        {
-              //            // Success so call function to process the form
-              //            submitForm(event, data2);
-              //        }
-              //        else
-              //        {
-              //            // Handle errors here
-              //            console.log('ERRORS: ' + data2.error);
-              //        }
-              //    },
-              //    error: function(jqXHR, textStatus, errorThrown)
-              //    {
-              //        // Handle errors here
-              //        console.log('ERRORS: ' + textStatus);
-              //        // STOP LOADING SPINNER
-              //    }
-              //});
-              // Don't process the files contentType: false, // Set content type to false as jQuery will tell the server its a query string request
-
-              //$.ajax({
-              //    url:'gpoitems/update',
-              //    type:'POST',
-              //    data: myDoc,
-              //    dataType: 'json',
-              //    contentType: "application/json",
-              //    success:function(res){
-              //        alert("it works!");
-              //    },
-              //    error:function(res){
-              //        alert("Bad thing happened! " + res.error);
-              //    }
-              //});
-
-
-              //alert(JSON.stringify(updateDoc, null, 2));
-
 
               console.log("Post back updated Items");
           };
