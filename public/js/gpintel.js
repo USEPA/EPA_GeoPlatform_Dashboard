@@ -19,7 +19,7 @@ $(document).ready(function() {
     $('#myModal').on('shown.bs.modal', function (e) {
 
         //validate everytime the form opens
-        $('#modalForm').validator('validate');
+        //$('#modalForm').validator('validate');
 
 
     });
@@ -115,7 +115,7 @@ function populateUserTables(query, utoken){
       //var regdata = JSON.stringify(data, null, 2);
       //alert(regdata);
 
-      var rowModel = function (id, title, type, description, tags, snippet, thumbnail, accessInformation, licenseInfo, access, numViews, owner, url, audit) {
+      var rowModel = function (id, title, type, description, tags, snippet, thumbnail, accessInformation, licenseInfo, access, numViews, owner, url, compliant) {
           this.id = ko.observable(id);
           this.title = ko.observable(title);
           this.access = ko.observable(access);
@@ -129,7 +129,8 @@ function populateUserTables(query, utoken){
           this.numViews = ko.observable(numViews);
           this.owner = ko.observable(owner);
           this.url = ko.observable(url);
-          this.AuditData = ko.observable(audit);
+          this.compliant = ko.observable(compliant);
+
           //tags
           this.tagItemToAdd = ko.observable("");
           this.selectedItems = ko.observableArray([""]);
@@ -161,7 +162,7 @@ function populateUserTables(query, utoken){
               this.selected().tags.removeAll(this.selected().selectedItems());
               this.selected().selectedItems([]); // Clear selection
           };
-
+          //Post updated docs back to Mongo
           this.postback = function() {
 
               var mydata = new FormData();
@@ -229,6 +230,7 @@ function populateUserTables(query, utoken){
       $('#gpoitemtable1').DataTable({
           "order": [[1,"asc"]]
       });
+
 
 
   });

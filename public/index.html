@@ -210,7 +210,7 @@
           <div class="view collapse in" id="overviewView" >
           <div id="overviewTable" class="table-responsive">
            <h2 class="sub-header">Overview</h2>
-            <table id="gpoitemtable1" class="table table-striped table-hover table-bordered">
+            <table id="gpoitemtable1" class="table table-hover table-bordered">
               <thead>
                 <tr>
                   <!-- <th>ID</th> -->
@@ -224,7 +224,7 @@
                 </tr>
               </thead>
                 <tbody data-bind="foreach: content">
-                  <tr data-bind="click: $parent.select" data-toggle="modal" data-target="#myModal" >
+                  <tr data-bind="css: {danger: !compliant()},click: $parent.select" data-toggle="modal" data-target="#myModal" >
                     <!-- <td data-bind="text: id"></td> -->
                     <td >
                         <!-- ko if:type()=='Web Map' -->
@@ -249,10 +249,10 @@
                     <td data-bind="text: numViews"></td>
                     <td data-bind="text: owner"></td>
                     <td >
-                        <div data-bind="if: AuditData">
+                        <div data-bind="if: compliant">
                             <img src="../img/greenOK.jpg" style="width:25px">
                         </div>
-                        <div data-bind="ifnot: AuditData">
+                        <div data-bind="ifnot: compliant">
                             <img src="../img/warningyellow.jpg" style="width:25px">
                         </div>
                       </td >
@@ -311,9 +311,9 @@
                                                 <input class="form-control" id="tagInput" type="text" data-bind='value: selected().tagItemToAdd, valueUpdate: "afterkeydown"'/>
                                             </div>
                                         </div>
-                                        <div class="form-group has-feedback">
+                                        <div class="form-group" data-bind="css: {'has-error': selected().tags().length < 3}">
                                             <select id="tagsList" class="form-control" multiple="multiple" height="5" data-bind="options: selected().tags, selectedOptions: selected().selectedItems"> </select>
-                                            <span class="help-block with-errors"></span>
+                                            <span class="help-block"></span>
                                         </div>
                                         <div class="form-group">
                                             <button class="btn btn-default" data-bind="click: selected().removeSelected, enable: selected().selectedItems().length > 0">Remove</button>
@@ -454,7 +454,7 @@
     <script src="../bsdist/js/bootstrap.min.js"></script>
     <script src="https://cdn.datatables.net/1.10.9/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.datatables.net/1.10.9/js/dataTables.bootstrap.min.js"></script>
-    <script src="../bsdist/js/validator.min.js"></script>
+    <!--<script src="../bsdist/js/validator.min.js"></script>-->
     <script src="../bsdist/js/jasny-bootstrap.min.js"></script>
     <script src="../js/gpintel.js"></script>
     <script src="../js/Audit.js"></script>
