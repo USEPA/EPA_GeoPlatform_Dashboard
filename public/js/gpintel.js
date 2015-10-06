@@ -166,9 +166,12 @@ function populateUserTables(query, utoken){
 
               var mydata = new FormData();
               //var updateDocs = $("#updateDocs")[0].value; {"id" : "40894bca74de46d4b92abd8fd0a5160e","title" : "AChangeTest2"}
+              //get docs
               mydata.append("updateDoc",JSON.stringify(this.selected().uDoc()));
-              //mydata.append("updateDocs",updateDocs);
-              //mydata.append("updateDocs",updateDocs);
+              //get thumbnail
+              var thumbnail = $('#thumbnail')[0].files[0];
+              mydata.append("thumbnail",thumbnail);
+
               $.ajax({
                   url: 'gpoitems/update',
                   type: 'POST',
