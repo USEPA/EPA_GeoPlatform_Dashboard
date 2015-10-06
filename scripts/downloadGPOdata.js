@@ -48,13 +48,29 @@ downloadGPOdata.token = null;
 
 console.log('Running with NODE_ENV = ' + process.env.NODE_ENV);
 
+
 try {
-  downloadGPOdata.username = config.AGOLadminCredentials.username;
-  downloadGPOdata.password = config.AGOLadminCredentials.password;
+  downloadGPOdata.appID = config.AGOLadminCredentials.appID ;
+  downloadGPOdata.appSecret = config.AGOLadminCredentials.appSecret;
+  if (! downloadGPOdata.appID  || ! downloadGPOdata.appSecret) throw "";
 }
 catch (e) {
-    console.log("AGOL admin username and password or portal not defined in config file");
+  console.log("AGOL app ID or secret not defined in config file, trying usename/password");
+  try {
+    downloadGPOdata.username = config.AGOLadminCredentials.username;
+    downloadGPOdata.password = config.AGOLadminCredentials.password;
+  }
+  catch (e) {
+    console.log("AGOL admin username and password not defined in config file");
     process.exit();
+  }
+}
+
+try {
+  downloadGPOdata.expiration = config.AGOLadminCredentials.expiration;
+}
+catch (e) {
+  downloadGPOdata.expiration = null;
 }
 
 try {
