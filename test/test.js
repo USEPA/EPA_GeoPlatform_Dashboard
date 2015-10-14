@@ -1,5 +1,139 @@
+
 var Q = require('q');
 var MonkClass = require('monk');
+
+var monk = MonkClass('mongodb://localhost:27017/egam');
+var userscollection = monk.get('GPOusers');
+var ownerIDsCollection = monk.get('GPOownerIDs');
+
+var utilities=require('../shared/utilities');
+
+var itemsCollection = monk.get('GPOitems');
+
+utilities.getDistinctArrayFromDB(itemsCollection,{},"owner")
+  .then(function (owners) {console.log(owners);});
+;
+
+return;
+
+Q.ninvoke(itemsCollection.col,"aggregate",
+    [
+      {"$match": {} },
+      {
+        "$group" : {
+          "_id" : "$owner"
+        }
+      }
+    ])
+    .then(function (docs) {
+      return docs.map(function (doc) {
+        return (doc._id);
+      });
+    })
+  .then(function (owners) {console.log(owners);});
+
+
+
+return;
+var arrayExtended = require('array-extended');
+var diff = arrayExtended.difference([1,3,2,5,4], [1,2,3,4,5]);
+var diff = arrayExtended.difference(null, null);
+var diff = arrayExtended.difference([1,3,2,5,4], [1,2,3,4]);
+
+var isDiff=false;
+if (diff && diff.length>0) isDiff = true;
+
+console.log("isDiff: " + isDiff);
+
+var test ={};
+//var same= arrayExtended.intersect(test.dum, [1,2,3,4]);
+
+var out = arrayExtended.intersect([5,2,4,1], [1,2]);
+console.log(out);
+
+return;
+
+Q.ninvoke(userscollection.col,"aggregate",
+  [
+    {"$match":{
+      "authGroups":{$ne:[]}
+      ,"isAdmin":true
+      }
+    },
+    {
+      "$group" : {
+        "_id" : "$authGroups"
+      }
+    }
+  ])
+  .then(function (docs) {
+    return docs.map(function (doc) {
+      return (doc._id);
+      });
+  })
+  .then(function (authGroups) {console.log(authGroups)});
+
+
+
+return;
+utilities.getArrayFromDB(userscollection,{username:{$in:["aaron.evans_EPA","lmaclear_EPA"]}},"authGroups")
+  .then(function (x) {console.log(x);});
+
+
+return;
+
+var AuditClass=require('../shared/Audit');
+var audit = new AuditClass();
+
+var doc = {};
+
+//Remember to escape the escape characters
+doc.type = "Web Mapping Application";
+//doc.type = "File Geodatabase";
+doc.title = "My name is Aaron Evans joke-copy test";
+doc.tags = ["tag 1 is a test","tag 2 is a -copy"];
+doc.snippet = "<div>testing snippet test</div>";
+doc.description = "contains four words test";
+doc.thumbnail = null;
+
+doc.access = "private";
+audit.validate(doc,["title"]);
+console.log(audit.results);
+
+doc.access = "public";
+audit.validate(doc,["tags"]);
+console.log(audit.results);
+
+audit.clear();
+audit.validate(doc,["tags"]);
+console.log(audit.results);
+
+return;
+
+var monk = MonkClass('mongodb://localhost:27017/egam');
+var userscollection = monk.get('GPOusers');
+
+//orderBy like this doesn't work
+Q(userscollection.findOne({authGroups:{$all:["GPO Meta-Inteligence","Region 7"]}},{}))
+      .then(function (doc) {
+//    console.log(historycollection.id(doc._id));
+        console.log(doc);
+  });
+
+return;
+
+
+
+var monk = MonkClass('mongodb://localhost:27017/egam');
+var userscollection = monk.get('GPOusers');
+var authgroupscollection = monk.get('GPOauthGroups');
+
+var UpdateAdminOwnerIDsClass = require("../shared/UpdateAuthGroupsAndOwnerIDs");
+var updateAdminOwnerIDs = new UpdateAdminOwnerIDsClass(userscollection,authgroupscollection);
+
+updateAdminOwnerIDs.update({username:"aaron.evans_EPA",groups:["GPO Meta-Inteligence"],role:"org_admin"});
+
+return;
 
 var nodemailer = require('nodemailer');
 var transporter = nodemailer.createTransport({
@@ -16,7 +150,7 @@ transporter.sendMail({
   text: 'hello world!'
 });
 
-return
+return;
 
 var monk = MonkClass('mongodb://localhost:27017/egam');
 var historycollection = monk.get('GPOhistory');

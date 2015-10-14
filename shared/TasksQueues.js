@@ -32,9 +32,9 @@ TasksQueues.prototype.getProcess = function () {
       function () {
         var length = jinn.getQueue().length();
 //Mark this task as done
-        console.log("Pre Task Count for: " + data.arg.task + " is: " + jinn.getQueue().length());
+//        console.log("Pre Task Count for: " + data.arg.task + " is: " + jinn.getQueue().length());
         jinn.done(); // important!
-        console.log("Post Task Count for: " + data.arg.task + " is: " + jinn.getQueue().length());
+//        console.log("Post Task Count for: " + data.arg.task + " is: " + jinn.getQueue().length());
 //If nothing left in this task queue then get rid of task queue
 //Uncomment this if we think having too many queues for each user is using too much memory
         if (length<1) delete self.queues[data.arg.task];

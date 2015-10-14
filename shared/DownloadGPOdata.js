@@ -251,8 +251,33 @@ DownloadGPOdata.prototype.getGPOitemsChunk = function (requestStart,HandleGPOite
   var query = 'orgid:' + this.hr.saved.orgID;
   if (Array.isArray(this.ownerIDs) && this.ownerIDs.length>0) {
     var ownerQueries = this.ownerIDs.map(function (ownerID) {return "owner:"+ownerID});
-//Don't need orgid if we have owner IDs
-    query = "(" + ownerQueries.join(" OR ") + ")";
+
+//    console.log("ownerQueries length = " + ownerQueries.length);
+
+    var ownerQueryString = "(" + ownerQueries.join(" OR ") + ")";
+//If query length is too long URL will be too large and return error
+//Therefore will have to download all owners at this point so only change query to ownerQuery if within length limit
+    if (ownerQueryString.length<5000) {
+      //Don't need orgid if we have owner IDs
+      query = ownerQueryString;
+    }
+
+//Just to test how long the query can be
+//    console.log("Full ownerQueryString length " + ownerQueryString.length);
+//    var ownerQueryString = "";
+//    var queryStringLimit = 5000;
+//    var ownerQueryStringCount = 0;
+//    ownerQueries.some(function (owner) {
+//      if (ownerQueryString.length<queryStringLimit) {
+//        ownerQueryStringCount += 1;
+//        if (ownerQueryString) ownerQueryString += " OR ";
+//        ownerQueryString += owner;
+//      }
+//      return ownerQueryString.length>=queryStringLimit;
+//    });
+//    query=ownerQueryString;
+//    console.log("ownerQueryString = " + ownerQueryStringCount + ownerQueryString);
+
   }
 
 //If not removing local gpo items that have been removed from AGOL then only need to download modified items
