@@ -33,8 +33,10 @@ mongodata
 #Web Storm Settings
 .idea
 
-#Local config file
+#Don't check in any config files except template.js which doesn't have any sensitive information just placeholders
 config/env/local.js
+config/env/staging.js
+config/env/production.js
 
 #config file for node-inspector
 .node-inspectorrc
