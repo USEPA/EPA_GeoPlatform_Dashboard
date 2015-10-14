@@ -40,7 +40,7 @@ utilities.removeJSONkeyDots = function(json) {
   allKeys.forEach(function (key) {
     newkey=key.replace(/\./g,"");
     jafar.replaceKey(key, newkey, true, true);
-  })
+  });
 
   return jafar.json;
 };
@@ -60,7 +60,7 @@ utilities.getHandleError = function (resObject,code) {
 //Have to keep the same reference so can't just reassign
     resObject.error = {message: error.message, code: code};
     resObject.body = null;
-    console.log("getHandleError  " + resObject.error.message);
+    console.log("getHandleError  " + error.stack);
   }
 };
 
@@ -91,6 +91,47 @@ utilities.getGridFSobject = function (app) {
       if (! gfs) gfs = GridFSstream(db, mongo);
       app.set('gfs',gfs);
       return gfs;
+    });
+};
+
+utilities.sliceObject = function (obj,slice) {
+  var mySlice = {};
+
+  slice.forEach(function (key) {
+    mySlice[key] = obj[key];
+  });
+
+  return mySlice;
+};
+
+//Get array from DB from single field
+utilities.getArrayFromDB = function (collection,query,field) {
+  var Q = require('q');
+  var proj = {fields:{}};
+  proj[field] = 1;
+  return Q(collection.find(query, proj))
+//  return Q(collection.find(query, {fields:{authGroups:1}}))
+    .then(function (docs) {
+      return docs.map(function (doc) {
+        return doc[field];});
+      });
+};
+
+utilities.getDistinctArrayFromDB = function (collection,query,field) {
+  var Q = require('q');
+
+  return Q.ninvoke(collection.col,"aggregate",
+    [
+      {"$match": query },
+      {
+        "$group" : {
+          "_id" : "$" + field
+        }
+      }
+    ])
+    .then(function (docs) {
+      return docs.map(function (doc) {
+        return doc._id;});
     });
 };
 
