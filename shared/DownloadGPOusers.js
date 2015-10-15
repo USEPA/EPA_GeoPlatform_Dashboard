@@ -314,7 +314,6 @@ DownloadGPOusers.prototype.storeModifiedDocs = function (body) {
   doc.groups=[];
   doc.authGroups=[];
   doc.isAdmin=false;
-  doc.ownerIDs=[];
   return doc.modified>self.hr.saved.localMaxModifiedDate});
 
 //NOt get array of only the modified ID's because we will be looping over all id's later to get Slash Data but don't want to keep all GPO items in memory
