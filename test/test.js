@@ -1,4 +1,3 @@
-
 var Q = require('q');
 var MonkClass = require('monk');
 
@@ -9,6 +8,46 @@ var ownerIDsCollection = monk.get('GPOownerIDs');
 var utilities=require('../shared/utilities');
 
 var itemsCollection = monk.get('GPOitems');
+
+
+var AuditClass=require('../shared/Audit');
+var audit = new AuditClass();
+
+var doc = {};
+
+//Remember to escape the escape characters
+doc.type = "Web Mapping Application";
+//doc.type = "File Geodatabase";
+doc.title = "My name is Aaron Evans joke-copy test";
+doc.tags = ["tag 1 is a test","tag 2 is a -copy"];
+doc.snippet = "<div>testing snippet test</div>";
+doc.description = "contains four words test";
+doc.thumbnail = null;
+doc.access = "public";
+
+doc.AuditData = {};
+
+audit.validate(doc);
+console.log(doc);
+
+audit.clear(doc);
+
+console.log(doc);
+
+doc.access = "private";
+audit.validate(doc,["title"]);
+console.log(doc);
+
+doc.access = "public";
+audit.validate(doc,["tags"]);
+console.log(doc);
+
+audit.clear(doc);
+audit.validate(doc,["tags"]);
+console.log(doc);
+
+return;
+
 
 utilities.getDistinctArrayFromDB(itemsCollection,{},"owner")
   .then(function (owners) {console.log(owners);});
@@ -82,33 +121,6 @@ utilities.getArrayFromDB(userscollection,{username:{$in:["aaron.evans_EPA","lmac
 
 return;
 
-var AuditClass=require('../shared/Audit');
-var audit = new AuditClass();
-
-var doc = {};
-
-//Remember to escape the escape characters
-doc.type = "Web Mapping Application";
-//doc.type = "File Geodatabase";
-doc.title = "My name is Aaron Evans joke-copy test";
-doc.tags = ["tag 1 is a test","tag 2 is a -copy"];
-doc.snippet = "<div>testing snippet test</div>";
-doc.description = "contains four words test";
-doc.thumbnail = null;
-
-doc.access = "private";
-audit.validate(doc,["title"]);
-console.log(audit.results);
-
-doc.access = "public";
-audit.validate(doc,["tags"]);
-console.log(audit.results);
-
-audit.clear();
-audit.validate(doc,["tags"]);
-console.log(audit.results);
-
-return;
 
 var monk = MonkClass('mongodb://localhost:27017/egam');
 var userscollection = monk.get('GPOusers');

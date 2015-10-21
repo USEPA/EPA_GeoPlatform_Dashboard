@@ -212,19 +212,6 @@ DownloadGPOdata.prototype.getToken = function () {
   return this.hr.callAGOL(requestPars,keyMap);
 };
 
-DownloadGPOdata.prototype.getToken2 = function () {
-  console.log("Get Token Pass");
-  if (this.token) {
-    this.hr.saved.token = this.token;
-    return this.token;
-  }
-
-//Pass parameters via form attribute
-  var requestPars = {method:'post', url:tokenURL, form:parameters };
-
-  return this.hr.callAGOL(requestPars,'token');
-};
-
 DownloadGPOdata.prototype.getOrgId = function () {
   if (this.orgID) {
     this.hr.saved.orgID = this.orgID;
@@ -942,7 +929,7 @@ DownloadGPOdata.prototype.getSingleGPOaudit = function (itemsContext,auditGPOite
 
   audit.validate(auditGPOitem);
 
-  return this.Q(this.itemscollection.update({id:auditGPOitem.id},{$set:{AuditData:audit.results}}))
+  return this.Q(this.itemscollection.update({id:auditGPOitem.id},{$set:{AuditData:auditGPOitem.AuditData}}))
 //    .then(function () {delete audit;return true})
     .catch(function(err) {
       console.error("Error updating Audit Data for " + id + " : " + err);
