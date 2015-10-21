@@ -2,6 +2,9 @@ var DownloadGPOdata =  function(){
 //This can be run to only update a list of ownerIDs if given. null means get all ownerIDs.
   this.ownerIDs = null;
 
+//ESRI only allows total = 10,000 in search, we need to get pages of 10,000 (or whatever is set here if it changes)
+  this.requestQueryRowLimit = 10000;
+
   this.requestItemCount = 100;
 
   this.useSync=false;
@@ -83,14 +86,17 @@ DownloadGPOdata.prototype.download = function () {
     this.db = new this.mongo.Db(mongoURL.pathname.replace("/",""), new this.mongo.Server(mongoURL.hostname,mongoURL.port));
   }
 
-//hr.save is where we store the output from REST calls like token and OrgID so it can be used by handlers
+//hr.saveD is where we store the output from REST calls like token and OrgID so it can be used by handlers
+
+//When getting items with sync this keep track of what requestStart we are on
   this.hr.saved.requestStart=1;
-//for async download of items need to have rows counting
+//for async download of items need to keep count of row we are on
   this.hr.saved.remoteGPOrow=1;
-//for hybrid need to have AGOL call counting
-//each call gets number of rows equal to requestItemCount
+//for hybrid need to keep count of the AGOL request we are on
+//Each AGOL request retrieves a number of rows equal to requestItemCount
   this.hr.saved.currentRequest=1;
-//modifiedGPOrow is needed when processing modified items
+
+//modifiedGPOrow is needed when processing modified items to get slash data
   this.hr.saved.modifiedGPOrow=1;
 
 //Place to store ALL the new GPO id's taken from the website with modified data
@@ -101,14 +107,13 @@ DownloadGPOdata.prototype.download = function () {
 //This will store thumbnail names for gpoID's
   this.hr.saved.modifiedThumbnails = {};
 
-  this.hr.saved.historyGPOitems = [];
-
   if (this.AsyncRequestLimit===0 || this.AsyncRequestLimit===1)  this.useSync=true;
   if (this.AsyncRowLimit===0 || this.AsyncRowLimit===1)  this.useSync=true;
 
-//String along aysn function calls to AGOL REST API
-  var getGPOdata=null;
+//Determine the functions we will need (sync,async,hybrid) for getting items and data
   var getGPOitems=null;
+  var getGPOdata=null;
+
   if (this.useSync) {
     console.log('Getting All Data using Sync');
     getGPOitems=this.getGPOitemsSync;
@@ -130,6 +135,8 @@ DownloadGPOdata.prototype.download = function () {
     }
   }
 
+//Since there is a 10,000 limit on GPO item search need to page over getGPOitems so save the type we are paging over
+  this.hr.saved.getGPOitems=getGPOitems;
 
 //If only want meta data this is just a dummy pass through function
   if (this.onlyGetMetaData) getGPOdata = function () {return true};
@@ -143,12 +150,12 @@ DownloadGPOdata.prototype.download = function () {
     .then(self.getSelfInvokedFunction(self.getToken))
     .then(self.getSelfInvokedFunction(self.getOrgId))
     .then(self.getSelfInvokedFunction(self.getLocalGPOids))
-    .then(self.getSelfInvokedFunction(getGPOitems))
+    .then(self.getSelfInvokedFunction(self.getGPOitemsPaging))
     .then(self.getSelfInvokedFunction(getGPOdata))
 //    .then(self.getSelfInvokedFunction(self.getSingleGridFS))
     .then(self.getSelfInvokedFunction(self.removeLocalGPOitems))
     .catch(function (err) {
-      console.error('Error received:', err);
+      console.error('Error received:', err.stack);
     })
     .then(function () {
       var defer = new self.Q.defer();
@@ -281,13 +288,20 @@ DownloadGPOdata.prototype.getGPOitemsChunk = function (requestStart,HandleGPOite
   }
 
 //If not removing local gpo items that have been removed from AGOL then only need to download modified items
-  if (this.dontRemoveGPOitems) {
+//  if (this.dontRemoveGPOitems) {
+//Also now we have to page by sorting by modified date to have to query using last max modified date as lower limit
+  if (this.hr.saved.remoteMaxModifiedDate) {
 //have to pad modified ms from 1970
     var now = (new Date()).getTime();
-    query += ' AND modified:[' + this.padNumber(this.hr.saved.localMaxModifiedDate) + ' TO ' + this.padNumber(now) + ']';
-
+//    query += ' AND modified:[' + this.padNumber(this.hr.saved.localMaxModifiedDate) + ' TO ' + this.padNumber(now) + ']';
+    query += ' AND modified:[' + this.padNumber(this.hr.saved.remoteMaxModifiedDate) + ' TO ' + this.padNumber(now) + ']';
+//Also don't the remoteMaxModifiedDate. the raning doesn't allow > only >=
+    query += ' AND NOT modified:' + this.padNumber(this.hr.saved.remoteMaxModifiedDate);
   }
-  var parameters = {'q':query,'token' : this.hr.saved.token,'f' : 'json','start':requestStart,'num':this.requestItemCount };
+
+  //Due to paging of 10,000 item pages in query need to sort by modified date now
+  var parameters = {'sortField':'modified','q':query,'token' : this.hr.saved.token,'f' : 'json','start':requestStart,'num':this.requestItemCount };
+
 
 //testing single ID
 //  var parameters = {'q':'id:e58dcd33a6d4474caf9d0dd7ea75778e','token' : hr.saved.token,'f' : 'json','start':requestStart,'num':requestItemCount };
@@ -317,6 +331,42 @@ DownloadGPOdata.prototype.padNumber = function (num, size) {
   return s;
 };
 
+
+DownloadGPOdata.prototype.getGPOitemsPaging = function () {
+  var self = this;
+//Need to initialize the remoteMaxModifiedDate
+  this.hr.saved.remoteMaxModifiedDate=0;
+//If we are not removing Local then we can use the localMaxModifiedDate for initialization. Don't need to get everything.
+  if (this.dontRemoveGPOitems) this.hr.saved.remoteMaxModifiedDate=this.hr.saved.localMaxModifiedDate;
+
+  //THis needs to be initialized to allow while loop to continue the first time
+  self.hr.saved.remoteGPOcount=self.requestQueryRowLimit;
+
+  var whileCondition=null;
+  if (self.TotalRowLimit) {
+    whileCondition=function() {return self.hr.saved.remoteGPOids.length<self.TotalRowLimit;};
+  }else {
+    whileCondition=function() {
+//if remote is less than requestQueryRowLimit (eg. 10,000) then can stop while loop
+      return self.hr.saved.remoteGPOcount===self.requestQueryRowLimit;};
+  }
+
+  var getGPOitemsPagingChunk = function () {
+    return self.getSelfInvokedFunction(self.hr.saved.getGPOitems)().then(self.getSelfInvokedFunction(self.HandleGPOitemsPaging));
+  };
+  return self.hr.promiseWhile(whileCondition,  getGPOitemsPagingChunk);
+//  return self.hr.promiseWhile(whileCondition,  self.getSelfInvokedFunction(self.hr.saved.getGPOitems));
+};
+
+DownloadGPOdata.prototype.HandleGPOitemsPaging = function (body) {
+//Need to clear out the counts to start the next 10,000 row page request sequence
+  this.hr.saved.requestStart=1;
+  this.hr.saved.remoteGPOrow=1;
+  this.hr.saved.currentRequest=1;
+  return this.Q(true);
+};
+
+
 DownloadGPOdata.prototype.getGPOitemsSync = function () {
   var self = this;
   var whileCondition=null;
@@ -331,6 +381,9 @@ DownloadGPOdata.prototype.getGPOitemsSync = function () {
 DownloadGPOdata.prototype.HandleGPOitemsResponseSync = function (body) {
   console.log('Sync ' + this.hr.saved.requestStart + ' to ' + (this.hr.saved.requestStart + body.results.length-1));
   this.hr.saved.requestStart = body.nextStart;
+
+//Also find the max modified date for the entire requestQueryRowLimit=10,000 row "page" used to page to next 10,000 rows
+  if (body.start+this.requestItemCount-1===this.requestQueryRowLimit) this.hr.saved.remoteMaxModifiedDate=body.results[body.results.length-1].modified;
 
   this.storeModifiedDocs(body);
 
@@ -357,6 +410,9 @@ DownloadGPOdata.prototype.HandleGPOitemsResponseAsync = function (body) {
     return false;
   }
 
+//Also find the max modified date for the entire requestQueryRowLimit=10,000 row "page" used to page to next 10,000 rows
+  if (body.start+this.requestItemCount-1===this.requestQueryRowLimit) this.hr.saved.remoteMaxModifiedDate=body.results[body.results.length-1].modified;
+
 //storeModifiedDocs returns a promise that is done when mod docs are inserted
   return this.storeModifiedDocs(body);
 };
@@ -367,7 +423,8 @@ DownloadGPOdata.prototype.storeModifiedDocs = function (body) {
 //Note I am going to insert into database each time this is called but store Mod IDs so that Slash Data can be downloaded later
 //store all the remote id's
   var remoteGPOids = body.results.map(function(doc) {return doc.id});
-  self.hr.saved.remoteGPOids =self.hr.saved.remoteGPOids .concat(remoteGPOids)
+  self.hr.saved.remoteGPOids =self.hr.saved.remoteGPOids.concat(remoteGPOids)
+
 //only the modified/created gpo items more recent than local will be upserted
 //add empty SlashData field in here in case it doesn't get added later just
   var modifiedGPOitems = body.results.filter(function(doc) {doc.SlashData=null;return doc.modified>self.hr.saved.localMaxModifiedDate});
@@ -479,7 +536,7 @@ DownloadGPOdata.prototype.getGPOitemsAsyncFromStartArray = function () {
 //                console.log(String(key+1) + 'done');
           done();})
         .catch(function(err) {
-          console.error('async for each gpo items chunk Error received:', err);
+          console.error('async for each gpo items chunk Error received:', err.stack);
         })
         .done(function() {
 //          console.log('for loop success')

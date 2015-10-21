@@ -337,7 +337,7 @@ Audit.prototype.addErrorMessage = function (field,doc,template,result) {
       this.results.errors[field].compliant=false;
     }
   }
-  if (! result.pass) console.log("Error for " + doc.id + " : " + error);
+//  if (! result.pass) console.log("Error for " + doc.id + " : " + error);
 
 };
 

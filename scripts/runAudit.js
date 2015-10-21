@@ -24,6 +24,7 @@ function processAudit(doc, done) {
   // code for your update
   var audit = new AuditClass();
   audit.validate(doc);
+  console.log(audit.results);
 
   itemscollection.update({_id: doc._id}, {$set: {AuditData: audit.results}},
     function (err) {
@@ -39,6 +40,13 @@ var q = async.queue(processAudit, Infinity);
 
 var cursorClosed = false;
 
+q.drain = function() {
+  if (cursorClosed) {
+    console.log("All Audits were Processed");
+    process.exit();
+  }
+};
+
 itemscollection.find({}, { stream: true })
   .each(function(doc){
     if (doc) q.push(doc); // dispatching doc to async.queue
@@ -50,9 +58,4 @@ itemscollection.find({}, { stream: true })
     cursorClosed = true;
   });
 
-q.drain = function() {
-  if (cursorClosed) {
-    console.log("All Audits were Processed");
-  }
-}
 
