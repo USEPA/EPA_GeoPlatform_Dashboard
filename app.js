@@ -133,7 +133,7 @@ if (app.get('env') !== 'production') {
     console.log(err.status);
     res.status(err.status || 500);
 
-    console.log(err);
+    console.log(err.stack);
 
     res.json(
       {error: {
