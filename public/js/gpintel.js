@@ -3,7 +3,6 @@
 
 $(document).ready(function() {
 
-
   $(document).on('click', '.nav-sidebar li', function() {
        $(".nav-sidebar li").removeClass("active");
        $(this).addClass("active");
@@ -16,6 +15,12 @@ $(document).ready(function() {
 
    });
 
+    $('#myModal').on('shown.bs.modal', function (e) {
+
+        //validate everytime the form opens
+        //$('#modalForm').validator('validate');
+
+    });
 
 
 });
@@ -87,6 +92,7 @@ function populateTable(vTable,query) {
 };
 
 var gpoData = [];
+var rootRowModelINstance = null;
 
 function rowSelect(x){
     alert(x.rowIndex);
@@ -97,48 +103,119 @@ function rowSelect(x){
 };
 
 //populate tables for GPO User view
-function populateUserTables(query){
+function populateUserTables(query, utoken){
   query=JSON.stringify(query)
+
 
   // jQuery AJAX call for JSON
   $.getJSON('/gpoitems/list', {query:query}, function(data) {
-    console.log(data);
+    //console.log(data);
 
       gpoData = data;
-      //ko.applyBindings({content: data});
-      //alert("hello");
 
-      var rowModel = function (title, type, description, tags, access, numViews, owner, audit) {
-          this.title = ko.observable(title);
-          this.access = ko.observable(access);
-          this.type = ko.observable(type);
-          this.description = ko.observable(description);
-          this.tags = ko.observable(tags);
-          this.numViews = ko.observable(numViews);
-          this.owner = ko.observable(owner);
-          this.AuditData = ko.observable(audit);
+      var rowModel1 = function(i){
+          //This is the doc
+          this.doc = ko.mapping.fromJS(i);
+
+
+          //computed thumbnail url
+          this.tnURLs = ko.computed(function(){
+              return "http://epa.maps.arcgis.com/sharing/rest/content/items/" + i.id + "/info/" + i.thumbnail + "?token=" + utoken;
+          }, this);
+
+          //tags
+          this.tagItemToAdd = ko.observable("");
+          this.selectedItems = ko.observableArray([""]);
+          //Add tag to tags array
+          this.addItem = function () {
+              //alert("here");
+              if ((this.selected().tagItemToAdd() != "") && (this.selected().doc.tags.indexOf(this.selected().tagItemToAdd()) < 0)) // Prevent blanks and duplicates
+                  this.selected().doc.tags.push(this.selected().tagItemToAdd());
+              this.selected().tagItemToAdd(""); // Clear the text box
+          };
+          //Remove tag from tags array
+          this.removeSelected = function () {
+              this.selected().doc.tags.removeAll(this.selected().selectedItems());
+              this.selected().selectedItems([]); // Clear selection
+          };
+
+          //Post updated docs back to Mongo
+          this.postback = function() {
+              //alert("Posting");
+
+              var unmappedDoc = ko.mapping.toJS(this.selected().doc);
+
+
+              var auditRes = new Audit();
+              auditRes.validate(unmappedDoc,"");
+              ko.mapping.fromJS(unmappedDoc, this.selected().doc);
+
+              //alert(JSON.stringify(unmappedDoc));
+
+              var mydata = new FormData();
+              mydata.append("updateDoc",JSON.stringify(unmappedDoc));
+              //mydata.append("updateDoc", unmappedDoc);
+              var thumbnail = $('#thumbnail')[0].files[0];
+              mydata.append("thumbnail",thumbnail);
+              $.ajax({
+                  url: 'gpoitems/update',
+                  type: 'POST',
+                  data: mydata,
+                  cache: false,
+                  dataType: 'json',
+                  processData: false, // Don't process the files
+                  contentType: false, // Set content type to false as jQuery will tell the server its a query string request
+                  success: function(data, textStatus, jqXHR)
+                  {
+                      if(! data.error) //will need to change to data.errors.length when merged back to sprint 3
+                      {
+                          // Success so call function to process the form
+                          console.log('success: ' + data);
+                      }
+                      else
+                      {
+                          // Handle errors here
+                          console.log('ERRORS: ' + data);
+                      }
+                  },
+                  error: function(jqXHR, textStatus, errorThrown)
+                  {
+                      // Handle errors here
+                      console.log('ERRORS: ' + textStatus);
+                      // STOP LOADING SPINNER
+                  }
+              });
+              console.log("Post back updated Items");
+          };
+
       };
-
       var RootViewModel = function(data){
           var self = this;
 
           self.content = ko.observableArray(data.map(function(i){
-              return new rowModel(i.title, i.type, i.description, i.tags, i.access, i.numViews, i.owner, i.AuditData.compliant);
+              //return new rowModel(i.id, i.title, i.type, i.description, i.tags, i.snippet, i.thumbnail, i.accessInformation, i.licenseInfo, i.access, i.numViews
+              //    , i.owner, i.url, i.AuditData.compliant, i);
+              //var rowModel1 = ko.mapping.fromJS(i);
+              return new rowModel1(i);
           }));
 
+
           self.select = function(item){
-            self.selected(item);
+              self.selected(item);
           };
 
           self.selected = ko.observable(self.content()[0]);
 
       };
-      ko.applyBindings(new RootViewModel(data));
+      rootRowModelINstance = new RootViewModel(data);
+
+      ko.applyBindings(rootRowModelINstance);
 
       //apply data table magic, ordered ascending by title
       $('#gpoitemtable1').DataTable({
           "order": [[1,"asc"]]
       });
+
 
 
   });

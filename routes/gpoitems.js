@@ -30,7 +30,7 @@ module.exports = function(app) {
 //This function gets input for both post and get for now
     var query = utilities.getRequestInputs(req).query;
 
-//parse JSON query in object
+//parse JSON querdfy in object
     if (typeof query ==="string") query = JSON.parse(query);
 //If query is falsey make it empty object
     if (! query) query = {};
