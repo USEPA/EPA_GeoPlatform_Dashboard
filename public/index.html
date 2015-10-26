@@ -13,6 +13,7 @@
 
       <!-- Bootstrap core CSS -->
       <link href="../bsdist/css/bootstrap.min.css" rel="stylesheet">
+      <link href="../bsdist/css/bootstrap3-wysihtml5.min.css" rel="stylesheet">
       <link href="../bsdist/css/jasny-bootstrap.min.css" rel="stylesheet">
       <!-- Bootstrap datatable CSS -->
       <link href="https://cdn.datatables.net/1.10.9/css/dataTables.bootstrap.min.css" rel="stylesheet">
@@ -28,6 +29,7 @@
       <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
     <![endif]-->
       <script src="https://cdnjs.cloudflare.com/ajax/libs/knockout/3.3.0/knockout-min.js"></script>
+      <script src="../bsdist/js/knockout.mapping-latest.js"></script>
   </head>
 
   <body>
@@ -224,36 +226,36 @@
                 </tr>
               </thead>
                 <tbody data-bind="foreach: content">
-                  <tr data-bind="css: {danger: !compliant()},click: $parent.select" data-toggle="modal" data-target="#myModal" >
+                  <tr data-bind="css: {danger: !doc.AuditData.compliant()}, click: $parent.select" data-toggle="modal" data-target="#myModal" >
                     <!-- <td data-bind="text: id"></td> -->
                     <td >
-                        <!-- ko if:type()=='Web Map' -->
+                        <!-- ko if:doc.type()=='Web Map' -->
                         <img src="../img/maps16.png">
                         <!-- /ko -->
-                        <!-- ko if:type()=='Web Mapping Application' -->
+                        <!-- ko if:doc.type()=='Web Mapping Application' -->
                          <img src="../img/apps16.png">
                         <!-- /ko -->
-                        <!-- ko if:type()=='Feature Layer' -->
+                        <!-- ko if:doc.type()=='Feature Layer' -->
                         <img src="../img/featureshosted16.png">
                         <!-- /ko -->
-                        <!-- ko if:type()=='Service Definition' -->
+                        <!-- ko if:doc.type()=='Service Definition' -->
                         <img src="../img/datafiles16.png">
                         <!-- /ko -->
-                        <!-- ko if:type()=='Map Image layer' -->
+                        <!-- ko if:doc.type()=='Map Image layer' -->
                         <img src="../img/mapimages16.png">
                         <!-- /ko -->
                     </td>
-                    <td data-bind="text: title" ></td>
-                    <td data-bind="text: access"></td>
-                    <td data-bind="text: type"></td>
-                    <td data-bind="text: numViews"></td>
-                    <td data-bind="text: owner"></td>
+                    <td data-bind="text: doc.title" ></td>
+                    <td data-bind="text: doc.access"></td>
+                    <td data-bind="text: doc.type"></td>
+                    <td data-bind="text: doc.numViews"></td>
+                    <td data-bind="text: doc.owner"></td>
                     <td >
-                        <div data-bind="if: compliant">
+                        <div data-bind="if: doc.AuditData.compliant()">
                             <img src="../img/greenOK.jpg" style="width:25px">
                         </div>
-                        <div data-bind="ifnot: compliant">
-                            <img src="../img/warningyellow.jpg" style="width:25px">
+                        <div data-bind="ifnot: doc.AuditData.compliant()">
+                            <img src="../img/warning.png" style="width:25px">
                         </div>
                       </td >
                   </tr>
@@ -284,14 +286,14 @@
                                             <label>For best results, the image should be 200 pixels wide by 133 pixels high. Other sizes will be adjusted to fit. Acceptable image formats are: PNG, GIF and JPEG.</label>
                                             <div class="fileinput fileinput-exists" data-provides="fileinput">
                                                 <div class="fileinput-preview thumbnail" data-trigger="fileinput" style="width: 200px; height: 135px;">
-                                                    <!-- ko if: selected().thunbnail -->
+                                                    <!-- ko if: selected().doc.thumbnail -->
                                                     <img data-bind="attr: {src: selected().tnURLs}">
                                                     <!-- /ko -->
-                                                    <!-- ko ifnot: selected().thunbnail -->
+                                                    <!-- ko ifnot: selected().doc.thumbnail -->
                                                     <img src="../img/noImage.png">
                                                     <!-- /ko -->
                                                 </div>
-
+                                                <span class="help-block" data-bind="ifnot: selected().doc.thunbnail">Requried</span>
                                                 <div>
                                                     <span class="btn btn-default btn-file"><span class="fileinput-new">Select image</span><span class="fileinput-exists">Change</span><input id="thumbnail" type="file" name="..."></span>
                                                     <a href="#" class="btn btn-default fileinput-exists" data-dismiss="fileinput">Remove</a>
@@ -311,8 +313,8 @@
                                                 <input class="form-control" id="tagInput" type="text" data-bind='value: selected().tagItemToAdd, valueUpdate: "afterkeydown"'/>
                                             </div>
                                         </div>
-                                        <div class="form-group" data-bind="css: {'has-error': selected().tags().length < 3}">
-                                            <select id="tagsList" class="form-control" multiple="multiple" height="5" data-bind="options: selected().tags, selectedOptions: selected().selectedItems"> </select>
+                                        <div class="form-group has-success" data-bind="css: {'has-error': selected().doc.tags().length < 3}">
+                                            <select id="tagsList" class="form-control" multiple="multiple" height="5" data-bind="options: selected().doc.tags, selectedOptions: selected().selectedItems"> </select>
                                             <span class="help-block"></span>
                                         </div>
                                         <div class="form-group">
@@ -326,35 +328,39 @@
                                             <!--<input class="form-control"  id="updateDoc" name="updateDoc" data-bind="value: selected().id" data-error="Required" type="text" required>-->
                                             <!--<span class="help-block with-errors"></span>-->
                                         <!--</div>-->
-                                        <div class="form-group has-feedback">
+                                        <div class="form-group has-success" data-bind="css: {'has-error': selected().doc.title().length < 1}">
                                             <label for="title">Title</label>
-                                            <input class="form-control"  id="title" data-bind="value: selected().title" data-error="Required" type="text" required>
-                                            <span class="help-block with-errors"></span>
+                                            <input class="form-control"  id="title" data-bind="value: selected().doc.title" type="text">
+                                            <span class="help-block" data-bind="style: {display: selected().doc.title().length < 1 ? 'block' : 'none'}">Required Field</span>
                                         </div>
-                                        <div class="form-group has-feedback">
+                                        <div class="form-group has-success" data-bind="css: {'has-error': !selected().doc.snippet()}">
                                             <label for="inputSnippet">Summary</label>
-                                            <input class="form-control"  id="inputSnippet" data-bind="value: selected().snippet" data-error="Required" type="text" required>
-                                            <span class="help-block with-errors"></span>
+                                            <input class="form-control"  id="inputSnippet" data-bind="value: selected().doc.snippet" type="text">
+                                            <span class="help-block"></span>
                                         </div>
-                                        <div class="form-group has-feedback">
+                                        <div class="form-group has-success" data-bind="css: {'has-error': !selected().doc.description()}">
                                             <label for="inputDesc">Description</label>
-                                            <textarea class="form-control" id="inputDesc" style="overflow:auto;resize:vertical" data-bind="value: selected().description" rows="6" placeholder="Description" data-minlength="5" data-error="Required" required></textarea>
-                                            <span class="help-block with-errors"></span>
+                                            <textarea class="form-control" id="inputDesc" style="overflow:auto;resize:vertical" data-bind="value: selected().doc.description" rows="6" placeholder="Description"></textarea>
+                                            <span class="help-block"></span>
                                         </div>
-                                        <div class="form-group">
+                                        <div class="form-group ">
                                             <label for="inputLicenseInfo">Credits</label>
-                                            <input class="form-control" id="inputLicenseInfo" data-bind="value: selected().licenseInfo" type="text">
+                                            <input class="form-control" id="inputLicenseInfo" data-bind="value: selected().doc.licenseInfo" type="text">
                                         </div>
                                         <div class="form-group">
                                             <label for="inputAccessInfo">Access and use Constraints</label>
-                                            <input class="form-control" id="inputAccessInfo" data-bind="value: selected().accessInformation" type="text">
+                                            <input class="form-control" id="inputAccessInfo" data-bind="value: selected().doc.accessInformation" type="text">
                                         </div>
-                                        <div class="form-group has-feedback">
+                                        <div class="form-group">
                                             <label for="inputUrl">Url</label>
-                                            <input class="form-control" id="inputUrl" data-bind="value: selected().url" data-error="Not a valid URL" type="url">
-                                            <span class="help-block with-errors"></span>
+                                            <input class="form-control" id="inputUrl" data-bind="value: selected().doc.url" data-error="Not a valid URL" type="url">
+                                            <span class="help-block"></span>
                                         </div>
                                     </div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="test">Test Fielde</label>
+                                    <input class="form-control"  id="test" data-bind="value: selected().doc.AuditData.compliant" type="text">
                                 </div>
 
                             </form>
@@ -375,7 +381,7 @@
                     </div>
                 </div>
             </div>
-            <!--End Modal for Editing-->
+            <!--&lt;!&ndash;End Modal for Editing&ndash;&gt;-->
 
 <!-- Metrics View -->
           <div class="view collapse" id="metricsView" >
@@ -452,6 +458,7 @@
     ================================================== -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
     <script src="../bsdist/js/bootstrap.min.js"></script>
+    <script src="../bsdist/js/bootstrap3-wysihtml5.all.min.js"></script>
     <script src="https://cdn.datatables.net/1.10.9/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.datatables.net/1.10.9/js/dataTables.bootstrap.min.js"></script>
     <!--<script src="../bsdist/js/validator.min.js"></script>-->
