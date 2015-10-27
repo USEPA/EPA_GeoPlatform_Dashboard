@@ -27,8 +27,16 @@ TasksQueues.prototype.add = function (type,promise,arg) {
 
 TasksQueues.prototype.getProcess = function () {
   var self=this;
+  var Q = require('q');
+
   return function process(jinn, data) {
-    data.promise(data.arg).done(
+//Start this Q.fcall because data.promise(data.arg) might not return promise if there is exception thrown
+    Q.fcall(data.promise,data.arg)
+//if there is an error in data.promise function then need to reject the defer passed to promise if there is one
+      .catch(function(err) {if (data.arg.defer) data.arg.defer.reject(err);})
+      //This is old way of doing it that would create unhandled exception. Uncomment this if want to test server restart recovering from unhandled excpetion crash
+//    data.promise(data.arg)
+      .done(
       function () {
         var length = jinn.getQueue().length();
 //Mark this task as done
