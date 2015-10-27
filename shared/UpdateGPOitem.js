@@ -85,7 +85,7 @@ UpdateGPOitem.prototype.updateRemoteGPOitem = function() {
   var hr = new hrClass();
 
 //Want own copy of the update doc to for formdata to add thumbnail to
-  var formData = merge.recursive(true,self.updateDoc);
+  var formData = merge.recursive(true, self.updateDoc);
 
 //get read stream from uploaded thumb file and add to form data with name
   if (self.thumbnail) formData.thumbnail={value:fs.createReadStream(self.thumbnail.path),

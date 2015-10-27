@@ -20,20 +20,20 @@ var app = express();
 
 //get the enviromental variables from config file and save for later
 var config = require('./config/env');
-app.set('config',config);
+app.set('config', config);
 
 //Get the app root if it is not in config file
-var appRoot=config.appRoot;
-if (! appRoot) appRoot = require('app-root-path') + '/';
-app.set('appRoot',appRoot);
+var appRoot = config.appRoot;
+if (!appRoot) appRoot = require('app-root-path') + '/';
+app.set('appRoot', appRoot);
 
 var monk = MonkClass(config.mongoDBurl);
-app.set('monk',monk);
+app.set('monk', monk);
 //db is database connection needed for grid fs
 var url = require('url');
 var mongoURL = url.parse(config.mongoDBurl);
-var db = new mongo.Db(mongoURL.pathname.replace("/",""), new mongo.Server(mongoURL.hostname,mongoURL.port));
-app.set('db',db);
+var db = new mongo.Db(mongoURL.pathname.replace("/", ""), new mongo.Server(mongoURL.hostname, mongoURL.port));
+app.set('db', db);
 //Grid FS set up in this function because db needs to be connected first
 //Note this is a promise to return gfs but it also sets app('gfs') which should be ready by time somebody wants to use gfs
 var utilities = require(appRoot + '/shared/utilities');
@@ -41,7 +41,7 @@ utilities.getGridFSobject(app);
 
 //When somebody logins we wil need to have DB update of modified items run in a queue so they aren't updating same stuff on accident
 var TasksQueues = require(appRoot + '/shared/TasksQueues');
-app.set('tasksQueues',new TasksQueues(500));
+app.set('tasksQueues', new TasksQueues(500));
 
 // gpintel, no engine needed - view engine setup
 //app.set('views', path.join(__dirname, 'views'));
@@ -70,15 +70,15 @@ app.use(cookieParser());
 //The session is stored in Mongo
 //tag mongo store onto the session options using env specific store options
 //note I merge the config.mongoStoreOption because mongoStore constructor alters it
-var mongoStoreInstance = new mongoStore(merge(true,config.mongoStoreOption));
+var mongoStoreInstance = new mongoStore(merge(true, config.mongoStoreOption));
 //create copy of config sessionOptions so that is is not altered
-var sessionOptions = merge(true,config.sessionOptions);
+var sessionOptions = merge(true, config.sessionOptions);
 sessionOptions.store = mongoStoreInstance;
 //Allow persistent session data (eg: username of logged in user)
 app.use(session(sessionOptions));
 
 //Now setup the email transporter
-if (config.email && config.email.admins && config.email.disabled!==true) {
+if (config.email && config.email.admins && config.email.disabled !== true) {
   var nodemailer = require('nodemailer');
   var transporter = nodemailer.createTransport({
 
@@ -89,14 +89,14 @@ if (config.email && config.email.admins && config.email.disabled!==true) {
     }
   });
   //Save the nodemailer instance in the app to use for emails
-  app.set('nodemailer',transporter);
+  app.set('nodemailer', transporter);
 
   transporter.sendMail({
     from: config.email.defaultFrom,
     to: config.email.admins,
     subject: 'EGAM Express Server Started',
     text: 'EGAM Express server was started on ' + new Date() + '. This could possibly be due to automatic restart after server crash due to uncaught exceptions. Check logs/errors.log for uncaught exceptions.'
-  },function (error) {
+  }, function(error) {
     if (error) console.error('Error sending restart email: ' + error.message);
   });
 }
@@ -135,26 +135,28 @@ if (app.get('env') !== 'production') {
 
     console.log(err);
 
-    res.json(
-      {error: {
-      message: err.message,
-      code: "ApplicationError",
-      stack: err.stack
-      },body:null}
-    );
+    res.json({
+      error: {
+        message: err.message,
+        code: "ApplicationError",
+        stack: err.stack
+      },
+      body: null
+    });
   });
 }
 
 // production error handler
 // no stacktraces leaked to user
 app.use(function(err, req, res, next) {
-    res.status(err.status || 500);
-    res.json(
-        {error: {
-          message: err.message,
-          code: "ApplicationError"
-        },body:null}
-    );
+  res.status(err.status || 500);
+  res.json({
+    error: {
+      message: err.message,
+      code: "ApplicationError"
+    },
+    body: null
+  });
 });
 
 
