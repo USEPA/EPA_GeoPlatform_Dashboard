@@ -21,7 +21,7 @@ module.exports = function(grunt) {
         script: 'bin/www',
         options: {
           ext: '.js',
-          watch: ['bin/www','app.js','config/**/*.js','routes/**/*.js','shared/**/*.js']
+          watch: ['bin/www', 'app.js', 'config/**/*.js', 'routes/**/*.js', 'shared/**/*.js']
         }
       },
       debug: {
@@ -29,18 +29,18 @@ module.exports = function(grunt) {
         options: {
           nodeArgs: ['--debug'],
           ext: '.js',
-          watch: ['bin/www','app.js','config/**/*.js','routes/**/*.js','shared/**/*.js']
+          watch: ['bin/www', 'app.js', 'config/**/*.js', 'routes/**/*.js', 'shared/**/*.js']
         }
       }
     },
     jshint: {
       all: {
-        src: ['bin/www','app.js','config/**/*.js','routes/**/*.js','shared/**/*.js','public/**/*.js']
+        src: ['bin/www', 'app.js', 'config/**/*.js', 'routes/**/*.js', 'shared/**/*.js', 'public/**/*.js']
       }
     },
     concurrent: {
       dev: {
-        tasks: ['nodemon','watch:lint'],
+        tasks: ['nodemon'],
         options: {
           logConcurrentOutput: true
         }
@@ -72,36 +72,33 @@ module.exports = function(grunt) {
       }
     },
     watch: {
-      lint: {
-        files: ['bin/www', 'app.js', 'config/**/*.js', 'routes/**/*.js', 'shared/**/*.js', 'public/**/*.js'],
-        tasks: ['lint']
-//        tasks: ['forever:egam:restart']
-//        cmd: 'node-debug ./bin/www'
-      },
-//reload the client html page
+
+      //reload the client html page
       reload: {
         files: ['public/**/*'],
-       options: {
+        options: {
           livereload: true
         }
-      },
-//Can't get serverreload to work...
-//restart express app
-//      restart: {
-//        files: ['bin/www', 'app.js', 'config/**/*.js', 'routes/**/*.js', 'shared/**/*.js'],
-//        tasks: ['express:all'],
-//        options: {
-//          serverreload: true
-//          nospawn: true, //Without this option specified express won't be reloaded
-//          atBegin: true
-//        }
-//      },
+      }
+      //Can't get serverreload to work...
+      //restart express app
+      //      restart: {
+      //        files: ['bin/www', 'app.js', 'config/**/*.js', 'routes/**/*.js', 'shared/**/*.js'],
+      //        tasks: ['express:all'],
+      //        options: {
+      //          serverreload: true
+      //          nospawn: true, //Without this option specified express won't be reloaded
+      //          atBegin: true
+      //        }
+      //      },
     },
     run: {
       debug: {
-        options:{wait:true},
-//        cmd: "node-debug",args: ['.\bin\www']
-//Not sure why the above will not work and I have to put the command in debug.bat
+        options: {
+          wait: true
+        },
+        //        cmd: "node-debug",args: ['.\bin\www']
+        //Not sure why the above will not work and I have to put the command in debug.bat
         cmd: 'debug.bat'
       }
     },
@@ -113,26 +110,26 @@ module.exports = function(grunt) {
           port: 3000,
           hostname: 'localhost',
           livereload: true,
-//          serverreload: true
-//This works to open everytime grunt is run
-          open:'http://localhost:3000'
+          //          serverreload: true
+          //This works to open everytime grunt is run
+          open: 'http://localhost:3000'
         }
       }
     }
-//    ,rerun: {
-//      dev: {
-//        options: {
-//          tasks: ['express']
-//        }
-//      }
-//    }
-//    ,forever: {
-//      egam: {
-//        options: {
-//          index: 'debug.bat'
-//        }
-//      }
-//    }
+    //    ,rerun: {
+    //      dev: {
+    //        options: {
+    //          tasks: ['express']
+    //        }
+    //      }
+    //    }
+    //    ,forever: {
+    //      egam: {
+    //        options: {
+    //          index: 'debug.bat'
+    //        }
+    //      }
+    //    }
   });
 
   // These plugins provide necessary tasks.
@@ -145,28 +142,28 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-contrib-watch');
   grunt.loadNpmTasks('grunt-contrib-jshint');
   grunt.loadNpmTasks('grunt-express');
-//  grunt.loadNpmTasks('grunt-rerun');
-//  grunt.loadNpmTasks('grunt-forever');
+  //  grunt.loadNpmTasks('grunt-rerun');
+  //  grunt.loadNpmTasks('grunt-forever');
 
   // Default task.
-  grunt.registerTask('default', ['open:dev','nodemon']);
-//Just let default grunt run nodemon for now until we figure out where front end scripts will be away from mini libs
-//  grunt.registerTask('default', ['concurrent:dev']);
+  grunt.registerTask('default', ['open:dev', 'nodemon']);
+  //Just let default grunt run nodemon for now until we figure out where front end scripts will be away from mini libs
+  //  grunt.registerTask('default', ['concurrent:dev']);
 
   grunt.registerTask('inspector', ['concurrent:inspector']);
-//Note using task name open didn't work
+  //Note using task name open didn't work
   grunt.registerTask('browse', ['open:dev']);
 
-  grunt.registerTask('debug', ['lint','run:debug']);
-//  grunt.registerTask('debug', ['env:dev','run:debug','watch']);
-//  grunt.registerTask('debug', ['run:debug']);
-  grunt.registerTask('lint', ['jshint']);
+  grunt.registerTask('debug', ['run:debug']);
+  //  grunt.registerTask('debug', ['env:dev','run:debug','watch']);
+  //  grunt.registerTask('debug', ['run:debug']);
+  //grunt.registerTask('lint', ['jshint']);
 
-//This does not work
-//  grunt.registerTask('reload', ['express','concurrent:reload']);
-//  grunt.registerTask('reload', ['express','express-keepalive']);
-  grunt.registerTask('reload', ['express','watch:reload']);
+  //This does not work
+  //  grunt.registerTask('reload', ['express','concurrent:reload']);
+  //  grunt.registerTask('reload', ['express','express-keepalive']);
+  grunt.registerTask('reload', ['express', 'watch:reload']);
 
-//to change env before running app: grunt env:stg default
-//to open browser and change env before running app: grunt env:stg browse default
+  //to change env before running app: grunt env:stg default
+  //to open browser and change env before running app: grunt env:stg browse default
 };
