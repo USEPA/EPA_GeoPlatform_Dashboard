@@ -85,6 +85,16 @@ body {
   margin-top: 0;
 }
 
+.form-group.has-success .fileinput .thumbnail {
+  border-color: #3c763d;
+}
+
+.form-group.has-error .fileinput .thumbnail {
+  border-color: #a94442;
+}
+
+
+
 
 /*
  * Placeholder dashboard ideas
