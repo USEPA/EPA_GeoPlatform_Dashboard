@@ -216,7 +216,7 @@
                             <form id="modalForm" role="form" data-toggle="validator" data-disable="false" enctype="multipart/form-data" method="post">
                                 <div class="row form-group">
                                     <div class="col-md-4">
-                                        <div class="form-group">
+                                        <div class="form-group has-success" data-bind="css: {'has-error': !selected().doc.AuditData.errors.thumbnail.compliant()}">
                                             <label>For best results, the image should be 200 pixels wide by 133 pixels high. Other sizes will be adjusted to fit. Acceptable image formats are: PNG, GIF and JPEG.</label>
                                             <div class="fileinput fileinput-exists" data-provides="fileinput">
                                                 <div class="fileinput-preview thumbnail" data-trigger="fileinput" style="width: 200px; height: 135px;">
@@ -227,7 +227,7 @@
                                                     <img src="../img/noImage.png">
                                                     <!-- /ko -->
                                                 </div>
-                                                <span class="help-block" data-bind="ifnot: selected().doc.thunbnail">Requried</span>
+                                                <span class="help-block" data-bind="style: {display: !selected().doc.AuditData.errors.thumbnail.compliant() ? 'block' : 'none'}, text: selected().doc.AuditData.errors.thumbnail.messages">Requried</span>
                                                 <div>
                                                     <span class="btn btn-default btn-file"><span class="fileinput-new">Select image</span><span class="fileinput-exists">Change</span><input id="thumbnail" type="file" name="..."></span>
                                                     <a href="#" class="btn btn-default fileinput-exists" data-dismiss="fileinput">Remove</a>
@@ -247,9 +247,9 @@
                                                 <input class="form-control" id="tagInput" type="text" data-bind='value: selected().tagItemToAdd, valueUpdate: "afterkeydown"'/>
                                             </div>
                                         </div>
-                                        <div class="form-group has-success" data-bind="css: {'has-error': selected().doc.tags().length < 3}">
+                                        <div class="form-group has-success" data-bind="css: {'has-error': !selected().doc.AuditData.errors.tags.compliant()}">
                                             <select id="tagsList" class="form-control" multiple="multiple" height="5" data-bind="options: selected().doc.tags, selectedOptions: selected().selectedItems"> </select>
-                                            <span class="help-block"></span>
+                                            <span class="help-block" data-bind="style: {display: !selected().doc.AuditData.errors.tags.compliant() ? 'block' : 'none'}, text: selected().doc.AuditData.errors.tags.messages"></span>
                                         </div>
                                         <div class="form-group">
                                             <button class="btn btn-default" data-bind="click: selected().removeSelected, enable: selected().selectedItems().length > 0">Remove</button>
@@ -262,39 +262,42 @@
                                             <!--<input class="form-control"  id="updateDoc" name="updateDoc" data-bind="value: selected().id" data-error="Required" type="text" required>-->
                                             <!--<span class="help-block with-errors"></span>-->
                                         <!--</div>-->
-                                        <div class="form-group has-success" data-bind="css: {'has-error': selected().doc.title().length < 1}">
+                                        <div class="form-group has-success" data-bind="css: {'has-error': !selected().doc.AuditData.errors.title.compliant()}">
                                             <label for="title">Title</label>
-                                            <input class="form-control"  id="title" data-bind="value: selected().doc.title" type="text">
-                                            <span class="help-block" data-bind="style: {display: selected().doc.title().length < 1 ? 'block' : 'none'}">Required Field</span>
+                                            <input class="form-control"  id="title" data-bind="value: selected().doc.title, valueUpdate: 'afterkeydown'" type="text">
+                                            <span class="help-block" data-bind="style: {display: !selected().doc.AuditData.errors.title.compliant() ? 'block' : 'none'}, text: selected().doc.AuditData.errors.title.messages"></span>
                                         </div>
-                                        <div class="form-group has-success" data-bind="css: {'has-error': !selected().doc.snippet()}">
+                                        <div class="form-group has-success" data-bind="css: {'has-error': !selected().doc.AuditData.errors.snippet.compliant()}">
                                             <label for="inputSnippet">Summary</label>
-                                            <input class="form-control"  id="inputSnippet" data-bind="value: selected().doc.snippet" type="text">
-                                            <span class="help-block"></span>
+                                            <input class="form-control"  id="inputSnippet" data-bind="value: selected().doc.snippet, valueUpdate: 'afterkeydown'" type="text">
+                                            <span class="help-block" data-bind="style: {display: !selected().doc.AuditData.errors.snippet.compliant() ? 'block' : 'none'}, text: selected().doc.AuditData.errors.snippet.messages"></span>
                                         </div>
-                                        <div class="form-group has-success" data-bind="css: {'has-error': !selected().doc.description()}">
+                                        <div class="form-group has-success" data-bind="css: {'has-error': !selected().doc.AuditData.errors.description.compliant()}">
                                             <label for="inputDesc">Description</label>
-                                            <textarea class="form-control" id="inputDesc" style="overflow:auto;resize:vertical" data-bind="value: selected().doc.description" rows="6" placeholder="Description"></textarea>
-                                            <span class="help-block"></span>
+                                            <textarea class="form-control" id="inputDesc" style="overflow:auto;resize:vertical" data-bind="value: selected().doc.description, valueUpdate: 'afterkeydown'" rows="6" placeholder="Description"></textarea>
+                                            <span class="help-block" data-bind="style: {display: !selected().doc.AuditData.errors.description.compliant() ? 'block' : 'none'}, text: selected().doc.AuditData.errors.description.messages"></span>
                                         </div>
-                                        <div class="form-group ">
+
+                                        <div class="form-group has-success" data-bind="css: {'has-error': !selected().lI}">
                                             <label for="inputLicenseInfo">Credits</label>
-                                            <input class="form-control" id="inputLicenseInfo" data-bind="value: selected().doc.licenseInfo" type="text">
+                                            <input class="form-control" id="inputLicenseInfo" data-bind="value: selected().doc.licenseInfo, valueUpdate: 'afterkeydown'" type="text">
+                                            <!--<span class="help-block" data-bind="style: {display: !selected().doc.AuditData.errors.licenseInfo.compliant() ? 'block' : 'none'}, text: selected().doc.AuditData.errors.licenseInfo.messages"></span>-->
                                         </div>
-                                        <div class="form-group">
+                                        <div class="form-group has-success" data-bind="css: {'has-error': !selected().aI}">
                                             <label for="inputAccessInfo">Access and use Constraints</label>
-                                            <input class="form-control" id="inputAccessInfo" data-bind="value: selected().doc.accessInformation" type="text">
+                                            <input class="form-control" id="inputAccessInfo" data-bind="value: selected().doc.accessInformation, valueUpdate: 'afterkeydown'" type="text">
+                                            <!--<span class="help-block" data-bind="style: {display: !selected().doc.AuditData.errors.accessInformation.compliant() ? 'block' : 'none'}, text: selected().doc.AuditData.errors.accessInformation.messages"></span>-->
                                         </div>
-                                        <div class="form-group">
+                                        <div class="form-group has-success" data-bind="css: {'has-error': !selected().itemURL"}>
                                             <label for="inputUrl">Url</label>
-                                            <input class="form-control" id="inputUrl" data-bind="value: selected().doc.url" data-error="Not a valid URL" type="url">
-                                            <span class="help-block"></span>
+                                            <input class="form-control" id="inputUrl" data-bind="value: selected().doc.url, valueUpdate: 'afterkeydown'" type="url">
+                                            <!--<span class="help-block" data-bind="style: {display: !selected().doc.AuditData.errors.url.compliant() ? 'block' : 'none'}, text: selected().doc.AuditData.errors.url.messages"></span>-->
                                         </div>
                                     </div>
                                 </div>
                                 <!--<div class="form-group">-->
                                     <!--<label for="test">Test Fielde</label>-->
-                                    <!--<input class="form-control"  id="test" data-bind="value: selected().doc.AuditData.compliant" type="text">-->
+                                    <!--<input class="form-control"  id="test" data-bind="value: selected().lI" type="text">-->
                                 <!--</div>-->
 
                             </form>

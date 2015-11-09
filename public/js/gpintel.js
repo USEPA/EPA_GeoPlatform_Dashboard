@@ -117,11 +117,74 @@ function populateUserTables(query, utoken){
       //This is the doc
       this.doc = ko.mapping.fromJS(i);
 
-
       //computed thumbnail url
       this.tnURLs = ko.computed(function(){
         return "http://epa.maps.arcgis.com/sharing/rest/content/items/" + i.id + "/info/" + i.thumbnail + "?token=" + utoken;
       }, this);
+
+      this.lI = ko.computed(function(){
+        if(i.AuditData.errors.licenseInfo){
+          return true
+        }
+        return false;
+      }, this);
+
+      this.aI = ko.computed(function(){
+        if(i.AuditData.errors.accessInformation){
+          return true
+        }
+        return false;
+      }, this);
+
+      this.itemURL = ko.computed(function(){
+        if(i.AuditData.errors.url){
+          return true
+        }
+        return false;
+      }, this);
+
+
+      //Subscribes Setup
+      this.doc.title.subscribe(function(){
+        this.execAudit("title");
+      }.bind(this));
+
+      this.doc.snippet.subscribe(function(){
+        this.execAudit("snippet");
+      }.bind(this));
+
+      this.doc.description.subscribe(function(){
+        this.execAudit("description");
+      }.bind(this));
+
+      this.doc.licenseInfo.subscribe(function(){
+        this.execAudit("licenseInfo");
+      }.bind(this));
+
+      this.doc.accessInformation.subscribe(function(){
+        this.execAudit("accessInformation");
+      }.bind(this));
+
+      this.doc.url.subscribe(function(){
+        this.execAudit("url");
+      }.bind(this));
+
+      this.doc.tags.subscribe(function(){
+        this.execAudit("tags");
+      }.bind(this), null, 'arrayChange');
+
+      //this.tnURLs.subscribe(function(){
+      //  alert("Change");
+      //  this.execAudit("thumbnail");
+      //}.bind(this));
+
+      //Execute Audit on specified field in doc
+      this.execAudit = function(auditField){
+        var unmappedDoc = ko.mapping.toJS(this.doc);
+        var auditRes = new Audit();
+        auditRes.validate(unmappedDoc, auditField);
+        ko.mapping.fromJS(unmappedDoc, this.doc);
+      }
 
       //tags
       this.tagItemToAdd = ko.observable("");
@@ -188,7 +251,9 @@ function populateUserTables(query, utoken){
         console.log("Post back updated Items");
       };
 
+
     };
+
     var RootViewModel = function(data){
       var self = this;
 
@@ -198,7 +263,6 @@ function populateUserTables(query, utoken){
         //var rowModel1 = ko.mapping.fromJS(i);
         return new rowModel1(i);
       }));
-
 
       self.select = function(item){
         self.selected(item);
