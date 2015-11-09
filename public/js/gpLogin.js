@@ -120,7 +120,8 @@ require([
 
       //Query Mongo db
       //and populat user table in the user view
-      populateUserTables({});
+//      populateUserTables({access:"public"});
+      populateUserTables();
 
 
       /*var queryParamsGroup = {

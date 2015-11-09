@@ -43,9 +43,10 @@ downloadGPOusers.TotalRowLimit=null;
 downloadGPOusers.token = null;
 //*******END FOR TESTING only
 
-
-console.log('Running with NODE_ENV = ' + process.env.NODE_ENV);
-
+//Set up scriptErrors email info
+downloadGPOusers.downloadLogs.from=config.email.defaultFrom;
+downloadGPOusers.downloadLogs.to=config.email.admins;
+downloadGPOusers.downloadLogs.subject=" produced running scripts\downloadGPOusers";
 
 try {
   downloadGPOusers.appID = config.AGOLadminCredentials.appID ;
@@ -53,52 +54,56 @@ try {
   if (! downloadGPOusers.appID  || ! downloadGPOusers.appSecret) throw "";
 }
 catch (e) {
-  console.log("AGOL app ID or secret not defined in config file, trying usename/password");
+  downloadGPOusers.downloadLogs.log("AGOL app ID or secret not defined in config file, trying usename/password");
   try {
     downloadGPOusers.username = config.AGOLadminCredentials.username;
     downloadGPOusers.password = config.AGOLadminCredentials.password;
   }
   catch (e) {
-    console.log("AGOL admin username and password not defined in config file");
-    process.exit();
+    downloadGPOusers.downloadLogs.log("AGOL admin username and password not defined in config file");
+    downloadGPOusers.downloadLogs.emailExit();
+  }
+  if (! downloadGPOusers.username || ! downloadGPOusers.password) {
+    downloadGPOusers.downloadLogs.log("AGOL admin username and password can not be empty");
+    downloadGPOusers.downloadLogs.emailExit();
   }
 }
 
 try {
   downloadGPOusers.expiration = config.AGOLadminCredentials.expiration;
-}
-catch (e) {
+} catch (e) {
   downloadGPOusers.expiration = null;
 }
 
 try {
   downloadGPOusers.portal = config.portal;
-}
-catch (e) {
-  console.log("AGOL portal not defined in config file");
-  process.exit();
+  if (! downloadGPOusers.portal) throw "";
+} catch (e) {
+  downloadGPOusers.downloadLogs.log("AGOL portal not defined in config file");
+  downloadGPOusers.downloadLogs.emailExit();
 }
 try {
   downloadGPOusers.mongoDBurl=config.mongoDBurl;
-}
-catch (e) {
-  console.log("mongoDB url not defined in config file");
-  process.exit();
+  if (! downloadGPOusers.mongoDBurl) throw "";
+} catch (e) {
+  downloadGPOusers.downloadLogs.error("mongoDB url not defined in config file");
+  downloadGPOusers.downloadLogs.emailExit();
 }
 
 try {
   if ("AGOLorgID" in config) downloadGPOusers.orgID=config.AGOLorgID;
-}
-catch (e) {
+} catch (e) {
 }
 
-
+if (downloadGPOusers.downloadLogs.errors.length==0) {
   downloadGPOusers.download()
     .catch(function (err) {
-      console.error('Error received getting GPO users and groups:', err);
+      var errMsg = err.stack || err;
+      downloadGPOusers.downloadLogs.error("Error while downloading GPO user data, group data and owner IDs using downloadGPOusers.download():\n" + errMsg);
     })
     .done(function () {
-      console.log("Start Time: " + startTime);
-      console.log("End Time: " + new Date());
-      process.exit();
+      downloadGPOusers.downloadLogs.log("Start Time: " + startTime);
+      downloadGPOusers.downloadLogs.log("End Time: " + new Date());
+      downloadGPOusers.downloadLogs.emailExit();
     });
+}

@@ -1,13 +1,27 @@
 //Note might be careful changing this while somebody is running downloadGPOusers.js or logging in because it uses this file
 module.exports = [
-  "R1 GIS Center",
+  "EPA Region 1",
   "EPA Region 2",
   "EPA Region 3",
   "EPA Region 4",
   "EPA Region 5",
   "EPA Region 6",
-  "Region 7",
+  "EPA Region 7",
   "EPA Region 8",
-  "R9 Internal",
-  "Region 10",
-  "GPO Meta-Inteligence"];
+  "EPA Region 9",
+  "EPA Region 10",
+  "EPA Office of the Administrator (OA)",
+  "EPA Office of Air and Radiation (OAR)",
+  "EPA Office of Administration and Resources Management (OARM)",
+  "EPA Office of the Chief Financial Officer (OCFO)",
+  "EPA Office of Chemical Safety and Pollution Prevention (OCSPP)",
+  "EPA Office of Enforcement and Compliance Assurance (OECA)",
+  "EPA Office of Environmental Information (OEI)",
+  "EPA Office of General Counsel (OGC)",
+  "EPA Office of Inspector General (OIG)",
+  "EPA Office of International and Tribal Affairs (OITA)",
+  "EPA Office of Research and Development (ORD)",
+  "EPA Office of Solid Waste and Emergency Response (OSWER)",
+  "EPA Office of Water (OW)",
+  "GPO Meta-Inteligence"
+];
