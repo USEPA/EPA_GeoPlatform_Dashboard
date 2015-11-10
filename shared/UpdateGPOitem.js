@@ -17,6 +17,8 @@ var UpdateGPOitem =  function(itemscollection,session,config,gfs){
   this.thumbnail=null;
 //This is result object for current doc
   this.resObject={};
+//This is result object for current doc
+  this.updateFields=["title","description","tags","snippet","licenseInfo","accessInformation","url"];
 };
 
 
@@ -31,27 +33,28 @@ UpdateGPOitem.prototype.update = function(updateDoc) {
 
   self.resObject={};
 
-    return self.getOwnerID()
-      .then(function (ownerID) {
-        if (self.updateOwner) {
+  return self.getOwnerID()
+    .then(function (ownerID) {
+      if (self.updateOwner) {
 //Update Local and Remote GPO item in DB including thumbnail
-          return Q.all([self.updateRemoteGPOitem(),self.updateLocalGPOitem()]);
-        }else {
-          self.resObject={error: {message: "You do not have Access to Update GPO item: " + self.updateDoc.id, code: "InvalidAccess"}, body: null};
-        }})
-      .catch(function (err) {
-        console.error("Error running UpdateGPOitem.update for " + updateDoc.id + " : " + err.stack) ;
-        utilities.getHandleError(self.resObject,"UpdateError")(err);
-      })
-      .then(function () {if (self.thumbnail && self.thumbnail.path) return Q.ninvoke(fs,"unlink",self.thumbnail.path)})
-      .catch(function (err) {
-        console.error("Error removing thumb in UpdateGPOitem.update for " + updateDoc.id + " : " + err.stack) ;
-        utilities.getHandleError(self.resObject,"UpdateError")(err);
-      })
-      .then(function () {
+        return Q.all([self.updateRemoteGPOitem(),self.updateLocalGPOitem()]);
+//          return Q(self.updateRemoteGPOitem());
+      }else {
+        self.resObject={error: {message: "You do not have Access to Update GPO item: " + self.updateDoc.id, code: "InvalidAccess"}, body: null};
+      }})
+    .catch(function (err) {
+      console.error("Error running UpdateGPOitem.update for " + updateDoc.id + " : " + err.stack) ;
+      utilities.getHandleError(self.resObject,"UpdateError")(err);
+    })
+    .then(function () {if (self.thumbnail && self.thumbnail.path) return Q.ninvoke(fs,"unlink",self.thumbnail.path)})
+    .catch(function (err) {
+      console.error("Error removing thumb in UpdateGPOitem.update for " + updateDoc.id + " : " + err.stack) ;
+      utilities.getHandleError(self.resObject,"UpdateError")(err);
+    })
+    .then(function () {
 //Now that update is done we can finally return result
-        return self.resObject;
-      });
+      return self.resObject;
+    });
 };
 
 UpdateGPOitem.prototype.getOwnerID = function() {
@@ -85,7 +88,8 @@ UpdateGPOitem.prototype.updateRemoteGPOitem = function() {
   var hr = new hrClass();
 
 //Want own copy of the update doc to for formdata to add thumbnail to
-  var formData = merge.recursive(true,self.updateDoc);
+//  var formData = merge.recursive(true,self.updateDoc);
+  var formData = self.parseFormData(self.updateDoc,self.updateFields);
 
 //get read stream from uploaded thumb file and add to form data with name
   if (self.thumbnail) formData.thumbnail={value:fs.createReadStream(self.thumbnail.path),
@@ -103,6 +107,21 @@ UpdateGPOitem.prototype.updateRemoteGPOitem = function() {
   return hr.callAGOL(requestPars)
     .then(function (body) {return self.handleUpdateResponse(body)});
 
+};
+
+UpdateGPOitem.prototype.parseFormData = function (obj,slice) {
+  var mySlice = {};
+
+  slice.forEach(function (key) {
+    if (Array.isArray(obj[key])) {
+      mySlice[key] =obj[key].join(",");
+    }else{
+//needs to be at least empty string
+      mySlice[key] = obj[key] || "";
+    }
+  });
+
+  return mySlice;
 };
 
 UpdateGPOitem.prototype.handleUpdateResponse= function(body) {

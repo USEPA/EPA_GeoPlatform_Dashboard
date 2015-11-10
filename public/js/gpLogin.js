@@ -2,8 +2,7 @@ require([
   "esri/arcgis/Portal", "esri/arcgis/OAuthInfo", "esri/IdentityManager",
   "dojo/dom-style", "dojo/dom-attr", "dojo/dom", "dojo/on", "dojo/_base/array",
   "dojo/domReady!"
-], function(arcgisPortal, OAuthInfo, esriId,
-            domStyle, domAttr, dom, on, arrayUtils) {
+], function(arcgisPortal, OAuthInfo, esriId,domStyle, domAttr, dom, on, arrayUtils) {
   var info = new OAuthInfo({
     appId: "CXkB0iPulNZP9xQo",
     portalUrl: "http://epa.maps.arcgis.com",
