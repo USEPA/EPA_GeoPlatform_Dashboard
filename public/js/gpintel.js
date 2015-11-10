@@ -122,28 +122,6 @@ function populateUserTables(query, utoken){
         return "http://epa.maps.arcgis.com/sharing/rest/content/items/" + i.id + "/info/" + i.thumbnail + "?token=" + utoken;
       }, this);
 
-      this.lI = ko.computed(function(){
-        if(i.AuditData.errors.licenseInfo){
-          return true
-        }
-        return false;
-      }, this);
-
-      this.aI = ko.computed(function(){
-        if(i.AuditData.errors.accessInformation){
-          return true
-        }
-        return false;
-      }, this);
-
-      this.itemURL = ko.computed(function(){
-        if(i.AuditData.errors.url){
-          return true
-        }
-        return false;
-      }, this);
-
-
       //Subscribes Setup
       this.doc.title.subscribe(function(){
         this.execAudit("title");
