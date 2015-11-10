@@ -16,6 +16,8 @@ module.exports = function(app) {
 
     var ownerIDs = [username];
     if ('session' in req && req.session.ownerIDs) ownerIDs=req.session.ownerIDs;
+//Make sure that at least logged in user is in ownerIDs
+    if (ownerIDs.indexOf(username) < 0) ownerIDs.push(username)
 
     var isSuperUser = false;
     if ('session' in req && req.session.isSuperUser===true) isSuperUser=true;

@@ -24,4 +24,4 @@ module.exports = [
   "EPA Office of Solid Waste and Emergency Response (OSWER)",
   "EPA Office of Water (OW)",
   "GPO Meta-Inteligence"
-  ];
+];

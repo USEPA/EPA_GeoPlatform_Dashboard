@@ -7,7 +7,7 @@ var appRoot=require('app-root-path');
 var config = require(appRoot + '/config/env');
 
 var DownloadGPOdataClass = require(appRoot + '/shared/DownloadGPOdata')
-downloadGPOdata = new DownloadGPOdataClass();
+var downloadGPOdata = new DownloadGPOdataClass();
 
 //This is the number of items downloaded from AGOL in one request (max is 100)
 downloadGPOdata.requestItemCount = 100;
@@ -31,7 +31,7 @@ downloadGPOdata.onlyGetMetaData = true;
 //This will make execution must faster since we don not have to download all remote items and only need to download modified
 //Set this to false for the overnight download so that we don't keep the removed items locally
 //But don't do this if you are downloading the entire DB at first because querying on AGOL by Modified Date is actually slow over entire data set
-downloadGPOdata.dontRemoveGPOitems= false;
+downloadGPOdata.dontRemoveGPOitems= true;
 //For testing saving json and text only set to true, usually set to false
 downloadGPOdata.dontSaveBinary = false;
 //For testing download of specific slash data, usually set to null
@@ -45,9 +45,10 @@ downloadGPOdata.TotalRowLimit=null;
 downloadGPOdata.token = null;
 //*******END FOR TESTING only
 
-
-console.log('Running with NODE_ENV = ' + process.env.NODE_ENV);
-
+//Set up scriptErrors email info
+downloadGPOdata.downloadLogs.from=config.email.defaultFrom;
+downloadGPOdata.downloadLogs.to=config.email.admins;
+downloadGPOdata.downloadLogs.subject=" produced running scripts\downloadGPOdata";
 
 try {
   downloadGPOdata.appID = config.AGOLadminCredentials.appID ;
@@ -55,16 +56,21 @@ try {
   if (! downloadGPOdata.appID  || ! downloadGPOdata.appSecret) throw "";
 }
 catch (e) {
-  console.log("AGOL app ID or secret not defined in config file, trying usename/password");
+  downloadGPOdata.downloadLogs.log("AGOL app ID or secret not defined in config file, trying usename/password");
   try {
     downloadGPOdata.username = config.AGOLadminCredentials.username;
     downloadGPOdata.password = config.AGOLadminCredentials.password;
   }
   catch (e) {
-    console.log("AGOL admin username and password not defined in config file");
-    process.exit();
+    downloadGPOdata.downloadLogs.error("AGOL admin username and password not defined in config file");
+    downloadGPOdata.downloadLogs.emailExit();
+  }
+  if (! downloadGPOdata.username || ! downloadGPOdata.password) {
+    downloadGPOdata.downloadLogs.error("AGOL admin username and password can not be empty");
+    downloadGPOdata.downloadLogs.emailExit();
   }
 }
+
 
 try {
   downloadGPOdata.expiration = config.AGOLadminCredentials.expiration;
@@ -75,17 +81,19 @@ catch (e) {
 
 try {
   downloadGPOdata.portal = config.portal;
+  if (! downloadGPOdata.portal) throw "";
 }
 catch (e) {
-  console.log("AGOL portal not defined in config file");
-  process.exit();
+  downloadGPOdata.downloadLogs.error("AGOL portal not defined in config file");
+  downloadGPOdata.downloadLogs.emailExit();
 }
 try {
   downloadGPOdata.mongoDBurl=config.mongoDBurl;
+  if (! downloadGPOdata.mongoDBurl) throw "";
 }
 catch (e) {
-  console.log("mongoDB url not defined in config file");
-  process.exit();
+  downloadGPOdata.downloadLogs.error("mongoDB url not defined in config file");
+  downloadGPOdata.downloadLogs.emailExit();
 }
 
 try {
@@ -94,24 +102,28 @@ try {
 catch (e) {
 }
 
-
-if (getTokenOnly) {
-  downloadGPOdata.getToken()
-    .catch(function (err) {
-      console.error('Error received:', err);
-    })
-    .done(function () {
-      console.log("\n" + downloadGPOdata.hr.saved.token);
-      process.exit();
-    });
-}else {
-  downloadGPOdata.download()
-    .catch(function (err) {
-      console.error('Error received:', err);
-    })
-    .done(function () {
-      console.log("Start Time: " + startTime);
-      console.log("End Time: " + new Date());
-      process.exit();
-    });
+//If errors were found above do not proceed
+if (downloadGPOdata.downloadLogs.errors.length==0) {
+  if (getTokenOnly) {
+    downloadGPOdata.getToken()
+      .catch(function (err) {
+        var errMsg = err.stack || err;
+        downloadGPOdata.downloadLogs.error("Error while getting Token using downloadGPOdata.getToken():\n" + errMsg);
+      })
+      .done(function () {
+        console.log("\n" + downloadGPOdata.hr.saved.token);
+        downloadGPOdata.downloadLogs.emailExit();
+      });
+  }else {
+    downloadGPOdata.download()
+      .catch(function (err) {
+        var errMsg = err.stack || err;
+        downloadGPOdata.downloadLogs.error("Error while downloading GPO meta data and slash data using downloadGPOdata.download():\n" + errMsg);
+      })
+      .done(function () {
+        downloadGPOdata.downloadLogs.log("Start Time: " + startTime);
+        downloadGPOdata.downloadLogs.log("End Time: " + new Date());
+        downloadGPOdata.downloadLogs.emailExit();
+      });
+  }
 }

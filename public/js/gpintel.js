@@ -285,4 +285,4 @@ function populateUserTables(query, utoken){
   });
 
 
-};
+}

@@ -9,6 +9,27 @@ var utilities=require('../shared/utilities');
 
 var itemsCollection = monk.get('GPOitems');
 
+var arrayExtended = require('array-extended');
+var diff = arrayExtended.difference([1,3,2,5,4], [1,2,3,4,5]);
+var diff = arrayExtended.difference(null, null);
+var diff = arrayExtended.difference([1,3,2,5,4], [1,2,3,4]);
+var diff = arrayExtended.difference([1,2,3,4], [1]);
+
+console.log("diff.length: " + diff.length + diff);
+console.log(diff);
+
+var isDiff=false;
+if (diff && diff.length>0) isDiff = true;
+
+console.log("isDiff: " + isDiff);
+
+var test ={};
+//var same= arrayExtended.intersect(test.dum, [1,2,3,4]);
+
+var out = arrayExtended.intersect([5,2,4,1], [1,2]);
+console.log(out);
+
+return;
 
 var AuditClass=require('../shared/Audit');
 var audit = new AuditClass();
@@ -72,23 +93,6 @@ Q.ninvoke(itemsCollection.col,"aggregate",
   .then(function (owners) {console.log(owners);});
 
 
-
-return;
-var arrayExtended = require('array-extended');
-var diff = arrayExtended.difference([1,3,2,5,4], [1,2,3,4,5]);
-var diff = arrayExtended.difference(null, null);
-var diff = arrayExtended.difference([1,3,2,5,4], [1,2,3,4]);
-
-var isDiff=false;
-if (diff && diff.length>0) isDiff = true;
-
-console.log("isDiff: " + isDiff);
-
-var test ={};
-//var same= arrayExtended.intersect(test.dum, [1,2,3,4]);
-
-var out = arrayExtended.intersect([5,2,4,1], [1,2]);
-console.log(out);
 
 return;
 
