@@ -145,9 +145,9 @@ DownloadGPOusers.prototype.downloadInner = function () {
     .then(self.getSelfInvokedFunction(self.getOrgId))
     .then(self.getSelfInvokedFunction(self.getLocalGPOids))
     .then(self.getSelfInvokedFunction(getGPOusers))
-//    .then(self.getSelfInvokedFunction(getGPOgroups))
-//    .then(self.getSelfInvokedFunction(self.removeLocalGPOitems))
-//    .then(self.getSelfInvokedFunction(self.getOwnerIDs))
+    .then(self.getSelfInvokedFunction(getGPOgroups))
+    .then(self.getSelfInvokedFunction(self.removeLocalGPOitems))
+    .then(self.getSelfInvokedFunction(self.getOwnerIDs))
 //just for testing so I don't have to keeping removing
 //    .then(function () {return self.Q(self.usersCollection.remove({}));})
     .catch(function (err) {
