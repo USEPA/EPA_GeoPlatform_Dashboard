@@ -121,34 +121,43 @@ function populateUserTables(query, utoken){
       this.tnURLs = ko.computed(function(){
         return "http://epa.maps.arcgis.com/sharing/rest/content/items/" + i.id + "/info/" + i.thumbnail + "?token=" + utoken;
       }, this);
+      //Doc of changed fields
+      this.changeDoc = {};
 
       //Subscribes Setup
-      this.doc.title.subscribe(function(){
+      this.doc.title.subscribe(function(evt){
         this.execAudit("title");
+        this.addFieldChange("title", evt);
       }.bind(this));
 
-      this.doc.snippet.subscribe(function(){
+      this.doc.snippet.subscribe(function(evt){
         this.execAudit("snippet");
+        this.addFieldChange("snippet", evt);
       }.bind(this));
 
-      this.doc.description.subscribe(function(){
+      this.doc.description.subscribe(function(evt){
         this.execAudit("description");
+        this.addFieldChange("description", evt);
       }.bind(this));
 
-      this.doc.licenseInfo.subscribe(function(){
+      this.doc.licenseInfo.subscribe(function(evt){
         this.execAudit("licenseInfo");
+        this.addFieldChange("licenseInfo", evt);
       }.bind(this));
 
-      this.doc.accessInformation.subscribe(function(){
+      this.doc.accessInformation.subscribe(function(evt){
         this.execAudit("accessInformation");
+        this.addFieldChange("accessInformation", evt);
       }.bind(this));
 
-      this.doc.url.subscribe(function(){
+      this.doc.url.subscribe(function(evt){
         this.execAudit("url");
+        this.addFieldChange("url", evt);
       }.bind(this));
 
-      this.doc.tags.subscribe(function(){
+      this.doc.tags.subscribe(function(evt){
         this.execAudit("tags");
+        this.addFieldChange("tags", this.doc.tags());
       }.bind(this), null, 'arrayChange');
 
       //this.tnURLs.subscribe(function(){
@@ -156,13 +165,24 @@ function populateUserTables(query, utoken){
       //  this.execAudit("thumbnail");
       //}.bind(this));
 
+      //this.doc.thumbnail.subscribe(function(evt){
+      //  alert(evt);
+      //}.bind(this));
+
+      //Add and field that has changed to the changeDoc
+      this.addFieldChange = function(changeField, changeValue){
+        this.changeDoc["id"] = this.doc.id();
+        this.changeDoc[changeField] = changeValue;
+        //alert(JSON.stringify(this.changeDoc));
+      };
+
       //Execute Audit on specified field in doc
       this.execAudit = function(auditField){
         var unmappedDoc = ko.mapping.toJS(this.doc);
         var auditRes = new Audit();
         auditRes.validate(unmappedDoc, auditField);
         ko.mapping.fromJS(unmappedDoc, this.doc);
-      }
+      };
 
       //tags
       this.tagItemToAdd = ko.observable("");
@@ -182,19 +202,17 @@ function populateUserTables(query, utoken){
 
       //Post updated docs back to Mongo
       this.postback = function() {
-        //alert("Posting");
 
+        //Original Audit of full Doc
         var unmappedDoc = ko.mapping.toJS(this.selected().doc);
-
-
         var auditRes = new Audit();
         auditRes.validate(unmappedDoc,"");
         ko.mapping.fromJS(unmappedDoc, this.selected().doc);
-
         //alert(JSON.stringify(unmappedDoc));
 
+        //Post changed fields only back to Mongo
         var mydata = new FormData();
-        mydata.append("updateDocs",JSON.stringify(unmappedDoc));
+        mydata.append("updateDocs",JSON.stringify(this.selected().changeDoc));
         //mydata.append("updateDoc", unmappedDoc);
         var thumbnail = $('#thumbnail')[0].files[0];
         mydata.append("thumbnail",thumbnail);
