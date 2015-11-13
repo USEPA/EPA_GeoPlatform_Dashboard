@@ -119,9 +119,7 @@ require([
     //Query Mongo db
     //and populate user table in the user view
     //Update in sprint4 to be dynamically changed via UI
-    populateUserTables({
-      access: 'public'
-    }, portalUser.credential.token);
+    populateUserTables({}, portalUser.credential.token);
 
   }
 
