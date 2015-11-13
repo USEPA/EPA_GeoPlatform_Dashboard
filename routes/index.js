@@ -8,7 +8,10 @@ module.exports = function(app) {
     var utilities = require(app.get('appRoot') + '/shared/utilities');
 
     var config = app.get('config');
-    var url = config.portal + '/sharing/rest/portals/self';
+
+//    var url = config.portal + '/sharing/rest/portals/self';
+//Use community/self to get user info including the group info portals/self gets user as part of portal info but no groups
+    var url = config.portal + '/sharing/rest/community/self';
 
     var errors = [];
     var inputs = utilities.getCleanRequestInputs(req, errors);
@@ -34,10 +37,11 @@ module.exports = function(app) {
     if ('session' in req && req.session.username && username === req.session.username) {
 //If they are already logged into the session don't do it all over again
       console.log("USER ALREADY IN SESSION");
-      res.json({error: null, body: {user: hr.saved.user}});
+      res.json({error: null, body: {user: req.session.username}});
     } else {
-      hr.callAGOL(requestPars, "user")
+      hr.callAGOL(requestPars)
         .then(handleResponse)
+        .then(getSuperUser)
         .then(getOwnerIDs)
         .then(updateDBonLogin)
         .catch(utilities.getHandleError(resObject,"LoginError"))
@@ -46,14 +50,15 @@ module.exports = function(app) {
     }
 
     function handleResponse(body) {
-      if (username === hr.saved.user.username) {
+      var user = hr.current;
+      if (username === user.username) {
 //save the user to the session
         if ('session' in req) {
           req.session.username = username;
           req.session.token = token;
-          req.session.user = hr.saved.user;
+          req.session.user = user;
         }
-        resObject = {error: null, body: {user: hr.saved.user}};
+        resObject = {error: null, body: {user: user}};
       } else {
         resObject = {error: {message: "Username does not match token", code: "UsernameTokenMismatch"}, body: null};
       }
@@ -62,12 +67,68 @@ module.exports = function(app) {
     function getOwnerIDs() {
 //these are owner IDs that this user can see. Usually just equal to username unless they are Admin.
       var user = req.session.user;
-      req.session.ownerIDs = [req.session.username];
+
+//Check if user is in super user group
+      if (req.session.isSuperUser===true) {
+//Return the ownerIDs saved in session when user was determined to be Super User
+        return req.session.ownerIDs;
+      }
+
+      var appRoot = app.get('appRoot');
+      var monk = app.get('monk');
+      var usersCollection = monk.get('GPOusers');
+      var ownerIDsCollection = monk.get('GPOownerIDs');
+//      var authgroupsCollection = monk.get('GPOauthGroups');
+//Note I going to get the available authGroups from config file now so pass path to file. Simpler to maintain
+      var authgroupsCollection = appRoot + '/config/authGroups.js';
+
+
+      //Set up classed used to find OwnerIDs. Can be reused across app because only saved data is list of available Auth Groups in system
+      var UpdateAuthGroupsAndOwnerIDsClass = require(appRoot + '/shared/UpdateAuthGroupsAndOwnerIDs');
+      var updateAuthGroupsAndOwnerIDs = new UpdateAuthGroupsAndOwnerIDsClass(usersCollection,ownerIDsCollection,authgroupsCollection);
+
+//Only have to find OwnerIDs for Admins otherwise they only see themselves
+      if (user.role==="org_admin") {
+        return updateAuthGroupsAndOwnerIDs.updateAuthGroups(user)
+//Note need to get the local User object that has authGroups required to find OwnerIDs
+          .then(function (localUser) {return updateAuthGroupsAndOwnerIDs.getOwnerIDs(localUser)})
+//Now that ownerIDs is returned we can save them in Session
+          .then(function (ownerIDs) {
+            req.session.ownerIDs = ownerIDs;
+            return req.session.ownerIDs;
+          });
+      }else {
+        req.session.ownerIDs = [user.username];
+        return req.session.ownerIDs;
+      }
+
 //This was just to test admins who can view multiple owners running updateDBonLogin
 //      if (req.session.ownerIDs[0]==="aaron.evans_EPA" ) req.session.ownerIDs=["aaron.evans_EPA","aevans26_EPA"];
 
-//Later this will be more complex when it has to query DB for authoritative groups, etc if Admin
-      return req.session.ownerIDs;
+    }
+
+    function getSuperUser() {
+      var Q = require('q');
+      var user = req.session.user;
+      var config = app.get('config');
+      if (! config.superUserGroup || ! user.groups) return false;
+//.some() breaks and returns true when callback returns true. If all are false .some() returns false.
+      var isSuperUser = user.groups.some(function (group) {
+        return (group.title===config.superUserGroup);
+      });
+
+//if not super user return false. otherwise have to find all owner IDs in GPOitems if user is Super User
+      req.session.isSuperUser = isSuperUser;
+      if (! isSuperUser) return false;
+
+//get all OwnerIDs if super user. Note: This is just needed to download owners metadata in task queue format without interference
+      var monk = app.get('monk');
+      var itemsCollection = monk.get('GPOitems');
+      return utilities.getDistinctArrayFromDB(itemsCollection,{},"owner")
+        .then(function (ownerIDs) {
+          req.session.ownerIDs = ownerIDs;
+          return true;
+        });
     }
 
     function updateDBonLogin() {
@@ -125,9 +186,11 @@ module.exports = function(app) {
         Object.keys(TaskReady).forEach(function (task) {
           //The actual download process "updateDBonLoginPromise" with "task" as argument will be called when it is next in queue
           var data = {task:task,TaskReady:TaskReady,defer:defer};
-          console.log("adding data.task: " + data.task + " TaskReady: " + Object.keys(data.TaskReady));
+//          console.log("adding data.task: " + data.task + " TaskReady: " + Object.keys(data.TaskReady));
           tasksQueues.add(task, updateDBonLoginPromise, data);
         });
+      }else {
+        defer.resolve();
       }
 
       return defer.promise;
@@ -140,9 +203,11 @@ module.exports = function(app) {
       var allReady = Object.keys(data.TaskReady).every(function (t) {
         return data.TaskReady[t] === true
       });
-      console.log("data.task: " + data.task);
-      console.log("data.TaskReady: " + Object.keys(data.TaskReady));
-      console.log("all ready: " + allReady);
+
+//      console.log("data.task: " + data.task);
+//      console.log("data.TaskReady: " + Object.keys(data.TaskReady));
+//      console.log("all ready: " + allReady);
+
       if (allReady) {
         return downloadGPOdata.download()
           //After download is done, the deferred is resolved.
@@ -168,6 +233,25 @@ module.exports = function(app) {
 //      console.log("logout after: " + req.session.username)
     }
     res.json({error: null, body: {}});
+  });
+
+//Get shared/Audit.js from client http reference to Public folder
+//Not sure if this is going to work with caching etc
+  router.use('/js/ServerAudit.js', function (req, res, next) {
+    var fs = require('fs');
+
+    var filePath = app.get('appRoot') + '/shared/Audit.js';
+
+    var stat = fs.statSync(filePath);
+
+    res.writeHead(200, {
+        'Content-Type': 'application/javascript',
+        'Content-Length': stat.size
+      });
+
+      var readStream = fs.createReadStream(filePath);
+      // We replaced all the event handlers with a simple call to readStream.pipe()
+      readStream.pipe(res);
   });
 
   return router;

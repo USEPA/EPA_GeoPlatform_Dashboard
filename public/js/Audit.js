@@ -1,10 +1,6 @@
-var Audit =  function(config){
-  this.config = config;
+var Audit =  function(){
 //fieldsToValidate is limited list of fields to validate. The default case is to set [] and all fields will be validated
   this.fieldsToValidate = [];
-  this.results = {};
-  this.results.errors = {};
-  this.results.compliant = false;
 };
 
 //We register functions with options such as processItems and template
@@ -47,7 +43,7 @@ Audit.prototype.validators.access.public = function (doc) {
   this.checkForbiddenWords(["title","tags"],doc,[" test ","-copy "]);
 
   this.checkForbiddenWords(["snippet","description"],doc,[" test "]);
-}
+};
 
 Audit.prototype.validators.type["Web Map"] = function (doc) {
 //This function is called on all Web Map types
@@ -55,31 +51,27 @@ Audit.prototype.validators.type["Web Map"] = function (doc) {
 
 //Use 2 tag min for now until we add usepa to all
 //  this.checkArrayLimit("tags",doc,3);
-  this.checkArrayLimit("tags",doc,2);
+  this.checkArrayLimit("tags",doc,3);
 
 //Don't do this for now because we are going to add usepa tags to all. For now it shows too many errors
 //  this.checkInArray("tags",doc,[" usepa "]);
-}
+};
 
 Audit.prototype.validators.type["Web Mapping Application"] = function (doc) {
 //This function is called on all Web Map types
   this.validators.type["Web Map"].apply(this,[doc]);//this was not maintaining scope of the audit object
   this.checkWordLimit("description",doc,5);
-}
+};
 
 
 Audit.prototype.validate = function (doc,fieldsToValidate) {
   var self = this;
-//clear out results from last time validate was run
-  self.clear(fieldsToValidate);
-//if fieldsToValidate is not passed then make it empty array
-  if (! fieldsToValidate) fieldsToValidate=[];
-//if fieldsToValidate is not an array then make it len=1 array
-  if (! Array.isArray(fieldsToValidate)) fieldsToValidate=[fieldsToValidate];
-//set fieldsToValidate to be filter fields when validating
-  self.fieldsToValidate=fieldsToValidate;
-//Make true and set to false if any errors occure
-  self.results.compliant=true;
+
+
+//To initialize validation must clear out errors and set compliance to true and populate this.fieldsToValidate
+//Not the same as clearing which empties everything out and sets compliance to false
+  self.init(doc,fieldsToValidate);
+
 //loop through validators )(access, type, etc)
   Object.keys(this.validators).forEach(function (key) {
 //Get the function
@@ -89,19 +81,39 @@ Audit.prototype.validate = function (doc,fieldsToValidate) {
     if (valFunction) valFunction.apply(self,[doc]);
   });
 //if they are only validating a few fields check if it is globally compliant now
-  if (fieldsToValidate.length > 0) self.checkCompliance();
+  if (self.fieldsToValidate.length > 0) self.checkCompliance(doc);
 };
 
-Audit.prototype.clear = function (fields) {
+//Initialize object for validation by setting compliance to true and clearing out errors
+//Passing fields only clears out those fields but keeps errors intact for previously created errors
+//This is important for persisting errors and only producing incremental change in objects errors
+Audit.prototype.init = function (doc,fields) {
   var self = this;
+
+  //If AuditData is not member of passed doc then create new AuditData object and attach to doc.
+  if (! doc.AuditData) doc.AuditData = {};
+  if (! doc.AuditData.errors) doc.AuditData.errors = {};
+
   if (fields) {
+//Don't clear out all errors just for the pass fields
     if (! Array.isArray(fields)) fields=[fields];
-    fields.forEach(function (field) {self.results.errors[field] = null;});
+    fields.forEach(function (field) {doc.AuditData.errors[field] = {compliant:true,messages:[]};});
   }else {
-    this.results.errors = {};
+    fields=[];
+    doc.AuditData.errors = {};
   }
-  this.results.compliant = false;
-  this.fieldsToValidate = [];
+  doc.AuditData.compliant = true;
+  self.fieldsToValidate = fields;
+};
+
+//This completely resets the audit object to original form
+Audit.prototype.clear = function (doc) {
+  var self = this;
+  if (doc && doc.AuditData) {
+    doc.AuditData.errors = {};
+    doc.AuditData.compliant = false;
+  }
+  self.fieldsToValidate = [];
 };
 
 //Create check{template} function on prototype
@@ -110,8 +122,8 @@ Object.keys(Audit.prototype.registry).forEach(function (key) {
   var registryitem = Audit.prototype.registry[key];
   var checkFunctionName = "check" + key.charAt(0).toUpperCase() + key.substring(1);
   var getResultsFunctionName = "get" + key.charAt(0).toUpperCase() + key.substring(1) + "Result";
-//if not processItems variable set then defaults to true. must ste to false to get false.
-  var processItems = registryitem.processItems===false ? false : true;
+//if not processItems variable set then defaults to true. must set to false to get false ie. falsey empty value will default to true.
+  var processItems = registryitem.processItems!==false;
   Audit.prototype[checkFunctionName] = function () {
     var args = Array.prototype.slice.call(arguments);
     args = Array.prototype.concat([this[getResultsFunctionName],processItems],args);
@@ -174,7 +186,7 @@ Audit.prototype.getInArrayResult = function inArray(myArray,required) {
 Audit.prototype.getGenericLimitResult = function (value,floor,ceiling) {
   var withinLimit=true;
 
-  var limits = ""
+  var limits = "";
 
   if (floor || floor===0) {
     withinLimit= (value >= floor);
@@ -182,7 +194,7 @@ Audit.prototype.getGenericLimitResult = function (value,floor,ceiling) {
   }
   if (ceiling || ceiling===0) {
     withinLimit= withinLimit && (value <= ceiling);
-    if (floor) limits += " and a"
+    if (floor) limits += " and a";
     limits += " maximum of " + ceiling;
   }
 
@@ -211,7 +223,7 @@ Audit.prototype.getMatches = function (myString,comparisons,options) {
     return (options.checkAbsence===true) ? ! match : match;
   });
   var pass = matches.length<=0 ;
-  matches = matches.map(function(x) {return x.trim()})
+  matches = matches.map(function(x) {return x.trim()});
   return {pass:pass,matches:matches};
 
 };
@@ -256,7 +268,7 @@ Audit.prototype.checkGenericSingle = function (myFunction,processItems,field,doc
 //The function must be named so we can find it's template
   var template = myFunction.name;
 
-//This matches forbidden words and creates error messags and attaches to audit this.results
+//This matches forbidden words and creates error messags and attaches to audit doc.AuditData
 //If you pass a field which is an array it will create an array of error messages for that field
 //If you pass processItems=false then don't process the array items and treat as you would a string
 
@@ -292,52 +304,54 @@ Audit.prototype.addErrorMessage = function (field,doc,template,result) {
   var self = this;
 
   //If one check fails audit then compliant is set to false
-  if (! result.pass) this.results.compliant=false;
+  if (! result.pass) doc.AuditData.compliant=false;
 //If there was an error then parse error message
   if (! result.pass) Object.keys(result).forEach(function (key) {
     var re = new RegExp("<<" + key + ">>","g");
     error = error.replace(re,result[key]);
   });
 
-//array fields like tags have object like results.errors.tag = {array:[],items:{0:[],1:[]}}with key equal to tag index
+//If error object is uninitialized then initialize it here
+  if (! doc.AuditData.errors[field]) doc.AuditData.errors[field] = {compliant:true,messages:[]};
+  if (! doc.AuditData.errors[field].messages) doc.AuditData.errors[field].messages = [];
+//let this field be compliant until it is possibly made false below
+  doc.AuditData.errors[field].compliant=true;
+//array fields like tags have object like results.errors.tags = {messages:[],messagesByItem:{0:[],1:[]}}with key equal to tag index
   if (Array.isArray(doc[field])) {
-    if (! this.results.errors[field]) this.results.errors[field] = {compliant:true};
     if (result.index!==null) {
-      if (! this.results.errors[field].items) this.results.errors[field].items = {};
-      if (! this.results.errors[field].items[result.index]) this.results.errors[field].items[result.index] = [];
+      if (! doc.AuditData.errors[field].messagesByItem) doc.AuditData.errors[field].messagesByItem = {};
+      if (! doc.AuditData.errors[field].messagesByItem[result.index]) doc.AuditData.errors[field].messagesByItem[result.index] = [];
       //if there was an error add it to errors object
       if (! result.pass) {
-        this.results.errors[field].items[result.index].push(error);
-        this.results.errors[field].compliant=false;
+        doc.AuditData.errors[field].messagesByItem[result.index].push(error);
+        doc.AuditData.errors[field].compliant=false;
       }
     }else {
-      if (! this.results.errors[field].array) this.results.errors[field].array = [];
       //if there was an error add it to errors object
       if (! result.pass) {
-        this.results.errors[field].array.push(error);
-        this.results.errors[field].compliant=false;
+        doc.AuditData.errors[field].messages.push(error);
+        doc.AuditData.errors[field].compliant=false;
       }
     }
 //string fiels like title just have results.errors.title = []
   }else {
-    if (! this.results.errors[field]) this.results.errors[field] = {compliant:true,messages:[]};
 //if there was an error add it to errors object
     if (! result.pass) {
-      this.results.errors[field].messages.push(error);
-      this.results.errors[field].compliant=false;
+      doc.AuditData.errors[field].messages.push(error);
+      doc.AuditData.errors[field].compliant=false;
     }
   }
-  if (! result.pass) console.log("Error for " + doc.id + " : " + error);
+//  if (! result.pass) console.log("Error for " + doc.id + " : " + error);
 
 };
 
-Audit.prototype.checkCompliance = function () {
+Audit.prototype.checkCompliance = function (doc) {
+  var self = this;
 //Loop through all fields errors. if at least one field is not compliant then set global compliance = false
-  this.compliant = Object.keys(this.results.errors).every(function (field) {
-    return this.results.errors[field].compliant;
+  doc.AuditData.compliant = Object.keys(doc.AuditData.errors).every(function (field) {
+    return doc.AuditData.errors[field].compliant;
   });
 };
 
 
 if (!(typeof window != 'undefined' && window.document)) module.exports = Audit;
-

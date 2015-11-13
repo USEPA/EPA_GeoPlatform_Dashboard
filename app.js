@@ -18,14 +18,18 @@ var gpoitems = require('./routes/gpoitems');
 
 var app = express();
 
-//get the enviromental variables from config file and save for later
-var config = require('./config/env');
-app.set('config',config);
-
-//Get the app root if it is not in config file
-var appRoot=config.appRoot;
-if (! appRoot) appRoot = require('app-root-path') + '/';
+//Get the app root
+var appRoot = require('app-root-path') + '/';
 app.set('appRoot',appRoot);
+
+//Find the env from local unchecked in file. If it doesn't exist then use Windows env variable NODE_ENV
+var env = require(appRoot + '/shared/getNodeEnv')();
+app.set('env', env);
+
+//get the configuration for this current environment from config file specific to current environment
+//Note, if for some reason appRoot is wrong try the hardcoded path
+var config = require(appRoot + '/config/env');
+app.set('config',config);
 
 var monk = MonkClass(config.mongoDBurl);
 app.set('monk',monk);
@@ -77,7 +81,13 @@ sessionOptions.store = mongoStoreInstance;
 //Allow persistent session data (eg: username of logged in user)
 app.use(session(sessionOptions));
 
-//console.log(config);
+//Now setup the email transporter
+var sendEmail = require(appRoot + '/shared/sendEmail');
+sendEmail.send(config.email.defaultFrom,config.email.admins,'EGAM Express Server Started','EGAM Express server was started on ' + new Date() + '. This could possibly be due to automatic restart after server crash due to uncaught exceptions. Check logs/errors.log for uncaught exceptions.')
+  .catch(function (error) {console.error(error)});
+
+
+console.log(config);
 
 // All standard routes above here
 // endpoint for API calls to MongoDB via Monk
@@ -91,6 +101,8 @@ app.use('/gpoitems', gpoitems(app));
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
+  console.error("404 req: " + req);
+  console.error("404 res: " + res);
   var err = new Error('Not Found');
   err.status = 404;
   next(err);
@@ -101,14 +113,14 @@ console.log('test');
 
 // development error handler
 // will print stacktrace
-console.log('app.get(env) = ' + app.get('env'));
+console.log('app.get(env) = ' + app.get('env') + ' ' + process.env.NODE_ENV);
 
 if (app.get('env') !== 'production') {
   app.use(function(err, req, res, next) {
     console.log(err.status);
     res.status(err.status || 500);
 
-    console.log(err);
+    console.log(err.stack);
 
     res.json(
       {error: {

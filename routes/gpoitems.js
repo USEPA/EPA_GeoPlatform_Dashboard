@@ -14,18 +14,25 @@ module.exports = function(app) {
 //If they are not logged in (no username then
     if (! username) return res.json({error: {message: "Must be logged in to make this request.", code: "LoginRequired"}, body: null});
 
+    var ownerIDs = [username];
+    if ('session' in req && req.session.ownerIDs) ownerIDs=req.session.ownerIDs;
+//Make sure that at least logged in user is in ownerIDs
+    if (ownerIDs.indexOf(username) < 0) ownerIDs.push(username)
+
+    var isSuperUser = false;
+    if ('session' in req && req.session.isSuperUser===true) isSuperUser=true;
+
     var utilities = require(app.get('appRoot') + '/shared/utilities');
-//    var db = req.db;
-    var db = app.get('monk');
+    var monk = app.get('monk');
     var config = app.get('config');
 
-    var collection = db.get('GPOitems');
+    var itemscollection = monk.get('GPOitems');
 
     var error=null;
 //This function gets input for both post and get for now
     var query = utilities.getRequestInputs(req).query;
 
-//parse JSON query in object
+//parse JSON querdfy in object
     if (typeof query ==="string") query = JSON.parse(query);
 //If query is falsey make it empty object
     if (! query) query = {};
@@ -41,7 +48,14 @@ module.exports = function(app) {
 
 //Only return gpo itmes where this user is the owner (or later probably group admin)
 //comment this out just to test with all
-//      query.owner = username;
+//Super user is not limited by ownerIDs
+    if (! isSuperUser) query.owner = {"$in":ownerIDs};
+
+//Let front end decided on getting only public
+//      query.access = "public";
+//For testing only let superUser see public for now (don't want 10,000 records)
+    if (isSuperUser) query.access = "public";
+
 //Need to limit the number of rows to prevent crashing
 //This was fixed by streaming and not sending back SlashData so if config.maxRowLimit=null don't force a limit
     if (config.maxRowLimit) {
@@ -52,8 +66,6 @@ module.exports = function(app) {
 //Don't return SlashData!
     if (!('fields' in projection)) projection.fields = {};
     projection.fields.SlashData=0;
-//Let front end decided on getting only public
-      query.access = "public";
 
 //    res.send("username= " + username);return;
 
@@ -80,7 +92,7 @@ module.exports = function(app) {
         .then(function () {
           var defer = Q.defer();
           var firstCharacter="[";
-          collection.find(query, projection)
+          itemscollection.find(query, projection)
             .each(function (doc) {
               res.write(firstCharacter);
               res.write(JSON.stringify(doc));
@@ -90,6 +102,8 @@ module.exports = function(app) {
               defer.reject("Error streaming GPO items: " + err);
             })
             .success(function () {
+//if firstcharacter was not written then write it now (if no docs need to write leading [
+              if (firstCharacter==="[") res.write(firstCharacter);
               res.write("]" + end, function () {
                 defer.resolve();
               });
@@ -103,7 +117,7 @@ module.exports = function(app) {
         console.log("Use Session Total");
         return Q(req.session.GPOitemsList.total);
       }else{
-        return Q(collection.count(query))
+        return Q(itemscollection.count(query))
           .then(function (total) {
             if ('session' in req) req.session.GPOitemsList={query:JSON.stringify(query),total:total};
             console.log("Save Session: " + JSON.stringify(req.session.GPOitemsList));
