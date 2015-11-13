@@ -24,7 +24,7 @@ function processAudit(doc, done) {
   // code for your update
   var audit = new AuditClass();
   audit.validate(doc);
-  console.log(audit.results);
+  console.log(doc.AuditData);
 
   itemscollection.update({_id: doc._id}, {$set: {AuditData: doc.AuditData}},
     function (err) {
