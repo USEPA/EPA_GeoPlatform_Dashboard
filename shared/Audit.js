@@ -1,6 +1,7 @@
 var Audit =  function(){
 //fieldsToValidate is limited list of fields to validate. The default case is to set [] and all fields will be validated
   this.fieldsToValidate = [];
+  this.updateFields = ["title", "description", "tags", "thumbnail", "snippet", "licenseInfo", "accessInformation", "url"];
 };
 
 //We register functions with options such as processItems and template
@@ -82,6 +83,12 @@ Audit.prototype.validate = function (doc,fieldsToValidate) {
   });
 //if they are only validating a few fields check if it is globally compliant now
   if (self.fieldsToValidate.length > 0) self.checkCompliance(doc);
+//If they do not have all update fields in Audit errors then just add empty object now
+  self.updateFields.forEach(function (field) {
+    if (! doc.AuditData.errors[field]) doc.AuditData.errors[field]={compliant:true};
+    if (! doc.AuditData.errors[field].messages) doc.AuditData.errors[field].messages = [];
+    if (! doc.AuditData.errors[field].messagesByItem) doc.AuditData.errors[field].messagesByItem = [];
+  });
 };
 
 //Initialize object for validation by setting compliance to true and clearing out errors

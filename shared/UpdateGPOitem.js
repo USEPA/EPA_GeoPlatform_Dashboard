@@ -17,8 +17,15 @@ var UpdateGPOitem =  function(itemscollection,session,config,gfs){
   this.thumbnail=null;
 //This is result object for current doc
   this.resObject={};
-//This is result object for current doc
-  this.updateFields=["title","description","tags","snippet","licenseInfo","accessInformation","url"];
+//get appRoot
+  this.appRoot = appRoot=require('app-root-path');
+//These are fields on doc we can possibly update to GPO
+  this.updateFields=require(appRoot + '/config/updateFields');
+//initialize the audit object
+  var AuditClass=require(appRoot + '/shared/Audit.js');
+  this.audit = new AuditClass();
+
+  this.utilities=require(appRoot + '/shared/utilities');
 };
 
 
@@ -26,8 +33,6 @@ UpdateGPOitem.prototype.update = function(updateDoc) {
   var self = this;
   var Q = require('q');
   var fs = require('fs');
-  var appRoot=require('app-root-path');
-  var utilities=require(appRoot + '/shared/utilities');
 
   if (updateDoc) self.updateDoc = updateDoc;
 
@@ -44,12 +49,12 @@ UpdateGPOitem.prototype.update = function(updateDoc) {
       }})
     .catch(function (err) {
       console.error("Error running UpdateGPOitem.update for " + updateDoc.id + " : " + err.stack) ;
-      utilities.getHandleError(self.resObject,"UpdateError")(err);
+      self.utilities.getHandleError(self.resObject,"UpdateError")(err);
     })
     .then(function () {if (self.thumbnail && self.thumbnail.path) return Q.ninvoke(fs,"unlink",self.thumbnail.path)})
     .catch(function (err) {
       console.error("Error removing thumb in UpdateGPOitem.update for " + updateDoc.id + " : " + err.stack) ;
-      utilities.getHandleError(self.resObject,"UpdateError")(err);
+      self.utilities.getHandleError(self.resObject,"UpdateError")(err);
     })
     .then(function () {
 //Now that update is done we can finally return result
@@ -81,14 +86,11 @@ UpdateGPOitem.prototype.updateRemoteGPOitem = function() {
   var Q = require('q');
 
   var fs = require('fs');
-  var merge = require('merge');
 //module to deal with requests easier
-  var appRoot=require('app-root-path');
-  var hrClass = require(appRoot + '/shared/HandleGPOresponses');
+  var hrClass = require(self.appRoot + '/shared/HandleGPOresponses');
   var hr = new hrClass();
 
 //Want own copy of the update doc to for formdata to add thumbnail to
-//  var formData = merge.recursive(true,self.updateDoc);
   var formData = self.parseFormData(self.updateDoc,self.updateFields);
 
 //get read stream from uploaded thumb file and add to form data with name
@@ -130,12 +132,29 @@ UpdateGPOitem.prototype.handleUpdateResponse= function(body) {
 };
 
 UpdateGPOitem.prototype.updateLocalGPOitem= function() {
+  var self = this;
   var Q = require('q');
+  var merge = require('merge');
 
-  return Q.all([
-    Q(this.itemscollection.update({id:this.updateDoc.id},{$set:this.updateDoc})),
-    this.saveThumbnailToGridFS()
-  ]);
+//Only update items that we are using
+  var updateDocID = self.updateDoc.id;
+  self.updateDoc=self.utilities.sliceObject(self.updateDoc,self.updateFields);
+
+//Get the doc and do audit before updating
+// audit
+  return (self.itemscollection.findOne({id:updateDocID}, {}))
+    .then(function (doc) {
+//merge the updated info into the existing doc in DB before validating
+      merge.recursive(doc, self.updateDoc);
+      self.audit.validate(doc);
+      self.updateDoc.AuditData=doc.AuditData;
+    })
+    .then(function () {
+      return Q.all([
+        Q(self.itemscollection.update({id:updateDocID},{$set:self.updateDoc})),
+        self.saveThumbnailToGridFS()
+      ]);
+    });
 
 };
 

@@ -112,6 +112,9 @@ function populateUserTables(query, utoken){
     //console.log(data);
 
     gpoData = data;
+//If paging then data.results is array of data
+    var dataResults=data;
+    if ("results" in data) dataResults=data.results;
 
     var rowModel1 = function(i){
       //This is the doc
@@ -271,15 +274,83 @@ function populateUserTables(query, utoken){
       self.selected = ko.observable(self.content()[0]);
 
     };
-    rootRowModelINstance = new RootViewModel(data);
+    rootRowModelINstance = new RootViewModel(dataResults);
 
     ko.applyBindings(rootRowModelINstance);
 
-    //apply data table magic, ordered ascending by title
-    $('#gpoitemtable1').DataTable({
-      "order": [[1,"asc"]]
-    });
+//Set up data-search attribute from value on td cell
+//value:doc.AuditData.compliant() ? 'Pass' : 'Fail'
+//Don't need to do this any more just used knockout attr binding to bind data-search
+//Keep this for reference in case need to loop over html table
+//    var i; var j;
+//    var htmlTable = $('#gpoitemtable1')[0];
+//    for (i = 0; i < htmlTable.rows.length; i++) {
+//      var row = htmlTable.rows.item(i);
+//      for (j = 0; j < row.cells.length; j++) {
+//        var cell = row.cells.item(j);
+//        var dataValue = cell.value;
+//        if (dataValue) {
+//          var dataSearch = cell.attributes.getNamedItem("data-search");
+//          var dataSearch = document.createAttribute("data-search");
+//          dataSearch.value=dataValue;
+//          cell.attributes.setNamedItem(dataSearch);
+//        }
+//      }
+//    }
 
+    //apply data table magic, ordered ascending by title
+    var dataTable = $('#gpoitemtable1').DataTable({
+      "order": [[1,"asc"]],
+
+      initComplete: function () {
+
+        this.api().columns().every( function () {
+          var column = this;
+          var select = $(column.footer()).find("select.search");
+          if (select.length>0) {
+            select.on( 'change', function () {
+              var val = $.fn.dataTable.util.escapeRegex(
+                $(this).val()
+              );
+              column.search( val ? '^'+val+'$' : '', true, false )
+                .draw();
+            } );
+
+//If first item has data-search then have to map out data-search data
+            var att = column.nodes().to$()[0].attributes;
+            if ("data-search" in att) {
+              var selectData = {};
+              column.nodes().each( function ( node, index ) {
+                var data = node.attributes["data-search"].value;
+                selectData[data]=data;
+              } );
+              var selectData = Object.keys(selectData);
+              selectData.sort();
+              selectData.forEach( function ( data, index ) {
+                select.append( '<option value="'+data+'">'+data+'</option>' )
+              } );
+            }else{
+//Simply just use data which is contents of cell
+              column.data().unique().sort().each( function ( data, index ) {
+                select.append( '<option value="'+data+'">'+data+'</option>' )
+              } );
+            }
+          }
+
+          var input = $(column.footer()).find("input.search");
+          if (input.length>0) {
+            input.on( 'keyup change', function () {
+              if ( column.search() !== this.value ) {
+                column.search( this.value )
+                  .draw();
+              }
+            } );
+          }
+
+        } );
+      }
+
+    });
 
 
   });
