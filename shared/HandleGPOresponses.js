@@ -54,7 +54,7 @@ HandleGPOreponse.prototype.handleResponse = function(response, savedKeys, savedK
         Object.keys(savedKeyMap).forEach(function(key) {
           this.saved[savedKeyMap[key]] = this.current[key];
           console.log(savedKeyMap[key] + " : " + this.current[key]);
-          if (!this.current[key]) error = 'Error getting ' + this.current[key];
+          if (!this.current[key]) error = 'Error getting ' + savedKeyMap[key];
         }, this);
       }
     } catch (ex) {

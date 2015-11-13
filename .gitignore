@@ -37,6 +37,7 @@ mongodata
 config/env/local.js
 config/env/staging.js
 config/env/production.js
+config/nodeEnv.js
 
 #config file for node-inspector
 .node-inspectorrc

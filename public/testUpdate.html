@@ -7,6 +7,37 @@
 
 </head>
 <body>
+<a href="" onclick="deferTest.open();return false;">OPEN</a><br>
+<a href="" onclick="deferTest.close();return false;">CLOSE</a><br>
+
+<a href="" onclick="deferTest.fire();return false;">FIRE WHEN CLOSED</a><br>
+
+<script>
+    console.log("deferTest created");
+    var deferTest = {};
+    deferTest.open = function () {
+        console.log("open clicked");
+        deferTest.defer = $.Deferred();
+//        console.log(deferTest);
+    };
+    deferTest.close = function () {
+        console.log("close clicked");
+        deferTest.defer.resolve();
+    };
+    deferTest.fire = function () {
+//        console.log(deferTest);
+        if(deferTest.defer) {
+            $.when(deferTest.defer.promise())
+                    .then(deferTest.executeFire);
+        } else {
+            deferTest.executeFire();
+        }
+    };
+    deferTest.executeFire = function () {
+        console.log("fire function fired.")
+    };
+</script>
+
 <form action="gpoitems/update" enctype="multipart/form-data" method="post">
     docs:<br>
     <textarea id="updateDocs" name="updateDocs" cols="50" rows="5" >[{"id" : "a5ca9de470064ae791647fc5c85dce09","title" : "Aaron Evans Alligator Update"},

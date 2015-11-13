@@ -58,12 +58,21 @@ var DownloadGPOusers =  function(){
   this.authgroupsCollection = null;
   this.ownerIDsCollection = null;
 
+//Save logs and errors that accumulate for emailng out or saving to a file possibly
+  this.ScriptLogsClass=require(this.appRoot + '/shared/ScriptLogs');
+  this.downloadLogs = new this.ScriptLogsClass();
+
 //Class for finding OwnerIDs of Admins
   this.UpdateAuthGroupsAndOwnerIDsClass = require(this.appRoot + '/shared/UpdateAuthGroupsAndOwnerIDs');
 };
 
+//Using this will return promise if there is exception in downloadInner
 DownloadGPOusers.prototype.download = function () {
-  console.log("\n START RUNNING DOWNLOAD \n");
+  return this.Q.fcall(this.getSelfInvokedFunction(this.downloadInner) );
+};
+
+DownloadGPOusers.prototype.downloadInner = function () {
+  this.downloadLogs.log("START RUNNING DOWNLOAD\r\n");
   var self = this;
   if (! this.monk) this.monk = this.MonkClass(this.mongoDBurl);
   if (! this.usersCollection) this.usersCollection= this.monk.get('GPOusers');
@@ -92,26 +101,26 @@ DownloadGPOusers.prototype.download = function () {
   if (this.AsyncRowLimit===0 || this.AsyncRowLimit===1)  this.useSync=true;
 
 //String along aysn function calls to AGOL REST API
-  var getGPOdata=null;
-  var getGPOitems=null;
+  var getGPOgroups=null;
+  var getGPOusers=null;
   if (this.useSync) {
-    console.log('Getting Users and Groups using Sync');
-    getGPOitems=this.getGPOitemsSync;
-    getGPOdata = this.getGPOdataSync;
+    this.downloadLogs.log('Getting Users and Groups using Sync');
+    getGPOusers=this.getGPOusersSync;
+    getGPOgroups = this.getGPOgroupsSync;
   } else {
     if(this.AsyncRequestLimit===null){
-      console.log('Getting Users using Full Async ');
-      getGPOitems=this.getGPOitemsAsync;
+      this.downloadLogs.log('Getting Users using Full Async ');
+      getGPOusers=this.getGPOusersAsync;
     }else {
-      console.log('Getting Users using Hybrid ');
-      getGPOitems=this.getGPOitemsHybrid;
+      this.downloadLogs.log('Getting Users using Hybrid ');
+      getGPOusers=this.getGPOusersHybrid;
     }
     if(this.AsyncRowLimit===null){
-      console.log('Getting Groups using Full Async ');
-      getGPOdata=this.getGPOdataAsync;
+      this.downloadLogs.log('Getting Groups using Full Async ');
+      getGPOgroups=this.getGPOgroupsAsync;
     }else {
-      console.log('Getting Groups using Hybrid ');
-      getGPOdata=this.getGPOdataHybrid;
+      this.downloadLogs.log('Getting Groups using Hybrid ');
+      getGPOgroups=this.getGPOgroupsHybrid;
     }
   }
 
@@ -122,24 +131,28 @@ DownloadGPOusers.prototype.download = function () {
   self.updateAuthGroupsAndOwnerIDs = new this.UpdateAuthGroupsAndOwnerIDsClass(this.usersCollection,this.ownerIDsCollection,this.authgroupsCollection);
 
 //If only want meta data this is just a dummy pass through function
-  if (this.onlyGetUsers) getGPOdata = function () {return true};
+  if (this.onlyGetUsers) getGPOgroups = function () {return true};
 
-//Note getting metadata items and slashdata and removing dropped items unless set not to above
-//Now run the promise chain using desired getGPOitems/getGPOdata (sync vs async vs hybrid)
+//Clear out array from any previous downloads
+  self.downloadLogs.clear();
+
+//Note getting user info and group info and removing dropped users unless set not to above
+//Now run the promise chain using desired getGPOusers/getGPOgroups (sync vs async vs hybrid)
 
   return self.getToken()
 //For testing simultaneous log ins
 //    .delay(30000)
     .then(self.getSelfInvokedFunction(self.getOrgId))
     .then(self.getSelfInvokedFunction(self.getLocalGPOids))
-    .then(self.getSelfInvokedFunction(getGPOitems))
-    .then(self.getSelfInvokedFunction(getGPOdata))
+    .then(self.getSelfInvokedFunction(getGPOusers))
+    .then(self.getSelfInvokedFunction(getGPOgroups))
     .then(self.getSelfInvokedFunction(self.removeLocalGPOitems))
     .then(self.getSelfInvokedFunction(self.getOwnerIDs))
 //just for testing so I don't have to keeping removing
 //    .then(function () {return self.Q(self.usersCollection.remove({}));})
     .catch(function (err) {
-      console.error('Error received when downloading GPO users:', err.stack);
+      var errMsg = err.stack || err;
+      self.downloadLogs.error('Error running DownloadGPOusers.download():\n' + errMsg);
     });
 };
 
@@ -153,7 +166,7 @@ DownloadGPOusers.prototype.getSelfInvokedFunction = function (f) {
 
 
 DownloadGPOusers.prototype.getToken = function () {
-  console.log("Get Token");
+  this.downloadLogs.log("Get Token");
   if (this.token) {
     this.hr.saved.token = this.token;
     return this.token;
@@ -206,7 +219,7 @@ DownloadGPOusers.prototype.getOrgId = function () {
 };
 
 //routines for gettting all the items metadata from AGOL (Have to do this so we know what items to delete from working local copy)
-DownloadGPOusers.prototype.getGPOitemsChunk = function (requestStart,HandleGPOitemsResponse) {
+DownloadGPOusers.prototype.getGPOusersChunk = function (requestStart,HandleGPOusersResponse) {
   if (! requestStart) {
     requestStart=this.hr.saved.requestStart;
   }
@@ -225,21 +238,21 @@ DownloadGPOusers.prototype.getGPOitemsChunk = function (requestStart,HandleGPOit
   var parameters = {'q':query,'token' : this.hr.saved.token,'f' : 'json','start':requestStart,'num':this.requestItemCount };
 
   var requestPars = {method:'get', url:url, qs:parameters };
-  //  console.log(parameters);
+  //  this.downloadLogs.log(parameters);
 
-  if (! HandleGPOitemsResponse) {
+  if (! HandleGPOusersResponse) {
     if (this.useSync) {
-  //      console.log('HandleGPOitemsResponseSync');
-      HandleGPOitemsResponse = this.HandleGPOitemsResponseSync;
+  //      this.downloadLogs.log('HandleGPOusersResponseSync');
+      HandleGPOusersResponse = this.HandleGPOusersResponseSync;
     } else if (this.AsyncRequestLimit === null) {
-  //      console.log('HandleGPOitemsResponseAsync');
-      HandleGPOitemsResponse = this.HandleGPOitemsResponseAsync;
+  //      this.downloadLogs.log('HandleGPOusersResponseAsync');
+      HandleGPOusersResponse = this.HandleGPOusersResponseAsync;
     } else {
-  //      console.log('HandleGPOitemsResponseHybrid');
-      HandleGPOitemsResponse = this.HandleGPOitemsResponseAsync;
+  //      this.downloadLogs.log('HandleGPOusersResponseAsync');
+      HandleGPOusersResponse = this.HandleGPOusersResponseAsync;
     }
   }
-  return this.hr.callAGOL(requestPars).then(this.getSelfInvokedFunction(HandleGPOitemsResponse));
+  return this.hr.callAGOL(requestPars).then(this.getSelfInvokedFunction(HandleGPOusersResponse));
 };
 
 DownloadGPOusers.prototype.padNumber = function (num, size) {
@@ -249,7 +262,7 @@ DownloadGPOusers.prototype.padNumber = function (num, size) {
   return s;
 };
 
-DownloadGPOusers.prototype.getGPOitemsSync = function () {
+DownloadGPOusers.prototype.getGPOusersSync = function () {
   var self = this;
   var whileCondition=null;
   if (self.TotalRowLimit) {
@@ -257,11 +270,11 @@ DownloadGPOusers.prototype.getGPOitemsSync = function () {
   }else {
     whileCondition=function() {return self.hr.saved.requestStart>0;};
   }
-  return self.hr.promiseWhile(whileCondition,  self.getSelfInvokedFunction(self.getGPOitemsChunk));
+  return self.hr.promiseWhile(whileCondition,  self.getSelfInvokedFunction(self.getGPOusersChunk));
 };
 
-DownloadGPOusers.prototype.HandleGPOitemsResponseSync = function (body) {
-  console.log('Sync ' + this.hr.saved.requestStart + ' to ' + (this.hr.saved.requestStart + body.results.length-1));
+DownloadGPOusers.prototype.HandleGPOusersResponseSync = function (body) {
+  this.downloadLogs.log('Sync ' + this.hr.saved.requestStart + ' to ' + (this.hr.saved.requestStart + body.results.length-1));
   this.hr.saved.requestStart = body.nextStart;
 
   this.storeModifiedDocs(body);
@@ -270,12 +283,12 @@ DownloadGPOusers.prototype.HandleGPOitemsResponseSync = function (body) {
 //  return this.Q(this.gpoitemcollection.insert(body.results));
 };
 
-DownloadGPOusers.prototype.HandleGPOitemsResponseAsync = function (body) {
+DownloadGPOusers.prototype.HandleGPOusersResponseAsync = function (body) {
   if ('error' in body) {
-    console.error("Error getting GPO users: " + body.error.message)
+    this.downloadLogs.error("Error getting GPO users: " + body.error.message)
     return true;
   }
-  console.log('request Start ' + (body.start ) + ' to ' + (body.start + body.results.length -1) + ' (users retrieved: ' +
+  this.downloadLogs.log('request Start ' + (body.start ) + ' to ' + (body.start + body.results.length -1) + ' (users retrieved: ' +
     (this.hr.saved.remoteGPOrow + body.results.length-1) + ')');
 //next start is not neccessarily found in order so use remoteGPOrow to konw how far along
   this.hr.saved.remoteGPOrow += body.results.length;
@@ -285,7 +298,7 @@ DownloadGPOusers.prototype.HandleGPOitemsResponseAsync = function (body) {
 //This is catatrosphic error that should never happen if remote GPO items exist.
 // If this happens then need to make sure hybrid loop will exit and resolve promise.
 //Should probably email this to admin
-    console.error("Catastrophic Error. No body results probably because AsyncRequestLimit set too high.");
+    this.downloadLogs.error("Catastrophic Error. No body results probably because AsyncRequestLimit set too high.");
     this.hr.saved.remoteGPOrow=this.hr.saved.remoteGPOcount+1;
     return false;
   }
@@ -323,8 +336,8 @@ DownloadGPOusers.prototype.storeModifiedDocs = function (body) {
 
   self.hr.saved.modifiedGPOcount = self.hr.saved.modifiedGPOids.length;
 
-  console.log("Remote GPO user count " + self.hr.saved.remoteGPOids.length );
-  console.log("Modified GPO user count " + self.hr.saved.modifiedGPOids.length );
+  this.downloadLogs.log("Remote GPO user count " + self.hr.saved.remoteGPOids.length );
+  this.downloadLogs.log("Modified GPO user count " + self.hr.saved.modifiedGPOids.length );
 
 //This returns a promise which is resolved when database records are inserted
   return self.saveModifiedGPOitems(modifiedGPOids,modifiedGPOitems);
@@ -342,37 +355,37 @@ DownloadGPOusers.prototype.saveModifiedGPOitems = function (modifiedGPOids,modif
 };
 
 
-DownloadGPOusers.prototype.getGPOitemsHybrid = function () {
+DownloadGPOusers.prototype.getGPOusersHybrid = function () {
   var self = this;
   return self.getRequestStartArray()
-    .then(self.getSelfInvokedFunction(self.HandleGPOitemsResponseAsync))
-    .then(self.getSelfInvokedFunction(self.getGPOitemsHybridFromStartArray));
+    .then(self.getSelfInvokedFunction(self.HandleGPOusersResponseAsync))
+    .then(self.getSelfInvokedFunction(self.getGPOusersHybridFromStartArray));
 };
 
-DownloadGPOusers.prototype.getGPOitemsHybridFromStartArray = function () {
+DownloadGPOusers.prototype.getGPOusersHybridFromStartArray = function () {
   var self = this;
   return self.hr.promiseWhile(function() {return self.hr.saved.remoteGPOrow<=self.hr.saved.remoteGPOcount;}, self.getSelfInvokedFunction
-  (self.getGPOitemsAsyncFromStartArray));
+  (self.getGPOusersAsyncFromStartArray));
 };
 
-DownloadGPOusers.prototype.getGPOitemsAsync = function () {
+DownloadGPOusers.prototype.getGPOusersAsync = function () {
   var self = this;
 //Have to first get the StartArray to use in async for each
 //This means an initial AGOL call to get "total" items count in AGOL
 //So subsequent calls will be Async for each
   return self.getRequestStartArray()
-    .then(self.getSelfInvokedFunction(self.HandleGPOitemsResponseAsync))
-    .then(self.getSelfInvokedFunction(self.getGPOitemsAsyncFromStartArray));
+    .then(self.getSelfInvokedFunction(self.HandleGPOusersResponseAsync))
+    .then(self.getSelfInvokedFunction(self.getGPOusersAsyncFromStartArray));
 };
 
-DownloadGPOusers.prototype.getGPOitemsAsyncFromStartArray = function () {
+DownloadGPOusers.prototype.getGPOusersAsyncFromStartArray = function () {
   var self = this;
   var async = require('async');
 
   var defer = this.Q.defer();
 
   var requestStartArray;
-//  console.log('this.hr.saved.currentRequest ' + this.hr.saved.currentRequest)
+//  this.downloadLogs.log('this.hr.saved.currentRequest ' + this.hr.saved.currentRequest)
   if (self.AsyncRequestLimit) {
 //take slice form current row to async row limit
     requestStartArray= self.hr.saved.requestStartArray.slice(self.hr.saved.currentRequest-1,self.hr.saved.currentRequest-
@@ -381,36 +394,38 @@ DownloadGPOusers.prototype.getGPOitemsAsyncFromStartArray = function () {
     requestStartArray= self.hr.saved.requestStartArray.slice(self.hr.saved.currentRequest-1);
   }
 
-  console.log(this.hr.saved.remoteGPOrow + ' ' + requestStartArray.length);
+  this.downloadLogs.log(this.hr.saved.remoteGPOrow + ' ' + requestStartArray.length);
 
   if (this.hr.saved.remoteGPOcount>0 && requestStartArray.length===0) {
 //This is catatrosphic error that should never happen if remote GPO items exist.\
 // If this happens then need to make sure hybrid loop will exit and resolve promise.
 //Should probably email this to admin
-      console.error("Catastrophic Error. No start array probably because AsyncRequestLimit set too high.");
+      this.downloadLogs.error("Catastrophic Error. No start array probably because AsyncRequestLimit set too high.");
     self.hr.saved.remoteGPOrow=self.hr.saved.remoteGPOcount+1;
     defer.resolve();
   }
 
   async.forEachOf(requestStartArray, function (requestStart, index, done) {
-//      console.log(key+this.hr.saved.modifiedGPOrow)
-      self.getGPOitemsChunk(requestStart)
+//      this.downloadLogs.log(key+this.hr.saved.modifiedGPOrow)
+      self.getGPOusersChunk(requestStart)
         .then(function () {
-//                console.log(String(key+1) + 'done');
+//                this.downloadLogs.log(String(key+1) + 'done');
           done();})
         .catch(function(err) {
-          console.error('async for each gpo user chunk Error received:', err);
+          self.downloadLogs.error('Error in async.forEachOf while calling getGPOusersChunk() in DownloadGPOusers.getGPOusersAsyncFromStartArray:', err.stack);
         })
         .done(function() {
-//          console.log('for loop success')
+//          this.downloadLogs.log('for loop success')
         });
     }
     , function (err) {
-      if (err) console.error('async for each error :' + err.message);
+      if (err) self.downloadLogs.error('Error with async.forEachOf while looping over GPO user chunks in DownloadGPOusers.getGPOitemsAsyncFromStartArray:', err.stack);
 //resolve this promise
-//      console.log('resolve')
+//      self.downloadLogs.log('resolve')
       defer.resolve();
     });
+
+
 
 //I have to return a promise here for so that chain waits until everything is done until it runs process.exit in done.
 //chain was NOT waiting before and process exit was executing and slash data not being retrieved
@@ -418,16 +433,16 @@ DownloadGPOusers.prototype.getGPOitemsAsyncFromStartArray = function () {
 };
 
 DownloadGPOusers.prototype.getRequestStartArray = function () {
-  return this.getGPOitemsChunk(1,this.handleGetRequestStartArray)
+  return this.getGPOusersChunk(1,this.handleGetRequestStartArray)
 };
 
 DownloadGPOusers.prototype.handleGetRequestStartArray = function (body) {
   //find the requestStart of each call
   this.hr.saved.requestStartArray = [];
-//  console.log(body);
+//  this.downloadLogs.log(body);
 
   this.hr.saved.remoteGPOcount = body.total;
-  console.log("Remote GPO user count " + this.hr.saved.remoteGPOcount);
+  this.downloadLogs.log("Remote GPO user count " + this.hr.saved.remoteGPOcount);
   if (this.TotalRowLimit) this.hr.saved.remoteGPOcount =this.TotalRowLimit;
   for (var i = 1; i <= this.hr.saved.remoteGPOcount; i=i+this.requestItemCount) {
     this.hr.saved.requestStartArray.push(i);
@@ -440,7 +455,7 @@ DownloadGPOusers.prototype.handleGetRequestStartArray = function (body) {
 
 //Routine to get each user's group data
 
-DownloadGPOusers.prototype.getSingleGPOdata = function (modifiedGPOrow) {
+DownloadGPOusers.prototype.getSingleGPOgroup = function (modifiedGPOrow) {
   var self = this;
 
 //if async loop then have to pass the row
@@ -473,19 +488,19 @@ DownloadGPOusers.prototype.HandleGPOgroups = function (body) {
 };
 
 
-DownloadGPOusers.prototype.getGPOdataSync = function (GPOids) {
+DownloadGPOusers.prototype.getGPOgroupsSync = function (GPOids) {
   var self = this;
   return self.hr.promiseWhile(function() {return self.hr.saved.modifiedGPOrow<=self.hr.saved.modifiedGPOcount;}, self.getSelfInvokedFunction
-  (self.getSingleGPOdata));
+  (self.getSingleGPOgroup));
 };
 
-DownloadGPOusers.prototype.getGPOdataHybrid = function () {
+DownloadGPOusers.prototype.getGPOgroupsHybrid = function () {
   var self = this;
   return self.hr.promiseWhile(function() {return self.hr.saved.modifiedGPOrow<=self.hr.saved.modifiedGPOcount;}, self.getSelfInvokedFunction
-  (self.getGPOdataAsync));
+  (self.getGPOgroupsAsync));
 };
 
-DownloadGPOusers.prototype.getGPOdataAsync = function () {
+DownloadGPOusers.prototype.getGPOgroupsAsync = function () {
   var self = this;
   var async = require('async');
 
@@ -499,26 +514,26 @@ DownloadGPOusers.prototype.getGPOdataAsync = function () {
     GPOids= self.hr.saved.modifiedGPOids;
   }
 
-  //need to get the value of modifiedGPOrow when this function is called because getSingleGPOdata changes it
+  //need to get the value of modifiedGPOrow when this function is called because getSingleGPOgroup changes it
   //THis is basically the modifiedGPOrow when the async loop started
   var asyncStartModifiedGPOrow = self.hr.saved.modifiedGPOrow;
-  console.log("User Groups download from row " + asyncStartModifiedGPOrow + " to " + (asyncStartModifiedGPOrow + GPOids.length -1));
+  this.downloadLogs.log("User Groups download from row " + asyncStartModifiedGPOrow + " to " + (asyncStartModifiedGPOrow + GPOids.length -1));
 
   async.forEachOf(GPOids, function (value, key, done) {
-//      console.log(key+this.hr.saved.modifiedGPOrow)
-      self.getSingleGPOdata(key+asyncStartModifiedGPOrow)
+//      self.downloadLogs.log(key+this.hr.saved.modifiedGPOrow)
+      self.getSingleGPOgroup(key+asyncStartModifiedGPOrow)
         .catch(function(err) {
-          console.error('for each single gpo user groups error :', err.stack);
+          self.downloadLogs.error('Error in async.forEachOf while calling getSingleGPOgroup() in DownloadGPOusers.getGPOgroupsAsync:', err.stack);
         })
         .done(function() {
           done();
-//          console.log('for loop success')
+//          self.downloadLogs.log('for loop success')
         });
     }
     , function (err) {
-      if (err) console.error('for each error :' + err.stack);
+      if (err) self.downloadLogs.error('Error with async.forEachOf while looping over GPO users to find groups in DownloadGPOusers.getGPOgroupsAsync:', err.stack);
 //resolve this promise
-//      console.log('resolve')
+//      self.downloadLogs.log('resolve')
       defer.resolve();
     });
 
@@ -538,7 +553,7 @@ DownloadGPOusers.prototype.removeLocalGPOitems = function () {
   var localGPOids= self.hr.saved.localGPOids.map(function(doc) {return doc.username});
   var removeIDs = arrayExtended.difference(localGPOids, self.hr.saved.remoteGPOids);
 
-  console.log("Locally Removed GPO users count: " + removeIDs.length );
+  this.downloadLogs.log("Locally Removed GPO users count: " + removeIDs.length );
 
   if (removeIDs.length > 0) {
     return self.Q(this.usersCollection.remove({id:{$in:removeIDs}}));
@@ -570,7 +585,7 @@ DownloadGPOusers.prototype.handleLocalGPOidsPromise = function (docs) {
     this.hr.saved.localMaxModifiedDate = 0;
   }
 
-  console.log("max Modified Date: " + new Date(this.hr.saved.localMaxModifiedDate));
+  this.downloadLogs.log("max Modified Date: " + new Date(this.hr.saved.localMaxModifiedDate));
 
   return docs;
 };
@@ -586,21 +601,20 @@ DownloadGPOusers.prototype.getOwnerIDs = function () {
 //String along aysn function calls
   var getOwnerIDsVersion=null;
   if (useSyncAdmin) {
-    console.log('Find Admin OwnerIDs using Sync');
+    this.downloadLogs.log('Find Admin OwnerIDs using Sync');
     getOwnerIDsVersion = this.getOwnerIDsSync;
   } else {
     if(this.AsyncAuditRowLimit===null){
-      console.log('Find Admin OwnerIDs using Full Async ');
+      this.downloadLogs.log('Find Admin OwnerIDs using Full Async ');
       getOwnerIDsVersion =this.getOwnerIDsASync;
     }else {
-      console.log('Find Admin OwnerIDs using Hybrid ');
+      this.downloadLogs.log('Find Admin OwnerIDs using Hybrid ');
       getOwnerIDsVersion =this.getOwnerIDsHybrid;
     }
   }
 
 //First get the admin users that we will be finding OwnerIDs for. Sometimes it isn't all of them.
   return self.getAdminUsersAuthGroups()
-//Call this reference to function needs to have the "this" set to DownloadGPOdata using .call or else this=global scope in function
     .then(function (adminUsersAuthGroups) {
 // this context is helpful for looping over the admin users
       var itemsContext = {};
@@ -651,7 +665,7 @@ DownloadGPOusers.prototype.getSingleOwnerIDs = function (itemsContext,userAuthGr
   //Note: this not usd for pure async, for hybrid it only determines modifiedGPOrow at start of each aysnc foreach loop
   itemsContext.row += 1;
 
-//  console.log("itemsContext.row  " + itemsContext.row );
+//  this.downloadLogs.log("itemsContext.row  " + itemsContext.row );
 //Returns a Q promise when done with process
   return this.updateAuthGroupsAndOwnerIDs.getOwnerIDsInAuthGroups(userAuthGroups);
 };
@@ -664,7 +678,7 @@ DownloadGPOusers.prototype.getOwnerIDsSync = function (itemsContext) {
 
 DownloadGPOusers.prototype.getOwnerIDsHybrid = function (itemsContext) {
   var self = this;
-  console.log(itemsContext.row,itemsContext.count);
+  this.downloadLogs.log(itemsContext.row,itemsContext.count);
   return self.hr.promiseWhile(function() {return itemsContext.row<=itemsContext.count;}, function () {return self.getOwnerIDsAsync(itemsContext);});
 };
 
@@ -682,22 +696,23 @@ DownloadGPOusers.prototype.getOwnerIDsAsync = function (itemsContext) {
     adminUsersAuthGroups = itemsContext.items;
   }
 
-  console.log("Admin OwnerIDs being determined from row " + itemsContext.row + " to " + (itemsContext.row + adminUsersAuthGroups.length -1));
+  this.downloadLogs.log("Admin OwnerIDs being determined from row " + itemsContext.row + " to " + (itemsContext.row + adminUsersAuthGroups.length -1));
 
   async.forEachOf(adminUsersAuthGroups, function (userAuthGroups, index, done) {
       self.getSingleOwnerIDs(itemsContext,userAuthGroups)
         .catch(function(err) {
-          console.error('For Each Single Get Admin OwnerIDs Error :', err);
+          self.downloadLogs.error('Error in async.forEachOf while calling getSingleOwnerIDs() in DownloadGPOusers.getOwnerIDsAsync:', err.stack);
+
         })
         .done(function() {
           done();
-//          console.log('for loop success')
+//          self.downloadLogs.log('for loop success')
         });
     }
     , function (err) {
-      if (err) console.error('For Each Get Admin OwnerIDs Error :' + err.message);
+      if (err) self.downloadLogs.error('Error with async.forEachOf while looping over GPO admins to find OwnerIDs in DownloadGPOusers.getOwnerIDsAsync:', err.stack);
 //resolve this promise
-//      console.log('resolve')
+//      self.downloadLogs.log('resolve')
       defer.resolve();
     });
 

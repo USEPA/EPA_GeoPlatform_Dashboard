@@ -25,7 +25,6 @@
   </head>
 
   <body>
-
     <nav class="navbar navbar-inverse navbar-fixed-top">
       <div class="container-fluid">
         <div class="navbar-header">
@@ -163,6 +162,17 @@
                     <th>Audit</th>
                   </tr>
                 </thead>
+                <tfoot>
+                  <tr>
+                      <th></th>
+                      <th><input class="search"></th>
+                      <th><select class="search"><option value="">All</option></select></th>
+                      <th><select class="search"><option value="">All</option></select></th>
+                      <th></th>
+                      <th><select class="search"><option value="">All</option></select></th>
+                      <th><select class="search"><option value="">All</option></select></th>
+                  </tr>
+                </tfoot>
                   <tbody data-bind="foreach: content">
                     <tr data-bind="css: {danger: !doc.AuditData.compliant()}, click: $parent.select" data-toggle="modal" data-target="#myModal" >
                       <!-- <td data-bind="text: id"></td> -->
@@ -188,12 +198,12 @@
                       <td data-bind="text: doc.type"></td>
                       <td data-bind="text: doc.numViews"></td>
                       <td data-bind="text: doc.owner"></td>
-                      <td >
+                      <td data-bind="attr: { 'data-search': doc.AuditData.compliant() ? 'Pass' : 'Fail' }" >
                           <div data-bind="if: doc.AuditData.compliant()">
-                              <img src="../img/greenOK.jpg" style="width:25px">
+                              <img src="../img/greenOK.jpg" alt="Pass" style="width:25px">
                           </div>
                           <div data-bind="ifnot: doc.AuditData.compliant()">
-                              <img src="../img/warning.png" style="width:25px">
+                              <img src="../img/warning.png" alt="Fail" style="width:25px">
                           </div>
                         </td >
                     </tr>
@@ -404,5 +414,6 @@
     <script src="http://js.arcgis.com/3.14/"></script>
     <script src="../js/gpLogin.js"></script>
     <script src="js/Audit.js"></script>
+
   </body>
 </html>
