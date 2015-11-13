@@ -101,8 +101,8 @@ app.use('/gpoitems', gpoitems(app));
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
-  console.error("404 req: " + req);
-  console.error("404 res: " + res);
+  console.error("404 req: " + JSON.stringify(req));
+  console.error("404 res: " + JSON.stringify(res));
   var err = new Error('Not Found');
   err.status = 404;
   next(err);
