@@ -98,7 +98,7 @@ utilities.sliceObject = function (obj,slice) {
   var mySlice = {};
 
   slice.forEach(function (key) {
-    mySlice[key] = obj[key];
+    if (key in obj) mySlice[key] = obj[key];
   });
 
   return mySlice;
