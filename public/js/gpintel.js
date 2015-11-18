@@ -1,5 +1,12 @@
 // Mockup items =============================================================
 
+//Expose dashboard especially helpful for debugging
+var egam={};
+egam.gpoItems = {
+  resultSet: [],
+  rowModel: null,
+  dataTable: null
+};
 
 $(document).ready(function() {
 
@@ -91,8 +98,6 @@ function populateTable(vTable,query) {
 
 };
 
-var gpoData = [];
-var rootRowModelINstance = null;
 
 function rowSelect(x){
   alert(x.rowIndex);
@@ -111,7 +116,7 @@ function populateUserTables(query, utoken){
   $.getJSON('/gpoitems/list', {query:query}, function(data) {
     //console.log(data);
 
-    gpoData = data;
+    egam.gpoItems.resultSet = data;
 //If paging then data.results is array of data
     var dataResults=data;
     if ("results" in data) dataResults=data.results;
@@ -119,6 +124,8 @@ function populateUserTables(query, utoken){
     var rowModel1 = function(i){
       //This is the doc
       this.doc = ko.mapping.fromJS(i);
+
+      this.complianceStatus = ko.computed(function() {return this.doc.AuditData.compliant() ? 'Pass' : 'Fail'},this);
 
       //computed thumbnail url
       this.tnURLs = ko.computed(function(){
@@ -187,7 +194,7 @@ function populateUserTables(query, utoken){
         var auditRes = new Audit();
         auditRes.validate(unmappedDoc, auditField);
         ko.mapping.fromJS(unmappedDoc, this.doc);
-      }
+      };
 
       //tags
       this.tagItemToAdd = ko.observable("");
@@ -237,6 +244,9 @@ function populateUserTables(query, utoken){
             {
               // Success so call function to process the form
               console.log('success: ' + data);
+//refresh the data table so it can search updated info
+              egam.gpoItems.dataTable.destroy();
+              renderGPOitemsDataTable();
             }
             else
             {
@@ -274,9 +284,11 @@ function populateUserTables(query, utoken){
       self.selected = ko.observable(self.content()[0]);
 
     };
-    rootRowModelINstance = new RootViewModel(dataResults);
+    egam.gpoItems.rowModel = new RootViewModel(dataResults);
 
-    ko.applyBindings(rootRowModelINstance);
+    ko.applyBindings(egam.gpoItems.rowModel);
+
+    egam.gpoItems.dataTable = renderGPOitemsDataTable();
 
 //Set up data-search attribute from value on td cell
 //value:doc.AuditData.compliant() ? 'Pass' : 'Fail'
@@ -298,15 +310,27 @@ function populateUserTables(query, utoken){
 //      }
 //    }
 
-    //apply data table magic, ordered ascending by title
-    var dataTable = $('#gpoitemtable1').DataTable({
-      "order": [[1,"asc"]],
 
-      initComplete: function () {
 
-        this.api().columns().every( function () {
-          var column = this;
-          var select = $(column.footer()).find("select.search");
+  });
+
+
+}
+
+function renderGPOitemsDataTable() {
+  //apply data table magic, ordered ascending by title
+  return $('#gpoitemtable1').DataTable({
+    "order": [[1,"asc"]],
+
+    initComplete: function () {
+      this.api().columns().every( function () {
+        var column = this;
+        var select = $(column.footer()).find("select.search");
+        addSelectEventHandler(select);
+        select = $(column.header()).find("select.search");
+        addSelectEventHandler(select);
+
+        function addSelectEventHandler(select) {
           if (select.length>0) {
             select.on( 'change', function () {
               var val = $.fn.dataTable.util.escapeRegex(
@@ -316,7 +340,7 @@ function populateUserTables(query, utoken){
                 .draw();
             } );
 
-//If first item has data-search then have to map out data-search data
+            //If first item has data-search then have to map out data-search data
             var att = column.nodes().to$()[0].attributes;
             if ("data-search" in att) {
               var selectData = {};
@@ -324,36 +348,41 @@ function populateUserTables(query, utoken){
                 var data = node.attributes["data-search"].value;
                 selectData[data]=data;
               } );
-              var selectData = Object.keys(selectData);
+              selectData = Object.keys(selectData);
               selectData.sort();
               selectData.forEach( function ( data, index ) {
-                select.append( '<option value="'+data+'">'+data+'</option>' )
+//Only add unique items to select in case already in there
+                if (! select.find("option[value='" + data + "']").length>0) {
+                  select.append( '<option value="'+data+'">'+data+'</option>' )
+                }
               } );
             }else{
-//Simply just use data which is contents of cell
+              //Simply just use data which is contents of cell
               column.data().unique().sort().each( function ( data, index ) {
-                select.append( '<option value="'+data+'">'+data+'</option>' )
+                if (! select.find("option[value='" + data + "']").length>0) {
+                  select.append( '<option value="'+data+'">'+data+'</option>' )
+                }
               } );
             }
           }
+        }
 
-          var input = $(column.footer()).find("input.search");
-          if (input.length>0) {
-            input.on( 'keyup change', function () {
-              if ( column.search() !== this.value ) {
-                column.search( this.value )
+        var input = $(column.footer()).find("input.search");
+        addInputEventHandler(input);
+        input = $(column.header()).find("input.search");
+        addInputEventHandler(input);
+        function addInputEventHandler(input) {
+          if (input.length > 0) {
+            input.on('keyup change', function () {
+              if (column.search() !== this.value) {
+                column.search(this.value)
                   .draw();
               }
-            } );
+            });
           }
-
-        } );
-      }
-
-    });
-
+        }
+      } );
+    }
 
   });
-
-
 }
