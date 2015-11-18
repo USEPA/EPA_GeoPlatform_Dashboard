@@ -154,12 +154,32 @@
                 <thead>
                   <tr>
                     <th></th>
-                    <th>Title</th>
-                    <th>Access</th>
-                    <th>Type</th>
+                    <th>Title
+                        <span onclick="event.stopPropagation();" >
+                            <input class="search">
+                        </span>
+                    </th>
+                    <th>Access
+                        <span onclick="event.stopPropagation();" >
+                            <select class="search"><option value="">All</option></select>
+                        </span>
+                    </th>
+                    <th>Type
+                        <span onclick="event.stopPropagation();" >
+                            <select class="search"><option value="">All</option></select>
+                        </span>
+                    </th>
                     <th>Views</th>
-                    <th>Owner</th>
-                    <th>Audit</th>
+                    <th>Owner
+                        <span onclick="event.stopPropagation();" >
+                            <select class="search"><option value="">All</option></select>
+                        </span>
+                    </th>
+                    <th>Audit
+                        <span onclick="event.stopPropagation();" >
+                            <select class="search"><option value="">All</option></select>
+                        </span>
+                    </th>
                   </tr>
                 </thead>
                 <tfoot>
@@ -198,13 +218,9 @@
                       <td data-bind="text: doc.type"></td>
                       <td data-bind="text: doc.numViews"></td>
                       <td data-bind="text: doc.owner"></td>
-                      <td data-bind="attr: { 'data-search': doc.AuditData.compliant() ? 'Pass' : 'Fail' }" >
-                          <div data-bind="if: doc.AuditData.compliant()">
-                              <img src="../img/greenOK.jpg" alt="Pass" style="width:25px">
-                          </div>
-                          <div data-bind="ifnot: doc.AuditData.compliant()">
-                              <img src="../img/warning.png" alt="Fail" style="width:25px">
-                          </div>
+                      <td data-bind="css: {auditRowPass: doc.AuditData.compliant(),auditRowFail: !doc.AuditData.compliant()},attr: { 'data-search': complianceStatus()}">
+                          <img class="pass" src="../img/greenOK.jpg" alt="Pass" style="width:25px">
+                          <img class="fail" src="../img/warning.png" alt="Fail" style="width:25px">
                         </td >
                     </tr>
                   </tbody>
