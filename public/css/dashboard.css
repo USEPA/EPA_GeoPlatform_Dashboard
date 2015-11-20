@@ -152,3 +152,20 @@ body {
     cursor: pointer;
     text-decoration: underline;
   }
+
+  .auditRowPass .fail,.auditRowFail .pass {
+      display:none;
+  }
+  .auditRowPass .pass,.auditRowFail .fail {
+      display:inline;
+  }
+
+  table tr.loading {
+/*      background:blue; */
+      display:none;
+  }
+
+    table.loaded tr.loading {
+        display: table-row;
+/*        background:green; */
+    }

@@ -158,12 +158,32 @@
                 <thead>
                   <tr>
                     <th></th>
-                    <th>Title</th>
-                    <th>Access</th>
-                    <th>Type</th>
+                    <th>Title
+                        <span onclick="event.stopPropagation();" >
+                            <input class="search">
+                        </span>
+                    </th>
+                    <th>Access
+                        <span onclick="event.stopPropagation();" >
+                            <select class="search"><option value="">All</option></select>
+                        </span>
+                    </th>
+                    <th>Type
+                        <span onclick="event.stopPropagation();" >
+                            <select class="search"><option value="">All</option></select>
+                        </span>
+                    </th>
                     <th>Views</th>
-                    <th>Owner</th>
-                    <th>Audit</th>
+                    <th>Owner
+                        <span onclick="event.stopPropagation();" >
+                            <select class="search"><option value="">All</option></select>
+                        </span>
+                    </th>
+                    <th>Audit
+                        <span onclick="event.stopPropagation();" >
+                            <select class="search"><option value="">All</option></select>
+                        </span>
+                    </th>
                   </tr>
                 </thead>
                 <tfoot>
@@ -178,22 +198,22 @@
                   </tr>
                 </tfoot>
                   <tbody data-bind="foreach: content">
-                    <tr data-bind="css: {danger: !doc.AuditData.compliant()}, click: $parent.select" data-toggle="modal" data-target="#myModal" >
+                    <tr data-bind="css: {danger: !doc.AuditData.compliant(),loading: loading}, click: $parent.select" data-toggle="modal" data-target="#myModal" >
                       <!-- <td data-bind="text: id"></td> -->
-                      <td >
-                          <!-- ko if:doc.type()=='Web Map' -->
+                      <td data-bind="attr: { 'data-order': doc.modified}">
+                          <!-- ko if:doc.type=='Web Map' -->
                           <img src="../img/item_type_icons/maps16.png">
                           <!-- /ko -->
-                          <!-- ko if:doc.type()=='Web Mapping Application' -->
+                          <!-- ko if:doc.type=='Web Mapping Application' -->
                            <img src="../img/item_type_icons/apps16.png">
                           <!-- /ko -->
-                          <!-- ko if:doc.type()=='Feature Layer' -->
+                          <!-- ko if:doc.type=='Feature Layer' -->
                           <img src="../img/item_type_icons/featureshosted16.png">
                           <!-- /ko -->
-                          <!-- ko if:doc.type()=='Service Definition' -->
+                          <!-- ko if:doc.type=='Service Definition' -->
                           <img src="../img/item_type_icons/datafiles16.png">
                           <!-- /ko -->
-                          <!-- ko if:doc.type()=='Map Image layer' -->
+                          <!-- ko if:doc.type=='Map Image layer' -->
                           <img src="../img/item_type_icons/mapimages16.png">
                           <!-- /ko -->
                       </td>
@@ -202,13 +222,9 @@
                       <td data-bind="text: doc.type"></td>
                       <td data-bind="text: doc.numViews"></td>
                       <td data-bind="text: doc.owner"></td>
-                      <td data-bind="attr: { 'data-search': doc.AuditData.compliant() ? 'Pass' : 'Fail' }" >
-                          <div data-bind="if: doc.AuditData.compliant()">
-                              <img src="../img/greenOK.jpg" alt="Pass" style="width:25px">
-                          </div>
-                          <div data-bind="ifnot: doc.AuditData.compliant()">
-                              <img src="../img/warning.png" alt="Fail" style="width:25px">
-                          </div>
+                      <td data-bind="css: {auditRowPass: doc.AuditData.compliant(),auditRowFail: !doc.AuditData.compliant()},attr: { 'data-search': complianceStatus}">
+                          <img class="pass" src="../img/greenOK.jpg" alt="Pass" style="width:25px">
+                          <img class="fail" src="../img/warning.png" alt="Fail" style="width:25px">
                         </td >
                     </tr>
                   </tbody>
@@ -230,7 +246,7 @@
                             <form id="modalForm" role="form" data-toggle="validator" data-disable="false" enctype="multipart/form-data" method="post">
                                 <div class="row form-group">
                                     <div class="col-md-4">
-                                        <div class="form-group has-success" data-bind="css: {'has-error': !selected().doc.AuditData.errors.thumbnail.compliant()}">
+                                        <div class="form-group has-success" data-bind="css: {'has-error': selected().doc.AuditData.errors.thumbnail&&selected().doc.AuditData.errors.thumbnail.compliant()===false}">
                                             <label>For best results, the image should be 200 pixels wide by 133 pixels high. Other sizes will be adjusted to fit. Acceptable image formats are: PNG, GIF and JPEG.</label>
                                             <div class="fileinput fileinput-exists" data-provides="fileinput">
                                                 <div class="fileinput-preview thumbnail" data-trigger="fileinput" style="width: 200px; height: 135px;">
@@ -241,7 +257,7 @@
                                                     <img src="../img/noImage.png">
                                                     <!-- /ko -->
                                                 </div>
-                                                <span class="help-block" data-bind="style: {display: !selected().doc.AuditData.errors.thumbnail.compliant() ? 'block' : 'none'}, text: selected().doc.AuditData.errors.thumbnail.messages">Requried</span>
+                                                <span class="help-block" data-bind="text: selected().doc.AuditData.errors.thumbnail.messages">Requried</span>
                                                 <div>
                                                     <span class="btn btn-default btn-file"><span class="fileinput-new">Select image</span><span class="fileinput-exists">Change</span><input id="thumbnail" type="file" name="..."></span>
                                                     <a href="#" class="btn btn-default fileinput-exists" data-dismiss="fileinput">Remove</a>
@@ -261,7 +277,7 @@
                                                 <input class="form-control" id="tagInput" type="text" data-bind='value: selected().tagItemToAdd, valueUpdate: "afterkeydown"'/>
                                             </div>
                                         </div>
-                                        <div class="form-group has-success" data-bind="css: {'has-error': !selected().doc.AuditData.errors.tags.compliant()}">
+                                        <div class="form-group has-success" data-bind="css: {'has-error': selected().doc.AuditData.errors.tags&&selected().doc.AuditData.errors.tags.compliant()===false}">
                                             <select id="tagsList" class="form-control" multiple="multiple" height="5" data-bind="options: selected().doc.tags, selectedOptions: selected().selectedItems"> </select>
                                             <span class="help-block" data-bind="style: {display: !selected().doc.AuditData.errors.tags.compliant() ? 'block' : 'none'}, text: selected().doc.AuditData.errors.tags.messages"></span>
                                         </div>
@@ -276,36 +292,48 @@
                                             <!--<input class="form-control"  id="updateDoc" name="updateDoc" data-bind="value: selected().id" data-error="Required" type="text" required>-->
                                             <!--<span class="help-block with-errors"></span>-->
                                         <!--</div>-->
-                                        <div class="form-group has-success" data-bind="css: {'has-error': !selected().doc.AuditData.errors.title.compliant()}">
+                                        <div class="form-group has-success" data-bind="css: {'has-error': selected().doc.AuditData.errors.title&&selected().doc.AuditData.errors.title.compliant()===false}">
                                             <label for="title">Title</label>
                                             <input class="form-control"  id="title" data-bind="value: selected().doc.title, valueUpdate: 'afterkeydown'" type="text">
-                                            <span class="help-block" data-bind="style: {display: !selected().doc.AuditData.errors.title.compliant() ? 'block' : 'none'}, text: selected().doc.AuditData.errors.title.messages"></span>
+                                            <!-- ko if: selected().doc.AuditData.errors.title -->
+                                            <span class="help-block" data-bind="text: selected().doc.AuditData.errors.title.messages"></span>
+                                            <!-- /ko -->
                                         </div>
-                                        <div class="form-group has-success" data-bind="css: {'has-error': !selected().doc.AuditData.errors.snippet.compliant()}">
+                                        <div class="form-group has-success" data-bind="css: {'has-error': selected().doc.AuditData.errors.snippet&&selected().doc.AuditData.errors.snippet.compliant()===false}">
                                             <label for="inputSnippet">Summary</label>
                                             <input class="form-control"  id="inputSnippet" data-bind="value: selected().doc.snippet, valueUpdate: 'afterkeydown'" type="text">
-                                            <span class="help-block" data-bind="style: {display: !selected().doc.AuditData.errors.snippet.compliant() ? 'block' : 'none'}, text: selected().doc.AuditData.errors.snippet.messages"></span>
+                                            <!-- ko if: selected().doc.AuditData.errors.snippet -->
+                                            <span class="help-block" data-bind="text: selected().doc.AuditData.errors.snippet.messages"></span>
+                                            <!-- /ko -->
                                         </div>
-                                        <div class="form-group has-success" data-bind="css: {'has-error': !selected().doc.AuditData.errors.description.compliant()}">
+                                        <div class="form-group has-success" data-bind="css: {'has-error': selected().doc.AuditData.errors.description&&selected().doc.AuditData.errors.description.compliant()===false}">
                                             <label for="inputDesc">Description</label>
                                             <textarea class="form-control" id="inputDesc" style="overflow:auto;resize:vertical" data-bind="value: selected().doc.description, valueUpdate: 'afterkeydown'" rows="6" placeholder="Description"></textarea>
-                                            <span class="help-block" data-bind="style: {display: !selected().doc.AuditData.errors.description.compliant() ? 'block' : 'none'}, text: selected().doc.AuditData.errors.description.messages"></span>
+                                            <!-- ko if: selected().doc.AuditData.errors.description -->
+                                            <span class="help-block" data-bind="text: selected().doc.AuditData.errors.description.messages"></span>
+                                            <!-- /ko -->
                                         </div>
 
-                                        <div class="form-group has-success" data-bind="css: {'has-error': !selected().lI}">
+                                        <div class="form-group has-success" data-bind="css: {'has-error': selected().doc.AuditData.errors.licenseInfo && selected().doc.AuditData.errors.licenseInfo.compliant()===false}">
                                             <label for="inputLicenseInfo">Credits</label>
                                             <input class="form-control" id="inputLicenseInfo" data-bind="value: selected().doc.licenseInfo, valueUpdate: 'afterkeydown'" type="text">
-                                            <!--<span class="help-block" data-bind="style: {display: !selected().doc.AuditData.errors.licenseInfo.compliant() ? 'block' : 'none'}, text: selected().doc.AuditData.errors.licenseInfo.messages"></span>-->
+                                            <!-- ko if: selected().doc.AuditData.errors.licenseInfo -->
+                                            <span class="help-block" data-bind="text: selected().doc.AuditData.errors.licenseInfo.messages"></span>
+                                            <!-- /ko -->
                                         </div>
-                                        <div class="form-group has-success" data-bind="css: {'has-error': !selected().aI}">
+                                        <div class="form-group has-success" data-bind="css: {'has-error': selected().doc.AuditData.errors.accessInformation&&selected().doc.AuditData.errors.accessInformation.compliant()===false}">
                                             <label for="inputAccessInfo">Access and use Constraints</label>
                                             <input class="form-control" id="inputAccessInfo" data-bind="value: selected().doc.accessInformation, valueUpdate: 'afterkeydown'" type="text">
-                                            <!--<span class="help-block" data-bind="style: {display: !selected().doc.AuditData.errors.accessInformation.compliant() ? 'block' : 'none'}, text: selected().doc.AuditData.errors.accessInformation.messages"></span>-->
+                                            <!-- ko if: selected().doc.AuditData.errors.accessInformation -->
+                                            <span class="help-block" data-bind="text: selected().doc.AuditData.errors.accessInformation.messages"></span>
+                                            <!-- /ko -->
                                         </div>
-                                        <div class="form-group has-success" data-bind="css: {'has-error': !selected().itemURL"}>
+                                        <div class="form-group has-success" data-bind="css: {'has-error': selected().doc.AuditData.errors.url&&selected().doc.AuditData.errors.url.compliant()===false"}>
                                             <label for="inputUrl">Url</label>
                                             <input class="form-control" id="inputUrl" data-bind="value: selected().doc.url, valueUpdate: 'afterkeydown'" type="url">
-                                            <!--<span class="help-block" data-bind="style: {display: !selected().doc.AuditData.errors.url.compliant() ? 'block' : 'none'}, text: selected().doc.AuditData.errors.url.messages"></span>-->
+                                            <!-- ko if: selected().doc.AuditData.errors.url -->
+                                            <span class="help-block" data-bind="text: selected().doc.AuditData.errors.url.messages"></span>
+                                            <!-- /ko -->
                                         </div>
                                     </div>
                                 </div>

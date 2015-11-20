@@ -1,5 +1,12 @@
 // Mockup items =============================================================
 
+//Expose dashboard especially helpful for debugging
+var egam={};
+egam.gpoItems = {
+  resultSet: [],
+  rowModel: null,
+  dataTable: null
+};
 
 $(document).ready(function() {
 
@@ -91,8 +98,6 @@ function populateTable(vTable,query) {
 
 };
 
-var gpoData = [];
-var rootRowModelINstance = null;
 
 function rowSelect(x){
   alert(x.rowIndex);
@@ -103,81 +108,88 @@ function rowSelect(x){
 };
 
 //populate tables for GPO User view
-function populateUserTables(query, utoken){
-  query=JSON.stringify(query)
+function populateUserTables(query, projection,isTest){
+  query=JSON.stringify(query);
+  projection=JSON.stringify(projection);
 
+  var utoken = egam.portalUser.credential.token;
+
+//Use this so we know when everything is loaded
+  var defer = $.Deferred();
 
   // jQuery AJAX call for JSON
+<<<<<<< HEAD
   $.getJSON('/gpoitems/list', {query:query}, function(data) {
     //console.log(data);
       // Hide the loading panel
       $('div#loadingMsg').addClass('hidden');
       $('div#overviewTable').removeClass('hidden');
+=======
+  $.getJSON('/gpoitems/list', {query:query,projection:projection}, function(data) {
+>>>>>>> origin/sprint4
 
-    gpoData = data;
+    egam.gpoItems.resultSet = data;
 //If paging then data.results is array of data
     var dataResults=data;
     if ("results" in data) dataResults=data.results;
 
-    var rowModel1 = function(i){
+    var rowModel1 = function(i,loading){
+      this.loading=loading || false;
       //This is the doc
       this.doc = ko.mapping.fromJS(i);
+
+      this.complianceStatus = ko.computed(function() {return this.doc.AuditData.compliant() ? 'Pass' : 'Fail'},this);
 
       //computed thumbnail url
       this.tnURLs = ko.computed(function(){
         return "http://epa.maps.arcgis.com/sharing/rest/content/items/" + i.id + "/info/" + i.thumbnail + "?token=" + utoken;
       }, this);
 
-      this.lI = ko.computed(function(){
-        if(i.AuditData.errors.licenseInfo){
-          return true
-        }
-        return false;
-      }, this);
-
-      this.aI = ko.computed(function(){
-        if(i.AuditData.errors.accessInformation){
-          return true
-        }
-        return false;
-      }, this);
-
-      this.itemURL = ko.computed(function(){
-        if(i.AuditData.errors.url){
-          return true
-        }
-        return false;
-      }, this);
-
+      //Doc of changed fields
+      this.changeDoc = {};
 
       //Subscribes Setup
-      this.doc.title.subscribe(function(){
+      this.doc.title.subscribe(function(evt){
         this.execAudit("title");
+        this.addFieldChange("title", evt);
       }.bind(this));
 
-      this.doc.snippet.subscribe(function(){
+      this.doc.snippet.subscribe(function(evt){
         this.execAudit("snippet");
+        this.addFieldChange("snippet", evt);
       }.bind(this));
 
-      this.doc.description.subscribe(function(){
+      this.doc.description.subscribe(function(evt){
         this.execAudit("description");
+        this.addFieldChange("description", evt);
       }.bind(this));
 
-      this.doc.licenseInfo.subscribe(function(){
+      this.doc.licenseInfo.subscribe(function(evt){
         this.execAudit("licenseInfo");
+        this.addFieldChange("licenseInfo", evt);
       }.bind(this));
 
-      this.doc.accessInformation.subscribe(function(){
+      this.doc.accessInformation.subscribe(function(evt){
         this.execAudit("accessInformation");
+        this.addFieldChange("accessInformation", evt);
       }.bind(this));
 
-      this.doc.url.subscribe(function(){
+      this.doc.url.subscribe(function(evt){
         this.execAudit("url");
+        this.addFieldChange("url", evt);
       }.bind(this));
 
-      this.doc.tags.subscribe(function(){
+      this.doc.tags.subscribe(function(evt){
         this.execAudit("tags");
+        this.addFieldChange("tags", this.doc.tags());
       }.bind(this), null, 'arrayChange');
+
+      //Add and field that has changed to the changeDoc
+      this.addFieldChange = function(changeField, changeValue){
+        this.changeDoc["id"] = this.doc.id();
+        this.changeDoc[changeField] = changeValue;
+        alert(JSON.stringify(this.changeDoc));
+      };
 
       //this.tnURLs.subscribe(function(){
       //  alert("Change");
@@ -190,7 +202,7 @@ function populateUserTables(query, utoken){
         var auditRes = new Audit();
         auditRes.validate(unmappedDoc, auditField);
         ko.mapping.fromJS(unmappedDoc, this.doc);
-      }
+      };
 
       //tags
       this.tagItemToAdd = ko.observable("");
@@ -215,14 +227,16 @@ function populateUserTables(query, utoken){
         var unmappedDoc = ko.mapping.toJS(this.selected().doc);
 
 
+        //Original Audit of full Doc
+        var unmappedDoc = ko.mapping.toJS(this.selected().doc);
         var auditRes = new Audit();
         auditRes.validate(unmappedDoc,"");
         ko.mapping.fromJS(unmappedDoc, this.selected().doc);
 
-        //alert(JSON.stringify(unmappedDoc));
+        alert(JSON.stringify(this.selected().changeDoc));
 
         var mydata = new FormData();
-        mydata.append("updateDocs",JSON.stringify(unmappedDoc));
+        mydata.append("updateDocs",JSON.stringify(this.selected().changeDoc));
         //mydata.append("updateDoc", unmappedDoc);
         var thumbnail = $('#thumbnail')[0].files[0];
         mydata.append("thumbnail",thumbnail);
@@ -240,6 +254,9 @@ function populateUserTables(query, utoken){
             {
               // Success so call function to process the form
               console.log('success: ' + data);
+//refresh the data table so it can search updated info
+              egam.gpoItems.dataTable.destroy();
+              renderGPOitemsDataTable();
             }
             else
             {
@@ -276,10 +293,114 @@ function populateUserTables(query, utoken){
 
       self.selected = ko.observable(self.content()[0]);
 
-    };
-    rootRowModelINstance = new RootViewModel(dataResults);
 
-    ko.applyBindings(rootRowModelINstance);
+
+      self.add = function (data) {
+//Use this so we know when everything is loaded
+        var defer = $.Deferred();
+
+        var array = $.extend([],self.content());
+
+//This lets thing work async style so that page is not locked up when ko is mapping
+//Maybe use an async library later
+        var i=0;
+        var interval = setInterval(function () {
+          if (data.length>0) {
+            self.content.push(new rowModel1(data[i],true));
+          }
+          i+=1;
+          if (i >= data.length ) {
+            defer.resolve();
+            clearInterval(interval);
+          }
+        }, 0);
+
+//        self.content(array);
+        console.log("done adding " + array.length);
+        return defer;
+      };
+
+//Leave these in here for now so they get checked into repo. Can remove after in repo
+      self.addPushAll = function (data) {
+//Use this so we know when everything is loaded
+        var defer = $.Deferred();
+
+//This lets thing work async style so that page is not locked up when ko is mapping
+//Maybe use an async library later
+        var interval = setInterval(function () {
+          var array = data.map(function (i) {return new rowModel1(i)});
+
+          ko.utils.arrayPushAll(self.content, array);
+
+          defer.resolve();
+          clearInterval(interval);
+        }, 0);
+
+        return defer;
+      };
+
+      self.addPushRedefine = function (data) {
+//Use this so we know when everything is loaded
+        var defer = $.Deferred();
+
+        var array = $.extend([],self.content());
+
+//This lets thing work async style so that page is not locked up when ko is mapping
+//Maybe use an async library later
+        var i=0;
+        var interval = setInterval(function () {
+          if (data.length>0) {
+            array.push(new rowModel1(data[i],true));
+          }
+          i+=1;
+          if (i >= data.length ) {
+            console.log("before setting" + array.length);
+            setTimeout(function () {
+              self.content(array);
+            },0);
+            console.log("done setting" + array.length);
+            defer.resolve();
+            clearInterval(interval);
+          }
+        }, 0);
+
+//        self.content(array);
+        console.log("done adding " + array.length);
+        return defer;
+      };
+
+    };
+
+    var rowModelTest = function(i,loading) {
+//Test limited row model that doesn't do knockout observables
+      var self = this;
+      this.doc = i;
+      this.compliant = i.AuditData.compliant;
+      this.doc.AuditData.compliant=function () {return self.compliant};
+
+      this.complianceStatus = function () {return self.compliant ? 'Pass' : 'Fail'};
+      this.loading=loading || false;
+    };
+
+
+    if (egam.gpoItems.rowModel) {
+      egam.gpoItems.rowModel.add(dataResults)
+        .then (function () {
+          console.log("Create data table");
+          setTimeout(function () {
+            if (egam.gpoItems.dataTable && "destroy" in egam.gpoItems.dataTable) egam.gpoItems.dataTable.destroy();
+              renderGPOitemsDataTable()
+                .then(function (dt) {egam.gpoItems.dataTable = dt;defer.resolve()});
+          },0);
+      });
+    }else {
+      egam.gpoItems.rowModel = new RootViewModel(dataResults);
+      ko.applyBindings(egam.gpoItems.rowModel,$("#gpoitemtable1")[0]);
+      defer.resolve();
+    }
+
+//    if (egam.gpoItems.dataTable && "destroy" in egam.gpoItems.dataTable) egam.gpoItems.dataTable.destroy();
+//    egam.gpoItems.dataTable = renderGPOitemsDataTable(defer);
 
 //Set up data-search attribute from value on td cell
 //value:doc.AuditData.compliant() ? 'Pass' : 'Fail'
@@ -301,15 +422,34 @@ function populateUserTables(query, utoken){
 //      }
 //    }
 
-    //apply data table magic, ordered ascending by title
-    var dataTable = $('#gpoitemtable1').DataTable({
-      "order": [[1,"asc"]],
 
-      initComplete: function () {
 
-        this.api().columns().every( function () {
-          var column = this;
-          var select = $(column.footer()).find("select.search");
+  });
+
+  return defer;
+
+}
+
+function renderGPOitemsDataTable(defer) {
+  //apply data table magic, ordered ascending by title
+//Use this so we know when table is rendered
+  var defer = $.Deferred();
+
+  $('#gpoitemtable1').DataTable({
+    "order": [[0,"desc"]],
+
+    initComplete: function () {
+      $("#gpoitemtable1").addClass("loaded");
+      console.log("INIT Compplete" );
+      this.api().columns().every( function () {
+
+        var column = this;
+        var select = $(column.footer()).find("select.search");
+        addSelectEventHandler(select);
+        select = $(column.header()).find("select.search");
+        addSelectEventHandler(select);
+
+        function addSelectEventHandler(select) {
           if (select.length>0) {
             select.on( 'change', function () {
               var val = $.fn.dataTable.util.escapeRegex(
@@ -319,7 +459,7 @@ function populateUserTables(query, utoken){
                 .draw();
             } );
 
-//If first item has data-search then have to map out data-search data
+            //If first item has data-search then have to map out data-search data
             var att = column.nodes().to$()[0].attributes;
             if ("data-search" in att) {
               var selectData = {};
@@ -327,36 +467,43 @@ function populateUserTables(query, utoken){
                 var data = node.attributes["data-search"].value;
                 selectData[data]=data;
               } );
-              var selectData = Object.keys(selectData);
+              selectData = Object.keys(selectData);
               selectData.sort();
               selectData.forEach( function ( data, index ) {
-                select.append( '<option value="'+data+'">'+data+'</option>' )
+//Only add unique items to select in case already in there
+                if (! select.find("option[value='" + data + "']").length>0) {
+                  select.append( '<option value="'+data+'">'+data+'</option>' )
+                }
               } );
             }else{
-//Simply just use data which is contents of cell
+              //Simply just use data which is contents of cell
               column.data().unique().sort().each( function ( data, index ) {
-                select.append( '<option value="'+data+'">'+data+'</option>' )
+                if (! select.find("option[value='" + data + "']").length>0) {
+                  select.append( '<option value="'+data+'">'+data+'</option>' )
+                }
               } );
             }
           }
+        }
 
-          var input = $(column.footer()).find("input.search");
-          if (input.length>0) {
-            input.on( 'keyup change', function () {
-              if ( column.search() !== this.value ) {
-                column.search( this.value )
+        var input = $(column.footer()).find("input.search");
+        addInputEventHandler(input);
+        input = $(column.header()).find("input.search");
+        addInputEventHandler(input);
+        function addInputEventHandler(input) {
+          if (input.length > 0) {
+            input.on('keyup change', function () {
+              if (column.search() !== this.value) {
+                column.search(this.value)
                   .draw();
               }
-            } );
+            });
           }
-
-        } );
-      }
-
-    });
-
+        }
+      } );
+      defer.resolve(this);
+    }
 
   });
-
-
+  return defer;
 }
