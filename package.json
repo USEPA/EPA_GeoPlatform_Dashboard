@@ -6,6 +6,8 @@
     "start": "node ./bin/www"
     ,"super": "supervisor -n exit ./bin/www"
     ,"nodemon": "nodemon ./bin/www"
+    ,"forever": "foreverStart.bat"
+    ,"foreverStop": "forever stop egam"
     ,"debug": "node-debug ./bin/www"
   },
   "dependencies": {
@@ -21,9 +23,18 @@
     "q": "~1.4.1",
     "express-session": "~1.11.3",
     "connect-mongo": "~0.8.2",
-    "merge": "1.2.0",
-    "app-root-path": "1.0.0",
-    "async": "1.4.2"
+    "merge": "~1.2.0",
+    "app-root-path": "~1.0.0",
+    "async": "~1.4.2",
+    "gridfs-stream": "~1.1.1",
+    "array-extended": "~0.0.11",
+    "jafar": "~1.0.0",
+    "content-disposition": "~0.5.0",
+    "tasks-queue": "~0.0.2",
+    "multer": "~1.0.5",
+    "nodemailer": "~1.5.0",
+    "nodemailer-smtp-pool": "~1.1.3",
+    "require-reload": "~0.2.2"
   },
   "devDependencies": {
     "grunt": "~0.4.5",
@@ -36,6 +47,8 @@
     "grunt-contrib-watch": "~0.6.1",
     "grunt-contrib-jshint": "~0.11.2",
     "grunt-rerun": "~0.0.4",
-    "grunt-forever": "~0.4.7"
+    "grunt-forever": "~0.4.7",
+    "grunt-reload": "~0.2.0",
+    "grunt-express": "~1.4.1"
   }
 }

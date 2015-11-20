@@ -1,4 +1,4 @@
-//Aaron Evans Jr. adsfsad
+//Aaron Evans Jr.
 var express = require('express');
 var fs = require('fs')
 var path = require('path');
@@ -11,24 +11,41 @@ var session = require('express-session');
 var mongoStore = require('connect-mongo')(session);
 
 var mongo = require('mongodb');
-var monk = require('monk');
+var MonkClass = require('monk');
 
 var routes = require('./routes/index');
 var gpoitems = require('./routes/gpoitems');
 
 var app = express();
 
-//get the enviromental variables from config file and save for later
-var config = require('./config/env');
-app.set('config',config);
-
-//Get the app root if it is not in config file
-var appRoot=config.appRoot;
-if (! appRoot) appRoot = require('app-root-path') + '/';
+//Get the app root
+var appRoot = require('app-root-path') + '/';
 app.set('appRoot',appRoot);
 
-var db = monk(config.mongoDBurl);
-app.set('monk',db);
+//Find the env from local unchecked in file. If it doesn't exist then use Windows env variable NODE_ENV
+var env = require(appRoot + '/shared/getNodeEnv')();
+app.set('env', env);
+
+//get the configuration for this current environment from config file specific to current environment
+//Note, if for some reason appRoot is wrong try the hardcoded path
+var config = require(appRoot + '/config/env');
+app.set('config',config);
+
+var monk = MonkClass(config.mongoDBurl);
+app.set('monk',monk);
+//db is database connection needed for grid fs
+var url = require('url');
+var mongoURL = url.parse(config.mongoDBurl);
+var db = new mongo.Db(mongoURL.pathname.replace("/",""), new mongo.Server(mongoURL.hostname,mongoURL.port));
+app.set('db',db);
+//Grid FS set up in this function because db needs to be connected first
+//Note this is a promise to return gfs but it also sets app('gfs') which should be ready by time somebody wants to use gfs
+var utilities = require(appRoot + '/shared/utilities');
+utilities.getGridFSobject(app);
+
+//When somebody logins we wil need to have DB update of modified items run in a queue so they aren't updating same stuff on accident
+var TasksQueues = require(appRoot + '/shared/TasksQueues');
+app.set('tasksQueues',new TasksQueues(500));
 
 // gpintel, no engine needed - view engine setup
 //app.set('views', path.join(__dirname, 'views'));
@@ -57,13 +74,18 @@ app.use(cookieParser());
 //The session is stored in Mongo
 //tag mongo store onto the session options using env specific store options
 //note I merge the config.mongoStoreOption because mongoStore constructor alters it
-console.log(config);
 var mongoStoreInstance = new mongoStore(merge(true,config.mongoStoreOption));
 //create copy of config sessionOptions so that is is not altered
 var sessionOptions = merge(true,config.sessionOptions);
 sessionOptions.store = mongoStoreInstance;
 //Allow persistent session data (eg: username of logged in user)
 app.use(session(sessionOptions));
+
+//Now setup the email transporter
+var sendEmail = require(appRoot + '/shared/sendEmail');
+sendEmail.send(config.email.defaultFrom,config.email.admins,'EGAM Express Server Started','EGAM Express server was started on ' + new Date() + '. This could possibly be due to automatic restart after server crash due to uncaught exceptions. Check logs/errors.log for uncaught exceptions.')
+  .catch(function (error) {console.error(error)});
+
 
 console.log(config);
 
@@ -79,6 +101,8 @@ app.use('/gpoitems', gpoitems(app));
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
+  console.error("404 req: " + JSON.stringify(req));
+  console.error("404 res: " + JSON.stringify(res));
   var err = new Error('Not Found');
   err.status = 404;
   next(err);
@@ -89,14 +113,14 @@ console.log('test');
 
 // development error handler
 // will print stacktrace
-console.log('app.get(env) = ' + app.get('env'));
+console.log('app.get(env) = ' + app.get('env') + ' ' + process.env.NODE_ENV);
 
 if (app.get('env') !== 'production') {
   app.use(function(err, req, res, next) {
     console.log(err.status);
     res.status(err.status || 500);
 
-    console.log(err);
+    console.log(err.stack);
 
     res.json(
       {error: {

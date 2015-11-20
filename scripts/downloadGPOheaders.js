@@ -17,16 +17,16 @@ var config = require(appRoot + '/config/env');
 //var config = require('../config/env');
 
 try {
-    var username = config.AGOLadminCredentials.username;
-    var password = config.AGOLadminCredentials.password;
-    var portal = config.portal;
+  var username = config.AGOLadminCredentials.username;
+  var password = config.AGOLadminCredentials.password;
+  var portal = config.portal;
 }
 catch (e) {
-    console.log("AGOL admin username and password or portal not defined in config file");
-    process.exit();
+  console.log("AGOL admin username and password or portal not defined in config file");
+  process.exit();
 }
 
-var hrClass = require('./handleGPOresponses');
+var hrClass = require('./../shared/HandleGPOresponses');
 var hr = new hrClass(config);
 console.log(hr);
 
@@ -40,7 +40,7 @@ hr.saved.currentGPOrow=1;
 var monk = require('monk');
 var db = monk('localhost:27017/egam');
 
-var headerscollection = db.get('headersAsync');
+var headerscollection = db.get('GPOheaders');
 var itemscollection = db.get('GPOitems');
 
 headerscollection.remove({});
@@ -81,28 +81,28 @@ getToken()
 
 function getToken() {
 
-    var tokenURL = portal + '/sharing/rest/generateToken?';
+  var tokenURL = portal + '/sharing/rest/generateToken?';
 
-    var parameters = {'username' : username,
-        'password' : password,
-        'client' : 'referer',
-        'referer': portal,
-        'expiration': 60,
-        'f' : 'json'};
+  var parameters = {'username' : username,
+    'password' : password,
+    'client' : 'referer',
+    'referer': portal,
+    'expiration': 60,
+    'f' : 'json'};
 //Pass parameters via form attribute
-    var requestPars = {method:'post', url:tokenURL, form:parameters };
+  var requestPars = {method:'post', url:tokenURL, form:parameters };
 
-    return hr.callAGOL(requestPars,'token');
+  return hr.callAGOL(requestPars,'token');
 }
 
 function getOrgId() {
   var url = portal + '/sharing/rest/portals/self';
 
-    var parameters = {'token' : hr.saved.token,'f' : 'json'};
+  var parameters = {'token' : hr.saved.token,'f' : 'json'};
 //Pass parameters via form attribute
-    var requestPars = {method:'get', url:url, qs:parameters };
+  var requestPars = {method:'get', url:url, qs:parameters };
 
-    return hr.callAGOL(requestPars,{'id':'orgID'});
+  return hr.callAGOL(requestPars,{'id':'orgID'});
 }
 
 function getSingleGPOheader(currentGPOrow) {
@@ -115,45 +115,20 @@ function getSingleGPOheader(currentGPOrow) {
 
   var currentGPO = hr.saved.GPOids[currentGPOrow-1];
 
-    var url= portal + '/sharing/rest/content/items/' + currentGPO.id + '/data' ;
+  var url= portal + '/sharing/rest/content/items/' + currentGPO.id + '/data' ;
 
-    var parameters = {token: hr.saved.token};
-//Pass parameters via form attribute
-
-    var requestPars = {method:'head', url:url, qs:parameters };
-
-    return hr.callAGOL(requestPars).then(getHandleGPOdataHeader(currentGPO));
-//  return hr.callAGOL(requestPars).then(HandleGPOdataHeader);
-
-}
-
-function getSingleGPOheaderTest(currentGPOrow) {
-//    var token = getHandleResponsePromise('token')(data);
-
-//if async loop then have to pass the row
-  if (! currentGPOrow) {
-  }
-
-  currentGPOrow=1;
-
-  var url= 'http://localhost:3000/gpoitems/list' ;
-
-  var parameters = {};
+  var parameters = {token: hr.saved.token};
 //Pass parameters via form attribute
 
   var requestPars = {method:'head', url:url, qs:parameters };
 
-//  return Q.nfcall(function() {return true});
-//  return true;
-
-  var currentGPO={}
-    return hr.callAGOL(requestPars).then(getHandleGPOdataHeader(currentGPO));
+  return hr.callAGOL(requestPars).then(getHandleGPOdataHeader(currentGPO));
 //  return hr.callAGOL(requestPars).then(HandleGPOdataHeader);
 
 }
 
 function getGPOheadersSync(GPOids) {
-    return hr.promiseWhile(function() {return hr.saved.currentGPOrow<=hr.saved.totalRows;}, getSingleGPOheader);
+  return hr.promiseWhile(function() {return hr.saved.currentGPOrow<=hr.saved.totalRows;}, getSingleGPOheader);
 }
 
 function getGPOheadersHybrid() {
@@ -176,14 +151,18 @@ function getGPOheadersAsync() {
     GPOids= hr.saved.GPOids;
   }
 
+  //need to get the value of currentGPOrow when this function is called because getSingleGPOheader changes it
+  //THis is basically the currentGPOrow when the async loop started
+  var asyncStartCurrentGPOrow = hr.saved.currentGPOrow;
+
   console.log(hr.saved.currentGPOrow + ' ' + GPOids.length)
 
   async.forEachOf(GPOids, function (value, key, done) {
 //      console.log(key+hr.saved.currentGPOrow)
-      getSingleGPOheader(key+hr.saved.currentGPOrow)
+      getSingleGPOheader(key+asyncStartCurrentGPOrow)
         .then(function () {
 //                console.log(String(key+1) + 'done');
-                done();})
+          done();})
         .catch(function(err) {
           console.error('single gpo header Error received:', err);
         })
@@ -207,16 +186,26 @@ function getHandleGPOdataHeader(data) {
   return  function HandleGPOdataHeader(head) {
 
 //function HandleGPOdataHeader(head) {
-      console.log('head' + hr.saved.currentGPOrow + ' ' + head);
-      head.gpoID = data.id;
-      head.gpoURL = data.url;
+    console.log('head' + hr.saved.currentGPOrow + ' ' + head);
+    head.gpoID = data.id;
+    head.gpoURL = data.url;
+//Add some other metadata that might be useful
+    head.type = data.type;
+    head.access = data.access;
+    head.owner = data.owner;
+    head.title = data.title;
+    head.name = data.name;
+//convert content length into number instead of string
+    head["content-length-string"]=head["content-length"];
+    if (! head["content-length"]) head["content-length"]=0; //If null content-length make sure it is zero
+    head["content-length"]=Number(head["content-length"]);
 
-      hr.saved.currentGPOrow += 1;
+    hr.saved.currentGPOrow += 1;
 //in monk this is a promise and convert to Q promise
-      return Q(headerscollection.insert(head));
+    return Q(headerscollection.insert(head));
 //      return true;
 //    return Q.nfcall(function() {return true});
-}
+  }
 
 }
 
@@ -227,7 +216,7 @@ function getGPOids() {
 function getGPOidsPromise() {
   var Q = require('q');
 
-  return Q.ninvoke(itemscollection ,"find", {}, {fields:{_id:0,id:1,url:1}});
+  return Q.ninvoke(itemscollection ,"find", {}, {fields:{_id:0,id:1,url:1,type:1,access:1,owner:1,title:1,name:1}});
 }
 
 function handleGPOidsPromise(docs) {

@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title></title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+
+</head>
+<body>
+<a href="" onclick="deferTest.open();return false;">OPEN</a><br>
+<a href="" onclick="deferTest.close();return false;">CLOSE</a><br>
+
+<a href="" onclick="deferTest.fire();return false;">FIRE WHEN CLOSED</a><br>
+
+<script>
+    console.log("deferTest created");
+    var deferTest = {};
+    deferTest.open = function () {
+        console.log("open clicked");
+        deferTest.defer = $.Deferred();
+//        console.log(deferTest);
+    };
+    deferTest.close = function () {
+        console.log("close clicked");
+        deferTest.defer.resolve();
+    };
+    deferTest.fire = function () {
+//        console.log(deferTest);
+        if(deferTest.defer) {
+            $.when(deferTest.defer.promise())
+                    .then(deferTest.executeFire);
+        } else {
+            deferTest.executeFire();
+        }
+    };
+    deferTest.executeFire = function () {
+        console.log("fire function fired.")
+    };
+</script>
+
+<form action="gpoitems/update" enctype="multipart/form-data" method="post">
+    docs:<br>
+    <textarea id="updateDocs" name="updateDocs" cols="50" rows="5" >[{"id" : "a5ca9de470064ae791647fc5c85dce09","title" : "Aaron Evans Alligator Update"},
+    {"id" : "4e922a76e21c449fbe8ef0ebca90ceec","title" : "Error Test Upload"}]</textarea><br>
+    thumbnail:<br>
+    <input type="file" id="thumbnail" name="thumbnail" /><br>
+    <br/>
+    <input type="submit" id="submit" name="submit" />
+</form>
+<br/><br>
+<a href="#" onclick="testupdate()">Test Ajax Update</a>
+<br/><br/>
+<form action="https://epa.maps.arcgis.com/sharing/rest/content/users/aaron.evans_EPA/items/a5ca9de470064ae791647fc5c85dce09/update?f=json&token=8yPhw1cb9YDU5kQEuQTDh2fUMelg6agD1Og34Qd0q8R_7NlnaV1WD4FaYxQeYN-LbdC0jm4JA-rb10BsKc2ec2aMwcIVKDx9cvqdiLLIypZyvUeto9VD-pWkIRDBml26B3z1py_KzGI9qVo2Osg9hf_eJKflmGR33M0eHOrGzPBjAAq5Jwv9LZndOhLmwvPz" enctype="multipart/form-data" method="post">
+    id:<br>
+    <input type="text" name="id" /><br>
+    owner:<br>
+    <input type="text" name="owner" /><br>
+    title:<br>
+    <input type="text" name="title" /><br>
+
+    AGOL thumbnail:<br>
+    <input type="file" id="thumbnail" name="thumbnail" /><br>
+
+    <input type="submit" id="submit" name="submit" />
+
+</form>
+
+<script>
+    function testupdate() {
+        var mydata = new FormData();
+        var updateDocs = $("#updateDocs")[0].value;
+        mydata.append("updateDocs",updateDocs);
+        var thumbnail = $('#thumbnail')[0].files[0];
+        mydata.append("thumbnail",thumbnail);
+//        mydata.append("updateDocs",JSON.stringify({"id" : "a5ca9de470064ae791647fc5c85dce09","title" : "Aaron Evans Alligator Update"}));
+        $.ajax({
+            url: 'gpoitems/update',
+            type: 'POST',
+            data: mydata,
+            cache: false,
+            dataType: 'json',
+            processData: false, // Don't process the files
+            contentType: false, // Set content type to false as jQuery will tell the server its a query string request
+            success: function(data, textStatus, jqXHR)
+            {
+                if(! data.errors.length)
+                {
+                    // Success so call function to process the form
+                    console.log('success: ' + data);
+                }
+                else
+                {
+                    // Handle errors here
+                    console.log('ERRORS: ' + data);
+                }
+            },
+            error: function(jqXHR, textStatus, errorThrown)
+            {
+                // Handle errors here
+                console.log('ERRORS: ' + textStatus);
+                // STOP LOADING SPINNER
+            }
+        });
+    }
+</script>
+
+</body>
+</html>
