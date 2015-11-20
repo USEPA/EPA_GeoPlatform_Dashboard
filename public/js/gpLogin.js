@@ -49,6 +49,15 @@ require([
   });
 
   function displayItems() {
+    // Show the loading panel
+    $('div#loadingMsg').removeClass('hidden');
+    $('div#overviewTable').addClass('hidden');
+    //todo: Move to CSS
+    domStyle.set("anonymousPanel", "display", "none");
+    domStyle.set("personalizedPanel", "display", "block");
+    domStyle.set("mainWindow", "display", "block");
+
+//Now sign into AGOL/GPO and then sign into Express app
     new arcgisPortal.Portal(info.portalUrl).signIn().then(
       function(portalUser) {
         //after sign in also login to backend using the token and username
@@ -63,11 +72,6 @@ require([
           }
 
           console.log("Signed in to the portal: ", portalUser);
-
-          //todo: Move to CSS
-          domStyle.set("anonymousPanel", "display", "none");
-          domStyle.set("personalizedPanel", "display", "block");
-          domStyle.set("mainWindow", "display", "block");
 
           //Save portalUser on application object so it can be used throughout
           if (egam) egam.portalUser=portalUser;
@@ -119,10 +123,6 @@ require([
 
     });
 
-    // Show the loading panel
-    $('div#loadingMsg').removeClass('hidden');
-    $('div#overviewTable').addClass('hidden');
-    
     //Query Mongo db
     //and populate user table in the user view
     //Update in sprint4 to be dynamically changed via UI
@@ -154,6 +154,10 @@ require([
 
     populateUserTables({}, {limit:10,sort:{modified:-1},fields:fields},false)
       .then(function () {
+        // Hide the loading panel now after first page is loaded
+        $('div#loadingMsg').addClass('hidden');
+        $('div#overviewTable').removeClass('hidden');
+
         return populateUserTables({}, {skip:10,sort:{modified:-1},fields:fields},true);
       })
       .fail(function (err) {
