@@ -108,7 +108,7 @@ require([
       sortOrder: "desc",
       num: 100
     };
-
+    
     portal.queryItems(queryParams).then(createGallery);
 
     //Display number of groups User has access to
@@ -119,6 +119,10 @@ require([
 
     });
 
+    // Show the loading panel
+    $('div#loadingMsg').removeClass('hidden');
+    $('div#overviewTable').addClass('hidden');
+    
     //Query Mongo db
     //and populate user table in the user view
     //Update in sprint4 to be dynamically changed via UI

@@ -60,40 +60,40 @@ function populateTable(vTable,query) {
   query=JSON.stringify(query)
 
   // jQuery AJAX call for JSON
-  $.getJSON('/gpoitems/list', {query:query}, function(data) {
-    console.log(data);
+  $.getJSON('/gpoitems/list', { query: query }, function (data) {
+      console.log(data);
 
-    ko.applyBindings({content: data});
+      ko.applyBindings({ content: data });
 
-    //function AppViewModel(){
-    //    var self = this;
-    //    self.people = ko.observableArray(data);
-    //
-    //    self.update = function(){
-    //
-    //    };
-    //
-    //};
-    //
-    //ko.applybindings(new AppViewModel());
+      //function AppViewModel(){
+      //    var self = this;
+      //    self.people = ko.observableArray(data);
+      //
+      //    self.update = function(){
+      //
+      //    };
+      //
+      //};
+      //
+      //ko.applybindings(new AppViewModel());
 
 
-    // // For each item in our JSON, add a table row and cells to the content string
-    // $.each(data, function() {
-    //   tableContent += '<tr>';
-    //   tableContent += '<td>' + this.id + '</td>';
-    //   tableContent += '<td>' + this.name + '</td>';
-    //   tableContent += '<td>' + this.access + '</td>';
-    //   tableContent += '<td>' + this.tags + '</td>';
-    //   tableContent += '<td>' + this.thumbnail + '</td>';
-    //   tableContent += '<td>' + this.owner + '</td>';
-    //   tableContent += '<td>' + this.type + '</td>';
-    //   tableContent += '</tr>';
-    // });
+      // // For each item in our JSON, add a table row and cells to the content string
+      // $.each(data, function() {
+      //   tableContent += '<tr>';
+      //   tableContent += '<td>' + this.id + '</td>';
+      //   tableContent += '<td>' + this.name + '</td>';
+      //   tableContent += '<td>' + this.access + '</td>';
+      //   tableContent += '<td>' + this.tags + '</td>';
+      //   tableContent += '<td>' + this.thumbnail + '</td>';
+      //   tableContent += '<td>' + this.owner + '</td>';
+      //   tableContent += '<td>' + this.type + '</td>';
+      //   tableContent += '</tr>';
+      // });
 
-    // // Inject the whole content string into our existing HTML table
-    // $('#' + vTable + ' tbody').empty();
-    // $('#' + vTable + ' tbody').prepend(tableContent);
+      // // Inject the whole content string into our existing HTML table
+      // $('#' + vTable + ' tbody').empty();
+      // $('#' + vTable + ' tbody').prepend(tableContent);
   });
 
 };
@@ -119,7 +119,9 @@ function populateUserTables(query, projection,isTest){
 
   // jQuery AJAX call for JSON
   $.getJSON('/gpoitems/list', {query:query,projection:projection}, function(data) {
-
+      // Hide the loading panel
+      $('div#loadingMsg').addClass('hidden');
+      $('div#overviewTable').removeClass('hidden');
     egam.gpoItems.resultSet = data;
 //If paging then data.results is array of data
     var dataResults=data;
