@@ -70,7 +70,11 @@ utilities.writeStreamPromise = function (stream,text,encoding) {
 //NOTE: If text is empty then does not write
   if (text===0) text="0";
   if (text) {
-    return Q.ninvoke(stream, "write", text,encoding);
+    if (encoding) {
+      return Q.ninvoke(stream, "write", text,encoding);
+    }else{
+      return Q.ninvoke(stream, "write", text);
+    }
   }else {
     return Q(true);
   }

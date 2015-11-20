@@ -119,9 +119,6 @@ function populateUserTables(query, projection,isTest){
 
   // jQuery AJAX call for JSON
   $.getJSON('/gpoitems/list', {query:query,projection:projection}, function(data) {
-      // Hide the loading panel
-      $('div#loadingMsg').addClass('hidden');
-      $('div#overviewTable').removeClass('hidden');
     egam.gpoItems.resultSet = data;
 //If paging then data.results is array of data
     var dataResults=data;
@@ -390,6 +387,7 @@ function populateUserTables(query, projection,isTest){
     }else {
       egam.gpoItems.rowModel = new RootViewModel(dataResults);
       ko.applyBindings(egam.gpoItems.rowModel,$("#gpoitemtable1")[0]);
+
       defer.resolve();
     }
 
