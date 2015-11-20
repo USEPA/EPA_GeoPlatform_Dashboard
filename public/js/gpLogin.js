@@ -117,8 +117,8 @@ require([
     });
 
     // Show the loading panel
-    dom.byId("overviewTable").addClass('hidden');
-    dom.byId("loadingMsg").addClass('show');
+    $('div#loadingMsg').removeClass('hidden');
+    $('div#overviewTable').addClass('hidden');
     
     //Query Mongo db
     //and populate user table in the user view
