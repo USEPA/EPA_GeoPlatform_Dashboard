@@ -118,16 +118,10 @@ function populateUserTables(query, projection,isTest){
   var defer = $.Deferred();
 
   // jQuery AJAX call for JSON
-<<<<<<< HEAD
-  $.getJSON('/gpoitems/list', {query:query}, function(data) {
-    //console.log(data);
+  $.getJSON('/gpoitems/list', {query:query,projection:projection}, function(data) {
       // Hide the loading panel
       $('div#loadingMsg').addClass('hidden');
       $('div#overviewTable').removeClass('hidden');
-=======
-  $.getJSON('/gpoitems/list', {query:query,projection:projection}, function(data) {
->>>>>>> origin/sprint4
-
     egam.gpoItems.resultSet = data;
 //If paging then data.results is array of data
     var dataResults=data;
