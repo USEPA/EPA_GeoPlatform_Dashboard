@@ -108,20 +108,25 @@ function rowSelect(x){
 };
 
 //populate tables for GPO User view
-function populateUserTables(query, utoken){
-  query=JSON.stringify(query)
+function populateUserTables(query, projection,isTest){
+  query=JSON.stringify(query);
+  projection=JSON.stringify(projection);
 
+  var utoken = egam.portalUser.credential.token;
+
+//Use this so we know when everything is loaded
+  var defer = $.Deferred();
 
   // jQuery AJAX call for JSON
-  $.getJSON('/gpoitems/list', {query:query}, function(data) {
-    //console.log(data);
+  $.getJSON('/gpoitems/list', {query:query,projection:projection}, function(data) {
 
     egam.gpoItems.resultSet = data;
 //If paging then data.results is array of data
     var dataResults=data;
     if ("results" in data) dataResults=data.results;
 
-    var rowModel1 = function(i){
+    var rowModel1 = function(i,loading){
+      this.loading=loading || false;
       //This is the doc
       this.doc = ko.mapping.fromJS(i);
 
@@ -280,12 +285,114 @@ function populateUserTables(query, utoken){
 
       self.selected = ko.observable(self.content()[0]);
 
+
+
+      self.add = function (data) {
+//Use this so we know when everything is loaded
+        var defer = $.Deferred();
+
+        var array = $.extend([],self.content());
+
+//This lets thing work async style so that page is not locked up when ko is mapping
+//Maybe use an async library later
+        var i=0;
+        var interval = setInterval(function () {
+          if (data.length>0) {
+            self.content.push(new rowModel1(data[i],true));
+          }
+          i+=1;
+          if (i >= data.length ) {
+            defer.resolve();
+            clearInterval(interval);
+          }
+        }, 0);
+
+//        self.content(array);
+        console.log("done adding " + array.length);
+        return defer;
+      };
+
+//Leave these in here for now so they get checked into repo. Can remove after in repo
+      self.addPushAll = function (data) {
+//Use this so we know when everything is loaded
+        var defer = $.Deferred();
+
+//This lets thing work async style so that page is not locked up when ko is mapping
+//Maybe use an async library later
+        var interval = setInterval(function () {
+          var array = data.map(function (i) {return new rowModel1(i)});
+
+          ko.utils.arrayPushAll(self.content, array);
+
+          defer.resolve();
+          clearInterval(interval);
+        }, 0);
+
+        return defer;
+      };
+
+      self.addPushRedefine = function (data) {
+//Use this so we know when everything is loaded
+        var defer = $.Deferred();
+
+        var array = $.extend([],self.content());
+
+//This lets thing work async style so that page is not locked up when ko is mapping
+//Maybe use an async library later
+        var i=0;
+        var interval = setInterval(function () {
+          if (data.length>0) {
+            array.push(new rowModel1(data[i],true));
+          }
+          i+=1;
+          if (i >= data.length ) {
+            console.log("before setting" + array.length);
+            setTimeout(function () {
+              self.content(array);
+            },0);
+            console.log("done setting" + array.length);
+            defer.resolve();
+            clearInterval(interval);
+          }
+        }, 0);
+
+//        self.content(array);
+        console.log("done adding " + array.length);
+        return defer;
+      };
+
     };
-    egam.gpoItems.rowModel = new RootViewModel(dataResults);
 
-    ko.applyBindings(egam.gpoItems.rowModel);
+    var rowModelTest = function(i,loading) {
+//Test limited row model that doesn't do knockout observables
+      var self = this;
+      this.doc = i;
+      this.compliant = i.AuditData.compliant;
+      this.doc.AuditData.compliant=function () {return self.compliant};
 
-    egam.gpoItems.dataTable = renderGPOitemsDataTable();
+      this.complianceStatus = function () {return self.compliant ? 'Pass' : 'Fail'};
+      this.loading=loading || false;
+    };
+
+
+    if (egam.gpoItems.rowModel) {
+      egam.gpoItems.rowModel.add(dataResults)
+        .then (function () {
+          console.log("Create data table");
+          setTimeout(function () {
+            if (egam.gpoItems.dataTable && "destroy" in egam.gpoItems.dataTable) egam.gpoItems.dataTable.destroy();
+              renderGPOitemsDataTable()
+                .then(function (dt) {egam.gpoItems.dataTable = dt;defer.resolve()});
+          },0);
+      });
+    }else {
+      egam.gpoItems.rowModel = new RootViewModel(dataResults);
+      ko.applyBindings(egam.gpoItems.rowModel,$("#gpoitemtable1")[0]);
+      defer.resolve();
+    }
+
+//    if (egam.gpoItems.dataTable && "destroy" in egam.gpoItems.dataTable) egam.gpoItems.dataTable.destroy();
+//    egam.gpoItems.dataTable = renderGPOitemsDataTable(defer);
 
 //Set up data-search attribute from value on td cell
 //value:doc.AuditData.compliant() ? 'Pass' : 'Fail'
@@ -311,16 +418,23 @@ function populateUserTables(query, utoken){
 
   });
 
+  return defer;
 
 }
 
-function renderGPOitemsDataTable() {
+function renderGPOitemsDataTable(defer) {
   //apply data table magic, ordered ascending by title
-  return $('#gpoitemtable1').DataTable({
-    "order": [[1,"asc"]],
+//Use this so we know when table is rendered
+  var defer = $.Deferred();
+
+  $('#gpoitemtable1').DataTable({
+    "order": [[0,"desc"]],
 
     initComplete: function () {
+      $("#gpoitemtable1").addClass("loaded");
+      console.log("INIT Compplete" );
       this.api().columns().every( function () {
+
         var column = this;
         var select = $(column.footer()).find("select.search");
         addSelectEventHandler(select);
@@ -379,7 +493,9 @@ function renderGPOitemsDataTable() {
           }
         }
       } );
+      defer.resolve(this);
     }
 
   });
+  return defer;
 }

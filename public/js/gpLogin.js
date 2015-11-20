@@ -69,6 +69,9 @@ require([
           domStyle.set("personalizedPanel", "display", "block");
           domStyle.set("mainWindow", "display", "block");
 
+          //Save portalUser on application object so it can be used throughout
+          if (egam) egam.portalUser=portalUser;
+
           //Is User Admin or lower
           if (portalUser.role == "org_admin") {
             domAttr.set("userId", "innerHTML", "<a>Welcome " + portalUser.fullName + " (GPO Administrator)</a>");
@@ -119,7 +122,39 @@ require([
     //Query Mongo db
     //and populate user table in the user view
     //Update in sprint4 to be dynamically changed via UI
-    populateUserTables({}, portalUser.credential.token);
+
+    var fields;
+    var reducePayload=true;
+    if (reducePayload) {
+      fields = {
+        id: 1,
+        title: 1,
+        description: 1,
+        tags: 1,
+        thumbnail: 1,
+        snippet: 1,
+        licenseInfo: 1,
+        accessInformation: 1,
+        url: 1,
+        AuditData: 1,
+        numViews: 1,
+        modified: 1,
+        type: 1,
+        owner: 1,
+        access: 1
+      };
+    }else{
+      fields={};
+    }
+
+
+    populateUserTables({}, {limit:10,sort:{modified:-1},fields:fields},false)
+      .then(function () {
+        return populateUserTables({}, {skip:10,sort:{modified:-1},fields:fields},true);
+      })
+      .fail(function (err) {
+        console.error(err);
+      } );
 
   }
 

@@ -7,13 +7,11 @@ var nodemailer = require('nodemailer');
 var smtpPool = require('nodemailer-smtp-pool');
 //The nodemailer instance will be saved in cached module
 var transportOptions = {
+  auth:{}
 };
 
-transportOptions.maxConnections=config.email.smtp.maxConnections || 20;
-transportOptions.maxMessages=config.email.smtp.maxMessages || Infinity;
-
-if (config.email.smtp.user) transportOptions.user=config.email.smtp.user;
-if (config.email.smtp.password) transportOptions.password=config.email.smtp.password;
+if (config.email.smtp.user) transportOptions.auth.user=config.email.smtp.user;
+if (config.email.smtp.password) transportOptions.auth.pass=config.email.smtp.password;
 
 if (config.email.smtp.service) {
   transportOptions.service=config.email.smtp.service;
@@ -23,6 +21,12 @@ if (config.email.smtp.service) {
 }else {
   config.email.disabled=true;
 }
+
+//Set some connection pooling parameters
+transportOptions.maxConnections=config.email.smtp.maxConnections || 20;
+transportOptions.maxMessages=config.email.smtp.maxMessages || Infinity;
+
+//console.log(transportOptions);
 
 if (config.email.disabled!==true) sendEmail.transporter = nodemailer.createTransport(smtpPool(transportOptions));
 
