@@ -54,7 +54,7 @@ module.exports = function(app) {
 //Let front end decided on getting only public
 //      query.access = "public";
 //For testing only let superUser see public for now (don't want 10,000 records)
-    if (isSuperUser) query.access = "public";
+   if (isSuperUser) query.access = "public";
 
 //Need to limit the number of rows to prevent crashing
 //This was fixed by streaming and not sending back SlashData so if config.maxRowLimit=null don't force a limit
@@ -65,7 +65,13 @@ module.exports = function(app) {
     }
 //Don't return SlashData!
     if (!('fields' in projection)) projection.fields = {};
-    projection.fields.SlashData=0;
+//Find if there are inclusion fields
+    inclusionFields = Object.keys(projection.fields).filter(function (field) {return projection.fields[field]===1});
+    if (inclusionFields.length>0) {
+      delete projection.fields.SlashData;
+    }else {
+      projection.fields.SlashData=0;
+    }
 
 //    res.send("username= " + username);return;
 

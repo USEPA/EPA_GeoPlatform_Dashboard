@@ -4,22 +4,38 @@ var appRoot=require('app-root-path');
 var config = require(appRoot + '/config/env');
 
 var nodemailer = require('nodemailer');
+var smtpPool = require('nodemailer-smtp-pool');
 //The nodemailer instance will be saved in cached module
-sendEmail.transporter = nodemailer.createTransport({
-  service: config.email.smtp.service,
-  auth: {
-    user: config.email.smtp.user,
-    pass: config.email.smtp.password
-  }
-});
+var transportOptions = {
+  auth:{}
+};
 
+if (config.email.smtp.user) transportOptions.auth.user=config.email.smtp.user;
+if (config.email.smtp.password) transportOptions.auth.pass=config.email.smtp.password;
+
+if (config.email.smtp.service) {
+  transportOptions.service=config.email.smtp.service;
+}else if (config.email.smtp.host) {
+  transportOptions.host = config.email.smtp.host;
+  transportOptions.port = config.email.smtp.port || 25;
+}else {
+  config.email.disabled=true;
+}
+
+//Set some connection pooling parameters
+transportOptions.maxConnections=config.email.smtp.maxConnections || 20;
+transportOptions.maxMessages=config.email.smtp.maxMessages || Infinity;
+
+//console.log(transportOptions);
+
+if (config.email.disabled!==true) sendEmail.transporter = nodemailer.createTransport(smtpPool(transportOptions));
 
 sendEmail.send = function (from,to,subject,body) {
   var Q=require('q');
   return Q.fcall(function () {
     var defer = Q.defer();
 
-    if (config.email && config.email.admins && config.email.disabled!==true) {
+    if (to && config.email.disabled!==true) {
 
       sendEmail.transporter.sendMail({
         from: from,
