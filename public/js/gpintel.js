@@ -386,7 +386,9 @@ function populateUserTables(query, projection,isTest){
       });
     }else {
       egam.gpoItems.rowModel = new RootViewModel(dataResults);
-      ko.applyBindings(egam.gpoItems.rowModel,$("#gpoitemtable1")[0]);
+// This would only bind the table
+//      ko.applyBindings(egam.gpoItems.rowModel,$("#gpoitemtable1")[0]);
+      ko.applyBindings(egam.gpoItems.rowModel);
 
       defer.resolve();
     }
