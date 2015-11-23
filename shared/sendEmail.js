@@ -7,8 +7,10 @@ var nodemailer = require('nodemailer');
 var smtpPool = require('nodemailer-smtp-pool');
 //The nodemailer instance will be saved in cached module
 var transportOptions = {
-  auth:{}
 };
+
+//If no user/pass as with SMTP then don't use auth or it will break
+if (config.email.smtp.user || config.email.smtp.password) transportOptions.auth={}
 
 if (config.email.smtp.user) transportOptions.auth.user=config.email.smtp.user;
 if (config.email.smtp.password) transportOptions.auth.pass=config.email.smtp.password;
