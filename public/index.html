@@ -152,71 +152,79 @@
                 <h2 class="text-center">Just one moment, fetching the latest GeoPlatform content for you...</h2>  
                 <img src="../img/loading.gif" class="img-responsive center-block" alt="now loading"></img>
             </div>
-            <div id="overviewTable" class="table-responsive">
+            <div id="overviewTable" class="">
              <h2 class="sub-header">Overview</h2>
-              <table id="gpoitemtable1" class="table table-hover table-bordered">
+              <table id="gpoitemtable1" class="table table-hover table-bordered table-responsive">
                 <thead>
                   <tr>
-                    <th></th>
-                    <th>Title
+                      <th>Title</th>
+                      <th>Access</th>
+                      <th>Type</th>
+                      <th>Views</th>
+                      <th>Owner</th>
+                      <th>Audit</th>
+                  </tr>
+                  <tr>
+                    <!--<th></th>-->
+                    <th>
                         <span onclick="event.stopPropagation();" >
                             <input class="search">
                         </span>
                     </th>
-                    <th>Access
+                    <th>
                         <span onclick="event.stopPropagation();" >
                             <select class="search"><option value="">All</option></select>
                         </span>
                     </th>
-                    <th>Type
+                    <th>
                         <span onclick="event.stopPropagation();" >
                             <select class="search"><option value="">All</option></select>
                         </span>
                     </th>
-                    <th>Views</th>
-                    <th>Owner
+                    <th></th>
+                    <th>
                         <span onclick="event.stopPropagation();" >
                             <select class="search"><option value="">All</option></select>
                         </span>
                     </th>
-                    <th>Audit
+                    <th>
                         <span onclick="event.stopPropagation();" >
                             <select class="search"><option value="">All</option></select>
                         </span>
                     </th>
                   </tr>
                 </thead>
-                <tfoot>
-                  <tr>
-                      <th></th>
-                      <th><input class="search"></th>
-                      <th><select class="search"><option value="">All</option></select></th>
-                      <th><select class="search"><option value="">All</option></select></th>
-                      <th></th>
-                      <th><select class="search"><option value="">All</option></select></th>
-                      <th><select class="search"><option value="">All</option></select></th>
-                  </tr>
-                </tfoot>
+                <!--<tfoot>-->
+                  <!--<tr>-->
+                      <!--<th></th>-->
+                      <!--<th><input class="search"></th>-->
+                      <!--<th><select class="search"><option value="">All</option></select></th>-->
+                      <!--<th><select class="search"><option value="">All</option></select></th>-->
+                      <!--<th></th>-->
+                      <!--<th><select class="search"><option value="">All</option></select></th>-->
+                      <!--<th><select class="search"><option value="">All</option></select></th>-->
+                  <!--</tr>-->
+                <!--</tfoot>-->
                   <tbody data-bind="foreach: content">
                     <tr data-bind="css: {danger: !doc.AuditData.compliant(),loading: loading}, click: $parent.select" data-toggle="modal" data-target="#myModal" >
                       <!-- <td data-bind="text: id"></td> -->
-                      <td data-bind="attr: { 'data-order': doc.modified}">
-                          <!-- ko if:doc.type=='Web Map' -->
-                          <img src="../img/item_type_icons/maps16.png">
-                          <!-- /ko -->
-                          <!-- ko if:doc.type=='Web Mapping Application' -->
-                           <img src="../img/item_type_icons/apps16.png">
-                          <!-- /ko -->
-                          <!-- ko if:doc.type=='Feature Layer' -->
-                          <img src="../img/item_type_icons/featureshosted16.png">
-                          <!-- /ko -->
-                          <!-- ko if:doc.type=='Service Definition' -->
-                          <img src="../img/item_type_icons/datafiles16.png">
-                          <!-- /ko -->
-                          <!-- ko if:doc.type=='Map Image layer' -->
-                          <img src="../img/item_type_icons/mapimages16.png">
-                          <!-- /ko -->
-                      </td>
+                      <!--<td data-bind="attr: { 'data-order': doc.modified}">-->
+                          <!--&lt;!&ndash; ko if:doc.type=='Web Map' &ndash;&gt;-->
+                          <!--<img src="../img/item_type_icons/maps16.png">-->
+                          <!--&lt;!&ndash; /ko &ndash;&gt;-->
+                          <!--&lt;!&ndash; ko if:doc.type=='Web Mapping Application' &ndash;&gt;-->
+                           <!--<img src="../img/item_type_icons/apps16.png">-->
+                          <!--&lt;!&ndash; /ko &ndash;&gt;-->
+                          <!--&lt;!&ndash; ko if:doc.type=='Feature Layer' &ndash;&gt;-->
+                          <!--<img src="../img/item_type_icons/featureshosted16.png">-->
+                          <!--&lt;!&ndash; /ko &ndash;&gt;-->
+                          <!--&lt;!&ndash; ko if:doc.type=='Service Definition' &ndash;&gt;-->
+                          <!--<img src="../img/item_type_icons/datafiles16.png">-->
+                          <!--&lt;!&ndash; /ko &ndash;&gt;-->
+                          <!--&lt;!&ndash; ko if:doc.type=='Map Image layer' &ndash;&gt;-->
+                          <!--<img src="../img/item_type_icons/mapimages16.png">-->
+                          <!--&lt;!&ndash; /ko &ndash;&gt;-->
+                      <!--</td>-->
                       <td data-bind="text: doc.title" ></td>
                       <td data-bind="text: doc.access"></td>
                       <td data-bind="text: doc.type"></td>

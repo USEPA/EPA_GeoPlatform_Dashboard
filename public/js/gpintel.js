@@ -215,14 +215,14 @@ function populateUserTables(query, projection,isTest){
       this.postback = function() {
         //alert("Posting");
 
-        var unmappedDoc = ko.mapping.toJS(this.selected().doc);
+        //var unmappedDoc = ko.mapping.toJS(this.selected().doc);
 
 
         //Original Audit of full Doc
         var unmappedDoc = ko.mapping.toJS(this.selected().doc);
         var auditRes = new Audit();
         auditRes.validate(unmappedDoc,"");
-        ko.mapping.fromJS(unmappedDoc, this.selected().doc);
+        //ko.mapping.fromJS(unmappedDoc, this.selected().doc);
 
         alert(JSON.stringify(this.selected().changeDoc));
 
@@ -386,7 +386,7 @@ function populateUserTables(query, projection,isTest){
       });
     }else {
       egam.gpoItems.rowModel = new RootViewModel(dataResults);
-      ko.applyBindings(egam.gpoItems.rowModel,$("#gpoitemtable1")[0]);
+      ko.applyBindings(egam.gpoItems.rowModel);
 
       defer.resolve();
     }
