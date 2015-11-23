@@ -179,7 +179,7 @@ function populateUserTables(query, projection,isTest){
       this.addFieldChange = function(changeField, changeValue){
         this.changeDoc["id"] = this.doc.id();
         this.changeDoc[changeField] = changeValue;
-        alert(JSON.stringify(this.changeDoc));
+        //alert(JSON.stringify(this.changeDoc));
       };
 
       //this.tnURLs.subscribe(function(){
@@ -224,7 +224,7 @@ function populateUserTables(query, projection,isTest){
         auditRes.validate(unmappedDoc,"");
         ko.mapping.fromJS(unmappedDoc, this.selected().doc);
 
-        alert(JSON.stringify(this.selected().changeDoc));
+        //alert(JSON.stringify(this.selected().changeDoc));
 
         var mydata = new FormData();
         mydata.append("updateDocs",JSON.stringify(this.selected().changeDoc));
