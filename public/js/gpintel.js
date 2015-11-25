@@ -125,6 +125,7 @@ function populateUserTables(query, projection,isTest){
     if ("results" in data) dataResults=data.results;
 
     var rowModel1 = function(i,loading){
+      var self = this;
       this.loading=loading || false;
       //This is the doc
       this.doc = ko.mapping.fromJS(i);
@@ -133,7 +134,7 @@ function populateUserTables(query, projection,isTest){
 
       //computed thumbnail url
       this.tnURLs = ko.computed(function(){
-        return "http://epa.maps.arcgis.com/sharing/rest/content/items/" + i.id + "/info/" + i.thumbnail + "?token=" + utoken;
+        return "http://epa.maps.arcgis.com/sharing/rest/content/items/" + self.doc.id() + "/info/" + self.doc.thumbnail() + "?token=" + utoken;
       }, this);
 
       //Doc of changed fields
@@ -215,11 +216,14 @@ function populateUserTables(query, projection,isTest){
       this.postback = function() {
         //alert("Posting");
 
-        var unmappedDoc = ko.mapping.toJS(this.selected().doc);
-
 
         //Original Audit of full Doc
         var unmappedDoc = ko.mapping.toJS(this.selected().doc);
+
+//need to add thumbnail name to document before auditing
+        var thumbnail = $('#thumbnail')[0].files[0];
+        if (thumbnail && thumbnail.name) unmappedDoc.thumbnail = "thumbnail/" + thumbnail.name;
+
         var auditRes = new Audit();
         auditRes.validate(unmappedDoc,"");
         ko.mapping.fromJS(unmappedDoc, this.selected().doc);
@@ -229,7 +233,6 @@ function populateUserTables(query, projection,isTest){
         var mydata = new FormData();
         mydata.append("updateDocs",JSON.stringify(this.selected().changeDoc));
         //mydata.append("updateDoc", unmappedDoc);
-        var thumbnail = $('#thumbnail')[0].files[0];
         mydata.append("thumbnail",thumbnail);
         $.ajax({
           url: 'gpoitems/update',
@@ -246,7 +249,8 @@ function populateUserTables(query, projection,isTest){
               // Success so call function to process the form
               console.log('success: ' + data);
 //refresh the data table so it can search updated info
-              egam.gpoItems.dataTable.destroy();
+//              egam.gpoItems.dataTable.destroy();
+              egam.gpoItems.dataTable.fnDestroy();
               renderGPOitemsDataTable();
             }
             else
@@ -379,7 +383,7 @@ function populateUserTables(query, projection,isTest){
         .then (function () {
           console.log("Create data table");
           setTimeout(function () {
-            if (egam.gpoItems.dataTable && "destroy" in egam.gpoItems.dataTable) egam.gpoItems.dataTable.destroy();
+            if (egam.gpoItems.dataTable && "fnDestroy" in egam.gpoItems.dataTable) egam.gpoItems.dataTable.fnDestroy();
               renderGPOitemsDataTable()
                 .then(function (dt) {egam.gpoItems.dataTable = dt;defer.resolve()});
           },0);
