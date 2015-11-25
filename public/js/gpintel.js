@@ -193,6 +193,7 @@ function populateUserTables(query, projection,isTest){
         var auditRes = new Audit();
         auditRes.validate(unmappedDoc, auditField);
         ko.mapping.fromJS(unmappedDoc, this.doc);
+        alert(JSON.stringify(this.doc));
       };
 
       //tags
@@ -427,8 +428,19 @@ function renderGPOitemsDataTable(defer) {
 //Use this so we know when table is rendered
   var defer = $.Deferred();
 
+
   $('#gpoitemtable1').DataTable({
     "order": [[0,"desc"]],
+    dom: 'lBfrtip',  //lf<"toolbar"B><"bottom"ip>
+    buttons: [
+      {
+        text: 'Filter by Column',
+        action: function ( e, dt, node, config ) {
+          //alert( 'Button activated' );
+          $(".colFilter").toggle();
+        }
+      }
+    ],
 
     initComplete: function () {
       $("#gpoitemtable1").addClass("loaded");
@@ -497,5 +509,6 @@ function renderGPOitemsDataTable(defer) {
     }
 
   });
+
   return defer;
 }

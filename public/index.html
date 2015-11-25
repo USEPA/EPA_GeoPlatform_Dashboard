@@ -12,6 +12,8 @@
     <link href="../bootstrap/css/bootstrap.min.css" rel="stylesheet">
     <link href="../bootstrap/css/jasny-bootstrap.min.css" rel="stylesheet">
     <link href="../bootstrap/css/dataTables.bootstrap.min.css" rel="stylesheet">
+      <link href="https://cdn.datatables.net/buttons/1.1.0/css/buttons.dataTables.min.css" rel="stylesheet">
+      <!--<link href="https://cdn.datatables.net/1.10.10/css/jquery.dataTables.min.css" rel="stylesheet">-->
     <link href="../css/dashboard.css" rel="stylesheet">
 
     <!--[if lt IE 9]>
@@ -156,41 +158,41 @@
              <h2 class="sub-header">Overview</h2>
               <table id="gpoitemtable1" class="table table-hover table-bordered table-responsive">
                 <thead>
-                  <tr>
-                      <th>Title</th>
-                      <th>Access</th>
-                      <th>Type</th>
-                      <th>Views</th>
-                      <th>Owner</th>
-                      <th>Audit</th>
-                  </tr>
+                  <!--<tr>-->
+                      <!--<th>Title</th>-->
+                      <!--<th>Access</th>-->
+                      <!--<th>Type</th>-->
+                      <!--<th>Views</th>-->
+                      <!--<th>Owner</th>-->
+                      <!--<th>Audit</th>-->
+                  <!--</tr>-->
                   <tr>
                     <!--<th></th>-->
-                    <th>
-                        <span onclick="event.stopPropagation();" >
+                    <th >Title
+                        <div class="colFilter" onclick="event.stopPropagation();" >Filter:
                             <input class="search">
-                        </span>
-                    </th>
-                    <th>
-                        <span onclick="event.stopPropagation();" >
+                        </div>
+                    </th >
+                    <th class="col-md-2">Access
+                        <div class="colFilter" onclick="event.stopPropagation();" >
                             <select class="search"><option value="">All</option></select>
-                        </span>
+                        </div>
                     </th>
-                    <th>
-                        <span onclick="event.stopPropagation();" >
+                    <th class="col-md-2">Type
+                        <div class="colFilter" onclick="event.stopPropagation();" >
                             <select class="search"><option value="">All</option></select>
-                        </span>
+                        </div>
                     </th>
-                    <th></th>
-                    <th>
-                        <span onclick="event.stopPropagation();" >
+                    <th class="col-md-1">Views</th>
+                    <th class="col-md-2">Owner
+                        <div class="colFilter" onclick="event.stopPropagation();" >
                             <select class="search"><option value="">All</option></select>
-                        </span>
+                        </div>
                     </th>
-                    <th>
-                        <span onclick="event.stopPropagation();" >
+                    <th class="col-md-1">Audit
+                        <div class="colFilter" onclick="event.stopPropagation();" >
                             <select class="search"><option value="">All</option></select>
-                        </span>
+                        </div>
                     </th>
                   </tr>
                 </thead>
@@ -446,6 +448,7 @@
     <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
     <script src="//cdn.datatables.net/1.10.9/js/jquery.dataTables.min.js"></script>
     <script src="//cdn.datatables.net/1.10.9/js/dataTables.bootstrap.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/1.1.0/js/dataTables.buttons.min.js"></script>
     <script src="../bootstrap/js/bootstrap.min.js"></script>
     <!--<script src="../bootstrap/js/validator.min.js"></script>-->
     <script src="../bootstrap/js/jasny-bootstrap.min.js"></script>
