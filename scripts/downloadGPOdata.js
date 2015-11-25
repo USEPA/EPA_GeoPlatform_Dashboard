@@ -31,7 +31,7 @@ downloadGPOdata.onlyGetMetaData = true;
 //This will make execution must faster since we don not have to download all remote items and only need to download modified
 //Set this to false for the overnight download so that we don't keep the removed items locally
 //But don't do this if you are downloading the entire DB at first because querying on AGOL by Modified Date is actually slow over entire data set
-downloadGPOdata.dontRemoveGPOitems= true;
+downloadGPOdata.dontRemoveGPOitems= false;
 //For testing saving json and text only set to true, usually set to false
 downloadGPOdata.dontSaveBinary = false;
 //For testing download of specific slash data, usually set to null

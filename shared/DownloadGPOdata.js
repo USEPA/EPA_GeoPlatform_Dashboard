@@ -5,6 +5,7 @@ var DownloadGPOdata =  function(){
 
 //ESRI only allows total = 10,000 in search, we need to get pages of 10,000 (or whatever is set here if it changes)
   this.requestQueryRowLimit = 10000;
+  this.requestQueryRowLimit = null;
 
   this.requestItemCount = 100;
 
@@ -195,11 +196,11 @@ DownloadGPOdata.prototype.connectDB = function () {
 };
 
 DownloadGPOdata.prototype.getToken = function () {
-    this.downloadLogs.log("Get Token");
-    if (this.token) {
-      this.hr.saved.token = this.token;
-      return this.token;
-    }
+  this.downloadLogs.log("Get Token");
+  if (this.token) {
+    this.hr.saved.token = this.token;
+    return this.token;
+  }
 
   var tokenURL=null;
   var parameters=null;
@@ -222,7 +223,7 @@ DownloadGPOdata.prototype.getToken = function () {
       'referer': this.portal,
       'expiration': this.expiration,
       'f' : 'json'};
-      tokenFieldName='token';
+    tokenFieldName='token';
   }
 //Pass parameters via form attribute
   var requestPars = {method:'post', url:tokenURL, form:parameters };
@@ -299,9 +300,10 @@ DownloadGPOdata.prototype.getGPOitemsChunk = function (requestStart,HandleGPOite
     query += ' AND NOT modified:' + this.padNumber(this.hr.saved.remoteMaxModifiedDate);
   }
 
-  //Due to paging of 10,000 item pages in query need to sort by modified date now
-  var parameters = {'sortField':'modified','q':query,'token' : this.hr.saved.token,'f' : 'json','start':requestStart,'num':this.requestItemCount };
-
+  var parameters = {'q':query,'token' : this.hr.saved.token,'f' : 'json','start':requestStart,'num':this.requestItemCount };
+  //Due to paging of 10,000 item pages in query need to sort by modified date now (also add id in case modified is same. I was losing items)
+//  if (this.requestQueryRowLimit ) parameters.sortField='modified,id';
+  parameters.sortField='modified,id';
 
 //testing single ID
 //  var parameters = {'q':'id:e58dcd33a6d4474caf9d0dd7ea75778e','token' : hr.saved.token,'f' : 'json','start':requestStart,'num':requestItemCount };
@@ -341,6 +343,9 @@ DownloadGPOdata.prototype.getGPOitemsPaging = function () {
 // This is necessary because owners might be downloading indpendently and need to make sure we get all when downloading for all owners later.
   if (this.dontRemoveGPOitems) this.hr.saved.remoteMaxModifiedDate=this.hr.saved.localMinMaxModifiedDate;
 
+//If requestQueryRowLimit not set then revert to getting items without paging by modified date
+  if (! self.requestQueryRowLimit) return self.getSelfInvokedFunction(self.hr.saved.getGPOitems)();
+
   //THis needs to be initialized to allow while loop to continue the first time
   self.hr.saved.remoteGPOcount=self.requestQueryRowLimit;
 
@@ -350,14 +355,17 @@ DownloadGPOdata.prototype.getGPOitemsPaging = function () {
   }else {
     whileCondition=function() {
 //if remote is less than requestQueryRowLimit (eg. 10,000) then can stop while loop
+//      console.log("**** self.hr.saved.remoteGPOcount ****" + self.hr.saved.remoteGPOcount);
       return self.hr.saved.remoteGPOcount===self.requestQueryRowLimit;};
   }
 
   var getGPOitemsPagingChunk = function () {
-    return self.getSelfInvokedFunction(self.hr.saved.getGPOitems)().then(self.getSelfInvokedFunction(self.HandleGPOitemsPaging));
+//self.hr.saved.getGPOitems() does not have scope of self so need to invoke from self
+    return self.getSelfInvokedFunction(self.hr.saved.getGPOitems)()
+      .then(self.getSelfInvokedFunction(self.HandleGPOitemsPaging));
   };
+
   return self.hr.promiseWhile(whileCondition,  getGPOitemsPagingChunk);
-//  return self.hr.promiseWhile(whileCondition,  self.getSelfInvokedFunction(self.hr.saved.getGPOitems));
 };
 
 DownloadGPOdata.prototype.HandleGPOitemsPaging = function (body) {
@@ -375,7 +383,12 @@ DownloadGPOdata.prototype.getGPOitemsSync = function () {
   if (self.TotalRowLimit) {
     whileCondition=function() {return self.hr.saved.requestStart<=self.TotalRowLimit;};
   }else {
-    whileCondition=function() {return self.hr.saved.requestStart>0;};
+//IN order to get sync to page need to use rows since requestStart won't be -1 if using 10,000 ESIR limit that was subsequently raised
+    if (self.requestQueryRowLimit) {
+      whileCondition=function() {return self.hr.saved.requestStart>0 && self.hr.saved.requestStart<=self.hr.saved.remoteGPOcount ;};
+    }else{
+      whileCondition=function() {return self.hr.saved.requestStart>0;};
+    }
   }
   return self.hr.promiseWhile(whileCondition,  self.getSelfInvokedFunction(self.getGPOitemsChunk));
 };
@@ -384,8 +397,22 @@ DownloadGPOdata.prototype.HandleGPOitemsResponseSync = function (body) {
   this.downloadLogs.log('Sync ' + this.hr.saved.requestStart + ' to ' + (this.hr.saved.requestStart + body.results.length-1));
   this.hr.saved.requestStart = body.nextStart;
 
+  this.hr.saved.remoteGPOrow += body.results.length;
+
+//If first request then need to set the remoteGPOcount due to ESRI limit thing (note limit has increased more than 10,000) 11/24/2015
+//  console.log("*** body.start ***" + body.start);
+  if (body.start===1) {
+//    console.log("*** body.total ***" + body.total);
+    if (this.requestQueryRowLimit && body.total >= this.requestQueryRowLimit) {
+//Don't let remote count go over the ESRI limit (In the case that ESRI raises limit like they did before it will continue in
+      this.hr.saved.remoteGPOcount = this.requestQueryRowLimit;
+    }else{
+      this.hr.saved.remoteGPOcount = body.total;
+    }
+  }
+
 //Also find the max modified date for the entire requestQueryRowLimit=10,000 row "page" used to page to next 10,000 rows
-  if (body.start+this.requestItemCount-1===this.requestQueryRowLimit) this.hr.saved.remoteMaxModifiedDate=body.results[body.results.length-1].modified;
+  if (body.start+this.requestItemCount-1===this.hr.saved.remoteGPOcount) this.hr.saved.remoteMaxModifiedDate=body.results[body.results.length-1].modified;
 
   return this.storeModifiedDocs(body);
 };
@@ -410,7 +437,7 @@ DownloadGPOdata.prototype.handleGPOitemsResponseAsync = function (body) {
   }
 
 //Also find the max modified date for the entire requestQueryRowLimit=10,000 row "page" used to page to next 10,000 rows
-  if (body.start+this.requestItemCount-1===this.requestQueryRowLimit) this.hr.saved.remoteMaxModifiedDate=body.results[body.results.length-1].modified;
+  if (body.start+this.requestItemCount-1===this.hr.saved.remoteGPOcount) this.hr.saved.remoteMaxModifiedDate=body.results[body.results.length-1].modified;
 
 //storeModifiedDocs returns a promise that is done when mod docs are inserted
   return this.storeModifiedDocs(body);
@@ -433,7 +460,7 @@ DownloadGPOdata.prototype.storeModifiedDocs = function (body) {
     doc.SlashData=null;
 //If no max modified date then initialize to zero
     var maxModDate=self.hr.saved.localMaxModifiedDates[doc.owner] || 0;
-//    this.downloadLogs.log('owner max mod date: ' + doc.owner + ' ' + new Date(maxModDate));
+//    self.downloadLogs.log('owner max mod date: ' + doc.owner + ' ' + new Date(maxModDate) + ' ' + doc.id);
     return doc.modified>maxModDate;
   });
 
@@ -477,11 +504,19 @@ DownloadGPOdata.prototype.saveModifiedGPOitems = function (modifiedGPOids,modifi
 //  this.downloadLogs.log("insert historyGPOitems count" + historyGPOitems.length);
 //  this.downloadLogs.log("insert modifiedGPOitems count "  + modifiedGPOitems.length);
 
+//  console.log("!!!!!!! modifiedGPOids.length !!!!!!!!!" + modifiedGPOids.length);
+
   if (modifiedGPOitems.length > 0) {
-    return self.Q(this.itemscollection.remove( {id:{$in:modifiedGPOids}} ))
+    return self.Q(self.itemscollection.remove( {id:{$in:modifiedGPOids}} ))
+//    return self.Q(self.itemscollection.find( {id:{$in:modifiedGPOids}} ))
+//      .then(function (docs) {console.log("!!!!!!! $in:modifiedGPOids !!!!!!!!!  " + JSON.stringify(docs))})
+//    return self.Q(true)
+//      .then(function () {  self.Q(self.itemscollection.remove( {id:{$in:modifiedGPOids}} )) })
       .then(function () {return self.Q(self.itemscollection.insert(modifiedGPOitems))})
       .then(function () {return self.Q(self.historycollection.insert(historyGPOitems))})
       .then(function () {return self.getGPOaudit(modifiedGPOitems);});
+//      .then(function () {return self.getLocalGPOids()})
+//      .then(function () {console.log("!!!!!!! this.hr.saved.localGPOcount !!!!!!!!!" + self.hr.saved.localGPOcount)});
   }else {
     return self.Q(true);
   }
@@ -572,7 +607,13 @@ DownloadGPOdata.prototype.handleGetRequestStartArray = function (body) {
   this.hr.saved.requestStartArray = [];
 //  this.downloadLogs.log(body);
 
-  this.hr.saved.remoteGPOcount = body.total;
+  if (this.requestQueryRowLimit && body.total >= this.requestQueryRowLimit) {
+//Don't let remote count go over the ESRI limit (In the case that ESRI raises limit like they did before it will continue in
+    this.hr.saved.remoteGPOcount = this.requestQueryRowLimit;
+  }else{
+    this.hr.saved.remoteGPOcount = body.total;
+  }
+
   this.downloadLogs.log("Remote GPO count " + this.hr.saved.remoteGPOcount);
   if (this.TotalRowLimit) this.hr.saved.remoteGPOcount =this.TotalRowLimit;
   for (var i = 1; i <= this.hr.saved.remoteGPOcount; i=i+this.requestItemCount) {
@@ -628,21 +669,21 @@ DownloadGPOdata.prototype.getSingleGPOdata = function (modifiedGPOrow) {
 };
 
 DownloadGPOdata.prototype.getSingleGPOdataPart = function (requestPars,handler,currentGPOid,historyID,slashData) {
-    var self = this;
-    var defer = self.Q.defer();
+  var self = this;
+  var defer = self.Q.defer();
 
-    //First get the latest history ID needed to update history slashData
+  //First get the latest history ID needed to update history slashData
 //Note: Have to use the on('response') event so that we can get a streaming response variable for saving to gridFS
-    var requestHandler = handler.call(self,defer, currentGPOid, historyID,slashData);
+  var requestHandler = handler.call(self,defer, currentGPOid, historyID,slashData);
 
-    self.request(requestPars)
-      .on('response',
-      requestHandler)
-      .on('error', function (err) {
-        defer.reject('Error getting single GPO data part for ' + currentGPOid + ' : ' + err);
-      });
+  self.request(requestPars)
+    .on('response',
+    requestHandler)
+    .on('error', function (err) {
+      defer.reject('Error getting single GPO data part for ' + currentGPOid + ' : ' + err);
+    });
 
-    return defer.promise;
+  return defer.promise;
 };
 
 DownloadGPOdata.prototype.getLatestHistoryID = function (GPOid) {
@@ -679,13 +720,13 @@ DownloadGPOdata.prototype.getHandleGPOslashData = function (defer,currentGPOid,h
       });
 
       response.on('end', function () {
-  //check if json then create an object, otherwise just save the text
-          try {
-            var json = JSON.parse(body);
-            if (json && typeof json === "object")  SlashData.json = json;
-          }catch (e) {
-            SlashData.text = body;
-          }
+        //check if json then create an object, otherwise just save the text
+        try {
+          var json = JSON.parse(body);
+          if (json && typeof json === "object")  SlashData.json = json;
+        }catch (e) {
+          SlashData.text = body;
+        }
 //Now update the DB. must pass defere so it can be resolved when done updating
         self.updateModifiedGPOdata(defer,currentGPOid,historyID,SlashData);
 
@@ -754,25 +795,25 @@ DownloadGPOdata.prototype.saveStreamToGridFS = function (readableStream,id,histo
   if (! self.gfs) self.gfs = GridFSstream(self.db, self.mongo);
 
 //use gpo item id as name of file in grid fs
-    var writestream = self.gfs.createWriteStream(
-      {filename: filename,
-       metadata: {id:id,type:binaryType}}
-    );
+  var writestream = self.gfs.createWriteStream(
+    {filename: filename,
+      metadata: {id:id,type:binaryType}}
+  );
 //when done writing need to resolve the promise
-    writestream.on('close', function (file) {
-      this.downloadLogs.log('File with id = ' + id + ' and file = ' + file.filename + ' written to GridFS');
+  writestream.on('close', function (file) {
+    this.downloadLogs.log('File with id = ' + id + ' and file = ' + file.filename + ' written to GridFS');
 //add the actual file id to SlashData
-      SlashData[binaryType + "ID"]= file._id;
+    SlashData[binaryType + "ID"]= file._id;
 //Now update the DB. must pass defer so it can be resolved when done updating
-      self.updateModifiedGPOdataBinaryID(gridDefer,id,historyID,SlashData);
+    self.updateModifiedGPOdataBinaryID(gridDefer,id,historyID,SlashData);
 
-    });
+  });
   //handle error due to writing
-    writestream.on('error', function (err) {
-      gridDefer.reject('Error writing stream to GridFS : ' + err);
-    });
+  writestream.on('error', function (err) {
+    gridDefer.reject('Error writing stream to GridFS : ' + err);
+  });
 //Now actually pipe response into gfs writestream
-    readableStream.pipe(writestream);
+  readableStream.pipe(writestream);
 
   return gridDefer.promise;
 };
@@ -806,13 +847,13 @@ DownloadGPOdata.prototype.updateModifiedGPOdata = function (defer,id,historyID,S
     .catch(function(err) {
 //Don't reject the deferred because it will break the chain need to try update with json as text instead of object
 //     defer.reject("Error updating slash data for " + id + " : " + err);})
-        this.downloadLogs.log("Trying to save as Text, Error updating slash data as Object for " + id + " : " + err);
+      this.downloadLogs.log("Trying to save as Text, Error updating slash data as Object for " + id + " : " + err);
 //If there is an error try to resolve it saving data as text instad of JSON object
 //If error saving as text or binary
       return self.UpdateModifieGPOdataAsText(id,historyID,SlashData).catch(function (err) {
         defer.reject("Error forcing updating slash data forced to Grid FS : " + err);
       });
-      })
+    })
     .done(function () {
 //      this.downloadLogs.log('Done updating Modified Slash Data for ' + id);
       defer.resolve(SlashData)
@@ -831,7 +872,7 @@ DownloadGPOdata.prototype.UpdateModifieGPOdataAsText = function (id,historyID,Sl
     self.Q(this.historycollection.update({_id:historyID},{$set:{"doc.SlashData":SlashData}}))
   ])
     .catch(function (err) {
-     this.downloadLogs.log("Trying to save as Grid FS, Error updating slash data forced AS Text for " + id + " : " + err);
+      this.downloadLogs.log("Trying to save as Grid FS, Error updating slash data forced AS Text for " + id + " : " + err);
 //Try to save a grid FS (should normally work for all size/type of data)
       var textStream = self.utilities.streamify(SlashData.text);
       SlashData.text=null;
@@ -933,7 +974,7 @@ DownloadGPOdata.prototype.removeLocalGPOitemsFromLocalGPOids = function () {
     var historyRemoveGPOitems = removeIDs.map(function(id) {return {id:id,date:backupDate,doc:null}});
 
     return self.Q(this.itemscollection.remove({id:{$in:removeIDs}}))
-            .then(function () {return self.Q(self.historycollection.insert(historyRemoveGPOitems))});
+      .then(function () {return self.Q(self.historycollection.insert(historyRemoveGPOitems))});
 //  return self.Q(itemscollection.remove({id:{$in:removeIDs}}));
   }else {
     return self.Q(true);
@@ -958,17 +999,17 @@ DownloadGPOdata.prototype.getLocalMaxModifiedDates = function () {
     [
       {"$match": query },
       {"$group" : {
-          "_id" : "$owner",
-          "modified" :  { $max: "$modified" }
+        "_id" : "$owner",
+        "modified" :  { $max: "$modified" }
       }}
-   ]).then(function (docs) {
-        docs.forEach(function (doc) {
-           self.hr.saved.localMaxModifiedDates[doc._id]=doc.modified;
-          if (doc.modified > self.hr.saved.localMinMaxModifiedDate) self.hr.saved.localMinMaxModifiedDate = doc.modified;
-        });
-        self.downloadLogs.log("Min Last Modified Date: " + new Date(self.hr.saved.localMinMaxModifiedDate));
-        return self.hr.saved.localMaxModifiedDates;
-   })
+    ]).then(function (docs) {
+      docs.forEach(function (doc) {
+        self.hr.saved.localMaxModifiedDates[doc._id]=doc.modified;
+        if (doc.modified > self.hr.saved.localMinMaxModifiedDate) self.hr.saved.localMinMaxModifiedDate = doc.modified;
+      });
+      self.downloadLogs.log("Min Last Modified Date: " + new Date(self.hr.saved.localMinMaxModifiedDate));
+      return self.hr.saved.localMaxModifiedDates;
+    })
 };
 
 
