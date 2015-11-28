@@ -320,15 +320,15 @@ Audit.prototype.addErrorMessage = function (field,doc,template,result) {
 
   error = error.charAt(0).toUpperCase() + error.slice(1);
 
-//If error object is uninitialized then initialize it here
+  //If error object is uninitialized then initialize it here
   if (! doc.AuditData.errors[field]) doc.AuditData.errors[field] = {
     compliant:true,
     messages:[]
   };
   if (! doc.AuditData.errors[field].messages) doc.AuditData.errors[field].messages = [];
-//let this field be compliant until it is possibly made false below
+  //let this field be compliant until it is possibly made false below
   doc.AuditData.errors[field].compliant=true;
-//array fields like tags have object like results.errors.tags = {messages:[],messagesByItem:{0:[],1:[]}}with key equal to tag index
+  //array fields like tags have object like results.errors.tags = {messages:[],messagesByItem:{0:[],1:[]}}with key equal to tag index
   if (Array.isArray(doc[field])) {
     if (result.index!==null) {
       if (! doc.AuditData.errors[field].messagesByItem) doc.AuditData.errors[field].messagesByItem = {};
