@@ -321,7 +321,10 @@ Audit.prototype.addErrorMessage = function (field,doc,template,result) {
   error = error.charAt(0).toUpperCase() + error.slice(1);
 
 //If error object is uninitialized then initialize it here
-  if (! doc.AuditData.errors[field]) doc.AuditData.errors[field] = {compliant:true,messages:[]};
+  if (! doc.AuditData.errors[field]) doc.AuditData.errors[field] = {
+    compliant:true,
+    messages:[]
+  };
   if (! doc.AuditData.errors[field].messages) doc.AuditData.errors[field].messages = [];
 //let this field be compliant until it is possibly made false below
   doc.AuditData.errors[field].compliant=true;
