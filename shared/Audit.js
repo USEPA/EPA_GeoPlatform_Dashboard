@@ -318,6 +318,8 @@ Audit.prototype.addErrorMessage = function (field,doc,template,result) {
     error = error.replace(re,result[key]);
   });
 
+  error = error.charAt(0).toUpperCase() + error.slice(1);
+
 //If error object is uninitialized then initialize it here
   if (! doc.AuditData.errors[field]) doc.AuditData.errors[field] = {compliant:true,messages:[]};
   if (! doc.AuditData.errors[field].messages) doc.AuditData.errors[field].messages = [];
@@ -328,7 +330,7 @@ Audit.prototype.addErrorMessage = function (field,doc,template,result) {
     if (result.index!==null) {
       if (! doc.AuditData.errors[field].messagesByItem) doc.AuditData.errors[field].messagesByItem = {};
       if (! doc.AuditData.errors[field].messagesByItem[result.index]) doc.AuditData.errors[field].messagesByItem[result.index] = [];
-  //if there was an error add it to errors object
+      //if there was an error add it to errors object
       if (! result.pass) {
         doc.AuditData.errors[field].messagesByItem[result.index].push(error);
         doc.AuditData.errors[field].compliant=false;

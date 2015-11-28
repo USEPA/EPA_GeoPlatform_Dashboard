@@ -157,7 +157,7 @@
               <table id="gpoitemtable1" class="table table-hover table-bordered">
                 <thead>
                   <tr>
-                    <th></th>
+                    <th style="display:none"></th>
                     <th>Title
                         <span onclick="event.stopPropagation();" >
                             <input class="search">
@@ -188,7 +188,7 @@
                 </thead>
                 <tfoot>
                   <tr>
-                      <th></th>
+                      <th style="display:none"></th>
                       <th><input class="search"></th>
                       <th><select class="search"><option value="">All</option></select></th>
                       <th><select class="search"><option value="">All</option></select></th>
@@ -200,7 +200,7 @@
                   <tbody data-bind="foreach: content">
                     <tr data-bind="css: {danger: !doc.AuditData.compliant(),loading: loading}, click: $parent.select" data-toggle="modal" data-target="#myModal" >
                       <!-- <td data-bind="text: id"></td> -->
-                      <td data-bind="attr: { 'data-order': doc.modified}">
+                      <td style="display:none" data-bind="attr: { 'data-order': doc.modified}">
                           <!-- ko if:doc.type=='Web Map' -->
                           <img src="../img/item_type_icons/maps16.png">
                           <!-- /ko -->
