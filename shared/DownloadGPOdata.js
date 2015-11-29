@@ -449,7 +449,10 @@ DownloadGPOdata.prototype.storeModifiedDocs = function (body) {
 //Note I am going to insert into database each time this is called but store Mod IDs so that Slash Data can be downloaded later
 //store all the remote id's
   var remoteGPOids = body.results.map(function(doc) {return doc.id});
-  self.hr.saved.remoteGPOids =self.hr.saved.remoteGPOids.concat(remoteGPOids)
+  self.hr.saved.remoteGPOids =self.hr.saved.remoteGPOids.concat(remoteGPOids);
+
+//Ned to update all access fields because when they change doc is not modified (ESRI bug)
+  var remoteGPOaccessFields = body.results.map(function(doc) {return {id:doc.id,access:doc.access}});
 
 //only the modified/created gpo items more recent than local will be upserted
 //add empty SlashData field in here in case it doesn't get added later just
@@ -489,8 +492,16 @@ DownloadGPOdata.prototype.storeModifiedDocs = function (body) {
 
 
 //This returns a promise which is resolved when database records are inserted
-  return self.saveModifiedGPOitems(modifiedGPOids,modifiedGPOitems);
+  return self.saveModifiedGPOitems(modifiedGPOids,modifiedGPOitems)
+    .then(function () {
+      self.updateAccessFields(remoteGPOaccessFields);
+    });
 };
+
+DownloadGPOdata.prototype.updateAccessFields = function (docs) {
+  return this.utilities.batchUpdateDB(this.itemscollection,docs,"id");
+};
+
 
 DownloadGPOdata.prototype.saveModifiedGPOitems = function (modifiedGPOids,modifiedGPOitems) {
   var self = this;
@@ -511,12 +522,21 @@ DownloadGPOdata.prototype.saveModifiedGPOitems = function (modifiedGPOids,modifi
 //    return self.Q(self.itemscollection.find( {id:{$in:modifiedGPOids}} ))
 //      .then(function (docs) {console.log("!!!!!!! $in:modifiedGPOids !!!!!!!!!  " + JSON.stringify(docs))})
 //    return self.Q(true)
-//      .then(function () {  self.Q(self.itemscollection.remove( {id:{$in:modifiedGPOids}} )) })
+//      .then(function () {
+//        var defer = self.Q.defer();
+//        self.Q(self.itemscollection.remove( {id:{$in:modifiedGPOids}} ,function (err,removed) {
+//          console.log("*#*#*#*# removed modifiedGPOids *#*#*#*#" + removed);
+//          defer.resolve();
+//        } ));
+//        return defer.promise;}
+//    )
+//      .then(function () {return self.Q(self.itemscollection.remove( {id:{$in:modifiedGPOids}})) })
+//      .then(function () {return self.itemscollection.remove( {id:{$in:modifiedGPOids}}) })
       .then(function () {return self.Q(self.itemscollection.insert(modifiedGPOitems))})
       .then(function () {return self.Q(self.historycollection.insert(historyGPOitems))})
       .then(function () {return self.getGPOaudit(modifiedGPOitems);});
 //      .then(function () {return self.getLocalGPOids()})
-//      .then(function () {console.log("!!!!!!! this.hr.saved.localGPOcount !!!!!!!!!" + self.hr.saved.localGPOcount)});
+//      .then(function () {console.log("!!!!!!! start, this.hr.saved.localGPOcount !!!!!!!!! " + bodyStart + ' ' + self.hr.saved.localGPOcount)});
   }else {
     return self.Q(true);
   }
@@ -580,7 +600,7 @@ DownloadGPOdata.prototype.getGPOitemsAsyncFromStartArray = function () {
 //                this.downloadLogs.log(String(key+1) + 'done');
           done();})
         .catch(function(err) {
-          this.downloadErrors.error('Error in async.forEachOf while calling getGPOitemsChunk() in DownloadGPOdata.getGPOitemsAsyncFromStartArray:', err.stack);
+          self.downloadErrors.error('Error in async.forEachOf while calling getGPOitemsChunk() in DownloadGPOdata.getGPOitemsAsyncFromStartArray:', err.stack);
         })
         .done(function() {
 //          this.downloadLogs.log('for loop success')

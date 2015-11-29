@@ -139,5 +139,48 @@ utilities.getDistinctArrayFromDB = function (collection,query,field) {
     });
 };
 
+utilities.batchUpdateDB = function (collection,docs,idField) {
+  var Q = require('q');
+  var self = this;
+  var async = require('async');
+
+  var defer = Q.defer();
+
+  async.forEachOf(docs, function (doc, index, done) {
+//      this.downloadLogs.log(key+this.hr.saved.modifiedGPOrow)
+      var query = {};
+      query[idField]= doc[idField];
+      var update = {$set: doc};
+
+      if (doc[idField]==="de53261c0084406d9a6014430dc07a72") {
+        console.log("********************FOUND de53261c0084406d9a6014430dc07a72 ********");
+        console.log("**** query, update = " + JSON.stringify(query) +  JSON.stringify(update));
+      }
+
+//      console.log("**** query, update = " + JSON.stringify(query) +  JSON.stringify(update));
+      Q(collection.update(query, update))
+        .then(function () {
+          if (doc[idField]==="de53261c0084406d9a6014430dc07a72") {
+            console.log("********************DONE de53261c0084406d9a6014430dc07a72 ********");
+          }
+          done();})
+        .catch(function(err) {
+          console.log(err.stack);
+          defer.reject(err);
+        })
+        .done(function() {
+        });
+    }
+    , function (err) {
+      if (err) console.log(err.stack);
+
+      if (err) defer.reject(err);
+//resolve this promise
+      defer.resolve();
+    });
+
+  return defer.promise;
+};
+
 module.exports = utilities;
 
