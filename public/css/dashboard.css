@@ -7,6 +7,16 @@ body {
   padding-top: 50px;
 }
 
+/* addition to bootstrap css */
+.has-error .form-control {
+  border-width: medium;
+}
+
+.has-success .form-control {
+  border-width: medium;
+}
+
+
 
 /*
  * Global add-ons

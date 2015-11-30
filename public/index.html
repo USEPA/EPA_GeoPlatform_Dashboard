@@ -7,7 +7,7 @@
     <meta name="description" content="EPA GeoPlatform Dashboard">
     <meta name="author" content="EPA National Geospatial Support (NGS) Team">
     <!--[AE-DY-TH-BG]-->
-    <link rel="icon" href="favicon.ico">
+    <link rel="icon" href="img/favicon.png">
 
     <link href="../bootstrap/css/bootstrap.min.css" rel="stylesheet">
     <link href="../bootstrap/css/jasny-bootstrap.min.css" rel="stylesheet">
@@ -148,34 +148,38 @@
 
           <!-- Begin overview -->
           <div class="view collapse in" id="overviewView" >
+            <div id="loadingMsg" class="jumbotron hidden">
+                <h2 class="text-center">Just one moment, fetching the latest GeoPlatform content for you...</h2>
+                <img src="../img/loading.gif" class="img-responsive center-block" alt="now loading"></img>
+            </div>
             <div id="overviewTable" class="table-responsive">
-             <h2 class="sub-header">Overview</h2>
+             <h3 class="sub-header">Overview</h3>
               <table id="gpoitemtable1" class="table table-hover table-bordered">
                 <thead>
                   <tr>
-                    <th></th>
-                    <th>Title
+                      <th style="display:none"></th>
+                    <th>Title</br>
                         <span onclick="event.stopPropagation();" >
-                            <input class="search">
+                            <input class="search" placeholder="Search By Title">
                         </span>
                     </th>
-                    <th>Access
+                    <th>Access</br>
                         <span onclick="event.stopPropagation();" >
                             <select class="search"><option value="">All</option></select>
                         </span>
                     </th>
-                    <th>Type
+                    <th>Type</br>
                         <span onclick="event.stopPropagation();" >
                             <select class="search"><option value="">All</option></select>
                         </span>
                     </th>
                     <th>Views</th>
-                    <th>Owner
+                    <th>Owner</br>
                         <span onclick="event.stopPropagation();" >
                             <select class="search"><option value="">All</option></select>
                         </span>
                     </th>
-                    <th>Audit
+                    <th>Audit</br>
                         <span onclick="event.stopPropagation();" >
                             <select class="search"><option value="">All</option></select>
                         </span>
@@ -183,20 +187,12 @@
                   </tr>
                 </thead>
                 <tfoot>
-                  <tr>
-                      <th></th>
-                      <th><input class="search"></th>
-                      <th><select class="search"><option value="">All</option></select></th>
-                      <th><select class="search"><option value="">All</option></select></th>
-                      <th></th>
-                      <th><select class="search"><option value="">All</option></select></th>
-                      <th><select class="search"><option value="">All</option></select></th>
-                  </tr>
+
                 </tfoot>
                   <tbody data-bind="foreach: content">
                     <tr data-bind="css: {danger: !doc.AuditData.compliant(),loading: loading}, click: $parent.select" data-toggle="modal" data-target="#myModal" >
                       <!-- <td data-bind="text: id"></td> -->
-                      <td data-bind="attr: { 'data-order': doc.modified}">
+                      <td data-bind="attr: { 'data-order': doc.modified}" style="display:none">
                           <!-- ko if:doc.type=='Web Map' -->
                           <img src="../img/item_type_icons/maps16.png">
                           <!-- /ko -->
@@ -363,7 +359,7 @@
 
           <div id="metricsTable" class="table-responsive" >
            <h2 class="sub-header">GPO Metrics</h2>
-              Placeholder for future functionality
+              <div>Placeholder for future functionality</div>
               <img src="img/MetricsDashboard.png" />
             <table id="gpoitemtable2" class="table table-striped" style="display:none">
               <thead>
@@ -386,7 +382,7 @@
 <!--  GPO View -->
           <div class="view collapse" id="environmentView" >
            <div id="enviroTable" class="table-responsive">
-           <h2 class="sub-header">GPO Hosting Environment</h2>
+           <h2 class="sub-header">GeoPlatform Hosting Environment (GPHE) - ArcGIS Servers</h2>
                <table id="gpoHostingEnv" class="table table-striped" >
                    <thead>
                    <tr>

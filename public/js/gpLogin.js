@@ -2,7 +2,7 @@ require([
   "esri/arcgis/Portal", "esri/arcgis/OAuthInfo", "esri/IdentityManager",
   "dojo/dom-style", "dojo/dom-attr", "dojo/dom", "dojo/on", "dojo/_base/array",
   "dojo/domReady!"
-], function(arcgisPortal, OAuthInfo, esriId,domStyle, domAttr, dom, on, arrayUtils) {
+], function(arcgisPortal, OAuthInfo, esriId, domStyle, domAttr, dom, on, arrayUtils) {
   var info = new OAuthInfo({
     appId: "CXkB0iPulNZP9xQo",
     portalUrl: "http://epa.maps.arcgis.com",
@@ -49,6 +49,15 @@ require([
   });
 
   function displayItems() {
+    // Show the loading panel
+    $('div#loadingMsg').removeClass('hidden');
+    $('div#overviewTable').addClass('hidden');
+    //todo: Move to CSS
+    domStyle.set("anonymousPanel", "display", "none");
+    domStyle.set("personalizedPanel", "display", "block");
+    domStyle.set("mainWindow", "display", "block");
+
+    //Now sign into AGOL/GPO and then sign into Express app
     new arcgisPortal.Portal(info.portalUrl).signIn().then(
       function(portalUser) {
         //after sign in also login to backend using the token and username
@@ -64,13 +73,8 @@ require([
 
           console.log("Signed in to the portal: ", portalUser);
 
-          //todo: Move to CSS
-          domStyle.set("anonymousPanel", "display", "none");
-          domStyle.set("personalizedPanel", "display", "block");
-          domStyle.set("mainWindow", "display", "block");
-
           //Save portalUser on application object so it can be used throughout
-          if (egam) egam.portalUser=portalUser;
+          if (egam) egam.portalUser = portalUser;
 
           //Is User Admin or lower
           if (portalUser.role == "org_admin") {
@@ -113,9 +117,9 @@ require([
 
     //Display number of groups User has access to
     portalUser.getGroups().then(function(groups) {
-      var htmlFragment = "";
-      htmlFragment = "<a >" + groups.length + "</a>";
-      dom.byId("agoGroups").innerHTML = htmlFragment;
+      var numGroupsText = "";
+      numGroupsText = "" + groups.length + "";
+      dom.byId("agoGroups").innerHTML = numGroupsText;
 
     });
 
@@ -124,7 +128,7 @@ require([
     //Update in sprint4 to be dynamically changed via UI
 
     var fields;
-    var reducePayload=true;
+    var reducePayload = true;
     if (reducePayload) {
       fields = {
         id: 1,
@@ -143,25 +147,41 @@ require([
         owner: 1,
         access: 1
       };
-    }else{
-      fields={};
+    } else {
+      fields = {};
     }
 
 
-    populateUserTables({}, {limit:10,sort:{modified:-1},fields:fields},false)
-      .then(function () {
-        return populateUserTables({}, {skip:10,sort:{modified:-1},fields:fields},true);
+    populateUserTables({}, {
+      limit: 10,
+      sort: {
+        modified: -1
+      },
+      fields: fields
+    }, false)
+      .then(function() {
+        // Hide the loading panel now after first page is loaded
+        $('div#loadingMsg').addClass('hidden');
+        $('div#overviewTable').removeClass('hidden');
+
+        return populateUserTables({}, {
+          skip: 10,
+          sort: {
+            modified: -1
+          },
+          fields: fields
+        }, true);
       })
-      .fail(function (err) {
+      .fail(function(err) {
         console.error(err);
-      } );
+      });
 
   }
 
   function createGallery(items) {
-    var htmlFragment = "";
-    htmlFragment = "<a >" + items.results.length + "</a>";
-    dom.byId("agoItems").innerHTML = htmlFragment;
+    var numItemsText = "";
+    numItemsText = "" + items.results.length + "";
+    dom.byId("agoItems").innerHTML = numItemsText;
   }
 
 });
