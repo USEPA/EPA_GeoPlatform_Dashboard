@@ -5,12 +5,12 @@ var TasksQueues =  function(minTime){
 
 
 TasksQueues.prototype.add = function (type,promise,arg) {
-  var TasksQueues = require('tasks-queue');
+  var TasksQueue = require('tasks-queue');
 
 //If the task type has not been assigned to process yet then do it
   var tq;
   if (!(type in this.queues)) {
-    tq = new TasksQueues({autostop:false});
+    tq = new TasksQueue({autostop:false});
     this.queues[type]=tq;
 // The queue should not execute more than one task in minTime ms.
     tq.setMinTime(this.minTime);
