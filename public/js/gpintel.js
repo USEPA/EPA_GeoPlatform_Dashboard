@@ -32,24 +32,6 @@ $(document).ready(function() {
 
 });
 
-
-// function AppViewModel() {
-//         this.firstName = ko.observable("Bert");
-//         this.lastName = ko.observable("Bertington");
-//         this.fullName = ko.computed(function() {
-//         return this.firstName() + " " + this.lastName();
-//     }, this);
-
-//         this.capitalizeLastName = function() {
-//             var currentVal = this.lastName();        // Read the current value
-//             this.lastName(currentVal.toUpperCase()); // Write back a modified value
-//         };
-//     }
-
-//     // Activates knockout.js
-//     ko.applyBindings(new AppViewModel());
-
-
 // Fill table with data queried out of Mongo via Express/Monk
 function populateTable(vTable, query) {
 
@@ -215,8 +197,8 @@ function populateUserTables(query, projection, isTest) {
         var unmappedDoc = ko.mapping.toJS(this.selected().doc);
 
         //need to add thumbnail name to document before auditing
-        var thumbnail = $('#thumbnail')[0].files[0];
-        if (thumbnail && thumbnail.name) unmappedDoc.thumbnail = "thumbnail/" + thumbnail.name;
+        //var thumbnail = $('#thumbnail')[0].files[0];
+        //if (thumbnail && thumbnail.name) unmappedDoc.thumbnail = "thumbnail/" + thumbnail.name;
 
         var auditRes = new Audit();
         auditRes.validate(unmappedDoc, "");
