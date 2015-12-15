@@ -1,8 +1,11 @@
 require([
   "esri/arcgis/Portal", "esri/arcgis/OAuthInfo", "esri/IdentityManager",
-  "dojo/dom-style", "dojo/dom-attr", "dojo/dom", "dojo/on", "dojo/_base/array",
+  "dojo/dom-style", "dojo/dom-attr", "dojo/dom", "dojo/on", "dojo/_base/array", "dojo/parser", "dijit/Editor",
   "dojo/domReady!"
-], function(arcgisPortal, OAuthInfo, esriId, domStyle, domAttr, dom, on, arrayUtils) {
+], function(arcgisPortal, OAuthInfo, esriId, domStyle, domAttr, dom, on, arrayUtils, parser) {
+
+  parser.parse();
+
   var info = new OAuthInfo({
     appId: "CXkB0iPulNZP9xQo",
     portalUrl: "http://epa.maps.arcgis.com",
@@ -47,6 +50,8 @@ require([
       }
     );
   });
+
+
 
   function displayItems() {
     // Show the loading panel

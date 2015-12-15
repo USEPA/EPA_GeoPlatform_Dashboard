@@ -1,5 +1,3 @@
-// Mockup items =============================================================
-
 //Expose dashboard especially helpful for debugging
 var egam = {};
 egam.gpoItems = {
@@ -14,22 +12,15 @@ $(document).ready(function() {
     $(".nav-sidebar li").removeClass("active");
     $(this).addClass("active");
 
-    // alert($(this).find(":first").attr("id"));
     var view = $(this).find(":first").attr("id");
     $('#' + view + 'View').collapse('show');
-
     $('.view').not(document.getElementById(view)).collapse('hide');
-
   });
 
   $('#myModal').on('shown.bs.modal', function(e) {
-
     //validate everytime the form opens
     //$('#modalForm').validator('validate');
-
   });
-
-
 });
 
 
@@ -439,7 +430,7 @@ function renderGPOitemsDataTable(defer) {
 
     initComplete: function() {
       $("#gpoitemtable1").addClass("loaded");
-      console.log("INIT Compplete");
+      console.log("init complete");
       this.api().columns().every(function() {
 
         var column = this;

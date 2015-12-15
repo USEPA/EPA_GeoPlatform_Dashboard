@@ -14,12 +14,26 @@
     <link href="../bootstrap/css/dataTables.bootstrap.min.css" rel="stylesheet">
     <link href="../css/dashboard.css" rel="stylesheet">
 
+    <link rel="stylesheet" href="//ajax.googleapis.com/ajax/libs/dojo/1.10.4/dijit/themes/claro/claro.css" media="screen">
+
     <!--[if lt IE 9]>
     <script src="../bootstrap/js/html5shiv.min.js"></script>
     <script src="../bootstrap/js/respond.min.js"></script>
     <![endif]-->
     <script src="../bootstrap/js/knockout3.3.0-min.js"></script>
     <script src="../bootstrap/js/knockout.mapping-latest.js"></script>
+
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+    <script src="//cdn.datatables.net/1.10.9/js/jquery.dataTables.min.js"></script>
+    <script src="//cdn.datatables.net/1.10.9/js/dataTables.bootstrap.min.js"></script>
+    <script src="bootstrap/js/bootstrap.min.js"></script>
+    <!--<script src="../bootstrap/js/validator.min.js"></script>-->
+    <script src="bootstrap/js/jasny-bootstrap.min.js"></script>
+    <script src="//js.arcgis.com/3.14/"></script>
+
+    <script src="js/gpintel.js"></script>
+    <script src="js/gpLogin.js"></script>
+    <script src="js/Audit.js"></script>
 
     <title>GeoPlatform Dashboard</title>
   </head>
@@ -82,6 +96,7 @@
         </div>
 
         <div id="mainWindow" style="display: none; " class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
+
 <!-- epa AGOL login -->
           <!-- <div id="anonymousPanel" style="display: none; padding: 5px; text-align: center;">
           <span id="sign-in" class="action">Sign In</span> and view your ArcGIS Online items.
@@ -127,7 +142,7 @@
           <h1 class="page-header">EPA GeoPlatform</h1>
   -->
           <div class="row placeholders">
-          <div class="col-xs-6 col-sm-4 placeholder">
+            <div class="col-xs-6 col-sm-4 placeholder">
               <img data-src="holder.js/200x200/auto/sky" class="img-responsive" alt="" style="display:none">
               <h4>Public Items Audit Result</h4>
               <span id="percPublicPassingAudit" class="text-muted">75% Passing</span>
@@ -249,7 +264,7 @@
                                                     <img src="../img/noImage.png">
                                                     <!-- /ko -->
                                                 </div>
-                                                <span class="help-block" data-bind="text: selected().doc.AuditData.errors.thumbnail.messages">Requried</span>
+                                                <span class="help-block" data-bind="text: selected().doc.AuditData.errors.thumbnail.messages">Required</span>
                                                 <div>
                                                     <span class="btn btn-default btn-file"><span class="fileinput-new">Select image</span><span class="fileinput-exists">Change</span><input id="thumbnail" type="file" name="..."></span>
                                                     <a href="#" class="btn btn-default fileinput-exists" data-dismiss="fileinput">Remove</a>
@@ -300,7 +315,11 @@
                                         </div>
                                         <div class="form-group has-success" data-bind="css: {'has-error': selected().doc.AuditData.errors.description&&selected().doc.AuditData.errors.description.compliant()===false}">
                                             <label for="inputDesc">Description</label>
+                                            <div data-dojo-type="dijit/Editor" id="myEditor" class="claro" style="overflow:auto;resize:vertical" data-bind="value: selected().doc.description, valueUpdate: 'afterkeydown'" rows="6" placeholder="Description">
+                                            </div>
+<!--
                                             <textarea class="form-control" id="inputDesc" style="overflow:auto;resize:vertical" data-bind="value: selected().doc.description, valueUpdate: 'afterkeydown'" rows="6" placeholder="Description"></textarea>
+                                            -->
                                             <!-- ko if: selected().doc.AuditData.errors.description -->
                                             <span class="help-block" data-bind="text: selected().doc.AuditData.errors.description.messages"></span>
                                             <!-- /ko -->
@@ -424,20 +443,5 @@
         </div>
       </div>
     </div>
-
-    <!-- Bootstrap core JavaScript
-    ================================================== -->
-    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
-    <script src="//cdn.datatables.net/1.10.9/js/jquery.dataTables.min.js"></script>
-    <script src="//cdn.datatables.net/1.10.9/js/dataTables.bootstrap.min.js"></script>
-    <script src="../bootstrap/js/bootstrap.min.js"></script>
-    <!--<script src="../bootstrap/js/validator.min.js"></script>-->
-    <script src="../bootstrap/js/jasny-bootstrap.min.js"></script>
-    <script src="../js/gpintel.js"></script>
-    <script src="../js/Audit.js"></script>
-    <script src="//js.arcgis.com/3.14/"></script>
-    <script src="../js/gpLogin.js"></script>
-    <script src="js/Audit.js"></script>
-
   </body>
 </html>
