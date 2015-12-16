@@ -244,7 +244,7 @@ function populateUserTables(query, projection, isTest) {
               //refresh the data table so it can search updated info
               //              egam.gpoItems.dataTable.destroy();
               egam.gpoItems.dataTable.fnDestroy();
-              renderGPOitemsDataTable();
+              egam.renderGPOitemsDataTable();
             } else {
               // Handle errors here
               console.log('ERRORS: ' + data);
@@ -380,7 +380,7 @@ function populateUserTables(query, projection, isTest) {
           console.log("Create data table");
           setTimeout(function() {
             if (egam.gpoItems.dataTable && "fnDestroy" in egam.gpoItems.dataTable) egam.gpoItems.dataTable.fnDestroy();
-            renderGPOitemsDataTable()
+            egam.renderGPOitemsDataTable()
               .then(function(dt) {
                 egam.gpoItems.dataTable = dt;
                 defer.resolve()
@@ -427,7 +427,7 @@ function populateUserTables(query, projection, isTest) {
 
 }
 
-function renderGPOitemsDataTable(defer) {
+egam.renderGPOitemsDataTable = function (defer) {
   //apply data table magic, ordered ascending by title
   //Use this so we know when table is rendered
   var defer = $.Deferred();
@@ -494,6 +494,7 @@ function renderGPOitemsDataTable(defer) {
           if (input.length > 0) {
             input.on('keyup change', function() {
               if (column.search() !== this.value) {
+//                column.search(this.value, true, false)
                 column.search(this.value)
                   .draw();
               }
@@ -506,4 +507,27 @@ function renderGPOitemsDataTable(defer) {
 
   });
   return defer;
-}
+};
+
+egam.setAuthGroupsDropdown = function(ownerIDsByAuthGroup) {
+  var dropAuthGroups = $("#dropAuthGroups");
+  dropAuthGroups.on("change",function () {
+    var reOwnerIDs = "";
+    if (this.value) {
+      var ownerIDs = ownerIDsByAuthGroup[this.value];
+      reOwnerIDs = ownerIDs.join("|");
+    }
+    egam.gpoItems.dataTable.api().column(".ownerColumn")
+      .search(reOwnerIDs,true,false)
+  //      .search(this.value,true,false)
+      .draw();
+  });
+  var authGroups = Object.keys(ownerIDsByAuthGroup);
+  authGroups.sort();
+  $.each(authGroups,function (index,authGroup) {
+//  $.each(ownerIDsByAuthGroup,function (authGroup,ownerIDs) {
+//    var reOwnerIDs = ownerIDs.join("|");
+//    dropAuthGroups.append($('<option>', { value : reOwnerIDs }).text(authGroup));
+    dropAuthGroups.append($('<option>', { value : authGroup }).text(authGroup));
+  });
+};
