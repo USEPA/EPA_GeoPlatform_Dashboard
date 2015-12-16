@@ -237,7 +237,7 @@ module.exports = function(app) {
 
 //Get shared/Audit.js from client http reference to Public folder
 //Not sure if this is going to work with caching etc
-  router.use('/js/ServerAudit.js', function (req, res, next) {
+  router.use('/js/Audit.js', function (req, res, next) {
     var fs = require('fs');
 
     var filePath = app.get('appRoot') + '/shared/Audit.js';

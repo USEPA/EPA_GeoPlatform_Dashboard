@@ -35,6 +35,8 @@ Audit.prototype.registry.inArray = {};
 Audit.prototype.registry.inArray.processItems = false;
 Audit.prototype.registry.inArray.template = "<<field>><<number>> array must contain <<matches>>";
 
+Audit.prototype.registry.regexMatch = {};
+Audit.prototype.registry.regexMatch.template = "<<error>>";
 
 //These are the base auditing that can be overwritten or added to
 Audit.prototype.validators = {
@@ -42,11 +44,19 @@ Audit.prototype.validators = {
   type: {}
 };
 
+Audit.prototype.globalValidator = function (doc) {
+//When they upload a excel file for features it can make the title be excel spread sheet cell or range of cells
+  this.checkRegexMatch(["title"], doc, ["^\\s*\\$[A-Za-z]+\\$\\d+"],"Title can not be an excel spread sheet cell");
+};
+
 Audit.prototype.validators.access.public = function(doc) {
   //This function is called on all public items
   this.checkForbiddenWords(["title", "tags"], doc, [" test ", "-copy "]);
 
   this.checkForbiddenWords(["snippet", "description"], doc, [" test "]);
+};
+
+Audit.prototype.validators.type["Feature Service"] = function(doc) {
 };
 
 Audit.prototype.validators.type["Web Map"] = function(doc) {
@@ -58,7 +68,7 @@ Audit.prototype.validators.type["Web Map"] = function(doc) {
   this.checkArrayLimit("tags", doc, 3);
 
   //Don't do this for now because we are going to add usepa tags to all. For now it shows too many errors
-  //  this.checkInArray("tags",doc,[" usepa "]);
+  //this.checkInArray("tags",doc,[" usepa "]);
 };
 
 Audit.prototype.validators.type["Web Mapping Application"] = function(doc) {
@@ -75,6 +85,9 @@ Audit.prototype.validate = function(doc, fieldsToValidate) {
   //To initialize validation must clear out errors and set compliance to true and populate this.fieldsToValidate
   //Not the same as clearing which empties everything out and sets compliance to false
   self.init(doc, fieldsToValidate);
+
+  //run the global validator before doing the specific validators
+  this.globalValidator(doc);
 
   //loop through validators )(access, type, etc)
   Object.keys(this.validators).forEach(function(key) {
@@ -175,6 +188,15 @@ Audit.prototype.getForbiddenWordsResult = function forbiddenWords(myString, forb
   return this.getMatches(myString, forbidden, {
     checkAbsence: false
   });
+};
+
+//This basically does the same thing as getForbiddenWordsResult but allows a custom error to be passed
+//It had to be a new function because we had to make a new template equal to <<error>> instead of the standard
+Audit.prototype.getRegexMatchResult = function regexMatch(myString, forbidden, error) {
+  //This matches regex words and requires a custom error to be passed
+  var result = this.getForbiddenWordsResult(myString, forbidden);
+  result.error = error;
+  return result;
 };
 
 Audit.prototype.getRequiredWordsResult = function requiredWords(myString, required) {
@@ -347,6 +369,7 @@ Audit.prototype.addErrorMessage = function(field, doc, template, result) {
   });
 
   error = error.charAt(0).toUpperCase() + error.slice(1);
+
   //If error object is uninitialized then initialize it here
   if (!doc.AuditData.errors[field]) doc.AuditData.errors[field] = {
     compliant: true,
