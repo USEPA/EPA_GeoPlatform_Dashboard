@@ -141,6 +141,10 @@
               <img data-src="holder.js/200x200/auto/vine" class="img-responsive" alt="Generic placeholder thumbnail" style="display:none">
               <h4>My Groups</h4>
               <span id="agoGroups" class="text-muted"></span>
+              <span onclick="event.stopPropagation();" >
+                <select id="dropAuthGroups" class="search form-control input-sm"><option value="">All</option></select>
+              </span>
+
             </div>
 
           </div>
@@ -174,7 +178,7 @@
                         </span>
                     </th>
                     <th>Views</th>
-                    <th>Owner</br>
+                    <th class="ownerColumn">Owner</br>
                         <span onclick="event.stopPropagation();" >
                             <select class="search form-control input-sm"><option value="">All</option></select>
                         </span>

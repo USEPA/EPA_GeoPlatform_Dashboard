@@ -76,6 +76,13 @@ require([
           //Save portalUser on application object so it can be used throughout
           if (egam) egam.portalUser = portalUser;
 
+          //Save communityUser on application object so it can be used throughout
+          //communityUser has group and authGroup info
+          if (egam && response.body.user) egam.communityUser = response.body.user;
+
+          //set up the authGroups dropdown
+          egam.setAuthGroupsDropdown(egam.communityUser.ownerIDsByAuthGroup);
+
           //Is User Admin or lower
           if (portalUser.role == "org_admin") {
             domAttr.set("userId", "innerHTML", "<a>Welcome " + portalUser.fullName + " (GPO Administrator)</a>");
