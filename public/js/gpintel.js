@@ -29,7 +29,6 @@ $(document).ready(function() {
 
   });
 
-
 });
 
 // Fill table with data queried out of Mongo via Express/Monk
@@ -172,6 +171,11 @@ function populateUserTables(query, projection, isTest) {
         ko.mapping.fromJS(unmappedDoc, this.doc);
       };
 
+      //Thumbnails
+      this.loadThumbnail = function(){
+        alert("loading");
+      };
+
       //tags
       this.tagItemToAdd = ko.observable("");
       this.selectedItems = ko.observableArray([""]);
@@ -188,20 +192,44 @@ function populateUserTables(query, projection, isTest) {
         this.selected().selectedItems([]); // Clear selection
       };
 
-      //Post updated docs back to Mongo
-      this.postback = function() {
-        //alert("Posting");
+      this.closeButton = function(e){
+        //alert("closing");
+        $('#agoThumb').show();
+        $('#imageUpload').hide();
+      };
 
+      this.testButton = function(e){
+        //var thumbnail = $('#thumbnail')[0].files[0];
+        //this.selected().doc.thumbnail = "thumbnail/" + thumbnail.name;
+
+      };
+
+      //switch view for image upload
+      $('.fileinput').on('change.bs.fileinput', function(e) {
+        $('#agoThumb').toggle();
+        $('#imageUpload').toggle();
+
+        alert("hey, Here!");
+      });
+
+      //Post updated docs back to Mongo
+      this.postback = function(e) {
+        //alert("Posting");
 
         //Original Audit of full Doc
         var unmappedDoc = ko.mapping.toJS(this.selected().doc);
 
         //need to add thumbnail name to document before auditing
-        //var thumbnail = $('#thumbnail')[0].files[0];
+        var thumbnail = $('#thumbnail')[0].files[0];
+        i.thumbnail = "thumbnail/" + thumbnail.name;
+
+        //this.addFieldChange("thumbnail", this.selected().doc.thumbnail);
+        //if (thumbnail && thumbnail.name) this.addFieldChange("thumbnail", "thumbnail/" + thumbnail.name);
         //if (thumbnail && thumbnail.name) unmappedDoc.thumbnail = "thumbnail/" + thumbnail.name;
 
         var auditRes = new Audit();
         auditRes.validate(unmappedDoc, "");
+
         ko.mapping.fromJS(unmappedDoc, this.selected().doc);
 
         //alert(JSON.stringify(this.selected().changeDoc));
@@ -238,6 +266,9 @@ function populateUserTables(query, projection, isTest) {
             // STOP LOADING SPINNER
           }
         });
+        //alert("posted");
+        $('#agoThumb').toggle();
+        $('#imageUpload').toggle();
         console.log("Post back updated Items");
       };
 
@@ -337,6 +368,7 @@ function populateUserTables(query, projection, isTest) {
         console.log("done adding " + array.length);
         return defer;
       };
+
 
     };
 

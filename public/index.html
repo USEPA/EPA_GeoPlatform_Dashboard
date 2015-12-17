@@ -240,19 +240,19 @@
                                     <div class="col-md-4">
                                         <div class="form-group has-success" data-bind="css: {'has-error': selected().doc.AuditData.errors.thumbnail&&selected().doc.AuditData.errors.thumbnail.compliant()===false}">
                                             <label>For best results, the image should be 200 pixels wide by 133 pixels high. Other sizes will be adjusted to fit. Acceptable image formats are: PNG, GIF and JPEG.</label>
+
                                             <div class="fileinput fileinput-exists" data-provides="fileinput">
-                                                <div class="fileinput-preview thumbnail" data-trigger="fileinput" style="width: 200px; height: 135px;">
-                                                    <!-- ko if: selected().doc.thumbnail -->
+                                                <div id="agoThumb" class="thumbnail" style="width: 200px; height: 135px;">
                                                     <img data-bind="attr: {src: selected().tnURLs}">
-                                                    <!-- /ko -->
-                                                    <!-- ko ifnot: selected().doc.thumbnail -->
-                                                    <img src="../img/noImage.png">
-                                                    <!-- /ko -->
                                                 </div>
+                                                <div id="imageUpload" class="fileinput-preview thumbnail" data-trigger="fileinput" style="width: 200px; height: 135px; Display: none">
+
+                                                </div>
+                                                <span id="imageName" class="help-block" data-bind="text: selected().doc.thumbnail()"></span>
                                                 <span class="help-block" data-bind="text: selected().doc.AuditData.errors.thumbnail.messages">Requried</span>
                                                 <div>
                                                     <span class="btn btn-default btn-file"><span class="fileinput-new">Select image</span><span class="fileinput-exists">Change</span><input id="thumbnail" type="file" name="..."></span>
-                                                    <a href="#" class="btn btn-default fileinput-exists" data-dismiss="fileinput">Remove</a>
+                                                    <!--<a href="#" class="btn btn-default fileinput-exists" data-dismiss="fileinput">Remove</a>-->
                                                 </div>
                                             </div>
 
@@ -279,11 +279,11 @@
                                         <!--</form>-->
                                     </div>
                                     <div class="col-md-8" >
-                                        <!--<div class="form-group has-feedback" >-->
-                                            <!--<label for="updateDoc">Title</label>-->
-                                            <!--<input class="form-control"  id="updateDoc" name="updateDoc" data-bind="value: selected().id" data-error="Required" type="text" required>-->
-                                            <!--<span class="help-block with-errors"></span>-->
-                                        <!--</div>-->
+                                        <div class="form-group has-feedback" >
+                                            <label for="updateDoc">Title</label>
+                                            <input class="form-control"  id="updateDoc" name="updateDoc" data-bind="value: selected().tnURLs()" data-error="Required" type="text" required>
+                                            <span class="help-block with-errors"></span>
+                                        </div>
                                         <div class="form-group has-success" data-bind="css: {'has-error': selected().doc.AuditData.errors.title&&selected().doc.AuditData.errors.title.compliant()===false}">
                                             <label for="title">Title</label>
                                             <input class="form-control"  id="title" data-bind="value: selected().doc.title, valueUpdate: 'afterkeydown'" type="text">
@@ -346,7 +346,8 @@
                         <!--</form>-->
                         </div>
                         <div class="modal-footer">
-                            <button type="button" class="btn btn-default" data-dismiss="modal" >Close</button>
+                            <button type="button" class="btn btn-default" data-bind="click: selected().testButton" >Close</button>
+                            <button type="button" class="btn btn-default" data-bind="click: selected().closeButton" data-dismiss="modal" >Close</button>
                             <button type="button" class="btn btn-primary" data-bind="click: selected().postback" data-dismiss="modal">Save changes</button>
                         </div>
                     </div>
