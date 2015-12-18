@@ -97,7 +97,7 @@ function rowSelect(x) {
 };
 
 //populate tables for GPO User view
-function populateUserTables(query, projection, isTest) {
+function populateUserTables(query, projection) {
   query = JSON.stringify(query);
   projection = JSON.stringify(projection);
 
@@ -115,6 +115,10 @@ function populateUserTables(query, projection, isTest) {
     //If paging then data.results is array of data
     var dataResults = data;
     if ("results" in data) dataResults = data.results;
+
+    $('#loadingMsgCountContainer').removeClass('hidden');
+    $("#loadingMsgCount").text(0);
+    $("#loadingMsgTotalCount").text(dataResults.length);
 
     var rowModel1 = function(i, loading) {
       var self = this;
@@ -275,12 +279,16 @@ function populateUserTables(query, projection, isTest) {
       self.select = function(item) {
         self.selected(item);
       };
+      self.selectIndex = function(index) {
+        var selectedItem = self.content()[index];
+        self.selected(selectedItem);
+      };
 
-      self.selected = ko.observable(self.content()[0]);
+//      self.selected = ko.observable(self.content()[0]);
+      self.selected = ko.observable();
+      if (self.content().length>0) self.selected = ko.observable(self.content()[0]);
 
-
-
-      self.add = function(data) {
+      self.add = function(data,callback) {
         //Use this so we know when everything is loaded
         var defer = $.Deferred();
 
@@ -292,6 +300,7 @@ function populateUserTables(query, projection, isTest) {
         var interval = setInterval(function() {
           if (data.length > 0) {
             self.content.push(new rowModel1(data[i], true));
+            if (callback) callback(i);
           }
           i += 1;
           if (i >= data.length) {
@@ -374,27 +383,51 @@ function populateUserTables(query, projection, isTest) {
     };
 
 
-    if (egam.gpoItems.rowModel) {
-      egam.gpoItems.rowModel.add(dataResults)
-        .then(function() {
-          console.log("Create data table");
-          setTimeout(function() {
-            if (egam.gpoItems.dataTable && "fnDestroy" in egam.gpoItems.dataTable) egam.gpoItems.dataTable.fnDestroy();
-            egam.renderGPOitemsDataTable()
-              .then(function(dt) {
-                egam.gpoItems.dataTable = dt;
-                defer.resolve()
-              });
-          }, 0);
-        });
-    } else {
-      egam.gpoItems.rowModel = new RootViewModel(dataResults);
-      // This would only bind the table
-      //      ko.applyBindings(egam.gpoItems.rowModel,$("#gpoitemtable1")[0]);
-      ko.applyBindings(egam.gpoItems.rowModel);
+    egam.gpoItems.rowModel = new RootViewModel([]);
+//Add these using .add because it should be async and lock up UI less
+    egam.gpoItems.rowModel.add(dataResults,updateLoadingCountMessage)
+      .then(function() {
+//If there are no rows then don't try to bind
+        if (dataResults.length < 1) return;
+//cluge to make row model work because it is trying to bind rowmodel.selected()
+        egam.gpoItems.rowModel.selectIndex(0);
+        ko.applyBindings(egam.gpoItems.rowModel);
+        console.log("Create data table");
+        setTimeout(function() {
+          if (egam.gpoItems.dataTable && "fnDestroy" in egam.gpoItems.dataTable) egam.gpoItems.dataTable.fnDestroy();
+          egam.renderGPOitemsDataTable()
+            .then(function(dt) {
+              egam.gpoItems.dataTable = dt;
+              defer.resolve()
+            });
+        }, 0);
+      });
 
-      defer.resolve();
+
+    function updateLoadingCountMessage(index) {
+      $("#loadingMsgCount").text(index + 1);
     }
+// This was loading first page and then the rest. Will remove later
+//    if (egam.gpoItems.rowModel) {
+//      egam.gpoItems.rowModel.add(dataResults)
+//        .then(function() {
+//          console.log("Create data table");
+//          setTimeout(function() {
+//            if (egam.gpoItems.dataTable && "fnDestroy" in egam.gpoItems.dataTable) egam.gpoItems.dataTable.fnDestroy();
+//            egam.renderGPOitemsDataTable()
+//              .then(function(dt) {
+//                egam.gpoItems.dataTable = dt;
+//                defer.resolve()
+//              });
+//          }, 0);
+//        });
+//    } else {
+//      egam.gpoItems.rowModel = new RootViewModel(dataResults);
+//      // This would only bind the table
+//      //      ko.applyBindings(egam.gpoItems.rowModel,$("#gpoitemtable1")[0]);
+//      ko.applyBindings(egam.gpoItems.rowModel);
+//      defer.resolve();
+//    }
 
     //    if (egam.gpoItems.dataTable && "destroy" in egam.gpoItems.dataTable) egam.gpoItems.dataTable.destroy();
     //    egam.gpoItems.dataTable = renderGPOitemsDataTable(defer);
@@ -524,6 +557,9 @@ egam.setAuthGroupsDropdown = function(ownerIDsByAuthGroup) {
   });
   var authGroups = Object.keys(ownerIDsByAuthGroup);
   authGroups.sort();
+
+  if (authGroups.length>1) dropAuthGroups.append($('<option>', { value : "" }).text("All"));
+
   $.each(authGroups,function (index,authGroup) {
 //  $.each(ownerIDsByAuthGroup,function (authGroup,ownerIDs) {
 //    var reOwnerIDs = ownerIDs.join("|");
