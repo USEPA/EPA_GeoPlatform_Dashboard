@@ -141,11 +141,14 @@
               <img data-src="holder.js/200x200/auto/vine" class="img-responsive" alt="Generic placeholder thumbnail" style="display:none">
               <h4>My Groups</h4>
               <span id="agoGroups" class="text-muted"></span>
-              <span onclick="event.stopPropagation();" >
-                <select id="dropAuthGroups" class="search form-control input-sm"><option value="">All</option></select>
-              </span>
 
             </div>
+              <div class="col-xs-6 col-sm-4 placeholder">
+                  <img data-src="holder.js/200x200/auto/vine" class="img-responsive" alt="Generic placeholder thumbnail" style="display:none">
+                  <h4 style="white-space:nowrap;">Auth Groups&nbsp;<select id="dropAuthGroups" class="search form-control input-sm hidden"></select>
+                  </h4>
+                  <span id="authGroupsCount" class="text-muted"></span>
+              </div>
 
           </div>
 
@@ -154,7 +157,9 @@
           <div class="view collapse in" id="overviewView" >
             <div id="loadingMsg" class="jumbotron hidden">
                 <h2 class="text-center">Just one moment, fetching the latest GeoPlatform content for you...</h2>
-                <img src="../img/loading.gif" class="img-responsive center-block" alt="now loading"></img>
+                <h3 id="loadingMsgCountContainer" class="text-center hidden"><span id="loadingMsgCount"></span> / <span id="loadingMsgTotalCount"></span> items loaded</h3>
+                <img src="../img/loading.gif" class="img-responsive center-block" alt="now loading" />
+            </div>
             </div>
             <div id="overviewTable" >
              <h3 class="sub-header"></h3>
@@ -242,7 +247,7 @@
                             <form id="modalForm" role="form" data-toggle="validator" data-disable="false" enctype="multipart/form-data" method="post">
                                 <div class="row form-group">
                                     <div class="col-md-4">
-                                        <div class="form-group has-success" data-bind="css: {'has-error': selected().doc.AuditData.errors.thumbnail&&selected().doc.AuditData.errors.thumbnail.compliant()===false}">
+                                        <div class="form-group has-success" data-bind="css: {'has-error': (selected()) ? selected().doc.AuditData.errors.thumbnail&&selected().doc.AuditData.errors.thumbnail.compliant()===false : false}">
                                             <label>For best results, the image should be 200 pixels wide by 133 pixels high. Other sizes will be adjusted to fit. Acceptable image formats are: PNG, GIF and JPEG.</label>
                                             <div class="fileinput fileinput-exists" data-provides="fileinput">
                                                 <div class="fileinput-preview thumbnail" data-trigger="fileinput" style="width: 200px; height: 135px;">
