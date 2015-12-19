@@ -191,7 +191,7 @@ module.exports = function (app) {
 //groupedTasks is a list of all tasks that must be free for this Admin untile downloadGPOdata.download can be exectuted
       var TaskReady = {};
 
-      tasksQueues = app.get('tasksQueues');
+      var tasksQueues = app.get('tasksQueues');
       var taskBase = 'updateDBonLogin';
 //Only if list of owner IDs is available do we need to add ownerID to task names
       if (Array.isArray(downloadGPOdata.ownerIDs) && downloadGPOdata.ownerIDs.length > 0) {
@@ -202,7 +202,7 @@ module.exports = function (app) {
         });
 
         Object.keys(TaskReady).forEach(function (task) {
-          //The actual download process "updateDBonLoginPromise" with "task" as argument will be called when it is next in queue
+          //The actual download process "updateDBonLoginPromise" with "data" as argument will be called when it is next in queue
           var data = {task: task, TaskReady: TaskReady, defer: defer};
 //          console.log("adding data.task: " + data.task + " TaskReady: " + Object.keys(data.TaskReady));
           tasksQueues.add(task, updateDBonLoginPromise, data);

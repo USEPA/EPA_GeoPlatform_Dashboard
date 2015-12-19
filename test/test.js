@@ -9,6 +9,49 @@ var utilities=require('../shared/utilities');
 
 var itemsCollection = monk.get('GPOitems');
 
+var json2csv = require('json2csv');
+
+var jsonexport  = require('jsonexport');
+
+Q(userscollection.find({},{}))
+  .then(function (docs) {
+    return getJson2csvPromise({data: docs[0]});
+  })
+  .then(function (csv) {
+    var fs = require('fs');
+    fs.writeFile("C:\\EGAM\\test\\test.csv",csv ,function (err) {
+      if (err) return console.error(err);
+      console.log("file written");});
+  })
+  .catch(function (err) {console.error(err);})
+  .then(function (docs) {
+    return;
+//    console.log(docs);
+    var name = "Aaron's Name";
+    var one = 1;
+    docs[0].dum=JSON.stringify([one.toString(),2,3,name]);
+//    docs[0].dum="[1,2,3,'Aaron']";
+    console.log(docs[0].dum);
+//    jsonexport([docs[0]], function(err, csv) {
+    json2csv({ data: docs[0] }, function(err, csv) {
+      if (err) console.error(err);
+      console.log(csv);
+      var fs = require('fs');
+      fs.writeFile("C:\\EGAM\\test\\test.csv",csv ,function (err) {
+        if (err) return console.error(err);
+        console.log("file written");});
+    });
+  });
+
+ function getJson2csvPromise (options) {
+  var Q = require('q');
+  var json2csv = require('json2csv');
+
+  return Q.nfcall(json2csv, options);
+}
+
+return;
+
 var arrayExtended = require('array-extended');
 var diff = arrayExtended.difference([1,3,2,5,4], [1,2,3,4,5]);
 var diff = arrayExtended.difference(null, null);
