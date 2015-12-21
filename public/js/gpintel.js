@@ -120,6 +120,8 @@ function populateUserTables(query, projection) {
     $("#loadingMsgCount").text(0);
     $("#loadingMsgTotalCount").text(dataResults.length);
 
+
+
     var rowModel1 = function(i, loading) {
       var self = this;
       this.loading = loading || false;
@@ -407,6 +409,19 @@ function populateUserTables(query, projection) {
     function updateLoadingCountMessage(index) {
       $("#loadingMsgCount").text(index + 1);
     }
+
+    //get percent of docs passing the Audit
+    var passing = 0;
+    dataResults.forEach(function(result, index){
+      var i = result.AuditData.compliant;
+      if(i){
+        passing++;
+      }
+    });
+    var percentPassing = Math.round((passing/dataResults.length) * 100);
+    alert(percentPassing);
+    $('#percPublicPassingAudit').text(percentPassing + "% Passing");
+
 // This was loading first page and then the rest. Will remove later
 //    if (egam.gpoItems.rowModel) {
 //      egam.gpoItems.rowModel.add(dataResults)
