@@ -554,9 +554,26 @@ egam.setAuthGroupsDropdown = function(ownerIDsByAuthGroup) {
       .search(reOwnerIDs,true,false)
   //      .search(this.value,true,false)
       .draw();
+//Also set the download link
+    var authgroup = this.value;
+    if (authgroup) {
+      $('#downloadAuthgroupsCSVall').addClass('hidden');
+      $('#downloadAuthgroupsCSVregions').removeClass('hidden');
+      var href = $('#downloadAuthgroupsCSVregions').attr("href")
+//tack on authgroup to the end of the route to get csv. Note: use ^ and $ to get exact match because it matches regex (Region 1 and 10 would be same if not)
+//Also we are using authGroup by name so need to escape ( and ) which is offices like (OAR)
+      var escapeAuthGroup = authgroup.replace(/\(/g,"%5C(").replace(/\)/g,"%5C)");
+      href = href.substring(0,href.lastIndexOf("/")+1) + "^" + escapeAuthGroup + "$";
+      $('#downloadAuthgroupsCSVregions').attr("href",href);
+    }else{
+      $('#downloadAuthgroupsCSVall').removeClass('hidden');
+      $('#downloadAuthgroupsCSVregions').addClass('hidden');
+    }
   });
   var authGroups = Object.keys(ownerIDsByAuthGroup);
   authGroups.sort();
+
+  dropAuthGroups[0].options.length=0;
 
   if (authGroups.length>1) dropAuthGroups.append($('<option>', { value : "" }).text("All"));
 

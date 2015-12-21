@@ -174,6 +174,7 @@ require([
         $("#loadingMsgCountContainer").addClass('hidden');
 //show the authgroups drop down not that items have been loaded
         $('#dropAuthGroups').removeClass('hidden');
+        $('#downloadAuthgroupsCSVall').removeClass('hidden');
 
         return true;
       })
