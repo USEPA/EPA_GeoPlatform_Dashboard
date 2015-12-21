@@ -419,7 +419,6 @@ function populateUserTables(query, projection) {
       }
     });
     var percentPassing = Math.round((passing/dataResults.length) * 100);
-    alert(percentPassing);
     $('#percPublicPassingAudit').text(percentPassing + "% Passing");
 
 // This was loading first page and then the rest. Will remove later
