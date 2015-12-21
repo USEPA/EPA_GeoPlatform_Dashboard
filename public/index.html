@@ -240,10 +240,9 @@
                                     <div class="col-md-4">
                                         <div class="form-group has-success" data-bind="css: {'has-error': selected().doc.AuditData.errors.thumbnail&&selected().doc.AuditData.errors.thumbnail.compliant()===false}">
                                             <label>For best results, the image should be 200 pixels wide by 133 pixels high. Other sizes will be adjusted to fit. Acceptable image formats are: PNG, GIF and JPEG.</label>
-
                                             <div class="fileinput fileinput-exists" data-provides="fileinput">
                                                 <div id="agoThumb" class="thumbnail" style="width: 200px; height: 135px;">
-                                                    <img data-bind="attr: {src: selected().tnURLs}">
+                                                    <img id="agoThumbImg" data-bind="attr: {src: selected().tnURLs}">
                                                 </div>
                                                 <div id="imageUpload" class="fileinput-preview thumbnail" data-trigger="fileinput" style="width: 200px; height: 135px; Display: none">
 

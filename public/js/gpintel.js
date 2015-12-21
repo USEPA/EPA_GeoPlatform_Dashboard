@@ -192,47 +192,61 @@ function populateUserTables(query, projection, isTest) {
         this.selected().selectedItems([]); // Clear selection
       };
 
-      this.closeButton = function(e){
+      this.closeButton = function(e) {
+
         //alert("closing");
-        $('#agoThumb').show();
-        $('#imageUpload').hide();
+        //$('#agoThumb').show();
+        //$('#imageUpload').hide();
+        //alert(this.selected().doc);
       };
 
       this.testButton = function(e){
+
         //var thumbnail = $('#thumbnail')[0].files[0];
         //this.selected().doc.thumbnail = "thumbnail/" + thumbnail.name;
-
+        //alert(this.doc.thumbnail);
+        //i.thumbnail = "hola";
+        //alert(i.thumbnail);
       };
 
-      //switch view for image upload
-      $('.fileinput').on('change.bs.fileinput', function(e) {
-        $('#agoThumb').toggle();
-        $('#imageUpload').toggle();
+      this.triggerImageInputOne = function () {
+        //document.querySelector('input' + self.cardId()).click();
+      };
 
-        alert("hey, Here!");
-      });
+      this.uploadImage = function(e){
+
+      };
 
       //Post updated docs back to Mongo
       this.postback = function(e) {
         //alert("Posting");
 
-        //Original Audit of full Doc
-        var unmappedDoc = ko.mapping.toJS(this.selected().doc);
+
 
         //need to add thumbnail name to document before auditing
-        var thumbnail = $('#thumbnail')[0].files[0];
-        i.thumbnail = "thumbnail/" + thumbnail.name;
+        var thumbnailFile = $('#thumbnail')[0].files[0];
+        if(thumbnailFile === undefined){
+          console.log('No thumbnail to post');
+
+        }else{
+          i.thumbnail = "thumbnail/" + thumbnailFile.name;
+          this.selected().addFieldChange("thumbnail", i.thumbnail);
+          self.doc.thumbnail(i.thumbnail);
+          self.doc.thumbnail.valueHasMutated();
+        }
+
 
         //this.addFieldChange("thumbnail", this.selected().doc.thumbnail);
         //if (thumbnail && thumbnail.name) this.addFieldChange("thumbnail", "thumbnail/" + thumbnail.name);
         //if (thumbnail && thumbnail.name) unmappedDoc.thumbnail = "thumbnail/" + thumbnail.name;
-
+        //Original Audit of full Doc
+        var unmappedDoc = ko.mapping.toJS(this.selected().doc);
         var auditRes = new Audit();
         auditRes.validate(unmappedDoc, "");
 
         ko.mapping.fromJS(unmappedDoc, this.selected().doc);
 
-        //alert(JSON.stringify(this.selected().changeDoc));
+        alert(JSON.stringify(this.selected().changeDoc));
 
         var mydata = new FormData();
         mydata.append("updateDocs", JSON.stringify(this.selected().changeDoc));
@@ -369,6 +383,11 @@ function populateUserTables(query, projection, isTest) {
         return defer;
       };
 
+      //switch view for image upload
+      $('.fileinput').on('change.bs.fileinput', function(e) {
+        $('#agoThumb').toggle();
+        $('#imageUpload').toggle();
+      });
 
     };
 
