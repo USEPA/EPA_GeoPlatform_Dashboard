@@ -136,10 +136,9 @@ require([
     //and populate user table in the user view
     //Update in sprint4 to be dynamically changed via UI
 
-    var fields;
     var reducePayload = true;
     if (reducePayload) {
-      fields = {
+      egam.gpoItems.resultFields = {
         id: 1,
         title: 1,
         description: 1,
@@ -160,12 +159,17 @@ require([
       fields = {};
     }
 
-
-    populateUserTables({}, {
+//If super user only get public items initially
+    var query={};
+    if (egam.communityUser.isSuperUser) {
+      query={access:"public"};
+      $("#dropAccess option[value='']").remove();
+    }
+    populateUserTables(query, {
       sort: {
         modified: -1
       },
-      fields: fields
+      fields: egam.gpoItems.resultFields
     })
       .then(function() {
         // Hide the loading panel now after first page is loaded

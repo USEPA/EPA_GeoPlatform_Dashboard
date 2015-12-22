@@ -310,11 +310,15 @@ function populateUserTables(query, projection) {
       self.selected = ko.observable();
       if (self.content().length>0) self.selected = ko.observable(self.content()[0]);
 
+      self.clear = function() {
+        self.content().length=0;
+      };
+
       self.add = function(data,callback) {
         //Use this so we know when everything is loaded
         var defer = $.Deferred();
 
-        var array = $.extend([], self.content());
+//        var array = $.extend([], self.content());
 
         //This lets thing work async style so that page is not locked up when ko is mapping
         //Maybe use an async library later
@@ -332,7 +336,7 @@ function populateUserTables(query, projection) {
         }, 0);
 
         //        self.content(array);
-        console.log("done adding " + array.length);
+        console.log("done adding " + self.content.length);
         return defer;
       };
 
@@ -422,15 +426,40 @@ function populateUserTables(query, projection) {
     };
 
 
-    egam.gpoItems.rowModel = new RootViewModel([]);
+//Show the loading message and count. Hide the table.
+    $('div#loadingMsg').removeClass('hidden');
+    $('div#overviewTable').addClass('hidden');
+    $("#loadingMsgCountContainer").removeClass('hidden');
+
+//If first time every binding to table need to apply binding, but can only bind once so don't bind again if reloading table
+    var needToApplyBindings=false;
+    if (egam.gpoItems.rowModel) {
+//have to actually remove dataTable rows and destroy datatable in order to get knockout to rebind table
+      if (egam.gpoItems.dataTable) {
+        egam.gpoItems.dataTable.api().clear().draw();
+        if ("fnDestroy" in egam.gpoItems.dataTable) egam.gpoItems.dataTable.fnDestroy();
+      }
+      egam.gpoItems.rowModel.content.removeAll();
+      console.log("post remove" + egam.gpoItems.rowModel.content().length);
+    }else{
+      egam.gpoItems.rowModel = new RootViewModel([]);
+      needToApplyBindings=true;
+
+//      addAccessSelectEventHandler($("#dropAccess"));
+    }
 //Add these using .add because it should be async and lock up UI less
+    console.log("pre add " + egam.gpoItems.rowModel.content().length);
     egam.gpoItems.rowModel.add(dataResults,updateLoadingCountMessage)
       .then(function() {
 //If there are no rows then don't try to bind
-        if (dataResults.length < 1) return;
+        if (dataResults.length < 1) return defer.resolve();
 //cluge to make row model work because it is trying to bind rowmodel.selected()
         egam.gpoItems.rowModel.selectIndex(0);
-        ko.applyBindings(egam.gpoItems.rowModel);
+        if (needToApplyBindings) ko.applyBindings(egam.gpoItems.rowModel);
+
+//        $("#gpoitemtable1").addClass("loaded");
+//        return defer.resolve();
+
         console.log("Create data table");
         setTimeout(function() {
           if (egam.gpoItems.dataTable && "fnDestroy" in egam.gpoItems.dataTable) egam.gpoItems.dataTable.fnDestroy();
@@ -526,18 +555,61 @@ egam.renderGPOitemsDataTable = function (defer) {
     ],
 
     initComplete: function() {
+      defer.resolve(this);
       $("#gpoitemtable1").addClass("loaded");
       console.log("INIT Compplete");
       this.api().columns().every(function() {
 
         var column = this;
-        var select = $(column.footer()).find("select.search");
-        addSelectEventHandler(select);
-        select = $(column.header()).find("select.search");
-        addSelectEventHandler(select);
+        var headerSelect = $(column.header()).find("select.search");
+        var footerSelect = $(column.footer()).find("select.search");
 
+//This is the special case for access column that we only want one access at a time
+        if (egam.communityUser.isSuperUser && $(column.header()).hasClass("accessColumn")) {
+          addAccessSelectEventHandler(headerSelect);
+        }else{
+          addSelectEventHandler(headerSelect);
+        }
+        if (egam.communityUser.isSuperUser && $(column.footer()).hasClass("accessColumn")) {
+          addAccessSelectEventHandler(footerSelect);
+        }else{
+          addSelectEventHandler(footerSelect);
+        }
+
+        function addAccessSelectEventHandler(select) {
+          if (select.length > 0) {
+//needed to remove the on change event or else multiple event handlers were being added
+            select.off('change');
+            select.on('change', accessSelectEventHandler);
+          }
+        }
+
+        function accessSelectEventHandler() {
+          var val = $.fn.dataTable.util.escapeRegex(
+            $(this).val()
+          );
+          var query = {};
+          if (val) query = {access: val};
+          populateUserTables(query, {
+            sort: {
+              modified: -1
+            },
+            fields: egam.gpoItems.resultFields
+          })
+            .then(function () {
+              // Hide the loading panel now after first page is loaded
+              $('div#loadingMsg').addClass('hidden');
+              $('div#overviewTable').removeClass('hidden');
+              $("#loadingMsgCountContainer").addClass('hidden');
+              return true;
+            })
+            .fail(function (err) {
+              console.error(err);
+            });
+        }
         function addSelectEventHandler(select) {
           if (select.length > 0) {
+            select.off('change');
             select.on('change', function() {
               var val = $.fn.dataTable.util.escapeRegex(
                 $(this).val()
@@ -546,6 +618,7 @@ egam.renderGPOitemsDataTable = function (defer) {
                 .draw();
             });
 
+            if (select.length > 1) return;
             //If first item has data-search then have to map out data-search data
             var att = column.nodes().to$()[0].attributes;
             if ("data-search" in att) {
@@ -580,6 +653,7 @@ egam.renderGPOitemsDataTable = function (defer) {
 
         function addInputEventHandler(input) {
           if (input.length > 0) {
+            input.off('keyup change');
             input.on('keyup change', function() {
               if (column.search() !== this.value) {
 //                column.search(this.value, true, false)
