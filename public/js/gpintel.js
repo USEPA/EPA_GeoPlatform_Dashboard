@@ -57,6 +57,7 @@ function populateTable(vTable, query) {
   //    console.log(query);
   var tableContent = '';
   //for query pass a string because things like null were being converted to empty string
+
   query = JSON.stringify(query)
 
   // jQuery AJAX call for JSON
@@ -119,6 +120,8 @@ function populateUserTables(query, projection) {
     $('#loadingMsgCountContainer').removeClass('hidden');
     $("#loadingMsgCount").text(0);
     $("#loadingMsgTotalCount").text(dataResults.length);
+
+
 
     var rowModel1 = function(i, loading) {
       var self = this;
@@ -214,13 +217,22 @@ function populateUserTables(query, projection) {
       this.postback = function() {
         //alert("Posting");
 
+        //need to add thumbnail name to document before auditing
+        var thumbnailFile = $('#thumbnail')[0].files[0];
+        if(thumbnailFile === undefined){
+          console.log('No thumbnail to post');
+        }else{
+          //Add to to change doc
+          i.thumbnail = "thumbnail/" + thumbnailFile.name;
+          this.selected().addFieldChange("thumbnail", i.thumbnail);
+          //self.doc.thumbnail(i.thumbnail);
+          //self.doc.thumbnail.valueHasMutated();
+        }
+        //var thumbnail = $('#thumbnail')[0].files[0];
+        //if (thumbnail && thumbnail.name) unmappedDoc.thumbnail = "thumbnail/" + thumbnail.name;
 
         //Original Audit of full Doc
         var unmappedDoc = ko.mapping.toJS(this.selected().doc);
-
-        //need to add thumbnail name to document before auditing
-        var thumbnail = $('#thumbnail')[0].files[0];
-        if (thumbnail && thumbnail.name) unmappedDoc.thumbnail = "thumbnail/" + thumbnail.name;
 
         var auditRes = new Audit();
         auditRes.validate(unmappedDoc, "");
@@ -231,7 +243,7 @@ function populateUserTables(query, projection) {
         var mydata = new FormData();
         mydata.append("updateDocs", JSON.stringify(this.selected().changeDoc));
         //mydata.append("updateDoc", unmappedDoc);
-        mydata.append("thumbnail", thumbnail);
+        mydata.append("thumbnail", thumbnailFile);
         $.ajax({
           url: 'gpoitems/update',
           type: 'POST',
@@ -245,6 +257,15 @@ function populateUserTables(query, projection) {
             {
               // Success so call function to process the form
               console.log('success: ' + data);
+
+              if(thumbnailFile !== undefined){
+                self.doc.thumbnail(i.thumbnail);
+                self.doc.thumbnail.valueHasMutated();
+                //$('#agoThumb').toggle();
+                //$('#imageUpload').toggle();
+                //$('#thumbnail').fileinput('clear');
+              };
+
               //refresh the data table so it can search updated info
               //              egam.gpoItems.dataTable.destroy();
               egam.gpoItems.dataTable.fnDestroy();
@@ -260,6 +281,7 @@ function populateUserTables(query, projection) {
             // STOP LOADING SPINNER
           }
         });
+
         console.log("Post back updated Items");
       };
 
@@ -313,6 +335,23 @@ function populateUserTables(query, projection) {
         console.log("done adding " + array.length);
         return defer;
       };
+
+      //switch view for image upload
+      $('.fileinput').on('change.bs.fileinput', function(e) {
+        $('#agoThumb').toggle();
+        $('#imageUpload').toggle();
+      });
+      //On modal close with out saving change thumbnail view clear thumbnail form
+      $('#myModal').on('hidden.bs.modal', function(e) {
+        var thumbnailFile = $('#thumbnail')[0].files[0];
+        if(thumbnailFile !== undefined){
+          $('#agoThumb').toggle();
+          $('#imageUpload').toggle();
+          $('.fileinput').fileinput('clear');
+        };
+
+        //alert("closed");
+      });
 
       //Leave these in here for now so they get checked into repo. Can remove after in repo
       self.addPushAll = function(data) {
@@ -407,6 +446,9 @@ function populateUserTables(query, projection) {
     function updateLoadingCountMessage(index) {
       $("#loadingMsgCount").text(index + 1);
     }
+
+    calcItemsPassingAudit(dataResults);
+
 // This was loading first page and then the rest. Will remove later
 //    if (egam.gpoItems.rowModel) {
 //      egam.gpoItems.rowModel.add(dataResults)
@@ -458,6 +500,19 @@ function populateUserTables(query, projection) {
 
   return defer;
 
+}
+
+function calcItemsPassingAudit(dataResults){
+  //get percent of docs passing the Audit
+  var passing = 0;
+  dataResults.forEach(function(result, index){
+    var i = result.AuditData.compliant;
+    if(i){
+      passing++;
+    }
+  });
+  var percentPassing = Math.round((passing/dataResults.length) * 100);
+  $('#percPublicPassingAudit').text(percentPassing + "% Passing");
 }
 
 egam.renderGPOitemsDataTable = function (defer) {
