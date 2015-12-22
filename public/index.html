@@ -174,9 +174,15 @@
                             <input class="search form-control input-sm" placeholder="Search By Title">
                         </span>
                     </th>
-                    <th>Access</br>
+                    <th class="accessColumn">Access</br>
                         <span onclick="event.stopPropagation();" >
-                            <select class="search form-control input-sm"><option value="">All</option></select>
+                            <select id="dropAccess" class="search form-control input-sm">
+                                <option value="">All</option>
+                                <option value="public">public</option>
+                                <option value="org">org</option>
+                                <option value="shared">shared</option>
+                                <option value="private">private</option>
+                            </select>
                         </span>
                     </th>
                     <th>Type</br>
