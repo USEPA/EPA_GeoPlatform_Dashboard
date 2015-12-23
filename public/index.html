@@ -45,7 +45,7 @@
             <li id="userId" style="display: none"></li>
             <li id="personalizedPanel" style="display: none; "><a id="sign-out" href="#">Sign Out</a></li>
             <li id="anonymousPanel" style="display: block"><a href="#" id="sign-in" >Sign In</a></li>
-            <li><a href="#">Help</a></li>
+            <li><a id="egamHelp" href="#">Help</a></li>
           </ul>
 
           <form class="navbar-form navbar-right">
@@ -68,8 +68,66 @@
         </div>
       </div>
     </nav>
+    <!--Help Modal-->
+    <div class="modal fade" id="helpModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close" ><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title" id="helpModalLabel">Geoplatform Dashboard Help</h4>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-2">
+                            <!-- Nav tabs -->
+                            <ul class="nav nav-pills nav-stacked" role="tablist">
+                                <li role="presentation" class="active"><a href="#about" aria-controls="About" role="tab" data-toggle="tab">About</a></li>
+                                <li role="presentation"><a href="#DashboardUse" aria-controls="DashboardUse" role="tab" data-toggle="tab">Dashboard Use</a></li>
+                                <li role="presentation"><a href="#Email" aria-controls="ContactUs" role="tab" data-toggle="tab">Contact Us</a></li>
+                                <!--<li role="presentation"><a href="#settings" aria-controls="settings" role="tab" data-toggle="tab">Settings</a></li>-->
+                            </ul>
+                        </div>
 
-
+                        <!-- Tab panes -->
+                        <div class="col-md-10">
+                            <div class="tab-content">
+                                <div role="tabpanel" class="tab-pane active" id="about">
+                                    <h3>GeoPlatform Application for MetaIntelligence</h3>
+                                    <p>The EPA Geoplatform Application for MetaIntelligence provides provides information on geoplatform items.
+                                        It allows the user the ability to audit and edit this information in order to comply with EPA guidelines.</p>
+                                    <p>This guide will walk you through using the EPA GeoPlatform Application for MetaIntelligence. These instruction
+                                        will step through the navigation menu on the left side of the screen beginning with GeoPlatform Online(GPO) Content.
+                                        More content is currently being added to this application and help documentation will continually be added as more
+                                        functionality is added.</p>
+                                </div>
+                                <div role="tabpanel" class="tab-pane" id="DashboardUse">
+                                    <p><b>Signing In/Out:</b> The navigation bar in the top right corner of the application has two buttons, Sign In/Sign Out,
+                                        and Help. Clicking the Sign In button will prompt the user for sign-in credentials for the GeoPlatform(GPO).
+                                        Either GPO credential or your EPA single sign on credentials can be used. Once you have signed in the sign in
+                                        button will display your user name and your GPO privileges next to the Sign Out button.</p>
+                                    <p><b>Figures:</b> The initial view of the Geoplatform Application for MetaIntelligence displays Initial figures across the
+                                        top of the screen(Public Items Audit Result, My Items, My Groups, Auth Groups). Public Items Audit Result displays
+                                        the percentage of public items that have passed the Audit. The audit is run throughout the life cycle of the
+                                        application so this number will reflect what is current. My Items displays the number of Items associated with your
+                                        GPO account. My Groups displays the number of groups associated with your account. Auth Groups display the number of
+                                        Authoritative groups that your account is associated with. The names of those groups can be displayed when the number
+                                        is clicked. When clicked either the autoritative group you are associated with will display or if your GPO account is
+                                        associated with multiple authoritative groups then a dropdown will display with a list of the Authoritative groups.
+                                        By choosing one of these groups it will refresh the table below with the content from the chosen group.</p>
+                                </div>
+                                <div role="tabpanel" class="tab-pane" id="Email">Email</div>
+                                <!--<div role="tabpanel" class="tab-pane" id="settings">settings</div>-->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal" >Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!--End Help Modal-->
 
     <div class="container-fluid">
       <div class="row">
