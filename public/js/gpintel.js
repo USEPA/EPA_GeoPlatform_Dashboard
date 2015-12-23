@@ -23,10 +23,12 @@ $(document).ready(function() {
   });
 
   $('#myModal').on('shown.bs.modal', function(e) {
-
     //validate everytime the form opens
     //$('#modalForm').validator('validate');
+  });
 
+  $('#egamHelp').on('click', function(e){
+    $('#helpModal').modal('show');
   });
 
 
