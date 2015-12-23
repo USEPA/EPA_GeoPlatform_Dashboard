@@ -473,7 +473,8 @@ function populateUserTables(query, projection) {
 
 
     function updateLoadingCountMessage(index) {
-      $("#loadingMsgCount").text(index + 1);
+//Only show every 10
+      if (index % 10 === 0) $("#loadingMsgCount").text(index + 1);
     }
 
     calcItemsPassingAudit(dataResults);
@@ -580,33 +581,10 @@ egam.renderGPOitemsDataTable = function (defer) {
           if (select.length > 0) {
 //needed to remove the on change event or else multiple event handlers were being added
             select.off('change');
-            select.on('change', accessSelectEventHandler);
+            select.on('change', egam.accessSelectEventHandler);
           }
         }
 
-        function accessSelectEventHandler() {
-          var val = $.fn.dataTable.util.escapeRegex(
-            $(this).val()
-          );
-          var query = {};
-          if (val) query = {access: val};
-          populateUserTables(query, {
-            sort: {
-              modified: -1
-            },
-            fields: egam.gpoItems.resultFields
-          })
-            .then(function () {
-              // Hide the loading panel now after first page is loaded
-              $('div#loadingMsg').addClass('hidden');
-              $('div#overviewTable').removeClass('hidden');
-              $("#loadingMsgCountContainer").addClass('hidden');
-              return true;
-            })
-            .fail(function (err) {
-              console.error(err);
-            });
-        }
         function addSelectEventHandler(select) {
           if (select.length > 0) {
             select.off('change');
@@ -618,7 +596,7 @@ egam.renderGPOitemsDataTable = function (defer) {
                 .draw();
             });
 
-            if (select.length > 1) return;
+            if (select.length > 0 && select[0].options.length > 1) return;
             //If first item has data-search then have to map out data-search data
             var att = column.nodes().to$()[0].attributes;
             if ("data-search" in att) {
@@ -671,18 +649,72 @@ egam.renderGPOitemsDataTable = function (defer) {
   return defer;
 };
 
+egam.runAllClientSideFilters = function () {
+  egam.gpoItems.dataTable.api().columns().every(function() {
+    var column = this;
+//Don't fire dropAccess handler because it will download again
+    if (egam.communityUser.isSuperUser && $(column.header()).hasClass("accessColumn")) return true;
+
+    var headerSelect = $(column.header()).find("select.search");
+    if (headerSelect.length>0) headerSelect.trigger("change");
+    var headerInput = $(column.header()).find("input.search");
+    if (headerInput.length>0) headerInput.trigger("change");
+  });
+};
+
+egam.accessSelectEventHandler = function () {
+  var val = $.fn.dataTable.util.escapeRegex(
+    $(this).val()
+  );
+  var query = {};
+  if (val) query.access= val;
+  var authGroupValue = $("#dropAuthGroups").val();
+//So we know not all authgroups were downloaded and need to retrieve
+  egam.gpoItems.allAuthGroupsDownloaded=true;
+  if (authGroupValue) {
+    var ownerIDs = egam.communityUser.ownerIDsByAuthGroup[authGroupValue];
+    query.owner = {$in:ownerIDs};
+    egam.gpoItems.allAuthGroupsDownloaded=false;
+  }
+  populateUserTables(query, {
+    sort: {
+      modified: -1
+    },
+    fields: egam.gpoItems.resultFields
+  })
+    .then(function () {
+      // Hide the loading panel now after first page is loaded
+      $('div#loadingMsg').addClass('hidden');
+      $('div#overviewTable').removeClass('hidden');
+      $("#loadingMsgCountContainer").addClass('hidden');
+//Now run any client side filters that were selected
+      egam.runAllClientSideFilters();
+      return true;
+    })
+    .fail(function (err) {
+      console.error(err);
+    });
+};
+
+
 egam.setAuthGroupsDropdown = function(ownerIDsByAuthGroup) {
   var dropAuthGroups = $("#dropAuthGroups");
   dropAuthGroups.on("change",function () {
-    var reOwnerIDs = "";
-    if (this.value) {
-      var ownerIDs = ownerIDsByAuthGroup[this.value];
-      reOwnerIDs = ownerIDs.join("|");
+//If the only downloaded some authGroups then download again instead of client side filtering
+    if (egam.gpoItems.allAuthGroupsDownloaded===false) {
+// Call accessSelectEventHandler in proper context of dropAccess
+      egam.accessSelectEventHandler.apply($("#dropAccess"),[]);
+    }else {
+      var reOwnerIDs = "";
+      if (this.value) {
+        var ownerIDs = ownerIDsByAuthGroup[this.value];
+        reOwnerIDs = ownerIDs.join("|");
+      }
+      egam.gpoItems.dataTable.api().column(".ownerColumn")
+        .search(reOwnerIDs,true,false)
+        //      .search(this.value,true,false)
+        .draw();
     }
-    egam.gpoItems.dataTable.api().column(".ownerColumn")
-      .search(reOwnerIDs,true,false)
-  //      .search(this.value,true,false)
-      .draw();
 //Also set the download link
     var authgroup = this.value;
     if (authgroup) {
