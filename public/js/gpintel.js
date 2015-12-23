@@ -42,7 +42,8 @@ $(document).ready(function() {
 
 //         this.capitalizeLastName = function() {
 //             var currentVal = this.lastName();        // Read the current value
-//             this.lastName(currentVal.toUpperCase()); // Write back a modified value
+//             this.lastName(currentVal.toUpperCase()); // Write back a modified
+value
 //         };
 //     }
 
@@ -56,7 +57,9 @@ function populateTable(vTable, query) {
   //    console.log(vTable);
   //    console.log(query);
   var tableContent = '';
-  //for query pass a string because things like null were being converted to empty string
+  //for query pass a string because things like null were being converted to empty
+  string
+
   query = JSON.stringify(query)
 
   // jQuery AJAX call for JSON
@@ -120,6 +123,8 @@ function populateUserTables(query, projection) {
     $("#loadingMsgCount").text(0);
     $("#loadingMsgTotalCount").text(dataResults.length);
 
+
+
     var rowModel1 = function(i, loading) {
       var self = this;
       this.loading = loading || false;
@@ -132,7 +137,8 @@ function populateUserTables(query, projection) {
 
       //computed thumbnail url
       this.tnURLs = ko.computed(function() {
-        return "http://epa.maps.arcgis.com/sharing/rest/content/items/" + self.doc.id() + "/info/" + self.doc.thumbnail() + "?token=" + utoken;
+        return "http://epa.maps.arcgis.com/sharing/rest/content/items/" +
+          self.doc.id() + "/info/" + self.doc.thumbnail() + "?token=" + utoken;
       }, this);
 
       //Doc of changed fields
@@ -200,8 +206,10 @@ function populateUserTables(query, projection) {
       //Add tag to tags array
       this.addItem = function() {
         //alert("here");
-        if ((this.selected().tagItemToAdd() != "") && (this.selected().doc.tags.indexOf(this.selected().tagItemToAdd()) < 0)) // Prevent blanks and duplicates
-          this.selected().doc.tags.push(this.selected().tagItemToAdd());
+        if ((this.selected().tagItemToAdd() != "") && (this.selected
+          ().doc.tags.indexOf(this.selected().tagItemToAdd()) < 0)) // Prevent blanks and
+          duplicates
+        this.selected().doc.tags.push(this.selected().tagItemToAdd());
         this.selected().tagItemToAdd(""); // Clear the text box
       };
       //Remove tag from tags array
@@ -214,13 +222,23 @@ function populateUserTables(query, projection) {
       this.postback = function() {
         //alert("Posting");
 
+        //need to add thumbnail name to document before auditing
+        var thumbnailFile = $('#thumbnail')[0].files[0];
+        if(thumbnailFile === undefined){
+          console.log('No thumbnail to post');
+        }else{
+          //Add to to change doc
+          i.thumbnail = "thumbnail/" + thumbnailFile.name;
+          this.selected().addFieldChange("thumbnail", i.thumbnail);
+          //self.doc.thumbnail(i.thumbnail);
+          //self.doc.thumbnail.valueHasMutated();
+        }
+        //var thumbnail = $('#thumbnail')[0].files[0];
+        //if (thumbnail && thumbnail.name) unmappedDoc.thumbnail = "thumbnail/" +
+        thumbnail.name;
 
         //Original Audit of full Doc
         var unmappedDoc = ko.mapping.toJS(this.selected().doc);
-
-        //need to add thumbnail name to document before auditing
-        var thumbnail = $('#thumbnail')[0].files[0];
-        if (thumbnail && thumbnail.name) unmappedDoc.thumbnail = "thumbnail/" + thumbnail.name;
 
         var auditRes = new Audit();
         auditRes.validate(unmappedDoc, "");
@@ -231,7 +249,7 @@ function populateUserTables(query, projection) {
         var mydata = new FormData();
         mydata.append("updateDocs", JSON.stringify(this.selected().changeDoc));
         //mydata.append("updateDoc", unmappedDoc);
-        mydata.append("thumbnail", thumbnail);
+        mydata.append("thumbnail", thumbnailFile);
         $.ajax({
           url: 'gpoitems/update',
           type: 'POST',
@@ -239,12 +257,23 @@ function populateUserTables(query, projection) {
           cache: false,
           dataType: 'json',
           processData: false, // Don't process the files
-          contentType: false, // Set content type to false as jQuery will tell the server its a query string request
+          contentType: false, // Set content type to false as jQuery will tell the
+          server its a query string request
           success: function(data, textStatus, jqXHR) {
-            if (data.errors.length < 1) //will need to change to data.errors.length when merged back to sprint 3
+            if (data.errors.length < 1) //will need to change to data.errors.length
+              when merged back to sprint 3
             {
               // Success so call function to process the form
               console.log('success: ' + data);
+
+              if(thumbnailFile !== undefined){
+                self.doc.thumbnail(i.thumbnail);
+                self.doc.thumbnail.valueHasMutated();
+                //$('#agoThumb').toggle();
+                //$('#imageUpload').toggle();
+                //$('#thumbnail').fileinput('clear');
+              };
+
               //refresh the data table so it can search updated info
               //              egam.gpoItems.dataTable.destroy();
               egam.gpoItems.dataTable.fnDestroy();
@@ -260,6 +289,7 @@ function populateUserTables(query, projection) {
             // STOP LOADING SPINNER
           }
         });
+
         console.log("Post back updated Items");
       };
 
@@ -270,7 +300,8 @@ function populateUserTables(query, projection) {
       var self = this;
 
       self.content = ko.observableArray(data.map(function(i) {
-        //return new rowModel(i.id, i.title, i.type, i.description, i.tags, i.snippet, i.thumbnail, i.accessInformation, i.licenseInfo, i.access, i.numViews
+        //return new rowModel(i.id, i.title, i.type, i.description, i.tags,
+        i.snippet, i.thumbnail, i.accessInformation, i.licenseInfo, i.access, i.numViews
         //    , i.owner, i.url, i.AuditData.compliant, i);
         //var rowModel1 = ko.mapping.fromJS(i);
         return new rowModel1(i);
@@ -298,7 +329,8 @@ function populateUserTables(query, projection) {
 
 //        var array = $.extend([], self.content());
 
-        //This lets thing work async style so that page is not locked up when ko is mapping
+        //This lets thing work async style so that page is not locked up when ko is
+        mapping
         //Maybe use an async library later
         var i = 0;
         var interval = setInterval(function() {
@@ -318,12 +350,31 @@ function populateUserTables(query, projection) {
         return defer;
       };
 
-      //Leave these in here for now so they get checked into repo. Can remove after in repo
+      //switch view for image upload
+      $('.fileinput').on('change.bs.fileinput', function(e) {
+        $('#agoThumb').toggle();
+        $('#imageUpload').toggle();
+      });
+      //On modal close with out saving change thumbnail view clear thumbnail form
+      $('#myModal').on('hidden.bs.modal', function(e) {
+        var thumbnailFile = $('#thumbnail')[0].files[0];
+        if(thumbnailFile !== undefined){
+          $('#agoThumb').toggle();
+          $('#imageUpload').toggle();
+          $('.fileinput').fileinput('clear');
+        };
+
+        //alert("closed");
+      });
+
+      //Leave these in here for now so they get checked into repo. Can remove after
+      in repo
       self.addPushAll = function(data) {
         //Use this so we know when everything is loaded
         var defer = $.Deferred();
 
-        //This lets thing work async style so that page is not locked up when ko is mapping
+        //This lets thing work async style so that page is not locked up when ko is
+        mapping
         //Maybe use an async library later
         var interval = setInterval(function() {
           var array = data.map(function(i) {
@@ -345,7 +396,8 @@ function populateUserTables(query, projection) {
 
         var array = $.extend([], self.content());
 
-        //This lets thing work async style so that page is not locked up when ko is mapping
+        //This lets thing work async style so that page is not locked up when ko is
+        mapping
         //Maybe use an async library later
         var i = 0;
         var interval = setInterval(function() {
@@ -392,13 +444,16 @@ function populateUserTables(query, projection) {
     $('div#overviewTable').addClass('hidden');
     $("#loadingMsgCountContainer").removeClass('hidden');
 
-//If first time every binding to table need to apply binding, but can only bind once so don't bind again if reloading table
+//If first time every binding to table need to apply binding, but can only bind once
+    so don't bind again if reloading table
     var needToApplyBindings=false;
     if (egam.gpoItems.rowModel) {
-//have to actually remove dataTable rows and destroy datatable in order to get knockout to rebind table
+//have to actually remove dataTable rows and destroy datatable in order to get
+      knockout to rebind table
       if (egam.gpoItems.dataTable) {
         egam.gpoItems.dataTable.api().clear().draw();
-        if ("fnDestroy" in egam.gpoItems.dataTable) egam.gpoItems.dataTable.fnDestroy();
+        if ("fnDestroy" in egam.gpoItems.dataTable)
+          egam.gpoItems.dataTable.fnDestroy();
       }
       egam.gpoItems.rowModel.content.removeAll();
       console.log("post remove" + egam.gpoItems.rowModel.content().length);
@@ -423,7 +478,8 @@ function populateUserTables(query, projection) {
 
         console.log("Create data table");
         setTimeout(function() {
-          if (egam.gpoItems.dataTable && "fnDestroy" in egam.gpoItems.dataTable) egam.gpoItems.dataTable.fnDestroy();
+          if (egam.gpoItems.dataTable && "fnDestroy" in egam.gpoItems.dataTable)
+            egam.gpoItems.dataTable.fnDestroy();
           egam.renderGPOitemsDataTable()
             .then(function(dt) {
               egam.gpoItems.dataTable = dt;
@@ -434,15 +490,20 @@ function populateUserTables(query, projection) {
 
 
     function updateLoadingCountMessage(index) {
-      $("#loadingMsgCount").text(index + 1);
+//Only show every 10
+      if (index % 10 === 0) $("#loadingMsgCount").text(index + 1);
     }
+
+    calcItemsPassingAudit(dataResults);
+
 // This was loading first page and then the rest. Will remove later
 //    if (egam.gpoItems.rowModel) {
 //      egam.gpoItems.rowModel.add(dataResults)
 //        .then(function() {
 //          console.log("Create data table");
 //          setTimeout(function() {
-//            if (egam.gpoItems.dataTable && "fnDestroy" in egam.gpoItems.dataTable) egam.gpoItems.dataTable.fnDestroy();
+//            if (egam.gpoItems.dataTable && "fnDestroy" in egam.gpoItems.dataTable)
+    egam.gpoItems.dataTable.fnDestroy();
 //            egam.renderGPOitemsDataTable()
 //              .then(function(dt) {
 //                egam.gpoItems.dataTable = dt;
@@ -458,12 +519,14 @@ function populateUserTables(query, projection) {
 //      defer.resolve();
 //    }
 
-    //    if (egam.gpoItems.dataTable && "destroy" in egam.gpoItems.dataTable) egam.gpoItems.dataTable.destroy();
+    //    if (egam.gpoItems.dataTable && "destroy" in egam.gpoItems.dataTable)
+    egam.gpoItems.dataTable.destroy();
     //    egam.gpoItems.dataTable = renderGPOitemsDataTable(defer);
 
     //Set up data-search attribute from value on td cell
     //value:doc.AuditData.compliant() ? 'Pass' : 'Fail'
-    //Don't need to do this any more just used knockout attr binding to bind data-search
+    //Don't need to do this any more just used knockout attr binding to bind data-
+    search
     //Keep this for reference in case need to loop over html table
     //    var i; var j;
     //    var htmlTable = $('#gpoitemtable1')[0];
@@ -489,6 +552,19 @@ function populateUserTables(query, projection) {
 
 }
 
+function calcItemsPassingAudit(dataResults){
+  //get percent of docs passing the Audit
+  var passing = 0;
+  dataResults.forEach(function(result, index){
+    var i = result.AuditData.compliant;
+    if(i){
+      passing++;
+    }
+  });
+  var percentPassing = Math.round((passing/dataResults.length) * 100);
+  $('#percPublicPassingAudit').text(percentPassing + "% Passing");
+}
+
 egam.renderGPOitemsDataTable = function (defer) {
   //apply data table magic, ordered ascending by title
   //Use this so we know when table is rendered
@@ -510,12 +586,14 @@ egam.renderGPOitemsDataTable = function (defer) {
         var footerSelect = $(column.footer()).find("select.search");
 
 //This is the special case for access column that we only want one access at a time
-        if (egam.communityUser.isSuperUser && $(column.header()).hasClass("accessColumn")) {
+        if (egam.communityUser.isSuperUser && $(column.header()).hasClass
+          ("accessColumn")) {
           addAccessSelectEventHandler(headerSelect);
         }else{
           addSelectEventHandler(headerSelect);
         }
-        if (egam.communityUser.isSuperUser && $(column.footer()).hasClass("accessColumn")) {
+        if (egam.communityUser.isSuperUser && $(column.footer()).hasClass
+          ("accessColumn")) {
           addAccessSelectEventHandler(footerSelect);
         }else{
           addSelectEventHandler(footerSelect);
@@ -523,35 +601,13 @@ egam.renderGPOitemsDataTable = function (defer) {
 
         function addAccessSelectEventHandler(select) {
           if (select.length > 0) {
-//needed to remove the on change event or else multiple event handlers were being added
+//needed to remove the on change event or else multiple event handlers were being
+            added
             select.off('change');
-            select.on('change', accessSelectEventHandler);
+            select.on('change', egam.accessSelectEventHandler);
           }
         }
 
-        function accessSelectEventHandler() {
-          var val = $.fn.dataTable.util.escapeRegex(
-            $(this).val()
-          );
-          var query = {};
-          if (val) query = {access: val};
-          populateUserTables(query, {
-            sort: {
-              modified: -1
-            },
-            fields: egam.gpoItems.resultFields
-          })
-            .then(function () {
-              // Hide the loading panel now after first page is loaded
-              $('div#loadingMsg').addClass('hidden');
-              $('div#overviewTable').removeClass('hidden');
-              $("#loadingMsgCountContainer").addClass('hidden');
-              return true;
-            })
-            .fail(function (err) {
-              console.error(err);
-            });
-        }
         function addSelectEventHandler(select) {
           if (select.length > 0) {
             select.off('change');
@@ -563,7 +619,7 @@ egam.renderGPOitemsDataTable = function (defer) {
                 .draw();
             });
 
-            if (select.length > 1) return;
+            if (select.length > 0 && select[0].options.length > 1) return;
             //If first item has data-search then have to map out data-search data
             var att = column.nodes().to$()[0].attributes;
             if ("data-search" in att) {
@@ -616,26 +672,84 @@ egam.renderGPOitemsDataTable = function (defer) {
   return defer;
 };
 
+egam.runAllClientSideFilters = function () {
+  egam.gpoItems.dataTable.api().columns().every(function() {
+    var column = this;
+//Don't fire dropAccess handler because it will download again
+    if (egam.communityUser.isSuperUser && $(column.header()).hasClass
+      ("accessColumn")) return true;
+
+    var headerSelect = $(column.header()).find("select.search");
+    if (headerSelect.length>0) headerSelect.trigger("change");
+    var headerInput = $(column.header()).find("input.search");
+    if (headerInput.length>0) headerInput.trigger("change");
+  });
+};
+
+egam.accessSelectEventHandler = function () {
+  var val = $.fn.dataTable.util.escapeRegex(
+    $(this).val()
+  );
+  var query = {};
+  if (val) query.access= val;
+  var authGroupValue = $("#dropAuthGroups").val();
+//So we know not all authgroups were downloaded and need to retrieve
+  egam.gpoItems.allAuthGroupsDownloaded=true;
+  if (authGroupValue) {
+    var ownerIDs = egam.communityUser.ownerIDsByAuthGroup[authGroupValue];
+    query.owner = {$in:ownerIDs};
+    egam.gpoItems.allAuthGroupsDownloaded=false;
+  }
+  populateUserTables(query, {
+    sort: {
+      modified: -1
+    },
+    fields: egam.gpoItems.resultFields
+  })
+    .then(function () {
+      // Hide the loading panel now after first page is loaded
+      $('div#loadingMsg').addClass('hidden');
+      $('div#overviewTable').removeClass('hidden');
+      $("#loadingMsgCountContainer").addClass('hidden');
+//Now run any client side filters that were selected
+      egam.runAllClientSideFilters();
+      return true;
+    })
+    .fail(function (err) {
+      console.error(err);
+    });
+};
+
+
 egam.setAuthGroupsDropdown = function(ownerIDsByAuthGroup) {
   var dropAuthGroups = $("#dropAuthGroups");
   dropAuthGroups.on("change",function () {
-    var reOwnerIDs = "";
-    if (this.value) {
-      var ownerIDs = ownerIDsByAuthGroup[this.value];
-      reOwnerIDs = ownerIDs.join("|");
+//If the only downloaded some authGroups then download again instead of client side
+    filtering
+    if (egam.gpoItems.allAuthGroupsDownloaded===false) {
+// Call accessSelectEventHandler in proper context of dropAccess
+      egam.accessSelectEventHandler.apply($("#dropAccess"),[]);
+    }else {
+      var reOwnerIDs = "";
+      if (this.value) {
+        var ownerIDs = ownerIDsByAuthGroup[this.value];
+        reOwnerIDs = ownerIDs.join("|");
+      }
+      egam.gpoItems.dataTable.api().column(".ownerColumn")
+        .search(reOwnerIDs,true,false)
+        //      .search(this.value,true,false)
+        .draw();
     }
-    egam.gpoItems.dataTable.api().column(".ownerColumn")
-      .search(reOwnerIDs,true,false)
-  //      .search(this.value,true,false)
-      .draw();
 //Also set the download link
     var authgroup = this.value;
     if (authgroup) {
       $('#downloadAuthgroupsCSVall').addClass('hidden');
       $('#downloadAuthgroupsCSVregions').removeClass('hidden');
       var href = $('#downloadAuthgroupsCSVregions').attr("href")
-//tack on authgroup to the end of the route to get csv. Note: use ^ and $ to get exact match because it matches regex (Region 1 and 10 would be same if not)
-//Also we are using authGroup by name so need to escape ( and ) which is offices like (OAR)
+//tack on authgroup to the end of the route to get csv. Note: use ^ and $ to get
+      exact match because it matches regex (Region 1 and 10 would be same if not)
+//Also we are using authGroup by name so need to escape ( and ) which is offices like
+        (OAR)
       var escapeAuthGroup = authgroup.replace(/\(/g,"%5C(").replace(/\)/g,"%5C)");
       href = href.substring(0,href.lastIndexOf("/")+1) + "^" + escapeAuthGroup + "$";
       $('#downloadAuthgroupsCSVregions').attr("href",href);
@@ -649,7 +763,8 @@ egam.setAuthGroupsDropdown = function(ownerIDsByAuthGroup) {
 
   dropAuthGroups[0].options.length=0;
 
-  if (authGroups.length>1) dropAuthGroups.append($('<option>', { value : "" }).text("All"));
+  if (authGroups.length>1) dropAuthGroups.append($('<option>', { value : "" }).text
+  ("All"));
 
   $.each(authGroups,function (index,authGroup) {
 //  $.each(ownerIDsByAuthGroup,function (authGroup,ownerIDs) {
