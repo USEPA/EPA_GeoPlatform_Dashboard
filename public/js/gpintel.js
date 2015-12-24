@@ -28,6 +28,9 @@ $(document).ready(function () {
     //$('#modalForm').validator('validate');
 
   });
+  $('#egamHelp').on('click', function(e){
+    $('#helpModal').modal('show');
+  });
 
 
 });
@@ -133,8 +136,11 @@ function populateUserTables(query, projection) {
 
       //computed thumbnail url
       this.tnURLs = ko.computed(function () {
-        return "http://epa.maps.arcgis.com/sharing/rest/content/items/" +
-          self.doc.id() + "/info/" + self.doc.thumbnail() + "?token=" + utoken;
+        if(self.doc.thumbnail() == null){
+          return "../img/noImage.png";
+        }else{
+          return "http://epa.maps.arcgis.com/sharing/rest/content/items/" + self.doc.id() + "/info/" + self.doc.thumbnail() + "?token=" + utoken;
+        }
       }, this);
 
       //Doc of changed fields
