@@ -82,7 +82,9 @@
                             <!-- Nav tabs -->
                             <ul class="nav nav-pills nav-stacked" role="tablist">
                                 <li role="presentation" class="active"><a href="#about" aria-controls="About" role="tab" data-toggle="tab">About</a></li>
-                                <li role="presentation"><a href="#DashboardUse" aria-controls="DashboardUse" role="tab" data-toggle="tab">Dashboard Use</a></li>
+                                <li role="presentation"><a href="#SignInOut" aria-controls="SignInOut" role="tab" data-toggle="tab">Signing In/Out</a></li>
+                                <li role="presentation"><a href="#InitialView" aria-controls="InitialView" role="tab" data-toggle="tab">Initail View</a></li>
+                                <li role="presentation"><a href="#DashboardUse" aria-controls="DashboardUse" role="tab" data-toggle="tab">GeoPlatform Online Content</a></li>
                                 <li role="presentation"><a href="#Email" aria-controls="ContactUs" role="tab" data-toggle="tab">Contact Us</a></li>
                                 <!--<li role="presentation"><a href="#settings" aria-controls="settings" role="tab" data-toggle="tab">Settings</a></li>-->
                             </ul>
@@ -92,7 +94,7 @@
                         <div class="col-md-10">
                             <div class="tab-content">
                                 <div role="tabpanel" class="tab-pane active" id="about">
-                                    <h3>GeoPlatform Application for MetaIntelligence</h3>
+                                    <h4>GeoPlatform Application for MetaIntelligence</h4>
                                     <p>The EPA Geoplatform Application for MetaIntelligence provides provides information on geoplatform items.
                                         It allows the user the ability to audit and edit this information in order to comply with EPA guidelines.</p>
                                     <p>This guide will walk you through using the EPA GeoPlatform Application for MetaIntelligence. These instruction
@@ -100,23 +102,178 @@
                                         More content is currently being added to this application and help documentation will continually be added as more
                                         functionality is added.</p>
                                 </div>
-                                <div role="tabpanel" class="tab-pane" id="DashboardUse">
-                                    <p><b>Signing In/Out:</b> The navigation bar in the top right corner of the application has two buttons, Sign In/Sign Out,
+                                <div role="tabpanel" class="tab-pane" id="SignInOut">
+                                    <h4>Signing In/Out</h4>
+                                    <p>The navigation bar in the top right corner of the application has two buttons, Sign In/Sign Out,
                                         and Help. Clicking the Sign In button will prompt the user for sign-in credentials for the GeoPlatform(GPO).
                                         Either GPO credential or your EPA single sign on credentials can be used. Once you have signed in the sign in
                                         button will display your user name and your GPO privileges next to the Sign Out button.</p>
-                                    <p><b>Figures:</b> The initial view of the Geoplatform Application for MetaIntelligence displays Initial figures across the
+                                </div>
+                                <div role="tabpanel" class="tab-pane" id="InitialView">
+                                    <h4>Initial Figures</h4>
+                                    <p>The initial view of the Geoplatform Application for MetaIntelligence displays Initial figures across the
                                         top of the screen(Public Items Audit Result, My Items, My Groups, Auth Groups). Public Items Audit Result displays
                                         the percentage of public items that have passed the Audit. The audit is run throughout the life cycle of the
                                         application so this number will reflect what is current. My Items displays the number of Items associated with your
                                         GPO account. My Groups displays the number of groups associated with your account. Auth Groups display the number of
                                         Authoritative groups that your account is associated with. The names of those groups can be displayed when the number
-                                        is clicked. When clicked either the autoritative group you are associated with will display or if your GPO account is
+                                        is clicked. When clicked either the authoritative group you are associated with will display or if your GPO account is
                                         associated with multiple authoritative groups then a dropdown will display with a list of the Authoritative groups.
                                         By choosing one of these groups it will refresh the table below with the content from the chosen group.</p>
                                 </div>
-                                <div role="tabpanel" class="tab-pane" id="Email">Email</div>
-                                <!--<div role="tabpanel" class="tab-pane" id="settings">settings</div>-->
+
+                                <div role="tabpanel" class="tab-pane" id="DashboardUse">
+                                    <h4>GeoPlatform Online Content</h4>
+                                    <!--Accordion-->
+                                    <div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">
+                                        <div class="panel panel-default">
+                                            <div class="panel-heading" role="tab" id="headingOne">
+                                                <h4 class="panel-title">
+                                                    <a role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                                                        GeoPlatform Online Content Table
+                                                    </a>
+                                                </h4>
+                                            </div>
+                                            <div id="collapseOne" class="panel-collapse collapse in" role="tabpanel" aria-labelledby="headingOne">
+                                                <div class="panel-body">
+                                                    <p>The GPO Content table displays the GPO items. The columns of the table are defined below:</p>
+                                                    <table class="table table-bordered">
+                                                        <tr>
+                                                            <td>Title</td>
+                                                            <td>The title of the item. This is the name that's displayed to users and by which they refer to the item. Every item must have a title.</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>Access</td>
+                                                            <td>Indicates the level of access to this item: private, shared, org or public.</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>Type</td>
+                                                            <td>The GIS content type of this item. Examples include Web Map, Map Service, Shapefile, and Web Mapping Application.
+                                                                To see all the available types see <a href="http://resources.arcgis.com/en/help/arcgis-rest-api/index.html#//02r3000000ms000000">ArcGIS Resources</a>.</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>Views</td>
+                                                            <td>Number of views of the item.</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>Owner</td>
+                                                            <td>The username of the user who owns this item.</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>Audit</td>
+                                                            <td>This field indicates if the item pass for failed the audit.</td>
+                                                        </tr>
+                                                    </table>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="panel panel-default">
+                                            <div class="panel-heading" role="tab" id="headingTwo">
+                                                <h4 class="panel-title">
+                                                    <a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+                                                        Searching and Filtering Table
+                                                    </a>
+                                                </h4>
+                                            </div>
+                                            <div id="collapseTwo" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingTwo">
+                                                <div class="panel-body">
+                                                    <p>Searching - You can search the GPO content table by entering a word or phrase to search by in the search text box in
+                                                        the top right corner of the table. This will search all items and columns.</p>
+                                                    <p>Filter - You can filter what is displayed in the GPO content table by clicking on the dropdown menus under the title
+                                                        for each column. For the title column you must type in text to filter the table.</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="panel panel-default">
+                                            <div class="panel-heading" role="tab" id="headingThree">
+                                                <h4 class="panel-title">
+                                                    <a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
+                                                        Item Details
+                                                    </a>
+                                                </h4>
+                                            </div>
+                                            <div id="collapseThree" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingThree">
+                                                <div class="panel-body">
+                                                    <p>The item details for a GPO item in the table can be displayed by clicking on the row. The item details
+                                                        display the following information for an item.</p>
+                                                    <table class="table table-bordered">
+                                                        <tr>
+                                                            <td>Title</td>
+                                                            <td>The title of the item.</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>Summary</td>
+                                                            <td>a short summary description of the item.</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>Description</td>
+                                                            <td>Item description.</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>Credits</td>
+                                                            <td>Any license information or restrictions.</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>Access and use Constraints</td>
+                                                            <td>Information on the source of the item and its copyright status.</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>URL</td>
+                                                            <td>The URL for the resource represented by the item. Applies only to items that represent web-accessible resources such as map services.</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>Thumbnail</td>
+                                                            <td>The URL to the thumbnail used for the item.</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>Tags</td>
+                                                            <td>User defined tags that describe the item.</td>
+                                                        </tr>
+                                                    </table>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="panel panel-default">
+                                            <div class="panel-heading" role="tab" id="headingFour">
+                                                <h4 class="panel-title">
+                                                    <a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseFour" aria-expanded="false" aria-controls="collapseFour">
+                                                        Editing Item Details
+                                                    </a>
+                                                </h4>
+                                            </div>
+                                            <div id="collapseFour" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingFour">
+                                                <div class="panel-body">
+                                                    <p>Editing Item Details - An items details can be edited by changing the value in the textbox next to the item detail that you wish to change.</p>
+                                                    <p>Changing Item Thumbnail - The thumbnail for an item can also be changed by clicking the change button under the thumbnail preview and
+                                                        navigating to the image that you would like to use as the thumbnail.  For best results, the image should be 200 pixels wide by 133 pixels high.
+                                                        Acceptable image formats are: PNG, GIF and JPEG. </p>
+                                                    <p>Adding/Removing Tags - Tags can be added and removed from an item. To add a tag an item type the tag that you would like in the text box under
+                                                        the Tags title, then click the Add button. The tage will be added to the list below the Add button. To remove a tag, select the tag in the Tags
+                                                        List and click the Remove button.
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!--end Accordion-->
+                                    <div>
+                                    </div>
+                                </div>
+                                <div role="tabpanel" class="tab-pane" id="Email">
+                                    <h4>Contact Us</h4>
+                                    <p>Send Questions and Comments to <a href="mailto:epageoplatform@epa.gov?subject=EPA MetaIntelligence">epageoplatform@epa.gov</a></p>
+                                    <!--<form action="mailto: dyarnell@innovateteam.com" method="post">-->
+                                        <!--<div class="form-group">-->
+                                            <!--<label for="EmailSubject">Email address</label>-->
+                                            <!--<input type="text" class="form-control" id="EmailSubject" placeholder="Subject">-->
+                                        <!--</div>-->
+                                        <!--<div class="form-group">-->
+                                            <!--<label for="EmailText">Email address</label>-->
+                                            <!--<textarea class="form-control col-lg" id="EmailText" placeholder="Text input" rows="4"></textarea>-->
+                                        <!--</div>-->
+                                        <!--<button type="submit" class="btn btn-default"></button>-->
+                                    <!--</form>-->
+                                </div>
                             </div>
                         </div>
                     </div>
