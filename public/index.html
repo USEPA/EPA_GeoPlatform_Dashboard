@@ -342,29 +342,31 @@
           <h1 class="page-header">EPA GeoPlatform</h1>
   -->
           <div class="row placeholders">
-          <div class="col-xs-6 col-sm-4 placeholder">
+          <div class="col-xs-6 col-sm-3 placeholder">
               <img data-src="holder.js/200x200/auto/sky" class="img-responsive" alt="" style="display:none">
               <h4>Public Items Audit Result</h4>
               <span id="percPublicPassingAudit" class="text-muted">75% Passing</span>
             </div>
-            <div class="col-xs-6 col-sm-4 placeholder">
+            <div class="col-xs-6 col-sm-3 placeholder">
               <img data-src="holder.js/200x200/auto/sky" class="img-responsive" alt="Generic placeholder thumbnail" style="display:none">
               <h4>My Items</h4>
               <span id="agoItems" class="text-muted"></span>
             </div>
-            <div class="col-xs-6 col-sm-4 placeholder">
+            <div class="col-xs-6 col-sm-3 placeholder">
               <img data-src="holder.js/200x200/auto/vine" class="img-responsive" alt="Generic placeholder thumbnail" style="display:none">
               <h4>My Groups</h4>
               <span id="agoGroups" class="text-muted"></span>
             </div>
-              <div class="col-xs-6 col-sm-4 placeholder">
+              <div class="col-xs-6 col-sm-3 placeholder">
                   <img data-src="holder.js/200x200/auto/vine" class="img-responsive" alt="Generic placeholder thumbnail" style="display:none">
                   <h4 style="white-space:nowrap;">Auth Groups
                   </h4>
-                  <span id="authGroupsCount" class="text-muted"></span>
-                  <select id="dropAuthGroups" class="search form-control input-sm hidden"></select>
-                  <a id="downloadAuthgroupsCSVall" href="/gpoUsers/list.csv" class="hidden">download users</a>
-                  <a id="downloadAuthgroupsCSVregions" href="/gpoUsers/list.csv/authGroups/" class="hidden">download users</a>
+                  <a data-toggle="tooltip" data-placement="left" title="Show/Hide Auth Groups"><span id="authGroupsCount" class="text-muted" data-toggle="collapse" href="#collapseExample" aria-expanded="false" aria-controls="collapseExample"></span></a>
+                  <div class="collapse" id="collapseExample">
+                      <select id="dropAuthGroups" class="search form-control input-sm hidden"></select>
+                      <a id="downloadAuthgroupsCSVall" href="/gpoUsers/list.csv" class="hidden">download users</a>
+                      <a id="downloadAuthgroupsCSVregions" href="/gpoUsers/list.csv/authGroups/" class="hidden">download users</a>
+                  </div>
               </div>
 
           </div>
