@@ -21,19 +21,23 @@ $(document).ready(function () {
     $('.view').not(document.getElementById(view)).collapse('hide');
 
   });
-
+  //on show event for item Details modal
   $('#myModal').on('shown.bs.modal', function (e) {
 
     //validate everytime the form opens
     //$('#modalForm').validator('validate');
 
   });
+  //Click event for Help Modal
   $('#egamHelp').on('click', function(e){
     $('#helpModal').modal('show');
   });
-
-
+  //Add tooltips
+  var options = {delay: { "show": 1000, "hide": 100 }};
+  $('[data-toggle="tooltip"]').tooltip(options);
 });
+
+
 
 
 // function AppViewModel() {
