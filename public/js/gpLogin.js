@@ -83,7 +83,7 @@ require([
           //set up the authGroups dropdown
           egam.setAuthGroupsDropdown(egam.communityUser.ownerIDsByAuthGroup);
 //set authGroups count
-          $("#authGroupsCount").text(Object.keys(egam.communityUser.ownerIDsByAuthGroup).length);
+          $("#authGroupsCount").html("<a>" + Object.keys(egam.communityUser.ownerIDsByAuthGroup).length + "</a>");
 
           //Is User Admin or lower
           if (portalUser.role == "org_admin") {
