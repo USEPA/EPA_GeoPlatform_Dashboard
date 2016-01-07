@@ -16,7 +16,9 @@ body {
   border-width: medium;
 }
 
-
+a, span:hover {
+  cursor:default;
+}
 
 /*
  * Global add-ons
