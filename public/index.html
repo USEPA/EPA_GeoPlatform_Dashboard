@@ -536,8 +536,15 @@
                                             <!-- /ko -->
                                         </div>
                                         <div class="form-group has-success" data-bind="css: {'has-error': selected().doc.AuditData.errors.description&&selected().doc.AuditData.errors.description.compliant()===false}">
-                                            <label for="inputDesc">Description</label>
-                                            <textarea class="form-control" id="inputDesc" style="overflow:auto;resize:vertical" data-bind="value: selected().doc.description, valueUpdate: 'afterkeydown'" rows="6" placeholder="Description"></textarea>
+                                            <label>Description</label>
+                                            <!--
+                                            <textarea class="form-control" id="inputDesc"
+                                                      style="overflow:auto;resize:vertical"
+                                                      data-bind="value: selected().doc.description, valueUpdate: 'afterkeydown'" rows="6" placeholder="Description"></textarea> -->
+                                            <textarea class="form-control" id="inputDesc"
+                                                      data-bind="wysiwyg: selected().doc.description, valueUpdate:
+                                            'afterkeydown'" rows="6" placeholder="Description"></textarea>
+
                                             <!-- ko if: selected().doc.AuditData.errors.description -->
                                             <span class="help-block" data-bind="text: selected().doc.AuditData.errors.description.messages"></span>
                                             <!-- /ko -->
@@ -670,11 +677,18 @@
     <script src="../bootstrap/js/bootstrap.min.js"></script>
     <!--<script src="../bootstrap/js/validator.min.js"></script>-->
     <script src="../bootstrap/js/jasny-bootstrap.min.js"></script>
+
+    <script src="//cdnjs.cloudflare.com/ajax/libs/tinymce/4.3.2/tinymce.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/tinymce/4.3.2/jquery.tinymce.min.js"></script>
+    <script src="js/wysiwyg.js"></script>
+
     <script src="../js/gpintel.js"></script>
     <script src="../js/Audit.js"></script>
     <script src="//js.arcgis.com/3.14/"></script>
     <script src="../js/gpLogin.js"></script>
-    <script src="js/Audit.js"></script>
+
+
+
 
   </body>
 </html>
