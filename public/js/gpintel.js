@@ -10,17 +10,17 @@ egam.gpoItems = {
 
 $(document).ready(function () {
 
-  $(document).on('click', '.nav-sidebar li', function () {
-    $(".nav-sidebar li").removeClass("active");
-    $(this).addClass("active");
-
-    // alert($(this).find(":first").attr("id"));
-    var view = $(this).find(":first").attr("id");
-    $('#' + view + 'View').collapse('show');
-
-    $('.view').not(document.getElementById(view)).collapse('hide');
-
-  });
+  //$(document).on('click', '.nav-sidebar li', function () {
+  //  $(".nav-sidebar li").removeClass("active");
+  //  $(this).addClass("active");
+  //
+  //  // alert($(this).find(":first").attr("id"));
+  //  var view = $(this).find(":first").attr("id");
+  //  $('#' + view + 'View').collapse('show');
+  //
+  //  $('.view').not(document.getElementById(view)).collapse('hide');
+  //
+  //});
   //on show event for item Details modal
   $('#myModal').on('shown.bs.modal', function (e) {
 
