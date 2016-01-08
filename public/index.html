@@ -551,14 +551,20 @@
                                         </div>
 
                                         <div class="form-group has-success" data-bind="css: {'has-error': selected().doc.AuditData.errors.licenseInfo && selected().doc.AuditData.errors.licenseInfo.compliant()===false}">
-                                            <label for="inputLicenseInfo">Credits</label>
+                                            <label>Access and Use Constraints</label>
+                                            <!--
                                             <input class="form-control" id="inputLicenseInfo" data-bind="value: selected().doc.licenseInfo, valueUpdate: 'afterkeydown'" type="text">
+                                            -->
+                                            <textarea class="form-control" id="inputAccessUse"
+                                                      data-bind="wysiwyg: selected().doc.licenseInfo, valueUpdate:
+                                            'afterkeydown'" rows="6"
+                                                      placeholder="Access and Use Constraints"></textarea>
                                             <!-- ko if: selected().doc.AuditData.errors.licenseInfo -->
                                             <span class="help-block" data-bind="text: selected().doc.AuditData.errors.licenseInfo.messages"></span>
                                             <!-- /ko -->
                                         </div>
                                         <div class="form-group has-success" data-bind="css: {'has-error': selected().doc.AuditData.errors.accessInformation&&selected().doc.AuditData.errors.accessInformation.compliant()===false}">
-                                            <label for="inputAccessInfo">Access and use Constraints</label>
+                                            <label for="inputAccessInfo">Credits</label>
                                             <input class="form-control" id="inputAccessInfo" data-bind="value: selected().doc.accessInformation, valueUpdate: 'afterkeydown'" type="text">
                                             <!-- ko if: selected().doc.AuditData.errors.accessInformation -->
                                             <span class="help-block" data-bind="text: selected().doc.AuditData.errors.accessInformation.messages"></span>

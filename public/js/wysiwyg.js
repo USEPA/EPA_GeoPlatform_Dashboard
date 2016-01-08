@@ -1,4 +1,5 @@
 //Customized version of Knockout/TinyMCE library for GP Dashboard
+//original code was from this guy - https://github.com/michaelpapworth/tinymce-knockout-binding
 
 (function( $, ko ) {
 
@@ -42,15 +43,15 @@
     'update': function( element, valueAccessor, allBindings, viewModel, bindingContext ) {
       var tinymce = $( element ).tinymce(),
         value = valueAccessor()();
-      console.log(tinymce);
-
 
       if ( tinymce ) {
         //Need to manually add the class to the dynamically generated MCEU ID div which holds the TinyMCE editor
+        //17 is Description, 44 is Access and Use Constraints
         $('#mceu_17').removeAttr("style").addClass("form-group form-control");
+        $('#mceu_44').removeAttr("style").addClass("form-group form-control");
 
         if ( tinymce.getContent() !== value ) {
-          console.log("Set value in mce with val: " + value);
+          //console.log("Set value in mce with val: " + value);
           //GP Dashboard customization check for null because this value is null if the selected doc's description is
           // null
           if (value === null) {
@@ -64,7 +65,7 @@
       } else {
         // We need to remember the value that was updated during TinyMCE initialization,
         // otherwise TinyMCE will show up with the old value
-        console.log("Set value in mce with new val: " + value);
+        //console.log("Set value in mce with new val: " + value);
         $( element ).val( value );
       }
     }
