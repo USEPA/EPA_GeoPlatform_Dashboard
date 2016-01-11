@@ -8,12 +8,6 @@ egam.gpoItems = {
 
 $(document).ready(function () {
 
-  //Prevent bootstrap from blocking focusin on the mce editor in the item details modal
-  $(document).on('focusin', function(e) {
-    if ($(e.target).closest(".mce-window").length) {
-      e.stopImmediatePropagation();
-    }
-  });
 
   $(document).on('click', '.nav-sidebar li', function () {
     $(".nav-sidebar li").removeClass("active");
