@@ -539,22 +539,35 @@
                                             <!-- /ko -->
                                         </div>
                                         <div class="form-group has-success" data-bind="css: {'has-error': selected().doc.AuditData.errors.description&&selected().doc.AuditData.errors.description.compliant()===false}">
-                                            <label for="inputDesc">Description</label>
-                                            <textarea class="form-control" id="inputDesc" style="overflow:auto;resize:vertical" data-bind="value: selected().doc.description, valueUpdate: 'afterkeydown'" rows="6" placeholder="Description"></textarea>
+                                            <label>Description</label>
+                                            <!--
+                                            <textarea class="form-control" id="inputDesc"
+                                                      style="overflow:auto;resize:vertical"
+                                                      data-bind="value: selected().doc.description, valueUpdate: 'afterkeydown'" rows="6" placeholder="Description"></textarea> -->
+                                            <textarea class="form-control" id="inputDesc"
+                                                      data-bind="wysiwyg: selected().doc.description, valueUpdate:
+                                            'afterkeydown'" rows="6" placeholder="Description"></textarea>
+
                                             <!-- ko if: selected().doc.AuditData.errors.description -->
                                             <span class="help-block" data-bind="text: selected().doc.AuditData.errors.description.messages"></span>
                                             <!-- /ko -->
                                         </div>
 
                                         <div class="form-group has-success" data-bind="css: {'has-error': selected().doc.AuditData.errors.licenseInfo && selected().doc.AuditData.errors.licenseInfo.compliant()===false}">
-                                            <label for="inputLicenseInfo">Credits</label>
+                                            <label>Access and Use Constraints</label>
+                                            <!--
                                             <input class="form-control" id="inputLicenseInfo" data-bind="value: selected().doc.licenseInfo, valueUpdate: 'afterkeydown'" type="text">
+                                            -->
+                                            <textarea class="form-control" id="inputAccessUse"
+                                                      data-bind="wysiwyg: selected().doc.licenseInfo, valueUpdate:
+                                            'afterkeydown'" rows="6"
+                                                      placeholder="Access and Use Constraints"></textarea>
                                             <!-- ko if: selected().doc.AuditData.errors.licenseInfo -->
                                             <span class="help-block" data-bind="text: selected().doc.AuditData.errors.licenseInfo.messages"></span>
                                             <!-- /ko -->
                                         </div>
                                         <div class="form-group has-success" data-bind="css: {'has-error': selected().doc.AuditData.errors.accessInformation&&selected().doc.AuditData.errors.accessInformation.compliant()===false}">
-                                            <label for="inputAccessInfo">Access and use Constraints</label>
+                                            <label for="inputAccessInfo">Credits</label>
                                             <input class="form-control" id="inputAccessInfo" data-bind="value: selected().doc.accessInformation, valueUpdate: 'afterkeydown'" type="text">
                                             <!-- ko if: selected().doc.AuditData.errors.accessInformation -->
                                             <span class="help-block" data-bind="text: selected().doc.AuditData.errors.accessInformation.messages"></span>
@@ -681,17 +694,24 @@
 
     <!-- Bootstrap core JavaScript
     ================================================== -->
-    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
-    <script src="//cdn.datatables.net/1.10.9/js/jquery.dataTables.min.js"></script>
-    <script src="//cdn.datatables.net/1.10.9/js/dataTables.bootstrap.min.js"></script>
-    <script src="../bootstrap/js/bootstrap.min.js"></script>
-    <!--<script src="../bootstrap/js/validator.min.js"></script>-->
-    <script src="../bootstrap/js/jasny-bootstrap.min.js"></script>
-    <script src="../js/gpintel.js"></script>
+    <script src="js/jquery1.11.3/jquery.min.js"></script>
+    <script src="js/jquery1.11.3/jquery.dataTables.min.js"></script>
+    <script src="js/jquery1.11.3/dataTables.bootstrap.min.js"></script>
+    <script src="bootstrap/js/bootstrap.min.js"></script>
+    <script src="bootstrap/js/jasny-bootstrap.min.js"></script>
+
+    <script src="js/tinymce/tinymce4.3.2.min.js"></script>
+    <script src="js/tinymce/jquery.tinymce4.3.2.min.js"></script>
+    <script src="js/wysiwyg.js"></script>
+
+    <script src="js/gpintel.js"></script>
     <script src="../js/Audit.js"></script>
-    <script src="//js.arcgis.com/3.14/"></script>
-    <script src="../js/gpLogin.js"></script>
-    <script src="js/Audit.js"></script>
+    <!-- Due to some weird timing issues, this order needs to be followed -->
+    <script src="//js.arcgis.com/3.15compact/"></script>
+    <script src="js/gpLogin.js"></script>
+
+
+
 
   </body>
 </html>
