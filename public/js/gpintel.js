@@ -25,13 +25,13 @@ $(document).ready(function () {
 
   //onshow event for Item Details modal
   $('#myModal').on('shown.bs.modal', function (e) {
-    console.log("Show Bootstrap modal");
+    //console.log("Show Bootstrap modal");
     //$('#descriptionEditor').tinymce( { width: '100%', menubar: false});
 
   });
 
   $('#myModal').on('hidden.bs.modal', function (e) {
-    console.log("Hide Bootstrap modal");
+    //console.log("Hide Bootstrap modal");
     //tinymce.remove();
   });
 
