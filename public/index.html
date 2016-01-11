@@ -289,11 +289,16 @@
     <div class="container-fluid">
       <div class="row">
         <div class="col-sm-3 col-md-2 sidebar">
-          <ul class="nav nav-sidebar">
-            <li class="active"><a id="overview" href="#overviewTable">GeoPlatform Online (GPO) Content <span class="sr-only">(current)</span></a></li>
-            <li ><a  id="metrics" href="#metricsTable" >GPO Metrics (Future)</a></li>
-            <li><a  id="environment"  href="#" >GeoPlatform Hosting Environment (Future)</a></li>
-          </ul>
+            <ul class="nav nav-pills nav-stacked" role="tablist">
+                <li role="presentation" class="active"><a href="#overviewView" role="tab" aria-controls="overviewView" data-toggle="tab">GeoPlatform Online (GPO) Content</a></li>
+                <li role="presentation"><a href="#metricsView" role="tab" aria-controls="metricsView" data-toggle="tab">GPO Metrics (Future)</a></li>
+                <li role="presentation"><a href="#environmentView" role="tab" aria-controls="metricsView" data-toggle="tab">GeoPlatform Hosting Environment (Future)</a></li>
+            </ul>
+          <!--<ul class="nav nav-sidebar">-->
+            <!--<li class="active"><a id="overview" href="#overviewTable">GeoPlatform Online (GPO) Content <span class="sr-only">(current)</span></a></li>-->
+            <!--<li ><a  id="metrics" href="#metricsTable" >GPO Metrics (Future)</a></li>-->
+            <!--<li><a  id="environment"  href="#" >GeoPlatform Hosting Environment (Future)</a></li>-->
+          <!--</ul>-->
         </div>
 
         <div id="mainWindow" style="display: none; " class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
@@ -370,16 +375,15 @@
               </div>
 
           </div>
-
-
-          <!-- Begin overview -->
-          <div class="view collapse in" id="overviewView" >
+         <div class="tab-content">
+          <!-- Begin overview class="view collapse in"-->
+          <div role="tabpanel" class="tab-pane active" id="overviewView" >
             <div id="loadingMsg" class="jumbotron hidden">
                 <h2 class="text-center">Just one moment, fetching the latest GeoPlatform content for you...</h2>
                 <h3 id="loadingMsgCountContainer" class="text-center hidden"><span id="loadingMsgCount"></span> / <span id="loadingMsgTotalCount"></span> items loaded</h3>
                 <img src="../img/loading.gif" class="img-responsive center-block" alt="now loading" />
             </div>
-            </div>
+            <!--</div>-->
             <div id="overviewTable" >
              <h3 class="sub-header"></h3>
               <table id="gpoitemtable1" class="table table-hover table-bordered table-responsive">
@@ -457,8 +461,7 @@
               </table>
             </div>
           </div>
-          <!-- End overview -->
-
+            <!-- End Overview -->
 
             <!-- Modal for Editing -->
             <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
@@ -604,71 +607,85 @@
             </div>
             <!-- End Modal for Editing-->
 
-<!-- Metrics View -->
-          <div class="view collapse" id="metricsView" >
+            <!-- Metrics View -->
+            <div role="tabpanel" class="tab-pane" id="metricsView" >
+                <div id="metricsTable" class="table-responsive" >
+                    <h2 class="sub-header">GPO Metrics</h2>
+                    <div class="jumbotron vertical-center">
+                        <div class="text-center">
+                            <h1 class="alert alert-warning">Site Under Construction</h1>
+                            <p>We are currently building something awesome that will be available soon!</p>
+                        </div>
 
-          <div id="metricsTable" class="table-responsive" >
-           <h2 class="sub-header">GPO Metrics</h2>
-              <div>Placeholder for future functionality</div>
-              <img src="img/MetricsDashboard.png" />
-            <table id="gpoitemtable2" class="table table-striped" style="display:none">
-              <thead>
-                <tr>
-                  <th>ID</th>
-                  <th>Title</th>
-                  <th>Access</th>
-                  <th>Tags</th>
-                  <th>Thumbnail Path</th>
-                  <th>Owner</th>
-                </tr>
-              </thead>
-                <tbody></tbody>
-            </table>
+                    </div>
+                    <!--<div>Placeholder for future functionality</div>-->
+                    <!--<img src="img/MetricsDashboard.png" />-->
+                    <!--<table id="gpoitemtable2" class="table table-striped" style="display:none">-->
+                        <!--<thead>-->
+                        <!--<tr>-->
+                            <!--<th>ID</th>-->
+                            <!--<th>Title</th>-->
+                            <!--<th>Access</th>-->
+                            <!--<th>Tags</th>-->
+                            <!--<th>Thumbnail Path</th>-->
+                            <!--<th>Owner</th>-->
+                        <!--</tr>-->
+                        <!--</thead>-->
+                        <!--<tbody></tbody>-->
+                    <!--</table>-->
+                </div>
+            </div>
+            <!-- End  Metrics View -->
+
+            <!--  GPO View -->
+            <div role="tabpanel" class="tab-pane" id="environmentView" >
+            <div id="enviroTable" class="table-responsive">
+            <h2 class="sub-header">GeoPlatform Hosting Environment (GPHE) - ArcGIS Servers</h2>
+                <div class="jumbotron vertical-center">
+                    <div class="text-center">
+                        <h1 class="alert alert-warning">Site Under Construction</h1>
+                        <p>We are currently building something awesome that will be available soon!</p>
+                    </div>
+
+                </div>
+               <!--<table id="gpoHostingEnv" class="table table-striped" >-->
+                   <!--<thead>-->
+                   <!--<tr>-->
+                       <!--<th>Server Name</th>-->
+                       <!--<th>Cluster Name</th>-->
+                       <!--<th>Map Service Name</th>-->
+                       <!--<th>Service Type</th>-->
+                       <!--<th>Service POC</th>-->
+                   <!--</tr>-->
+                   <!--</thead>-->
+                   <!--<tbody>-->
+                       <!--<td>loris2</td>-->
+                       <!--<td>gispub</td>-->
+                       <!--<td>EPA_Locations</td>-->
+                       <!--<td>Map Service</td>-->
+                       <!--<td>OEI, Harvey Simon</td>-->
+                   <!--</tbody>-->
+               <!--</table>-->
+
+            <!--<table id="gpoitemtable3" class="table table-striped" style="display:none">-->
+              <!--<thead>-->
+                <!--<tr>-->
+                  <!--<th>ID</th>-->
+                  <!--<th>Title</th>-->
+                  <!--<th>Access</th>-->
+                  <!--<th>Tags</th>-->
+                  <!--<th>Thumbnail Path</th>-->
+                  <!--<th>Owner</th>-->
+                <!--</tr>-->
+              <!--</thead>-->
+                <!--<tbody></tbody>-->
+            <!--</table>-->
           </div>
-
           </div>
-<!-- End  Metrics View -->
-
-<!--  GPO View -->
-          <div class="view collapse" id="environmentView" >
-           <div id="enviroTable" class="table-responsive">
-           <h2 class="sub-header">GeoPlatform Hosting Environment (GPHE) - ArcGIS Servers</h2>
-               <table id="gpoHostingEnv" class="table table-striped" >
-                   <thead>
-                   <tr>
-                       <th>Server Name</th>
-                       <th>Cluster Name</th>
-                       <th>Map Service Name</th>
-                       <th>Service Type</th>
-                       <th>Service POC</th>
-                   </tr>
-                   </thead>
-                   <tbody>
-                       <td>loris2</td>
-                       <td>gispub</td>
-                       <td>EPA_Locations</td>
-                       <td>Map Service</td>
-                       <td>OEI, Harvey Simon</td>
-                   </tbody>
-               </table>
-
-            <table id="gpoitemtable3" class="table table-striped" style="display:none">
-              <thead>
-                <tr>
-                  <th>ID</th>
-                  <th>Title</th>
-                  <th>Access</th>
-                  <th>Tags</th>
-                  <th>Thumbnail Path</th>
-                  <th>Owner</th>
-                </tr>
-              </thead>
-                <tbody></tbody>
-            </table>
-          </div>
-          </div>
-<!-- End GPO View -->
-
+            <!-- End GPO View -->
+         </div>
+        </div>
+          <!-- End main -->
 
 
         </div>
