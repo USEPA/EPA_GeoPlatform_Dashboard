@@ -33,7 +33,7 @@ $(document).ready(function () {
     $('#helpModal').modal('show');
   });
   //Add tooltips
-  var options = {delay: { "show": 1000, "hide": 100 }};
+  var options = {delay: { "show": 500, "hide": 100 }};
   $('[data-toggle="tooltip"]').tooltip(options);
 });
 
