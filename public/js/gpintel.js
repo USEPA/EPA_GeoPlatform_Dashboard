@@ -1,5 +1,3 @@
-// Mockup items =============================================================
-
 //Expose dashboard especially helpful for debugging
 var egam = {};
 egam.gpoItems = {
@@ -10,98 +8,72 @@ egam.gpoItems = {
 
 $(document).ready(function () {
 
+
   $(document).on('click', '.nav-sidebar li', function () {
     $(".nav-sidebar li").removeClass("active");
     $(this).addClass("active");
-
-    // alert($(this).find(":first").attr("id"));
     var view = $(this).find(":first").attr("id");
     $('#' + view + 'View').collapse('show');
-
     $('.view').not(document.getElementById(view)).collapse('hide');
-
   });
-  //on show event for item Details modal
+
+  //onshow event for Item Details modal
   $('#myModal').on('shown.bs.modal', function (e) {
-
-    //validate everytime the form opens
-    //$('#modalForm').validator('validate');
+    //console.log("Show Bootstrap modal");
+    //$('#descriptionEditor').tinymce( { width: '100%', menubar: false});
 
   });
+
+  $('#myModal').on('hidden.bs.modal', function (e) {
+    //console.log("Hide Bootstrap modal");
+    //tinymce.remove();
+  });
+
+
   //Click event for Help Modal
   $('#egamHelp').on('click', function(e){
     $('#helpModal').modal('show');
   });
+
   //Add tooltips
   var options = {delay: { "show": 1000, "hide": 100 }};
   $('[data-toggle="tooltip"]').tooltip(options);
+
+
+  ko.bindingHandlers['wysiwyg'].defaults = {
+    'plugins': [ 'link textcolor colorpicker' ],
+    'toolbar': 'bold italic underline forecolor backcolor | alignleft aligncenter alignright alignjustify | numlist' +
+    ' bullist indent outdent | link image | undo redo | fontsizeselect ',
+    'menubar': false,
+    'statusbar': false,
+    'toolbar_items_size' : 'small',
+    'body_class': 'form-group has-success form-control'
+  };
+
+
 });
 
 
 
 
-// function AppViewModel() {
-//         this.firstName = ko.observable("Bert");
-//         this.lastName = ko.observable("Bertington");
-//         this.fullName = ko.computed(function() {
-//         return this.firstName() + " " + this.lastName();
-//     }, this);
-
-//         this.capitalizeLastName = function() {
-//             var currentVal = this.lastName();        // Read the current value
-//             this.lastName(currentVal.toUpperCase()); // Write back a modified value
-//         };
-//     }
-
-//     // Activates knockout.js
-//     ko.applyBindings(new AppViewModel());
-
 
 // Fill table with data queried out of Mongo via Express/Monk
 function populateTable(vTable, query) {
 
-  //    console.log(vTable);
-  //    console.log(query);
   var tableContent = '';
-  //for query pass a string because things like null were being converted to empty string
 
+  //for query pass a string because things like null were being converted to empty string
   query = JSON.stringify(query);
 
-  // jQuery AJAX call for JSON
   $.getJSON('/gpoitems/list', {
     query: query
   }, function (data) {
-    console.log(data);
-
     ko.applyBindings({
       content: data
     });
-
-    //function AppViewModel(){
-    //    var self = this;
-    //    self.people = ko.observableArray(data);
-    //
-    //    self.update = function(){
-    //
-    //    };
-    //
-    //};
-    //
-    //ko.applybindings(new AppViewModel());
-
-
   });
-
 }
 
-
-function rowSelect(x) {
-  alert(x.rowIndex);
-  //alert("hello");
-
-  //alert(gpoData[x.rowIndex-1].title);
-  //$('#myModal').modal('show');
-}
 
 //populate tables for GPO User view
 function populateUserTables(query, projection) {
@@ -143,7 +115,7 @@ function populateUserTables(query, projection) {
         if(self.doc.thumbnail() == null){
           return "../img/noImage.png";
         }else{
-          return "http://epa.maps.arcgis.com/sharing/rest/content/items/" + self.doc.id() + "/info/" + self.doc.thumbnail() + "?token=" + utoken;
+          return "https://epa.maps.arcgis.com/sharing/rest/content/items/" + self.doc.id() + "/info/" + self.doc.thumbnail() + "?token=" + utoken;
         }
       }, this);
 
@@ -248,7 +220,6 @@ function populateUserTables(query, projection) {
         auditRes.validate(unmappedDoc, "");
         ko.mapping.fromJS(unmappedDoc, this.selected().doc);
 
-        //alert(JSON.stringify(this.selected().changeDoc));
 
         var mydata = new FormData();
         mydata.append("updateDocs", JSON.stringify(this.selected().changeDoc));
@@ -304,9 +275,6 @@ function populateUserTables(query, projection) {
       var self = this;
 
       self.content = ko.observableArray(data.map(function (i) {
-        //return new rowModel(i.id, i.title, i.type, i.description, i.tags, i.snippet, i.thumbnail, i.accessInformation, i.licenseInfo, i.access, i.numViews
-        //    , i.owner, i.url, i.AuditData.compliant, i);
-        //var rowModel1 = ko.mapping.fromJS(i);
         return new rowModel1(i);
       }));
 
@@ -318,7 +286,6 @@ function populateUserTables(query, projection) {
         self.selected(selectedItem);
       };
 
-//      self.selected = ko.observable(self.content()[0]);
       self.selected = ko.observable();
       if (self.content().length > 0) self.selected = ko.observable(self.content()[0]);
 
@@ -330,9 +297,7 @@ function populateUserTables(query, projection) {
         //Use this so we know when everything is loaded
         var defer = $.Deferred();
 
-//        var array = $.extend([], self.content());
-
-        //This lets thing work async style so that page is not locked up when ko is mapping
+        //This lets things work async style so that page is not locked up when ko is mapping
         //Maybe use an async library later
         var i = 0;
         var interval = setInterval(function () {
@@ -347,8 +312,6 @@ function populateUserTables(query, projection) {
           }
         }, 0);
 
-        //        self.content(array);
-        console.log("done adding " + self.content.length);
         return defer;
       };
 
@@ -365,17 +328,14 @@ function populateUserTables(query, projection) {
           $('#imageUpload').toggle();
           $('.fileinput').fileinput('clear');
         }
-
-        //alert("closed");
       });
 
-      //Leave these in here for now so they get checked into repo. Can remove after in repo
 
       self.addPushAll = function (data) {
         //Use this so we know when everything is loaded
         var defer = $.Deferred();
 
-        //This lets thing work async style so that page is not locked up when ko is mapping
+        //This lets things work async style so that page is not locked up when ko is mapping
         //Maybe use an async library later
         var interval = setInterval(function () {
           var array = data.map(function (i) {
@@ -410,14 +370,11 @@ function populateUserTables(query, projection) {
             setTimeout(function () {
               self.content(array);
             }, 0);
-            console.log("done setting" + array.length);
             defer.resolve();
             clearInterval(interval);
           }
         }, 0);
 
-        //        self.content(array);
-        console.log("done adding " + array.length);
         return defer;
       };
 
@@ -439,15 +396,15 @@ function populateUserTables(query, projection) {
     };
 
 
-//Show the loading message and count. Hide the table.
+    //Show the loading message and count. Hide the table.
     $('div#loadingMsg').removeClass('hidden');
     $('div#overviewTable').addClass('hidden');
     $("#loadingMsgCountContainer").removeClass('hidden');
 
-//If first time every binding to table need to apply binding, but can only bind once so don't bind again if reloading table
+    //If first time every binding to table need to apply binding, but can only bind once so don't bind again if reloading table
     var needToApplyBindings = false;
     if (egam.gpoItems.rowModel) {
-//have to actually remove dataTable rows and destroy datatable in order to get knockout to rebind table
+      //have to actually remove dataTable rows and destroy datatable in order to get knockout to rebind table
       if (egam.gpoItems.dataTable) {
         egam.gpoItems.dataTable.api().clear().draw();
         if ("fnDestroy" in egam.gpoItems.dataTable)
@@ -458,21 +415,15 @@ function populateUserTables(query, projection) {
     } else {
       egam.gpoItems.rowModel = new RootViewModel([]);
       needToApplyBindings = true;
-
-//      addAccessSelectEventHandler($("#dropAccess"));
     }
-//Add these using .add because it should be async and lock up UI less
-    console.log("pre add " + egam.gpoItems.rowModel.content().length);
+    //Add these using .add because it should be async and lock up UI less
     egam.gpoItems.rowModel.add(dataResults, updateLoadingCountMessage)
       .then(function () {
-//If there are no rows then don't try to bind
+        //If there are no rows then don't try to bind
         if (dataResults.length < 1) return defer.resolve();
-//cluge to make row model work because it is trying to bind rowmodel.selected()
+        //cluge to make row model work because it is trying to bind rowmodel.selected()
         egam.gpoItems.rowModel.selectIndex(0);
         if (needToApplyBindings) ko.applyBindings(egam.gpoItems.rowModel);
-
-//        $("#gpoitemtable1").addClass("loaded");
-//        return defer.resolve();
 
         console.log("Create data table");
         setTimeout(function () {
@@ -488,7 +439,7 @@ function populateUserTables(query, projection) {
 
 
     function updateLoadingCountMessage(index) {
-//Only show every 10
+      //Only show every 10
       if (index % 10 === 0) $("#loadingMsgCount").text(index + 1);
     }
 
@@ -572,7 +523,7 @@ egam.renderGPOitemsDataTable = function () {
     initComplete: function () {
       defer.resolve(this);
       $("#gpoitemtable1").addClass("loaded");
-      console.log("INIT Compplete");
+      console.log("init complete");
       this.api().columns().every(function () {
 
         var column = this;
