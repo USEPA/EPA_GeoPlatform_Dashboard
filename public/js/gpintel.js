@@ -138,11 +138,13 @@ function populateUserTables(query, projection) {
         this.addFieldChange("description", evt);
       }.bind(this));
 
+      /* this is actually Access and Use Constraints */
       this.doc.licenseInfo.subscribe(function (evt) {
         this.execAudit("licenseInfo");
         this.addFieldChange("licenseInfo", evt);
       }.bind(this));
 
+      /* this is actually credits */
       this.doc.accessInformation.subscribe(function (evt) {
         this.execAudit("accessInformation");
         this.addFieldChange("accessInformation", evt);
