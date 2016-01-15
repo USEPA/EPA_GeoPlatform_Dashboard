@@ -104,7 +104,7 @@
       editor.on( 'change keyup nodechange', function( e ) {
         // Update the valueAccessor
         args[1]()( editor.getContent() );
-
+        //console.log(editor.getContent());
         // Run all applied extensions
         for ( var name in extensions ) {
           if ( extensions.hasOwnProperty( name ) ) {
