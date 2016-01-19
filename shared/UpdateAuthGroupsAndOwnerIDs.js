@@ -56,6 +56,7 @@ UpdateAuthGroupsAndOwnerIDs.prototype.updateAuthGroupsInner = function(user) {
   var self = this;
   var Q = require('q');
   var arrayExtended = require('array-extended');
+  var merge = require('merge');
 
 //Check if this is admin and save that to DB also just for convenience
   var isAdmin = false;
@@ -78,8 +79,12 @@ UpdateAuthGroupsAndOwnerIDs.prototype.updateAuthGroupsInner = function(user) {
   if (isAdmin) console.log("Updated Info:" + JSON.stringify(updateUser));
   return Q(self.usersCollection.update({username: user.username}, {$set: updateUser}))
     .then(function () {
-      return updateUser;});
-
+ //merge the updated info into the other user info to get full updated user object
+      var newUser = {};
+//note first merge user into new empty user object so we don't overwrite user passed in
+      merge.recursive(newUser, user);
+      merge.recursive(newUser, updateUser);
+      return newUser;});
 };
 
 UpdateAuthGroupsAndOwnerIDs.prototype.getGroupsFromUser = function(user) {
@@ -148,5 +153,67 @@ UpdateAuthGroupsAndOwnerIDs.prototype.getOwnerIDsInAuthGroups = function(authGro
 
 };
 
+
+UpdateAuthGroupsAndOwnerIDs.prototype.getOwnerIDsForEachAuthGroup = function(user) {
+//Get the ownerIDs for each single Auth Group
+//Basically just query OwnerIDs table where size=1
+  var self = this;
+  var Q = require('q');
+  var async = require('async');
+  var appRoot = require('app-root-path');
+  var utilities = require(appRoot + '/shared/utilities');
+
+  var defer = Q.defer();
+
+  var ownerIDsByAuthGroup = {};
+
+  if (! user.authGroups || user.authGroups.length<1) defer.resolve(ownerIDsByAuthGroup);
+
+//if super user then get all authgroups, if not then only get authgroups user is member of
+
+  Q(true)
+    .then(function() {
+      if (user.isSuperUser===true) {
+        return self.getAvailableAuthGroups();
+      }else {
+        return user.authGroups;
+      }
+    })
+    .then(function (authGroups) {
+      async.forEachOf(authGroups, function (authGroup, key, done) {
+          Q(self.ownerIDsCollection.findOne({authGroups:{$size:1,$eq:authGroup}},{fields:{authGroups:1,ownerIDs:1}}))
+            .then(function (doc) {
+              if (! doc) {
+//if individual authGroup is NOT in ownerIDs DB then have to search Users DB to generate OwnerIDs
+//Note when user/ownerID info changes in users DB need to clear out ownerIDsCollection cache
+                return self.getOwnerIDsInAuthGroups([authGroup]);
+              }else{
+//if authGroup combo IS in DB then return coresponding OwnerIDs
+                return doc.ownerIDs;
+              }
+            })
+            .then(function (ownerIDs) {
+//Now add to object pairing ownerIDs to individual auth group
+              ownerIDsByAuthGroup[authGroup]=ownerIDs;
+              return ownerIDsByAuthGroup;
+            })
+            .catch(function (err) {
+              defer.reject('Error in async.forEachOf while calling UpdateAuthGroupsAndOwnerIDs.getOwnerIDsForEachAuthGroup():' + err.stack);
+            })
+            .done(function () {
+              done();
+            });
+        }
+        , function (err) {
+          if (err) defer.reject('Error with async.forEachOf while looping over single Auth Groups to find onwers using UpdateAuthGroupsAndOwnerIDs.getOwnerIDsForEachAuthGroup:' + err.stack);
+//resolve this promise
+          defer.resolve(ownerIDsByAuthGroup);
+        });
+      return true;
+    });
+
+//I have to return a promise here for so that chain waits until everything is done .
+  return defer.promise
+};
 
 module.exports = UpdateAuthGroupsAndOwnerIDs;

@@ -76,6 +76,15 @@ require([
           //Save portalUser on application object so it can be used throughout
           if (egam) egam.portalUser = portalUser;
 
+          //Save communityUser on application object so it can be used throughout
+          //communityUser has group and authGroup info
+          if (egam && response.body.user) egam.communityUser = response.body.user;
+
+          //set up the authGroups dropdown
+          egam.setAuthGroupsDropdown(egam.communityUser.ownerIDsByAuthGroup);
+//set authGroups count
+          $("#authGroupsCount").html("<a>" + Object.keys(egam.communityUser.ownerIDsByAuthGroup).length + "</a>");
+
           //Is User Admin or lower
           if (portalUser.role == "org_admin") {
             domAttr.set("userId", "innerHTML", "<a>Welcome " + portalUser.fullName + " (GPO Administrator)</a>");
@@ -127,10 +136,9 @@ require([
     //and populate user table in the user view
     //Update in sprint4 to be dynamically changed via UI
 
-    var fields;
     var reducePayload = true;
     if (reducePayload) {
-      fields = {
+      egam.gpoItems.resultFields = {
         id: 1,
         title: 1,
         description: 1,
@@ -151,30 +159,57 @@ require([
       fields = {};
     }
 
-
-    populateUserTables({}, {
-      limit: 10,
+//If super user only get public items initially
+    var query={};
+    if (egam.communityUser.isSuperUser) {
+      query={access:"public"};
+      $("#dropAccess option[value='']").remove();
+    }
+    populateUserTables(query, {
       sort: {
         modified: -1
       },
-      fields: fields
-    }, false)
+      fields: egam.gpoItems.resultFields
+    })
       .then(function() {
         // Hide the loading panel now after first page is loaded
         $('div#loadingMsg').addClass('hidden');
         $('div#overviewTable').removeClass('hidden');
+        $("#loadingMsgCountContainer").addClass('hidden');
+//show the authgroups drop down not that items have been loaded
+        $('#dropAuthGroups').removeClass('hidden');
+        $('#downloadAuthgroupsCSVall').removeClass('hidden');
 
-        return populateUserTables({}, {
-          skip: 10,
-          sort: {
-            modified: -1
-          },
-          fields: fields
-        }, true);
+        return true;
       })
       .fail(function(err) {
         console.error(err);
       });
+
+// This was loading first page and then the rest. Will remove later
+//    populateUserTables({}, {
+//      limit: 10,
+//      sort: {
+//        modified: -1
+//      },
+//      fields: fields
+//    }, false)
+//      .then(function() {
+//        // Hide the loading panel now after first page is loaded
+//        $('div#loadingMsg').addClass('hidden');
+//        $('div#overviewTable').removeClass('hidden');
+//
+//        return populateUserTables({}, {
+//          skip: 10,
+//          sort: {
+//            modified: -1
+//          },
+//          fields: fields
+//        }, true);
+//      })
+//      .fail(function(err) {
+//        console.error(err);
+//      });
 
   }
 

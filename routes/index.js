@@ -1,4 +1,4 @@
-module.exports = function(app) {
+module.exports = function (app) {
   var express = require('express');
   var router = express.Router();
   var request = require('request');
@@ -37,16 +37,18 @@ module.exports = function(app) {
     if ('session' in req && req.session.username && username === req.session.username) {
 //If they are already logged into the session don't do it all over again
       console.log("USER ALREADY IN SESSION");
-      res.json({error: null, body: {user: req.session.username}});
+      res.json({error: null, body: {user: req.session.user}});
     } else {
       hr.callAGOL(requestPars)
         .then(handleResponse)
         .then(getSuperUser)
-        .then(getOwnerIDs)
+        .then(getAuthGroupsAndOwnerIDs)
         .then(updateDBonLogin)
-        .catch(utilities.getHandleError(resObject,"LoginError"))
+        .catch(utilities.getHandleError(resObject, "LoginError"))
 //Now that update is done we can finally return result
-        .done(function () {res.json(resObject)});
+        .done(function () {
+          res.json(resObject)
+        });
     }
 
     function handleResponse(body) {
@@ -59,72 +61,85 @@ module.exports = function(app) {
           req.session.user = user;
         }
         resObject = {error: null, body: {user: user}};
+        return resObject;
       } else {
         resObject = {error: {message: "Username does not match token", code: "UsernameTokenMismatch"}, body: null};
+        return resObject;
       }
     }
 
-    function getOwnerIDs() {
-//these are owner IDs that this user can see. Usually just equal to username unless they are Admin.
+    function getAuthGroupsAndOwnerIDs() {
+//If there was an error with resObject then don't need to do this
+      if (resObject.error !== null) return true;
+
       var user = req.session.user;
 
-//Check if user is in super user group
-      if (req.session.isSuperUser===true) {
-//Return the ownerIDs saved in session when user was determined to be Super User
-        return req.session.ownerIDs;
-      }
-
       var appRoot = app.get('appRoot');
-      var monk = app.get('monk');
-      var usersCollection = monk.get('GPOusers');
-      var ownerIDsCollection = monk.get('GPOownerIDs');
+
 //      var authgroupsCollection = monk.get('GPOauthGroups');
 //Note I going to get the available authGroups from config file now so pass path to file. Simpler to maintain
       var authgroupsCollection = appRoot + '/config/authGroups.js';
 
-
+      var monk = app.get('monk');
+      var usersCollection = monk.get('GPOusers');
+      var ownerIDsCollection = monk.get('GPOownerIDs');
       //Set up classed used to find OwnerIDs. Can be reused across app because only saved data is list of available Auth Groups in system
       var UpdateAuthGroupsAndOwnerIDsClass = require(appRoot + '/shared/UpdateAuthGroupsAndOwnerIDs');
-      var updateAuthGroupsAndOwnerIDs = new UpdateAuthGroupsAndOwnerIDsClass(usersCollection,ownerIDsCollection,authgroupsCollection);
+      var updateAuthGroupsAndOwnerIDs = new UpdateAuthGroupsAndOwnerIDsClass(usersCollection, ownerIDsCollection, authgroupsCollection);
 
+//First have to update any new auth groups they might have been added to then get ownerIDs for each auth group
+      return updateAuthGroupsAndOwnerIDs.updateAuthGroups(user)
+        .then(function (updateUser) {
+          user = updateUser;
+          return updateAuthGroupsAndOwnerIDs.getOwnerIDsForEachAuthGroup(user)
+        })
+//Now that authgroups with corresponding ownerIDs is returned we can save them in Session
+        .then(function (ownerIDsByAuthGroup) {
+          user.ownerIDsByAuthGroup=ownerIDsByAuthGroup;
+          req.session.user = user;
+          resObject.body.user = user;
+        })
+//Now get all of the ownerIDs this user can see based on auth groups membership
+        .then(function () {
 //Only have to find OwnerIDs for Admins otherwise they only see themselves
-      if (user.role==="org_admin") {
-        return updateAuthGroupsAndOwnerIDs.updateAuthGroups(user)
-//Note need to get the local User object that has authGroups required to find OwnerIDs
-          .then(function (localUser) {return updateAuthGroupsAndOwnerIDs.getOwnerIDs(localUser)})
+          if (user.role === "org_admin") {
+            return updateAuthGroupsAndOwnerIDs.getOwnerIDs(user);
+          } else {
+            return [user.username];
+          }
+        })
 //Now that ownerIDs is returned we can save them in Session
-          .then(function (ownerIDs) {
-            req.session.ownerIDs = ownerIDs;
-            return req.session.ownerIDs;
-          });
-      }else {
-        req.session.ownerIDs = [user.username];
-        return req.session.ownerIDs;
-      }
+        .then(function (ownerIDs) {
+          req.session.ownerIDs = ownerIDs;
+          return resObject;
+        });
 
-//This was just to test admins who can view multiple owners running updateDBonLogin
-//      if (req.session.ownerIDs[0]==="aaron.evans_EPA" ) req.session.ownerIDs=["aaron.evans_EPA","aevans26_EPA"];
 
     }
 
+
     function getSuperUser() {
+//If there was an error with resObject then don't need to do this
+      if (resObject.error !== null) return true;
+
       var Q = require('q');
       var user = req.session.user;
       var config = app.get('config');
-      if (! config.superUserGroup || ! user.groups) return false;
+      if (!config.superUserGroup || !user.groups) return false;
 //.some() breaks and returns true when callback returns true. If all are false .some() returns false.
       var isSuperUser = user.groups.some(function (group) {
-        return (group.title===config.superUserGroup);
+        return (group.title === config.superUserGroup);
       });
 
 //if not super user return false. otherwise have to find all owner IDs in GPOitems if user is Super User
-      req.session.isSuperUser = isSuperUser;
-      if (! isSuperUser) return false;
+      req.session.user.isSuperUser = isSuperUser;
+
+      if (!isSuperUser) return false;
 
 //get all OwnerIDs if super user. Note: This is just needed to download owners metadata in task queue format without interference
       var monk = app.get('monk');
       var itemsCollection = monk.get('GPOitems');
-      return utilities.getDistinctArrayFromDB(itemsCollection,{},"owner")
+      return utilities.getDistinctArrayFromDB(itemsCollection, {}, "owner")
         .then(function (ownerIDs) {
           req.session.ownerIDs = ownerIDs;
           return true;
@@ -132,6 +147,9 @@ module.exports = function(app) {
     }
 
     function updateDBonLogin() {
+//If there was an error with resObject then don't need to do this
+      if (resObject.error !== null) return true;
+
       var Q = require('q');
       var appRoot = app.get('appRoot');
       var config = app.get('config');
@@ -161,7 +179,7 @@ module.exports = function(app) {
       downloadGPOdata.orgID = config.AGOLorgID;
 
       downloadGPOdata.ownerIDs = req.session.ownerIDs;
-      console.log("downloadGPOdata.ownerIDs : " + downloadGPOdata.ownerIDs );
+      console.log("downloadGPOdata.ownerIDs : " + downloadGPOdata.ownerIDs);
 
 //The download process will be passed to a queue so that 2 users are not updating same stuff possibly
 //After download is complete the response body of login will be sent back
@@ -173,7 +191,7 @@ module.exports = function(app) {
 //groupedTasks is a list of all tasks that must be free for this Admin untile downloadGPOdata.download can be exectuted
       var TaskReady = {};
 
-      tasksQueues = app.get('tasksQueues');
+      var tasksQueues = app.get('tasksQueues');
       var taskBase = 'updateDBonLogin';
 //Only if list of owner IDs is available do we need to add ownerID to task names
       if (Array.isArray(downloadGPOdata.ownerIDs) && downloadGPOdata.ownerIDs.length > 0) {
@@ -184,12 +202,12 @@ module.exports = function(app) {
         });
 
         Object.keys(TaskReady).forEach(function (task) {
-          //The actual download process "updateDBonLoginPromise" with "task" as argument will be called when it is next in queue
-          var data = {task:task,TaskReady:TaskReady,defer:defer};
+          //The actual download process "updateDBonLoginPromise" with "data" as argument will be called when it is next in queue
+          var data = {task: task, TaskReady: TaskReady, defer: defer};
 //          console.log("adding data.task: " + data.task + " TaskReady: " + Object.keys(data.TaskReady));
           tasksQueues.add(task, updateDBonLoginPromise, data);
         });
-      }else {
+      } else {
         defer.resolve();
       }
 
@@ -237,7 +255,7 @@ module.exports = function(app) {
 
 //Get shared/Audit.js from client http reference to Public folder
 //Not sure if this is going to work with caching etc
-  router.use('/js/ServerAudit.js', function (req, res, next) {
+  router.use('/js/Audit.js', function (req, res, next) {
     var fs = require('fs');
 
     var filePath = app.get('appRoot') + '/shared/Audit.js';
@@ -245,13 +263,13 @@ module.exports = function(app) {
     var stat = fs.statSync(filePath);
 
     res.writeHead(200, {
-        'Content-Type': 'application/javascript',
-        'Content-Length': stat.size
-      });
+      'Content-Type': 'application/javascript',
+      'Content-Length': stat.size
+    });
 
-      var readStream = fs.createReadStream(filePath);
-      // We replaced all the event handlers with a simple call to readStream.pipe()
-      readStream.pipe(res);
+    var readStream = fs.createReadStream(filePath);
+    // We replaced all the event handlers with a simple call to readStream.pipe()
+    readStream.pipe(res);
   });
 
   return router;

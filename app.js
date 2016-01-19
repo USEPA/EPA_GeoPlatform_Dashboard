@@ -15,6 +15,7 @@ var MonkClass = require('monk');
 
 var routes = require('./routes/index');
 var gpoitems = require('./routes/gpoitems');
+var gpousers = require('./routes/gpousers');
 
 var app = express();
 
@@ -98,6 +99,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', routes(app));
 app.use('/gpoitems', gpoitems(app));
+app.use('/gpousers', gpousers(app));
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

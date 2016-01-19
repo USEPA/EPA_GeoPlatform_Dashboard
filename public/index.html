@@ -45,7 +45,7 @@
             <li id="userId" style="display: none"></li>
             <li id="personalizedPanel" style="display: none; "><a id="sign-out" href="#">Sign Out</a></li>
             <li id="anonymousPanel" style="display: block"><a href="#" id="sign-in" >Sign In</a></li>
-            <li><a href="#">Help</a></li>
+            <li><a id="egamHelp" href="#">Help</a></li>
           </ul>
 
           <form class="navbar-form navbar-right">
@@ -68,17 +68,254 @@
         </div>
       </div>
     </nav>
+    <!--Help Modal-->
+    <div class="modal fade" id="helpModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close" ><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title" id="helpModalLabel">GeoPlatform Dashboard Help</h4>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-2">
+                            <!-- Nav tabs -->
+                            <ul class="nav nav-pills nav-stacked" role="tablist">
+                                <li role="presentation" class="active"><a href="#about" aria-controls="About" role="tab" data-toggle="tab">About</a></li>
+                                <li role="presentation"><a href="#SignInOut" aria-controls="SignInOut" role="tab" data-toggle="tab">Signing In/Out</a></li>
+                                <li role="presentation"><a href="#InitialView" aria-controls="InitialView" role="tab"
+                                                           data-toggle="tab">Initial View</a></li>
+                                <li role="presentation"><a href="#DashboardUse" aria-controls="DashboardUse" role="tab" data-toggle="tab">GeoPlatform Online Content</a></li>
+                                <li role="presentation"><a href="#Email" aria-controls="ContactUs" role="tab" data-toggle="tab">Contact Us</a></li>
+                                <!--<li role="presentation"><a href="#settings" aria-controls="settings" role="tab" data-toggle="tab">Settings</a></li>-->
+                            </ul>
+                        </div>
 
+                        <!-- Tab panes -->
+                        <div class="col-md-10">
+                            <div class="tab-content">
+                                <div role="tabpanel" class="tab-pane active" id="about">
+                                    <h4>What's this app for?</h4>
+                                    <p>The EPA GeoPlatform Dashboard provides information on GeoPlatform items.
+                                        It allows the user to audit and edit this information in order to comply with EPA guidelines.</p>
+                                    <p>This guide will walk you through using the Dashboard. These instructions
+                                        will step through the navigation menu on the left side of the screen
+                                        beginning with GeoPlatform Online (GPO) Content.
+                                        More content is currently being added to this application and help documentation will continually be added as more
+                                        functionality is added.</p>
+                                </div>
+                                <div role="tabpanel" class="tab-pane" id="SignInOut">
+                                    <h4>Signing In/Out</h4>
+                                    <p>The navigation bar in the top right corner of the application has two buttons, Sign In/Sign Out,
+                                        and Help. Clicking the Sign In button will prompt the user for sign-in
+                                        credentials for the GeoPlatform Online (GPO).
+                                        Either Esri-based GPO credentials or your EPA Enterprise Single Sign-On
+                                        credentials can be used. Once you have signed in, the sign in
+                                        button will display your user name and your GPO Role (eg. User, Admin, etc.)
+                                        next to the Sign Out button.</p>
+                                </div>
+                                <div role="tabpanel" class="tab-pane" id="InitialView">
+                                    <h4>Initial View</h4>
+                                    <p>The initial view displays a few key items across the
+                                        top of the screen above the data table (Public Items Audit Result, My Items, My
+                                        Groups, Auth Groups). 'Public Items Audit Result' displays
+                                        the percentage of public items that have passed the Audit. The audit is run throughout the life cycle of the
+                                        application, so this number will reflect what is current. 'My Items' displays
+                                        the number of Items associated with your
+                                        GPO account. 'My Groups' displays the number of groups associated with your account. 'Auth Groups' display the number of
+                                        Authoritative groups that your account is associated with. The names of those groups can be displayed when the number
+                                        is clicked. When clicked, either the authoritative group you are associated
+                                        with will display or, if your GPO account is
+                                        associated with multiple authoritative groups, then a dropdown will display
+                                        with a list of the Authoritative groups.
+                                        By choosing one of these groups it will refresh the table below with the content from the chosen group.</p>
+                                </div>
 
+                                <div role="tabpanel" class="tab-pane" id="DashboardUse">
+                                    <h4>GeoPlatform Online Content</h4>
+                                    <!--Accordion-->
+                                    <div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">
+                                        <div class="panel panel-default">
+                                            <div class="panel-heading" role="tab" id="headingOne">
+                                                <h4 class="panel-title">
+                                                    <a role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                                                        GeoPlatform Online Content Table
+                                                    </a>
+                                                </h4>
+                                            </div>
+                                            <div id="collapseOne" class="panel-collapse collapse in" role="tabpanel" aria-labelledby="headingOne">
+                                                <div class="panel-body">
+                                                    <p>The GPO Content table displays the GPO items. The columns of the table are defined below:</p>
+                                                    <table class="table table-bordered">
+                                                        <tr>
+                                                            <td>Title</td>
+                                                            <td>The title of the item. This is the name that's displayed to users and by which they refer to the item. Every item must have a title.</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>Access</td>
+                                                            <td>Indicates the level of access to this item: private, shared, org or public.</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>Type</td>
+                                                            <td>The GIS content type of this item. Examples include Web Map, Map Service, Shapefile, and Web Mapping Application.
+                                                                To see all the available types see <a href="http://resources.arcgis.com/en/help/arcgis-rest-api/index.html#//02r3000000ms000000">ArcGIS Resources</a>.</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>Views</td>
+                                                            <td>Number of views of the item.</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>Owner</td>
+                                                            <td>The username of the user who owns this item.</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>Audit</td>
+                                                            <td>This field indicates if the item pass for failed the audit.</td>
+                                                        </tr>
+                                                    </table>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="panel panel-default">
+                                            <div class="panel-heading" role="tab" id="headingTwo">
+                                                <h4 class="panel-title">
+                                                    <a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+                                                        Searching and Filtering Table
+                                                    </a>
+                                                </h4>
+                                            </div>
+                                            <div id="collapseTwo" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingTwo">
+                                                <div class="panel-body">
+                                                    <p>Searching - You can search the GPO content table by entering a word or phrase to search by in the search text box in
+                                                        the top right corner of the table. This will search all items and columns.</p>
+                                                    <p>Filter - You can filter what is displayed in the GPO content table by clicking on the dropdown menus under the title
+                                                        for each column. For the title column you must type in text to filter the table.</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="panel panel-default">
+                                            <div class="panel-heading" role="tab" id="headingThree">
+                                                <h4 class="panel-title">
+                                                    <a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
+                                                        Item Details
+                                                    </a>
+                                                </h4>
+                                            </div>
+                                            <div id="collapseThree" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingThree">
+                                                <div class="panel-body">
+                                                    <p>The item details for a GPO item in the table can be displayed by clicking on the row. The item details
+                                                        display the following information for an item.</p>
+                                                    <table class="table table-bordered">
+                                                        <tr>
+                                                            <td>Title</td>
+                                                            <td>The title of the item.</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>Summary</td>
+                                                            <td>a short summary description of the item.</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>Description</td>
+                                                            <td>Item description.</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>Credits</td>
+                                                            <td>Any license information or restrictions.</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>Access and use Constraints</td>
+                                                            <td>Information on the source of the item and its copyright status.</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>URL</td>
+                                                            <td>The URL for the resource represented by the item. Applies only to items that represent web-accessible resources such as map services.</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>Thumbnail</td>
+                                                            <td>The URL to the thumbnail used for the item.</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>Tags</td>
+                                                            <td>User defined tags that describe the item.</td>
+                                                        </tr>
+                                                    </table>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="panel panel-default">
+                                            <div class="panel-heading" role="tab" id="headingFour">
+                                                <h4 class="panel-title">
+                                                    <a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseFour" aria-expanded="false" aria-controls="collapseFour">
+                                                        Editing Item Details
+                                                    </a>
+                                                </h4>
+                                            </div>
+                                            <div id="collapseFour" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingFour">
+                                                <div class="panel-body">
+                                                    <p>Editing Item Details - An items details can be edited by changing the value in the textbox next to the item detail that you wish to change.</p>
+                                                    <p>Changing Item Thumbnail - The thumbnail for an item can also be changed by clicking the change button under the thumbnail preview and
+                                                        navigating to the image that you would like to use as the thumbnail.  For best results, the image should be 200 pixels wide by 133 pixels high.
+                                                        Acceptable image formats are: PNG, GIF and JPEG. </p>
+                                                    <p>Adding/Removing Tags - Tags can be added and removed from an item. To add a tag an item type the tag that you would like in the text box under
+                                                        the Tags title, then click the Add button. The tage will be added to the list below the Add button. To remove a tag, select the tag in the Tags
+                                                        List and click the Remove button.
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!--end Accordion-->
+                                    <div>
+                                    </div>
+                                </div>
+                                <div role="tabpanel" class="tab-pane" id="Email">
+                                    <h4>Contact Us</h4>
+                                    <p>Send Questions and Comments to <a
+                                            href="mailto:epageoplatform@epa.gov?subject=EPA GeoPlatform Dashboard">
+                                        epageoplatform@epa.gov</a></p>
+                                    <!--<form action="mailto: dyarnell@innovateteam.com" method="post">-->
+                                        <!--<div class="form-group">-->
+                                            <!--<label for="EmailSubject">Email address</label>-->
+                                            <!--<input type="text" class="form-control" id="EmailSubject" placeholder="Subject">-->
+                                        <!--</div>-->
+                                        <!--<div class="form-group">-->
+                                            <!--<label for="EmailText">Email address</label>-->
+                                            <!--<textarea class="form-control col-lg" id="EmailText" placeholder="Text input" rows="4"></textarea>-->
+                                        <!--</div>-->
+                                        <!--<button type="submit" class="btn btn-default"></button>-->
+                                    <!--</form>-->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal" >Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!--End Help Modal-->
 
     <div class="container-fluid">
       <div class="row">
         <div class="col-sm-3 col-md-2 sidebar">
-          <ul class="nav nav-sidebar">
-            <li class="active"><a id="overview" href="#overviewTable">GeoPlatform Online (GPO) Content <span class="sr-only">(current)</span></a></li>
-            <li ><a  id="metrics" href="#metricsTable" >GPO Metrics (Future)</a></li>
-            <li><a  id="environment"  href="#" >GeoPlatform Hosting Environment (Future)</a></li>
-          </ul>
+            <ul class="nav nav-pills nav-stacked" role="tablist">
+                <li role="presentation" class="active"><a href="#overviewView" role="tab" aria-controls="overviewView" data-toggle="tab">GeoPlatform Online Content</a></li>
+                <li role="presentation"><a href="#metricsView" role="tab" aria-controls="metricsView"
+                                           data-toggle="tab">GeoPlatform Online Metrics (Future)</a></li>
+                <li role="presentation"><a href="#environmentView" role="tab" aria-controls="metricsView" data-toggle="tab">GeoPlatform Hosting Environment (Future)</a></li>
+                <li role="presentation"><a href="#userMgmtView" role="tab" aria-controls="userMgmtView"
+                                           data-toggle="tab">User Management (Future)</a></li>
+                <li role="presentation"><a href="#edgView" role="tab" aria-controls="edgView"
+                                           data-toggle="tab">EDG Items (Future)</a></li>
+
+            </ul>
+          <!--<ul class="nav nav-sidebar">-->
+            <!--<li class="active"><a id="overview" href="#overviewTable">GeoPlatform Online (GPO) Content <span class="sr-only">(current)</span></a></li>-->
+            <!--<li ><a  id="metrics" href="#metricsTable" >GPO Metrics (Future)</a></li>-->
+            <!--<li><a  id="environment"  href="#" >GeoPlatform Hosting Environment (Future)</a></li>-->
+          <!--</ul>-->
         </div>
 
         <div id="mainWindow" style="display: none; " class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
@@ -127,31 +364,43 @@
           <h1 class="page-header">EPA GeoPlatform</h1>
   -->
           <div class="row placeholders">
-          <div class="col-xs-6 col-sm-4 placeholder">
+          <div class="col-xs-6 col-sm-3 placeholder">
               <img data-src="holder.js/200x200/auto/sky" class="img-responsive" alt="" style="display:none">
               <h4>Public Items Audit Result</h4>
               <span id="percPublicPassingAudit" class="text-muted">75% Passing</span>
             </div>
-            <div class="col-xs-6 col-sm-4 placeholder">
+            <div class="col-xs-6 col-sm-3 placeholder">
               <img data-src="holder.js/200x200/auto/sky" class="img-responsive" alt="Generic placeholder thumbnail" style="display:none">
               <h4>My Items</h4>
               <span id="agoItems" class="text-muted"></span>
             </div>
-            <div class="col-xs-6 col-sm-4 placeholder">
+            <div class="col-xs-6 col-sm-3 placeholder">
               <img data-src="holder.js/200x200/auto/vine" class="img-responsive" alt="Generic placeholder thumbnail" style="display:none">
               <h4>My Groups</h4>
               <span id="agoGroups" class="text-muted"></span>
             </div>
+              <div class="col-xs-6 col-sm-3 placeholder">
+                  <img data-src="holder.js/200x200/auto/vine" class="img-responsive" alt="Generic placeholder thumbnail" style="display:none">
+                  <h4 style="white-space:nowrap;">Auth Groups
+                  </h4>
+                  <a data-toggle="tooltip" data-placement="left" title="Show/Hide Auth Groups"><span id="authGroupsCount" class="text-muted" data-toggle="collapse" href="#collapseExample" aria-expanded="false" aria-controls="collapseExample"></span></a>
+                  <div class="collapse" id="collapseExample">
+                      <select id="dropAuthGroups" class="search form-control input-sm hidden"></select>
+                      <a id="downloadAuthgroupsCSVall" href="/gpoUsers/list.csv" class="hidden">download users</a>
+                      <a id="downloadAuthgroupsCSVregions" href="/gpoUsers/list.csv/authGroups/" class="hidden">download users</a>
+                  </div>
+              </div>
 
           </div>
-
-
-          <!-- Begin overview -->
-          <div class="view collapse in" id="overviewView" >
+         <div class="tab-content">
+          <!-- Begin overview class="view collapse in"-->
+          <div role="tabpanel" class="tab-pane active" id="overviewView" >
             <div id="loadingMsg" class="jumbotron hidden">
                 <h2 class="text-center">Just one moment, fetching the latest GeoPlatform content for you...</h2>
-                <img src="../img/loading.gif" class="img-responsive center-block" alt="now loading"></img>
+                <h3 id="loadingMsgCountContainer" class="text-center hidden"><span id="loadingMsgCount"></span> / <span id="loadingMsgTotalCount"></span> items loaded</h3>
+                <img src="../img/loading.gif" class="img-responsive center-block" alt="now loading" />
             </div>
+            <!--</div>-->
             <div id="overviewTable" >
              <h3 class="sub-header"></h3>
               <table id="gpoitemtable1" class="table table-hover table-bordered table-responsive">
@@ -163,9 +412,15 @@
                             <input class="search form-control input-sm" placeholder="Search By Title">
                         </span>
                     </th>
-                    <th>Access</br>
+                    <th class="accessColumn">Access</br>
                         <span onclick="event.stopPropagation();" >
-                            <select class="search form-control input-sm"><option value="">All</option></select>
+                            <select id="dropAccess" class="search form-control input-sm">
+                                <option value="">All</option>
+                                <option value="public">public</option>
+                                <option value="org">org</option>
+                                <option value="shared">shared</option>
+                                <option value="private">private</option>
+                            </select>
                         </span>
                     </th>
                     <th>Type</br>
@@ -174,7 +429,7 @@
                         </span>
                     </th>
                     <th>Views</th>
-                    <th>Owner</br>
+                    <th class="ownerColumn">Owner</br>
                         <span onclick="event.stopPropagation();" >
                             <select class="search form-control input-sm"><option value="">All</option></select>
                         </span>
@@ -223,8 +478,7 @@
               </table>
             </div>
           </div>
-          <!-- End overview -->
-
+            <!-- End Overview -->
 
             <!-- Modal for Editing -->
             <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
@@ -238,21 +492,24 @@
                             <form id="modalForm" role="form" data-toggle="validator" data-disable="false" enctype="multipart/form-data" method="post">
                                 <div class="row form-group">
                                     <div class="col-md-4">
-                                        <div class="form-group has-success" data-bind="css: {'has-error': selected().doc.AuditData.errors.thumbnail&&selected().doc.AuditData.errors.thumbnail.compliant()===false}">
+                                        <div class="form-group has-success" data-bind="css: {'has-error': (selected()) ? selected().doc.AuditData.errors.thumbnail&&selected().doc.AuditData.errors.thumbnail.compliant()===false : false}">
                                             <label>For best results, the image should be 200 pixels wide by 133 pixels high. Other sizes will be adjusted to fit. Acceptable image formats are: PNG, GIF and JPEG.</label>
-                                            <div class="fileinput fileinput-exists" data-provides="fileinput">
-                                                <div class="fileinput-preview thumbnail" data-trigger="fileinput" style="width: 200px; height: 135px;">
+                                            <div class="fileinput fileinput-new" data-provides="fileinput">
+                                                <div id="agoThumb" class="thumbnail" style="width: 200px; height: 135px;">
+                                                    <img id="agoThumbImg" data-bind="attr: {src: selected().tnURLs}">
+                                                </div>
+                                                <div id="imageUpload" class="fileinput-preview thumbnail" data-trigger="fileinput" style="width: 200px; height: 135px; Display: none">
                                                     <!-- ko if: selected().doc.thumbnail -->
-                                                    <img data-bind="attr: {src: selected().tnURLs}">
+                                                    <!--<img data-bind="attr: {src: selected().tnURLs}">-->
                                                     <!-- /ko -->
                                                     <!-- ko ifnot: selected().doc.thumbnail -->
-                                                    <img src="../img/noImage.png">
+                                                    <!--<img src="../img/noImage.png">-->
                                                     <!-- /ko -->
                                                 </div>
                                                 <span class="help-block" data-bind="text: selected().doc.AuditData.errors.thumbnail.messages">Requried</span>
                                                 <div>
-                                                    <span class="btn btn-default btn-file"><span class="fileinput-new">Select image</span><span class="fileinput-exists">Change</span><input id="thumbnail" type="file" name="..."></span>
-                                                    <a href="#" class="btn btn-default fileinput-exists" data-dismiss="fileinput">Remove</a>
+                                                    <span class="btn btn-default btn-file"><span class="fileinput-new">change</span><span class="fileinput-exists">Change</span><input id="thumbnail" type="file" name="..."></span>
+                                                    <!--<a href="#" class="btn btn-default fileinput-exists" data-dismiss="fileinput">Remove</a>-->
                                                 </div>
                                             </div>
 
@@ -299,22 +556,27 @@
                                             <!-- /ko -->
                                         </div>
                                         <div class="form-group has-success" data-bind="css: {'has-error': selected().doc.AuditData.errors.description&&selected().doc.AuditData.errors.description.compliant()===false}">
-                                            <label for="inputDesc">Description</label>
-                                            <textarea class="form-control" id="inputDesc" style="overflow:auto;resize:vertical" data-bind="value: selected().doc.description, valueUpdate: 'afterkeydown'" rows="6" placeholder="Description"></textarea>
+                                            <label>Description</label>
+                                            <textarea class="form-control" id="inputDesc"
+                                                      data-bind="wysiwyg: selected().doc.description, valueUpdate:
+                                            'afterkeydown'" rows="6" placeholder="Description"></textarea>
                                             <!-- ko if: selected().doc.AuditData.errors.description -->
                                             <span class="help-block" data-bind="text: selected().doc.AuditData.errors.description.messages"></span>
                                             <!-- /ko -->
                                         </div>
 
                                         <div class="form-group has-success" data-bind="css: {'has-error': selected().doc.AuditData.errors.licenseInfo && selected().doc.AuditData.errors.licenseInfo.compliant()===false}">
-                                            <label for="inputLicenseInfo">Credits</label>
-                                            <input class="form-control" id="inputLicenseInfo" data-bind="value: selected().doc.licenseInfo, valueUpdate: 'afterkeydown'" type="text">
+                                            <label>Access and Use Constraints</label>
+                                            <textarea class="form-control" id="inputAccessUse"
+                                                      data-bind="wysiwyg: selected().doc.licenseInfo, valueUpdate:
+                                            'afterkeydown'" rows="6"
+                                                      placeholder="Access and Use Constraints"></textarea>
                                             <!-- ko if: selected().doc.AuditData.errors.licenseInfo -->
                                             <span class="help-block" data-bind="text: selected().doc.AuditData.errors.licenseInfo.messages"></span>
                                             <!-- /ko -->
                                         </div>
                                         <div class="form-group has-success" data-bind="css: {'has-error': selected().doc.AuditData.errors.accessInformation&&selected().doc.AuditData.errors.accessInformation.compliant()===false}">
-                                            <label for="inputAccessInfo">Access and use Constraints</label>
+                                            <label for="inputAccessInfo">Credits</label>
                                             <input class="form-control" id="inputAccessInfo" data-bind="value: selected().doc.accessInformation, valueUpdate: 'afterkeydown'" type="text">
                                             <!-- ko if: selected().doc.AuditData.errors.accessInformation -->
                                             <span class="help-block" data-bind="text: selected().doc.AuditData.errors.accessInformation.messages"></span>
@@ -354,90 +616,91 @@
             </div>
             <!-- End Modal for Editing-->
 
-<!-- Metrics View -->
-          <div class="view collapse" id="metricsView" >
+            <!-- Metrics View -->
+            <div role="tabpanel" class="tab-pane" id="metricsView" >
+                <div id="metricsTable" class="table-responsive" >
+                    <h2 class="sub-header">GPO Metrics</h2>
+                    <div class="jumbotron vertical-center">
+                        <div class="text-center">
+                            <h1 class="alert alert-warning">Site Under Construction</h1>
+                            <p>We are currently building something awesome that will be available soon!</p>
+                        </div>
 
-          <div id="metricsTable" class="table-responsive" >
-           <h2 class="sub-header">GPO Metrics</h2>
-              <div>Placeholder for future functionality</div>
-              <img src="img/MetricsDashboard.png" />
-            <table id="gpoitemtable2" class="table table-striped" style="display:none">
-              <thead>
-                <tr>
-                  <th>ID</th>
-                  <th>Title</th>
-                  <th>Access</th>
-                  <th>Tags</th>
-                  <th>Thumbnail Path</th>
-                  <th>Owner</th>
-                </tr>
-              </thead>
-                <tbody></tbody>
-            </table>
-          </div>
+                    </div>
+                </div>
+            </div>
+            <!-- End  Metrics View -->
 
-          </div>
-<!-- End  Metrics View -->
+            <!--  GPO View -->
+            <div role="tabpanel" class="tab-pane" id="environmentView" >
+            <div id="enviroTable" class="table-responsive">
+            <h2 class="sub-header">GeoPlatform Hosting Environment (GPHE) - ArcGIS Servers</h2>
+                <div class="jumbotron vertical-center">
+                    <div class="text-center">
+                        <h1 class="alert alert-warning">Site Under Construction</h1>
+                        <p>We are currently building something awesome that will be available soon!</p>
+                    </div>
 
-<!--  GPO View -->
-          <div class="view collapse" id="environmentView" >
-           <div id="enviroTable" class="table-responsive">
-           <h2 class="sub-header">GeoPlatform Hosting Environment (GPHE) - ArcGIS Servers</h2>
-               <table id="gpoHostingEnv" class="table table-striped" >
-                   <thead>
-                   <tr>
-                       <th>Server Name</th>
-                       <th>Cluster Name</th>
-                       <th>Map Service Name</th>
-                       <th>Service Type</th>
-                       <th>Service POC</th>
-                   </tr>
-                   </thead>
-                   <tbody>
-                       <td>loris2</td>
-                       <td>gispub</td>
-                       <td>EPA_Locations</td>
-                       <td>Map Service</td>
-                       <td>OEI, Harvey Simon</td>
-                   </tbody>
-               </table>
-
-            <table id="gpoitemtable3" class="table table-striped" style="display:none">
-              <thead>
-                <tr>
-                  <th>ID</th>
-                  <th>Title</th>
-                  <th>Access</th>
-                  <th>Tags</th>
-                  <th>Thumbnail Path</th>
-                  <th>Owner</th>
-                </tr>
-              </thead>
-                <tbody></tbody>
-            </table>
+                </div>
           </div>
           </div>
-<!-- End GPO View -->
+            <!-- End GPO View -->
+         <!-- userMgmtView  View -->
+         <div role="tabpanel" class="tab-pane" id="userMgmtView" >
+             <div id="userMgmtViewTable" class="table-responsive">
+                 <h2 class="sub-header">User Management</h2>
+                 <div class="jumbotron vertical-center">
+                     <div class="text-center">
+                         <h1 class="alert alert-warning">Site Under Construction</h1>
+                         <p>We are currently building something awesome that will be available soon!</p>
+                     </div>
 
+                 </div>
+             </div>
+         </div>
+         <!-- End userMgmtView  View -->
+         <!-- userMgmtView  View -->
+         <div role="tabpanel" class="tab-pane" id="edgView" >
+             <div id="edgViewViewTable" class="table-responsive">
+                 <h2 class="sub-header">EDG Items</h2>
+                 <div class="jumbotron vertical-center">
+                     <div class="text-center">
+                         <h1 class="alert alert-warning">Site Under Construction</h1>
+                         <p>We are currently building something awesome that will be available soon!</p>
+                     </div>
+
+                 </div>
+             </div>
+         </div>
+         <!-- End userMgmtView  View -->
+
+         </div>
+
+        </div>
+          <!-- End main -->
 
 
         </div>
       </div>
     </div>
 
-    <!-- Bootstrap core JavaScript
-    ================================================== -->
-    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
-    <script src="//cdn.datatables.net/1.10.9/js/jquery.dataTables.min.js"></script>
-    <script src="//cdn.datatables.net/1.10.9/js/dataTables.bootstrap.min.js"></script>
-    <script src="../bootstrap/js/bootstrap.min.js"></script>
-    <!--<script src="../bootstrap/js/validator.min.js"></script>-->
-    <script src="../bootstrap/js/jasny-bootstrap.min.js"></script>
-    <script src="../js/gpintel.js"></script>
+
+    <script src="js/jquery1.11.3/jquery.min.js"></script>
+    <script src="js/jquery1.11.3/jquery.dataTables.min.js"></script>
+    <script src="js/jquery1.11.3/dataTables.bootstrap.min.js"></script>
+    <script src="bootstrap/js/bootstrap.min.js"></script>
+    <script src="bootstrap/js/jasny-bootstrap.min.js"></script>
+
+    <script src="js/tinymce/tinymce4.3.2.min.js"></script>
+    <script src="js/tinymce/jquery.tinymce4.3.2.min.js"></script>
+    <script src="js/wysiwyg.js"></script>
+
+    <script src="js/gpintel.js"></script>
     <script src="../js/Audit.js"></script>
-    <script src="//js.arcgis.com/3.14/"></script>
-    <script src="../js/gpLogin.js"></script>
-    <script src="js/Audit.js"></script>
+    <!-- Due to some weird timing issues, this order needs to be followed -->
+    <script src="js/esrijsapi/dojo/dojo.js" data-dojo-config="async: true"></script>
+    <!--<script src="//js.arcgis.com/3.15compact/"></script>-->
+    <script src="js/gpLogin.js"></script>
 
   </body>
 </html>

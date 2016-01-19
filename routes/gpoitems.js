@@ -20,7 +20,7 @@ module.exports = function(app) {
     if (ownerIDs.indexOf(username) < 0) ownerIDs.push(username)
 
     var isSuperUser = false;
-    if ('session' in req && req.session.isSuperUser===true) isSuperUser=true;
+    if ('session' in req && req.session.user.isSuperUser===true) isSuperUser=true;
 
     var utilities = require(app.get('appRoot') + '/shared/utilities');
     var monk = app.get('monk');
@@ -54,7 +54,7 @@ module.exports = function(app) {
 //Let front end decided on getting only public
 //      query.access = "public";
 //For testing only let superUser see public for now (don't want 10,000 records)
-   if (isSuperUser) query.access = "public";
+//   if (isSuperUser) query.access = "public";
 
 //Need to limit the number of rows to prevent crashing
 //This was fixed by streaming and not sending back SlashData so if config.maxRowLimit=null don't force a limit

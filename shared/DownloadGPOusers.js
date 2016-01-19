@@ -457,14 +457,14 @@ DownloadGPOusers.prototype.getGPOusersAsyncFromStartArray = function () {
           done();
         })
         .catch(function (err) {
-          self.downloadLogs.error('Error in async.forEachOf while calling getGPOusersChunk() in DownloadGPOusers.getGPOusersAsyncFromStartArray:', err.stack);
+          self.downloadLogs.error('Error in async.forEachOf while calling getGPOusersChunk() in DownloadGPOusers.getGPOusersAsyncFromStartArray:' + err.stack);
         })
         .done(function () {
 //          this.downloadLogs.log('for loop success')
         });
     }
     , function (err) {
-      if (err) self.downloadLogs.error('Error with async.forEachOf while looping over GPO user chunks in DownloadGPOusers.getGPOitemsAsyncFromStartArray:', err.stack);
+      if (err) self.downloadLogs.error('Error with async.forEachOf while looping over GPO user chunks in DownloadGPOusers.getGPOitemsAsyncFromStartArray:' + err.stack);
 //resolve this promise
 //      self.downloadLogs.log('resolve')
       defer.resolve();
@@ -571,7 +571,7 @@ DownloadGPOusers.prototype.getGPOgroupsAsync = function () {
 //      self.downloadLogs.log(key+this.hr.saved.modifiedGPOrow)
       self.getSingleGPOgroup(key + asyncStartModifiedGPOrow)
         .catch(function (err) {
-          self.downloadLogs.error('Error in async.forEachOf while calling getSingleGPOgroup() in DownloadGPOusers.getGPOgroupsAsync:', err.stack);
+          self.downloadLogs.error('Error in async.forEachOf while calling getSingleGPOgroup() in DownloadGPOusers.getGPOgroupsAsync:' + err.stack);
         })
         .done(function () {
           done();
@@ -579,7 +579,7 @@ DownloadGPOusers.prototype.getGPOgroupsAsync = function () {
         });
     }
     , function (err) {
-      if (err) self.downloadLogs.error('Error with async.forEachOf while looping over GPO users to find groups in DownloadGPOusers.getGPOgroupsAsync:', err.stack);
+      if (err) self.downloadLogs.error('Error with async.forEachOf while looping over GPO users to find groups in DownloadGPOusers.getGPOgroupsAsync:' + err.stack);
 //resolve this promise
 //      self.downloadLogs.log('resolve')
       defer.resolve();
@@ -705,7 +705,24 @@ DownloadGPOusers.prototype.getAllDistinctAdminUsersAuthGroups = function () {
   var self = this;
   var query = {"authGroups": {$ne: []}, "isAdmin": true};
 
-  return self.utilities.getDistinctArrayFromDB(self.usersCollection, query, "authGroups");
+//All all distinct authgroup combinations on user
+// Also make sure we include at least all individual authGroups as length 1 array so later can filter by single authGroup if necessary
+  return self.utilities.getDistinctArrayFromDB(self.usersCollection, query, "authGroups")
+    .then(function (authGroups) {
+      return self.updateAuthGroupsAndOwnerIDs.getAvailableAuthGroups()
+        .then(function (availAuthGroups) {
+          availAuthGroups.forEach(function (avail) {
+//Only add the single authGroup if it isn't already present
+            if (authGroups.every(function (authGroup) {
+//if already present is true then return false and don't push
+                return !(authGroup.length===1 && authGroup[0]==avail);
+              }) ) {
+              authGroups.push([avail]);
+            }
+          });
+          return authGroups;
+        });
+    });
 };
 
 
@@ -763,7 +780,7 @@ DownloadGPOusers.prototype.getOwnerIDsAsync = function (itemsContext) {
   async.forEachOf(adminUsersAuthGroups, function (userAuthGroups, index, done) {
       self.getSingleOwnerIDs(itemsContext, userAuthGroups)
         .catch(function (err) {
-          self.downloadLogs.error('Error in async.forEachOf while calling getSingleOwnerIDs() in DownloadGPOusers.getOwnerIDsAsync:', err.stack);
+          self.downloadLogs.error('Error in async.forEachOf while calling getSingleOwnerIDs() in DownloadGPOusers.getOwnerIDsAsync:' + err.stack);
 
         })
         .done(function () {
@@ -772,7 +789,7 @@ DownloadGPOusers.prototype.getOwnerIDsAsync = function (itemsContext) {
         });
     }
     , function (err) {
-      if (err) self.downloadLogs.error('Error with async.forEachOf while looping over GPO admins to find OwnerIDs in DownloadGPOusers.getOwnerIDsAsync:', err.stack);
+      if (err) self.downloadLogs.error('Error with async.forEachOf while looping over GPO admins to find OwnerIDs in DownloadGPOusers.getOwnerIDsAsync:' + err.stack);
 //resolve this promise
 //      self.downloadLogs.log('resolve')
       defer.resolve();
