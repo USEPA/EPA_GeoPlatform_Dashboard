@@ -447,7 +447,7 @@ DownloadGPOdata.prototype.handleGPOitemsResponseAsync = function (body) {
 DownloadGPOdata.prototype.storeModifiedDocs = function (body) {
   var self = this;
 //Note I am going to insert into database each time this is called but store Mod IDs so that Slash Data can be downloaded later
-//store all the remote id's
+//store all the remote id's so we know which items to remove locally later on
   var remoteGPOids = body.results.map(function(doc) {return doc.id});
   self.hr.saved.remoteGPOids =self.hr.saved.remoteGPOids.concat(remoteGPOids);
 
@@ -571,11 +571,11 @@ DownloadGPOdata.prototype.getGPOitemsAsyncFromStartArray = function () {
 
   var defer = this.Q.defer();
 
-//  this.Qwhen(getSingleGPOdata,function () {this.downloadLogs.log('resolve');defer.resolve()});
-//  getSingleGPOdata(1).then(function () {this.downloadLogs.log('resolve');defer.resolve()});
+//  this.Qwhen(getSingleGPOdata,function () {self.downloadLogs.log('resolve');defer.resolve()});
+//  getSingleGPOdata(1).then(function () {self.downloadLogs.log('resolve');defer.resolve()});
 
   var requestStartArray;
-//  this.downloadLogs.log('this.hr.saved.currentRequest ' + this.hr.saved.currentRequest)
+//  self.downloadLogs.log('this.hr.saved.currentRequest ' + this.hr.saved.currentRequest)
   if (self.AsyncRequestLimit) {
 //take slice form current row to async row limit
     requestStartArray= self.hr.saved.requestStartArray.slice(self.hr.saved.currentRequest-1,self.hr.saved.currentRequest-1+self.AsyncRequestLimit);
@@ -583,33 +583,33 @@ DownloadGPOdata.prototype.getGPOitemsAsyncFromStartArray = function () {
     requestStartArray= self.hr.saved.requestStartArray.slice(self.hr.saved.currentRequest-1);
   }
 
-  this.downloadLogs.log(this.hr.saved.remoteGPOrow + ' ' + requestStartArray.length);
+  self.downloadLogs.log(this.hr.saved.remoteGPOrow + ' ' + requestStartArray.length);
 
   if (this.hr.saved.remoteGPOcount>0 && requestStartArray.length===0) {
 //This is catatrosphic error that should never happen if remote GPO items exist. If this happens then need to make sure hybrid loop will exit and resolve promise.
 //Should probably email this to admin
-    this.downloadLogs.error("Catastrophic Error. No start array probably because AsyncRequestLimit set too high.");
+    self.downloadLogs.error("Catastrophic Error. No start array probably because AsyncRequestLimit set too high.");
     self.hr.saved.remoteGPOrow=self.hr.saved.remoteGPOcount+1;
     defer.resolve();
   }
 
   async.forEachOf(requestStartArray, function (requestStart, index, done) {
-//      this.downloadLogs.log(key+this.hr.saved.modifiedGPOrow)
+//      self.downloadLogs.log(key+this.hr.saved.modifiedGPOrow)
       self.getGPOitemsChunk(requestStart)
         .then(function () {
-//                this.downloadLogs.log(String(key+1) + 'done');
+//                self.downloadLogs.log(String(key+1) + 'done');
           done();})
         .catch(function(err) {
           self.downloadErrors.error('Error in async.forEachOf while calling getGPOitemsChunk() in DownloadGPOdata.getGPOitemsAsyncFromStartArray:', err.stack);
         })
         .done(function() {
-//          this.downloadLogs.log('for loop success')
+//          self.downloadLogs.log('for loop success')
         });
     }
     , function (err) {
-      if (err) this.downloadErrors.error('Error with async.forEachOf while looping over GPO item chunks in DownloadGPOdata.getGPOitemsAsyncFromStartArray:', err.stack);
+      if (err) self.downloadErrors.error('Error with async.forEachOf while looping over GPO item chunks in DownloadGPOdata.getGPOitemsAsyncFromStartArray:', err.stack);
 //resolve this promise
-//      this.downloadLogs.log('resolve')
+//      self.downloadLogs.log('resolve')
       defer.resolve();
     });
 
@@ -713,8 +713,8 @@ DownloadGPOdata.prototype.getLatestHistoryID = function (GPOid) {
   return self.Q(self.historycollection.findOne({id:GPOid},{sort:{_id:-1},fields:{_id:1}}))
     .then(function (doc) {
       if (! doc) return null;
-//      this.downloadLogs.log(doc._id);
-//      this.downloadLogs.log(self.historycollection.id(doc._id));
+//      self.downloadLogs.log(doc._id);
+//      self.downloadLogs.log(self.historycollection.id(doc._id));
       return doc._id;
 //      return self.historycollection.id(doc._id)
     });
@@ -821,7 +821,7 @@ DownloadGPOdata.prototype.saveStreamToGridFS = function (readableStream,id,histo
   );
 //when done writing need to resolve the promise
   writestream.on('close', function (file) {
-    this.downloadLogs.log('File with id = ' + id + ' and file = ' + file.filename + ' written to GridFS');
+    self.downloadLogs.log('File with id = ' + id + ' and file = ' + file.filename + ' written to GridFS');
 //add the actual file id to SlashData
     SlashData[binaryType + "ID"]= file._id;
 //Now update the DB. must pass defer so it can be resolved when done updating
@@ -867,7 +867,7 @@ DownloadGPOdata.prototype.updateModifiedGPOdata = function (defer,id,historyID,S
     .catch(function(err) {
 //Don't reject the deferred because it will break the chain need to try update with json as text instead of object
 //     defer.reject("Error updating slash data for " + id + " : " + err);})
-      this.downloadLogs.log("Trying to save as Text, Error updating slash data as Object for " + id + " : " + err);
+      self.downloadLogs.log("Trying to save as Text, Error updating slash data as Object for " + id + " : " + err);
 //If there is an error try to resolve it saving data as text instad of JSON object
 //If error saving as text or binary
       return self.UpdateModifieGPOdataAsText(id,historyID,SlashData).catch(function (err) {
@@ -875,7 +875,7 @@ DownloadGPOdata.prototype.updateModifiedGPOdata = function (defer,id,historyID,S
       });
     })
     .done(function () {
-//      this.downloadLogs.log('Done updating Modified Slash Data for ' + id);
+//      self.downloadLogs.log('Done updating Modified Slash Data for ' + id);
       defer.resolve(SlashData)
     });
 };
@@ -892,7 +892,7 @@ DownloadGPOdata.prototype.UpdateModifieGPOdataAsText = function (id,historyID,Sl
     self.Q(this.historycollection.update({_id:historyID},{$set:{"doc.SlashData":SlashData}}))
   ])
     .catch(function (err) {
-      this.downloadLogs.log("Trying to save as Grid FS, Error updating slash data forced AS Text for " + id + " : " + err);
+      self.downloadLogs.log("Trying to save as Grid FS, Error updating slash data forced AS Text for " + id + " : " + err);
 //Try to save a grid FS (should normally work for all size/type of data)
       var textStream = self.utilities.streamify(SlashData.text);
       SlashData.text=null;
@@ -901,7 +901,7 @@ DownloadGPOdata.prototype.UpdateModifieGPOdataAsText = function (id,historyID,Sl
       });
     })
     .done(function () {
-//      this.downloadLogs.log('Done updating Modified Slash Data for ' + id);
+//      self.downloadLogs.log('Done updating Modified Slash Data for ' + id);
       textDefer.resolve()
     });
   return textDefer.promise;
@@ -923,8 +923,8 @@ DownloadGPOdata.prototype.getGPOdataAsync = function () {
 
   var defer = this.Q.defer();
 
-//  Q.when(getSingleGPOdata,function () {this.downloadLogs.log('resolve');defer.resolve()});
-//  getSingleGPOdata(1).then(function () {this.downloadLogs.log('resolve');defer.resolve()});
+//  Q.when(getSingleGPOdata,function () {self.downloadLogs.log('resolve');defer.resolve()});
+//  getSingleGPOdata(1).then(function () {self.downloadLogs.log('resolve');defer.resolve()});
 
   var GPOids;
   if (self.AsyncRowLimit) {
@@ -937,23 +937,23 @@ DownloadGPOdata.prototype.getGPOdataAsync = function () {
   //need to get the value of modifiedGPOrow when this function is called because getSingleGPOdata changes it
   //THis is basically the modifiedGPOrow when the async loop started
   var asyncStartModifiedGPOrow = self.hr.saved.modifiedGPOrow;
-  this.downloadLogs.log("Slash Data download from row " + asyncStartModifiedGPOrow + " to " + (asyncStartModifiedGPOrow + GPOids.length -1));
+  self.downloadLogs.log("Slash Data download from row " + asyncStartModifiedGPOrow + " to " + (asyncStartModifiedGPOrow + GPOids.length -1));
 
   async.forEachOf(GPOids, function (value, key, done) {
-//      this.downloadLogs.log(key+this.hr.saved.modifiedGPOrow)
+//      self.downloadLogs.log(key+this.hr.saved.modifiedGPOrow)
       self.getSingleGPOdata(key+asyncStartModifiedGPOrow)
         .catch(function(err) {
-          this.downloadErrors.error('Error in async.forEachOf while calling getSingleGPOdata in DownloadGPOdata.getGPOdataAsync:', err.stack);
+          self.downloadErrors.error('Error in async.forEachOf while calling getSingleGPOdata in DownloadGPOdata.getGPOdataAsync:', err.stack);
         })
         .done(function() {
           done();
-//          this.downloadLogs.log('for loop success')
+//          self.downloadLogs.log('for loop success')
         });
     }
     , function (err) {
-      if (err) this.downloadErrors.error('Error in async.forEachOf while looping over GPO data items in DownloadGPOdata.getGPOdataAsync:', err.stack);
+      if (err) self.downloadErrors.error('Error in async.forEachOf while looping over GPO data items in DownloadGPOdata.getGPOdataAsync:', err.stack);
 //resolve this promise
-//      this.downloadLogs.log('resolve')
+//      self.downloadLogs.log('resolve')
       defer.resolve();
     });
 
@@ -984,9 +984,9 @@ DownloadGPOdata.prototype.removeLocalGPOitemsFromLocalGPOids = function () {
 //need to get array of local GPO ids only instead of id,mod pair
   var removeIDs = arrayExtended.difference(self.hr.saved.localGPOids, self.hr.saved.remoteGPOids);
 
-  this.downloadLogs.log("remoteGPOids GPO items count: " + self.hr.saved.remoteGPOids.length );
-  this.downloadLogs.log("localGPOids GPO items count: " + self.hr.saved.localGPOids.length );
-  this.downloadLogs.log("Locally Removed GPO items count: " + removeIDs.length );
+  self.downloadLogs.log("remoteGPOids GPO items count: " + self.hr.saved.remoteGPOids.length );
+  self.downloadLogs.log("localGPOids GPO items count: " + self.hr.saved.localGPOids.length );
+  self.downloadLogs.log("Locally Removed GPO items count: " + removeIDs.length );
 
   if (removeIDs.length > 0) {
 //put the removed ID's in history collection with null doc to represent it was deleted on this data
@@ -1092,7 +1092,7 @@ DownloadGPOdata.prototype.getGPOaudit = function (modifiedGPOitems) {
 };
 
 DownloadGPOdata.prototype.getSingleGPOaudit = function (itemsContext,auditGPOitem) {
-
+  var self = this;
 //Have to have an audit class for each audit because they are going on concurrently when async
   var audit=new this.AuditClass();
 
@@ -1110,7 +1110,7 @@ DownloadGPOdata.prototype.getSingleGPOaudit = function (itemsContext,auditGPOite
   return this.Q(this.itemscollection.update({id:auditGPOitem.id},{$set:{AuditData:auditGPOitem.AuditData}}))
 //    .then(function () {delete audit;return true})
     .catch(function(err) {
-      this.downloadLogs.error("Error updating Audit Data for " + id + " : " + err);
+      self.downloadLogs.error("Error updating Audit Data for " + id + " : " + err);
     })
 };
 
@@ -1141,22 +1141,22 @@ DownloadGPOdata.prototype.getGPOauditAsync = function (itemsContext) {
     GPOitems= itemsContext.items;
   }
 
-  this.downloadLogs.log("Audit Data download from row " + itemsContext.row + " to " + (itemsContext.row + GPOitems.length -1));
+  self.downloadLogs.log("Audit Data download from row " + itemsContext.row + " to " + (itemsContext.row + GPOitems.length -1));
 
   async.forEachOf(GPOitems, function (gpoItem, index, done) {
       self.getSingleGPOaudit(itemsContext,gpoItem)
         .catch(function(err) {
-          this.downloadLogs.error('For Each Single GPO Audit Error :', err);
+          self.downloadLogs.error('For Each Single GPO Audit Error :', err);
         })
         .done(function() {
           done();
-//          this.downloadLogs.log('for loop success')
+//          self.downloadLogs.log('for loop success')
         });
     }
     , function (err) {
-      if (err) this.downloadLogs.error('For Each GPO Audit Error :' + err.message);
+      if (err) self.downloadLogs.error('For Each GPO Audit Error :' + err.message);
 //resolve this promise
-//      this.downloadLogs.log('resolve')
+//      self.downloadLogs.log('resolve')
       defer.resolve();
     });
 

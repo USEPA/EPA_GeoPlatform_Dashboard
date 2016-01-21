@@ -27,7 +27,7 @@ ScriptLogs.prototype.clear = function (log) {
 
 ScriptLogs.prototype.emailSingle = function (head,logs) {
   var Q=require('q');
-//Just clear the array don't assign a new empty array
+//Sends a single email with all the logs concatenated
   var appRoot = require('app-root-path') + '/';
   var sendEmail = require(appRoot + '/shared/sendEmail');
   if (logs.length>0) {
@@ -46,7 +46,7 @@ ScriptLogs.prototype.email = function () {
 };
 
 ScriptLogs.prototype.emailExit = function () {
-//Just clear the array don't assign a new empty array
+//send the email and then exit. just a convenience
   return this.email().then(function () {
     process.exit();});
 };
