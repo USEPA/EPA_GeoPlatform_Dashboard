@@ -439,6 +439,11 @@
                             <select class="search form-control input-sm"><option value="">All</option></select>
                         </span>
                     </th>
+                    <th>Modified</br>
+                        <span onclick="event.stopPropagation();" >
+                            <!--<select class="search form-control input-sm"><option value="">All</option></select>-->
+                        </span>
+                    </th>
                   </tr>
                 </thead>
                 <tfoot>
@@ -473,6 +478,7 @@
                           <img class="pass" src="../img/greenOK.jpg" alt="Pass" style="width:25px">
                           <img class="fail" src="../img/warning.png" alt="Fail" style="width:25px">
                         </td >
+                        <td data-bind="text: modDate"></td>
                     </tr>
                   </tbody>
               </table>
@@ -593,7 +599,7 @@
                                 </div>
                                 <!--<div class="form-group">-->
                                     <!--<label for="test">Test Fielde</label>-->
-                                    <!--<input class="form-control"  id="test" data-bind="value: selected().lI" type="text">-->
+                                    <!--<input class="form-control"  id="test" data-bind="value: selected().modDate" type="text">-->
                                 <!--</div>-->
 
                             </form>
