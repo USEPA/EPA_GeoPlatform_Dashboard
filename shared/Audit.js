@@ -1,4 +1,4 @@
-var Audit = function() {
+var Audit = function () {
   //fieldsToValidate is limited list of fields to validate. The default case is to set [] and all fields will be validated
   this.fieldsToValidate = [];
   this.updateFields = ["title", "description", "tags", "thumbnail", "snippet", "licenseInfo", "accessInformation", "url"];
@@ -46,20 +46,20 @@ Audit.prototype.validators = {
 
 Audit.prototype.globalValidator = function (doc) {
 //When they upload a excel file for features it can make the title be excel spread sheet cell or range of cells
-  this.checkRegexMatch(["title"], doc, ["^\\s*\\$[A-Za-z]+\\$\\d+"],"Title can not be an excel spread sheet cell");
+  this.checkRegexMatch(["title"], doc, ["^\\s*\\$[A-Za-z]+\\$\\d+"], "Title can not be an excel spread sheet cell");
 };
 
-Audit.prototype.validators.access.public = function(doc) {
+Audit.prototype.validators.access.public = function (doc) {
   //This function is called on all public items
   this.checkForbiddenWords(["title", "tags"], doc, [" test ", "-copy "]);
 
-  this.checkForbiddenWords(["snippet", "description"], doc, [" test "]);
+  this.checkForbiddenWords(["snippet", "description"], doc, [" test "], true);
 };
 
-Audit.prototype.validators.type["Feature Service"] = function(doc) {
+Audit.prototype.validators.type["Feature Service"] = function (doc) {
 };
 
-Audit.prototype.validators.type["Web Map"] = function(doc) {
+Audit.prototype.validators.type["Web Map"] = function (doc) {
   //This function is called on all Web Map types
   this.checkRequiredField("thumbnail", doc);
 
@@ -71,14 +71,14 @@ Audit.prototype.validators.type["Web Map"] = function(doc) {
   //this.checkInArray("tags",doc,[" usepa "]);
 };
 
-Audit.prototype.validators.type["Web Mapping Application"] = function(doc) {
+Audit.prototype.validators.type["Web Mapping Application"] = function (doc) {
   //This function is called on all Web Map types
   this.validators.type["Web Map"].apply(this, [doc]); //this was not maintaining scope of the audit object
-  this.checkWordLimit("description", doc, 5);
+  this.checkWordLimit("description", doc, 5, null, true);
 };
 
 
-Audit.prototype.validate = function(doc, fieldsToValidate) {
+Audit.prototype.validate = function (doc, fieldsToValidate) {
   var self = this;
 
 
@@ -90,7 +90,7 @@ Audit.prototype.validate = function(doc, fieldsToValidate) {
   this.globalValidator(doc);
 
   //loop through validators )(access, type, etc)
-  Object.keys(this.validators).forEach(function(key) {
+  Object.keys(this.validators).forEach(function (key) {
     //Get the function
     var docValue = doc[key]; //this will be value like public or Web Map
     var valFunction = self.validators[key][docValue];
@@ -100,7 +100,7 @@ Audit.prototype.validate = function(doc, fieldsToValidate) {
   //if they are only validating a few fields check if it is globally compliant now
   if (self.fieldsToValidate.length > 0) self.checkCompliance(doc);
   //If they do not have all update fields in Audit errors then just add empty object now
-  self.updateFields.forEach(function(field) {
+  self.updateFields.forEach(function (field) {
     if (!doc.AuditData.errors[field]) doc.AuditData.errors[field] = {
       compliant: true
     };
@@ -112,7 +112,7 @@ Audit.prototype.validate = function(doc, fieldsToValidate) {
 //Initialize object for validation by setting compliance to true and clearing out errors
 //Passing fields only clears out those fields but keeps errors intact for previously created errors
 //This is important for persisting errors and only producing incremental change in objects errors
-Audit.prototype.init = function(doc, fields) {
+Audit.prototype.init = function (doc, fields) {
   var self = this;
 
   //If AuditData is not member of passed doc then create new AuditData object and attach to doc.
@@ -122,7 +122,7 @@ Audit.prototype.init = function(doc, fields) {
   if (fields) {
     //Don't clear out all errors just for the pass fields
     if (!Array.isArray(fields)) fields = [fields];
-    fields.forEach(function(field) {
+    fields.forEach(function (field) {
       doc.AuditData.errors[field] = {
         compliant: true,
         messages: []
@@ -137,7 +137,7 @@ Audit.prototype.init = function(doc, fields) {
 };
 
 //This completely resets the audit object to original form
-Audit.prototype.clear = function(doc) {
+Audit.prototype.clear = function (doc) {
   var self = this;
   if (doc && doc.AuditData) {
     doc.AuditData.errors = {};
@@ -147,14 +147,14 @@ Audit.prototype.clear = function(doc) {
 };
 
 //Create check{template} function on prototype
-Object.keys(Audit.prototype.registry).forEach(function(key) {
+Object.keys(Audit.prototype.registry).forEach(function (key) {
   //capitalize key to get camel case
   var registryitem = Audit.prototype.registry[key];
   var checkFunctionName = "check" + key.charAt(0).toUpperCase() + key.substring(1);
   var getResultsFunctionName = "get" + key.charAt(0).toUpperCase() + key.substring(1) + "Result";
   //if not processItems variable set then defaults to true. must set to false to get false ie. falsey empty value will default to true.
   var processItems = registryitem.processItems !== false;
-  Audit.prototype[checkFunctionName] = function() {
+  Audit.prototype[checkFunctionName] = function () {
     var args = Array.prototype.slice.call(arguments);
     args = Array.prototype.concat([this[getResultsFunctionName], processItems], args);
     this.checkGeneric.apply(this, args);
@@ -171,10 +171,11 @@ Object.keys(Audit.prototype.registry).forEach(function(key) {
 //The other fields returend are important for rendering error messages
 // getForbiddenWords returns {pass:True/False,matches:[forbidden words that were matched]}
 // get{Validation}Result can also return an array of results if more than one result/error was returned
-// It is important to make the function name of get{Validation}Result to be {Validation} for eaiser identification
-// I am thinking about changing this requiremnt
+// It is important to make the function name of get{Validation}Result to be {Validation} for easier identification
+// I am thinking about changing this requirement
 
-Audit.prototype.getRequiredFieldResult = function requiredField(myString) {
+Audit.prototype.getRequiredFieldResult = function requiredField(myString, cleanHTML) {
+  if (cleanHTML === true) myString = this.cleanHTML(myString);
   var pass = false;
   if (myString) pass = true;
 
@@ -183,29 +184,39 @@ Audit.prototype.getRequiredFieldResult = function requiredField(myString) {
   };
 };
 
-Audit.prototype.getForbiddenWordsResult = function forbiddenWords(myString, forbidden) {
+//This is basically a regex search. forbidden can actually be a regex pattern
+Audit.prototype.getForbiddenWordsResult = function forbiddenWords(myString, forbidden, cleanHTML) {
+  if (cleanHTML === true) myString = this.cleanHTML(myString);
   //This matches forbidden words
   return this.getMatches(myString, forbidden, {
     checkAbsence: false
   });
 };
 
-//This basically does the same thing as getForbiddenWordsResult but allows a custom error to be passed
-//It had to be a new function because we had to make a new template equal to <<error>> instead of the standard
-Audit.prototype.getRegexMatchResult = function regexMatch(myString, forbidden, error) {
-  //This matches regex words and requires a custom error to be passed
-  var result = this.getForbiddenWordsResult(myString, forbidden);
-  result.error = error;
-  return result;
-};
-
-Audit.prototype.getRequiredWordsResult = function requiredWords(myString, required) {
+Audit.prototype.getRequiredWordsResult = function requiredWords(myString, required, cleanHTML) {
+  if (cleanHTML === true) myString = this.cleanHTML(myString);
   return this.getMatches(myString, required, {
     checkAbsence: true
   });
 };
 
-Audit.prototype.getWordLimitResult = function wordLimit(myString, floor, ceiling) {
+//This basically does the same thing as getForbiddenWordsResult or getRequiredWordsResult but allows a custom error to be passed
+//It had to be a new function because we had to make a new template equal to <<error>> instead of the standard
+Audit.prototype.getRegexMatchResult = function regexMatch(myString, pattern, error, checkAbsence, cleanHTML) {
+  if (checkAbsence !== true) checkAbsence = false;
+  if (cleanHTML === true) myString = this.cleanHTML(myString);
+
+  //This matches regex words and requires a custom error to be passed
+  var result = this.getMatches(myString, pattern, {
+    checkAbsence: checkAbsence
+  });
+  result.error = error;
+  return result;
+};
+
+
+Audit.prototype.getWordLimitResult = function wordLimit(myString, floor, ceiling, cleanHTML) {
+  if (cleanHTML === true) myString = this.cleanHTML(myString);
   var wordCount = 0;
   if (myString) wordCount = myString.split(/\s+/).length;
 
@@ -216,12 +227,13 @@ Audit.prototype.getArrayLimitResult = function arrayLimit(myArray, floor, ceilin
   return this.getGenericLimitResult(myArray.length, floor, ceiling)
 };
 
-Audit.prototype.getInArrayResult = function inArray(myArray, required) {
+Audit.prototype.getInArrayResult = function inArray(myArray, required, cleanHTML) {
   //This returns result list of results for each required word in Array
   var self = this;
   var resultList = [];
-  required.forEach(function(resultItem) {
+  required.forEach(function (resultItem) {
     var myString = myArray.join(" ");
+    if (cleanHTML === true) myString = this.cleanHTML(myString);
     var result = self.getMatches(myString, [resultItem], {
       checkAbsence: true
     });
@@ -230,7 +242,7 @@ Audit.prototype.getInArrayResult = function inArray(myArray, required) {
   return resultList;
 };
 
-Audit.prototype.getGenericLimitResult = function(value, floor, ceiling) {
+Audit.prototype.getGenericLimitResult = function (value, floor, ceiling) {
   var withinLimit = true;
 
   var limits = "";
@@ -255,7 +267,7 @@ Audit.prototype.getGenericLimitResult = function(value, floor, ceiling) {
 
 
 //Audit.prototype.getMatches = function (myString,comparisons,checkAbsence) {
-Audit.prototype.getMatches = function(myString, comparisons, options) {
+Audit.prototype.getMatches = function (myString, comparisons, options) {
   //undefined or null myString needs to be empty string for regex
   if (!myString) myString = "";
 
@@ -263,7 +275,7 @@ Audit.prototype.getMatches = function(myString, comparisons, options) {
 
   if (typeof comparisons === "string") forbidden = [comparisons];
 
-  var matches = comparisons.filter(function(x) {
+  var matches = comparisons.filter(function (x) {
     //if matchWords then need to add word boundary to regex pattern
     if (options.matchWords === true) x = "\\b" + x + "\\b";
 
@@ -275,7 +287,7 @@ Audit.prototype.getMatches = function(myString, comparisons, options) {
     return (options.checkAbsence === true) ? !match : match;
   });
   var pass = matches.length <= 0;
-  matches = matches.map(function(x) {
+  matches = matches.map(function (x) {
     return x.trim()
   });
   return {
@@ -285,22 +297,22 @@ Audit.prototype.getMatches = function(myString, comparisons, options) {
 
 };
 
-Audit.prototype.mapFunctionToArray = function(myFunction, myArray) {
+Audit.prototype.mapFunctionToArray = function (myFunction, myArray) {
   var args = Array.prototype.slice.call(arguments, 2, arguments.length);
   var self = this;
-  return myArray.map(function(x) {
+  return myArray.map(function (x) {
     return myFunction.apply(self, Array.prototype.concat([x], args));
   });
 };
 
-Audit.prototype.checkGeneric = function(myFunction, processItems, fields, doc) {
+Audit.prototype.checkGeneric = function (myFunction, processItems, fields, doc) {
   //This matches forbidden words
   var args = Array.prototype.slice.call(arguments, 3, arguments.length);
   var self = this;
 
   if (!Array.isArray(fields)) fields = [fields];
 
-  fields.forEach(function(field) {
+  fields.forEach(function (field) {
     //Only run check on field if we are validating all fields ( this.fieldsToValidate=[] )
     // OR field is in fields to be validatad
     if (self.fieldsToValidate.length === 0 || self.fieldsToValidate.indexOf(field) >= 0) {
@@ -319,7 +331,7 @@ Audit.prototype.checkGeneric = function(myFunction, processItems, fields, doc) {
 //};
 
 
-Audit.prototype.checkGenericSingle = function(myFunction, processItems, field, doc) {
+Audit.prototype.checkGenericSingle = function (myFunction, processItems, field, doc) {
   var args = Array.prototype.slice.call(arguments, 4, arguments.length);
   var self = this;
   //The function must be named so we can find it's template
@@ -338,14 +350,14 @@ Audit.prototype.checkGenericSingle = function(myFunction, processItems, field, d
     processItems = true;
   }
 
-  values.forEach(function(value, index) {
+  values.forEach(function (value, index) {
     var resultList = myFunction.apply(self, Array.prototype.concat([value], args));
     //Allow multiple results from one call. Useful for testing multiple items in array
     if (!Array.isArray(resultList)) {
       resultList = [resultList];
     }
     //now add error message for each result
-    resultList.forEach(function(result) {
+    resultList.forEach(function (result) {
       result.field = field;
       result.index = processItems ? index : null;
       result.number = processItems ? " item " + (index + 1) : "";
@@ -355,7 +367,7 @@ Audit.prototype.checkGenericSingle = function(myFunction, processItems, field, d
   });
 };
 
-Audit.prototype.addErrorMessage = function(field, doc, template, result) {
+Audit.prototype.addErrorMessage = function (field, doc, template, result) {
   //parse error message then add to results
   var error = Audit.prototype.registry[template].template;
   var self = this;
@@ -363,7 +375,7 @@ Audit.prototype.addErrorMessage = function(field, doc, template, result) {
   //If one check fails audit then compliant is set to false
   if (!result.pass) doc.AuditData.compliant = false;
   //If there was an error then parse error message
-  if (!result.pass) Object.keys(result).forEach(function(key) {
+  if (!result.pass) Object.keys(result).forEach(function (key) {
     var re = new RegExp("<<" + key + ">>", "g");
     error = error.replace(re, result[key]);
   });
@@ -407,13 +419,30 @@ Audit.prototype.addErrorMessage = function(field, doc, template, result) {
 
 };
 
-Audit.prototype.checkCompliance = function(doc) {
+Audit.prototype.checkCompliance = function (doc) {
   var self = this;
   //Loop through all fields errors. if at least one field is not compliant then set global compliance = false
-  doc.AuditData.compliant = Object.keys(doc.AuditData.errors).every(function(field) {
+  doc.AuditData.compliant = Object.keys(doc.AuditData.errors).every(function (field) {
     return doc.AuditData.errors[field].compliant;
   });
 };
 
+Audit.prototype.cleanHTML = function (string) {
+//Browser version of cleaning
+  if (typeof window != 'undefined' && window.document) {
+    var divClean = document.createElement("div");
+    divClean.innerHTML = string;
+    string = divClean.textContent || divClean.innerText || "";
+  } else {
+//Node.js version of cleaning using sanitize-html module
+    var sanitizeHtml = require('sanitize-html');
+
+    string = sanitizeHtml(string, {
+      allowedTags: [],
+      allowedAttributes: {}
+    });
+  }
+  return string;
+};
 
 if (!(typeof window != 'undefined' && window.document)) module.exports = Audit;
