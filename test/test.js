@@ -1,3 +1,49 @@
+var AuditClass=require('../shared/Audit');
+var audit = new AuditClass();
+var dirty = "<script>alert('hi');</script><div>outer<div>inner</div>after</div>";
+var clean = audit.cleanHTML(dirty);
+console.log(dirty);
+console.log(clean);
+return;
+
+var AuditClass=require('../shared/Audit');
+var audit = new AuditClass();
+
+var doc = {};
+
+//Remember to escape the escape characters
+doc.type = "Web Mapping Application";
+//doc.type = "File Geodatabase";
+doc.title = "My name is Aaron Evans joke-copy test";
+doc.tags = ["tag 1 is a test","tag 2 is a -copy"];
+doc.snippet = "<div>testing snippet test</div>";
+doc.description = "contains four words test";
+doc.thumbnail = null;
+doc.access = "public";
+
+doc.AuditData = {};
+
+audit.validate(doc);
+console.log(doc);
+
+audit.clear(doc);
+
+console.log(doc);
+
+doc.access = "private";
+audit.validate(doc,["title"]);
+console.log(doc);
+
+doc.access = "public";
+audit.validate(doc,["tags"]);
+console.log(doc);
+
+audit.clear(doc);
+audit.validate(doc,["tags"]);
+console.log(doc);
+
+return;
+
 var Q = require('q');
 var MonkClass = require('monk');
 
@@ -74,43 +120,6 @@ console.log(out);
 
 return;
 
-var AuditClass=require('../shared/Audit');
-var audit = new AuditClass();
-
-var doc = {};
-
-//Remember to escape the escape characters
-doc.type = "Web Mapping Application";
-//doc.type = "File Geodatabase";
-doc.title = "My name is Aaron Evans joke-copy test";
-doc.tags = ["tag 1 is a test","tag 2 is a -copy"];
-doc.snippet = "<div>testing snippet test</div>";
-doc.description = "contains four words test";
-doc.thumbnail = null;
-doc.access = "public";
-
-doc.AuditData = {};
-
-audit.validate(doc);
-console.log(doc);
-
-audit.clear(doc);
-
-console.log(doc);
-
-doc.access = "private";
-audit.validate(doc,["title"]);
-console.log(doc);
-
-doc.access = "public";
-audit.validate(doc,["tags"]);
-console.log(doc);
-
-audit.clear(doc);
-audit.validate(doc,["tags"]);
-console.log(doc);
-
-return;
 
 
 utilities.getDistinctArrayFromDB(itemsCollection,{},"owner")
