@@ -39,7 +39,7 @@ require([
   on(dom.byId("sign-out"), "click", function() {
     esriId.destroyCredentials();
     //log out of the express server
-    $.get('logout', function() {
+    $.get('/logout', function() {
       window.location.reload();
     }).fail(
       function() {
@@ -61,7 +61,7 @@ require([
     new arcgisPortal.Portal(info.portalUrl).signIn().then(
       function(portalUser) {
         //after sign in also login to backend using the token and username
-        $.post('login', {
+        $.post('/login', {
           username: portalUser.username,
           token: portalUser.credential.token
         }, function(response) {

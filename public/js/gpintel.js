@@ -65,7 +65,7 @@ function populateTable(vTable, query) {
   //for query pass a string because things like null were being converted to empty string
   query = JSON.stringify(query);
 
-  $.getJSON('gpoitems/list', {
+  $.getJSON('/gpoitems/list', {
     query: query
   }, function (data) {
     ko.applyBindings({
@@ -86,7 +86,7 @@ function populateUserTables(query, projection) {
   var defer = $.Deferred();
 
   // jQuery AJAX call for JSON
-  $.getJSON('gpoitems/list', {
+  $.getJSON('/gpoitems/list', {
     query: query,
     projection: projection
   }, function (data) {
