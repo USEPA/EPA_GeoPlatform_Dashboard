@@ -26,7 +26,7 @@ downloadGPOusers.AsyncAdminRowLimit = 100;
 
 //This to account for the bug in which users added to groups does not change users modified date
 //Setting to false will clear out users DB and re download ALL user info
-this.updateOnlyModifiedUsers = false;
+downloadGPOusers.updateOnlyModifiedUsers = false;
 //For overnight script we want to get user and group data so set to false
 // For testing overnight to only get metadata set it to true, will be much faster
 //Other application of downloadGPOusers.

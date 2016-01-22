@@ -138,8 +138,9 @@ utilities.getDistinctArrayFromDBaggregate = function (collection,query,field) {
         }
       },
       {
-        "$project" : $project
+        "$project" : project
       }
+//      ,{ "$limit":100}
     ])
     .then(function (docs) {
       return docs.map(function (doc) {
@@ -151,20 +152,28 @@ utilities.getDistinctArrayFromDB = function (collection,query,field) {
 //This should be faster. Aggregate was VERY slow for 11,000 gpoitems on owner
   var Q = require('q');
 
-  var uniq = {};
+//existsHash is hash with keys made up of collection.field values, since all keys are unique it will find unique collection.field values
+//add collection.field value as a key in existsHash. doesn't matter what existHash values are, just set to 1
+//to get distinct array of collection.field values just find keys in existsHash
+  var existsHash = {};
   var defer = Q.defer();
   var fields = {};
 //Have to project out only the field desired or it was REALLY slow
   fields[field] = 1;
   collection.find(query, {fields:fields,stream:true})
     .each(function (doc) {
-      uniq[doc[field]]=1;
+//So that we can get unique simple arrays or simple objects stringify and then Parse at end
+      var key = JSON.stringify(doc[field]);
+      existsHash[key]=1;
     })
     .error(function (err) {
       defer.reject("Error getting Distinct Array From DB: " + err);
     })
     .success(function () {
-      defer.resolve(Object.keys(uniq));
+      var distinctArray = Object.keys(existsHash).map(function (key) {
+        return JSON.parse(key);
+      });
+      defer.resolve(distinctArray);
     });
 
   return defer.promise;
