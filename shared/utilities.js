@@ -121,8 +121,13 @@ utilities.getArrayFromDB = function (collection,query,field) {
       });
 };
 
-utilities.getDistinctArrayFromDB = function (collection,query,field) {
+utilities.getDistinctArrayFromDBaggregate = function (collection,query,field) {
+//Using Aggregate was VERY slow for 11,000 gpoitems on owner
+
   var Q = require('q');
+
+  var project = {};
+  project[field] = 1;
 
   return Q.ninvoke(collection.col,"aggregate",
     [
@@ -131,12 +136,38 @@ utilities.getDistinctArrayFromDB = function (collection,query,field) {
         "$group" : {
           "_id" : "$" + field
         }
+      },
+      {
+        "$project" : $project
       }
     ])
     .then(function (docs) {
       return docs.map(function (doc) {
         return doc._id;});
     });
+};
+
+utilities.getDistinctArrayFromDB = function (collection,query,field) {
+//This should be faster. Aggregate was VERY slow for 11,000 gpoitems on owner
+  var Q = require('q');
+
+  var uniq = {};
+  var defer = Q.defer();
+  var fields = {};
+//Have to project out only the field desired or it was REALLY slow
+  fields[field] = 1;
+  collection.find(query, {fields:fields,stream:true})
+    .each(function (doc) {
+      uniq[doc[field]]=1;
+    })
+    .error(function (err) {
+      defer.reject("Error getting Distinct Array From DB: " + err);
+    })
+    .success(function () {
+      defer.resolve(Object.keys(uniq));
+    });
+
+  return defer.promise;
 };
 
 utilities.batchUpdateDB = function (collection,docs,idField) {

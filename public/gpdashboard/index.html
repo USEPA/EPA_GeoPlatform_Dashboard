@@ -9,17 +9,17 @@
     <!--[AE-DY-TH-BG]-->
     <link rel="icon" href="img/favicon.png">
 
-    <link href="../bootstrap/css/bootstrap.min.css" rel="stylesheet">
-    <link href="../bootstrap/css/jasny-bootstrap.min.css" rel="stylesheet">
-    <link href="../bootstrap/css/dataTables.bootstrap.min.css" rel="stylesheet">
-    <link href="../css/dashboard.css" rel="stylesheet">
+    <link href="bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <link href="bootstrap/css/jasny-bootstrap.min.css" rel="stylesheet">
+    <link href="bootstrap/css/dataTables.bootstrap.min.css" rel="stylesheet">
+    <link href="css/dashboard.css" rel="stylesheet">
 
     <!--[if lt IE 9]>
-    <script src="../bootstrap/js/html5shiv.min.js"></script>
-    <script src="../bootstrap/js/respond.min.js"></script>
+    <script src="bootstrap/js/html5shiv.min.js"></script>
+    <script src="bootstrap/js/respond.min.js"></script>
     <![endif]-->
-    <script src="../bootstrap/js/knockout3.3.0-min.js"></script>
-    <script src="../bootstrap/js/knockout.mapping-latest.js"></script>
+    <script src="bootstrap/js/knockout3.3.0-min.js"></script>
+    <script src="bootstrap/js/knockout.mapping-latest.js"></script>
 
     <title>GeoPlatform Dashboard</title>
   </head>
@@ -35,7 +35,7 @@
             <span class="icon-bar"></span>
           </button>
           <a class="navbar-brand" href="#" >
-            <img src="../img/epa1.png" style="width:40px; margin:-10px 5px 0px 0px; display:inline-block;"/>
+            <img src="img/epa1.png" style="width:40px; margin:-10px 5px 0px 0px; display:inline-block;"/>
             GeoPlatform Dashboard
           </a>
         </div>
@@ -386,8 +386,8 @@
                   <a data-toggle="tooltip" data-placement="left" title="Show/Hide Auth Groups"><span id="authGroupsCount" class="text-muted" data-toggle="collapse" href="#collapseExample" aria-expanded="false" aria-controls="collapseExample"></span></a>
                   <div class="collapse" id="collapseExample">
                       <select id="dropAuthGroups" class="search form-control input-sm hidden"></select>
-                      <a id="downloadAuthgroupsCSVall" href="/gpoUsers/list.csv" class="hidden">download users</a>
-                      <a id="downloadAuthgroupsCSVregions" href="/gpoUsers/list.csv/authGroups/" class="hidden">download users</a>
+                      <a id="downloadAuthgroupsCSVall" href="gpoUsers/list.csv" class="hidden">download users</a>
+                      <a id="downloadAuthgroupsCSVregions" href="gpoUsers/list.csv/authGroups/" class="hidden">download users</a>
                   </div>
               </div>
 
@@ -398,7 +398,7 @@
             <div id="loadingMsg" class="jumbotron hidden">
                 <h2 class="text-center">Just one moment, fetching the latest GeoPlatform content for you...</h2>
                 <h3 id="loadingMsgCountContainer" class="text-center hidden"><span id="loadingMsgCount"></span> / <span id="loadingMsgTotalCount"></span> items loaded</h3>
-                <img src="../img/loading.gif" class="img-responsive center-block" alt="now loading" />
+                <img src="img/loading.gif" class="img-responsive center-block" alt="now loading" />
             </div>
             <!--</div>-->
             <div id="overviewTable" >
@@ -449,19 +449,19 @@
                       <!-- <td data-bind="text: id"></td> -->
                       <td data-bind="attr: { 'data-order': doc.modified}" style="display:none">
                           <!-- ko if:doc.type=='Web Map' -->
-                          <img src="../img/item_type_icons/maps16.png">
+                          <img src="img/item_type_icons/maps16.png">
                           <!-- /ko -->
                           <!-- ko if:doc.type=='Web Mapping Application' -->
-                           <img src="../img/item_type_icons/apps16.png">
+                           <img src="img/item_type_icons/apps16.png">
                           <!-- /ko -->
                           <!-- ko if:doc.type=='Feature Layer' -->
-                          <img src="../img/item_type_icons/featureshosted16.png">
+                          <img src="img/item_type_icons/featureshosted16.png">
                           <!-- /ko -->
                           <!-- ko if:doc.type=='Service Definition' -->
-                          <img src="../img/item_type_icons/datafiles16.png">
+                          <img src="img/item_type_icons/datafiles16.png">
                           <!-- /ko -->
                           <!-- ko if:doc.type=='Map Image layer' -->
-                          <img src="../img/item_type_icons/mapimages16.png">
+                          <img src="img/item_type_icons/mapimages16.png">
                           <!-- /ko -->
                       </td>
                       <td data-bind="text: doc.title" ></td>
@@ -469,9 +469,9 @@
                       <td data-bind="text: doc.type"></td>
                       <td data-bind="text: doc.numViews"></td>
                       <td data-bind="text: doc.owner"></td>
-                      <td data-bind="css: {auditRowPass: doc.AuditData.compliant(),auditRowFail: !doc.AuditData.compliant()},attr: { 'data-search': complianceStatus}">
-                          <img class="pass" src="../img/greenOK.jpg" alt="Pass" style="width:25px">
-                          <img class="fail" src="../img/warning.png" alt="Fail" style="width:25px">
+                      <td data-bind="css: {auditRowPass: doc.AuditData.compliant(),auditRowFail: !doc.AuditData.compliant()},attr: { 'data-search': complianceStatus,'data-order': complianceStatus}">
+                          <img class="pass" src="img/greenOK.jpg" alt="Pass" style="width:25px">
+                          <img class="fail" src="img/warning.png" alt="Fail" style="width:25px">
                         </td >
                     </tr>
                   </tbody>
@@ -696,7 +696,7 @@
     <script src="js/wysiwyg.js"></script>
 
     <script src="js/gpintel.js"></script>
-    <script src="../js/Audit.js"></script>
+    <script src="js/Audit.js"></script>
     <!-- Due to some weird timing issues, this order needs to be followed -->
     <script src="js/esrijsapi/dojo/dojo.js" data-dojo-config="async: true"></script>
     <!--<script src="//js.arcgis.com/3.15compact/"></script>-->
