@@ -1,3 +1,66 @@
+var utilities=require('../shared/utilities');
+var MonkClass = require('monk');
+
+var monk = MonkClass('mongodb://localhost:27017/egam');
+var itemsCollection = monk.get('GPOitems');
+console.log(new Date());
+
+var uniq = {};
+
+
+return utilities.getDistinctArrayFromDB(itemsCollection, {}, "owner")
+  .then(function (ownerIDs) {
+    console.log("done " + ownerIDs.length);
+    console.log(new Date());
+    return true;
+  });
+
+//
+
+itemsCollection.find({}, {fields:{owner:1},limit:null,stream:true})
+  .each(function (doc) {
+    uniq[doc.owner]=1;
+//    console.log(doc.id);
+  })
+  .success(function () {
+    console.log(Object.keys(uniq));
+      console.log("done");
+    console.log(new Date());
+    })
+;
+
+return;
+
+itemsCollection.find({},{fields:{owner:1},limit:null},function (docs) {
+
+  console.log(new Date());
+  console.log("end")
+});
+return;
+
+itemsCollection.col.aggregate(
+  [
+    {"$match": {} },
+    {
+      "$group" : {
+        "_id" : "$owner"
+      }
+    },
+    {"$project": {owner:1}}
+  ],function () {console.log(new Date())}
+  );
+
+return;
+
+return utilities.getDistinctArrayFromDB(itemsCollection, {}, "owner")
+  .then(function (ownerIDs) {
+    console.log("done " + ownerIDs.length);
+    console.log(new Date());
+    return true;
+  });
+
+return;
+
 var AuditClass=require('../shared/Audit');
 var audit = new AuditClass();
 var dirty = "<script>alert('hi');</script><div>outer<div>inner</div>after</div>";
