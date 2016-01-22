@@ -97,9 +97,11 @@ console.log(config);
 // Static route for serving out our front-end Tool
 app.use(express.static(path.join(__dirname, 'public')));
 
-app.use('/', routes(app));
-app.use('/gpoitems', gpoitems(app));
-app.use('/gpousers', gpousers(app));
+//In order to get through firewall need rewrite from port 80 to port 3000 via reverse proxy
+//Therefore need a base directory for the app
+app.use('/gpdashboard', routes(app));
+app.use('/gpdashboard/gpoitems', gpoitems(app));
+app.use('/gpdashboard/gpousers', gpousers(app));
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
