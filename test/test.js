@@ -3,10 +3,24 @@ var MonkClass = require('monk');
 
 var monk = MonkClass('mongodb://localhost:27017/egam');
 var itemsCollection = monk.get('GPOitems');
+var usersCollection = monk.get('GPOusers');
 console.log(new Date());
 
 var uniq = {};
 
+var query = {"authGroups": {$ne: []}, "isAdmin": true};
+
+return utilities.getDistinctArrayFromDB(usersCollection, query, "authGroups")
+  .then(function (authGroups) {
+    console.log("done " + authGroups[0]);
+    console.log("done " + authGroups[1]);
+    console.log("done " + authGroups[2]);
+    console.log("done " + authGroups.length);
+    console.log(new Date());
+    return true;
+  });
+
+return;
 
 return utilities.getDistinctArrayFromDB(itemsCollection, {}, "owner")
   .then(function (ownerIDs) {
@@ -15,7 +29,28 @@ return utilities.getDistinctArrayFromDB(itemsCollection, {}, "owner")
     return true;
   });
 
-//
+return;
+
+return utilities.getDistinctArrayFromDBaggregate(itemsCollection, {}, "owner")
+  .then(function (ownerIDs) {
+    console.log("done " + ownerIDs.length);
+    console.log(new Date());
+    return true;
+  });
+
+return;
+
+return utilities.getDistinctArrayFromDBaggregate(usersCollection, query, "authGroups")
+  .then(function (authGroups) {
+    console.log("done " + authGroups.length);
+    console.log(new Date());
+    return true;
+  });
+
+return;
+
+
+
 
 itemsCollection.find({}, {fields:{owner:1},limit:null,stream:true})
   .each(function (doc) {
