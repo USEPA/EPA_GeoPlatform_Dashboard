@@ -236,7 +236,6 @@ function populateUserTables(query, projection) {
         auditRes.validate(unmappedDoc, "");
         ko.mapping.fromJS(unmappedDoc, this.selected().doc);
 
-
         var mydata = new FormData();
         mydata.append("updateDocs", JSON.stringify(this.selected().changeDoc));
         //mydata.append("updateDoc", unmappedDoc);
