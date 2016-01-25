@@ -86,7 +86,9 @@ function populateUserTables(query, projection) {
   var defer = $.Deferred();
 
   // jQuery AJAX call for JSON
-  $.getJSON('gpoitems/list', {
+//  $.getJSON('gpoitems/list', {
+// Do a post because some long query strings were breaking staging server reverse proxy
+    $.post('gpoitems/list', {
     query: query,
     projection: projection
   }, function (data) {
@@ -493,7 +495,8 @@ function populateUserTables(query, projection) {
     //    }
 
 
-  });
+  },'json');
+//need to add json type to post since not using getJSON now
 
   return defer;
 
