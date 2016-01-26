@@ -16,6 +16,7 @@ var MonkClass = require('monk');
 var routes = require('./routes/index');
 var gpoitems = require('./routes/gpoitems');
 var gpousers = require('./routes/gpousers');
+var redirectRoute = require('./routes/redirect');
 
 var app = express();
 
@@ -102,6 +103,8 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use('/gpdashboard', routes(app));
 app.use('/gpdashboard/gpoitems', gpoitems(app));
 app.use('/gpdashboard/gpousers', gpousers(app));
+//Since everything is in gpdashboard now. need localhost:3000/ to redirect to gpdashboard/
+app.use('/', redirectRoute());
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
