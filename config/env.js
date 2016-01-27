@@ -7,7 +7,7 @@ var config = {};
   var appRoot = require('app-root-path') + '/';
   var env = require(appRoot + '/shared/getNodeEnv')();
 
-  console.log("env.js env " + env);
+//  console.log("env.js env " + env);
 //If env is not local,staging or production then make it local
   if (["local", "staging", "production"].indexOf(env)<0) env = null;
 //Use local by default
