@@ -943,7 +943,7 @@ DownloadGPOdata.prototype.getGPOdataAsync = function () {
 //      self.downloadLogs.log(key+this.hr.saved.modifiedGPOrow)
       self.getSingleGPOdata(key+asyncStartModifiedGPOrow)
         .catch(function(err) {
-          self.downloadErrors.error('Error in async.forEachOf while calling getSingleGPOdata in DownloadGPOdata.getGPOdataAsync:', err.stack);
+          self.downloadLogs.error('Error in async.forEachOf while calling getSingleGPOdata in DownloadGPOdata.getGPOdataAsync:', err.stack);
         })
         .done(function() {
           done();
@@ -951,7 +951,7 @@ DownloadGPOdata.prototype.getGPOdataAsync = function () {
         });
     }
     , function (err) {
-      if (err) self.downloadErrors.error('Error in async.forEachOf while looping over GPO data items in DownloadGPOdata.getGPOdataAsync:', err.stack);
+      if (err) self.downloadLogs.error('Error in async.forEachOf while looping over GPO data items in DownloadGPOdata.getGPOdataAsync:', err.stack);
 //resolve this promise
 //      self.downloadLogs.log('resolve')
       defer.resolve();

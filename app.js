@@ -16,8 +16,11 @@ var MonkClass = require('monk');
 var routes = require('./routes/index');
 var gpoitems = require('./routes/gpoitems');
 var gpousers = require('./routes/gpousers');
+var redirectRoute = require('./routes/redirect');
 
 var app = express();
+
+console.log('app.js requested:  ' + new Date());
 
 //Get the app root
 var appRoot = require('app-root-path') + '/';
@@ -26,6 +29,8 @@ app.set('appRoot',appRoot);
 //Find the env from local unchecked in file. If it doesn't exist then use Windows env variable NODE_ENV
 var env = require(appRoot + '/shared/getNodeEnv')();
 app.set('env', env);
+
+console.log('app.get(env) = ' + app.get('env') + ' NODE_ENV = ' + process.env.NODE_ENV);
 
 //get the configuration for this current environment from config file specific to current environment
 //Note, if for some reason appRoot is wrong try the hardcoded path
@@ -88,7 +93,7 @@ sendEmail.send(config.email.defaultFrom,config.email.admins,'EGAM Express Server
   .catch(function (error) {console.error(error)});
 
 
-console.log(config);
+//console.log(config);
 
 // All standard routes above here
 // endpoint for API calls to MongoDB via Monk
@@ -102,6 +107,8 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use('/gpdashboard', routes(app));
 app.use('/gpdashboard/gpoitems', gpoitems(app));
 app.use('/gpdashboard/gpousers', gpousers(app));
+//Since everything is in gpdashboard now. need localhost:3000/ to redirect to gpdashboard/
+app.use('/', redirectRoute());
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
@@ -113,11 +120,9 @@ app.use(function(req, res, next) {
 });
 
 // error handlers
-console.log('test');
 
 // development error handler
 // will print stacktrace
-console.log('app.get(env) = ' + app.get('env') + ' ' + process.env.NODE_ENV);
 
 if (app.get('env') !== 'production') {
   app.use(function(err, req, res, next) {

@@ -120,6 +120,20 @@ function populateUserTables(query, projection) {
           return "https://epa.maps.arcgis.com/sharing/rest/content/items/" + self.doc.id() + "/info/" + self.doc.thumbnail() + "?token=" + utoken;
         }
       }, this);
+      //Format Modified Date
+      this.modDate = ko.computed(function(){
+        var monthNames = [
+          "Jan", "Feb", "Mar",
+          "Apr", "May", "Jun", "Jul",
+          "Aug", "Sep", "Oct",
+          "Nov", "Dec"
+        ];
+
+        var dDate = new Date(self.doc.modified());
+        var formattedDate = monthNames[dDate.getMonth()] + " " + dDate.getDate() +", " + dDate.getFullYear();
+
+        return formattedDate;
+      }, this);
 
       //Doc of changed fields
       this.changeDoc = {};
@@ -223,7 +237,6 @@ function populateUserTables(query, projection) {
         var auditRes = new Audit();
         auditRes.validate(unmappedDoc, "");
         ko.mapping.fromJS(unmappedDoc, this.selected().doc);
-
 
         var mydata = new FormData();
         mydata.append("updateDocs", JSON.stringify(this.selected().changeDoc));
