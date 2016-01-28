@@ -1,0 +1,183 @@
+/*
+ * Base structure
+ */
+
+/* Move down content because we have a fixed navbar that is 50px tall */
+body {
+  padding-top: 50px;
+}
+
+/* addition to bootstrap css */
+.has-error .form-control {
+  border-width: medium;
+}
+
+.has-success .form-control {
+  border-width: medium;
+}
+
+a, span, tr, h4:hover {
+  cursor:default;
+}
+
+/*
+ * Global add-ons
+ */
+
+.sub-header {
+  padding-bottom: 10px;
+  border-bottom: 1px solid #eee;
+}
+
+/*
+ * Top navigation
+ * Hide default border to remove 1px line.
+ */
+.navbar-fixed-top {
+  border: 0;
+}
+
+/*
+ * Sidebar
+ */
+
+/* Hide for mobile, show later */
+.sidebar {
+  display: none;
+}
+@media (min-width: 768px) {
+  .sidebar {
+    position: fixed;
+    top: 51px;
+    bottom: 0;
+    left: 0;
+    z-index: 1000;
+    display: block;
+    padding-top: 20px;
+    overflow-x: hidden;
+    overflow-y: auto; /* Scrollable contents if viewport is shorter than content. */
+    background-color: #f5f5f5;
+    border-right: 1px solid #eee;
+  }
+}
+
+/* Sidebar navigation */
+/*.nav-sidebar {*/
+  /*margin-right: -21px; /!* 20px padding + 1px border *!/*/
+  /*margin-bottom: 20px;*/
+  /*margin-left: -20px;*/
+/*}*/
+/*.nav-sidebar > li > a {*/
+  /*padding-right: 20px;*/
+  /*padding-left: 20px;*/
+/*}*/
+/*.nav-sidebar > .active > a,*/
+/*.nav-sidebar > .active > a:hover,*/
+/*.nav-sidebar > .active > a:focus {*/
+  /*color: #fff;*/
+  /*background-color: #428bca;*/
+/*}*/
+
+
+
+/*
+ * Main content
+ */
+
+.main {
+  padding: 20px;
+}
+@media (min-width: 768px) {
+  .main {
+    padding-right: 40px;
+    padding-left: 40px;
+  }
+}
+.main .page-header {
+  margin-top: 0;
+}
+
+.form-group.has-success .fileinput .thumbnail {
+  border-color: #3c763d;
+}
+
+.form-group.has-error .fileinput .thumbnail {
+  border-color: #a94442;
+}
+
+
+
+
+/*
+ * Placeholder dashboard ideas
+ */
+
+.placeholders {
+  margin-bottom:5px;
+  text-align: center;
+}
+.placeholders h4 {
+  margin-bottom: 0;
+}
+.placeholder {
+  margin-bottom: 0px;
+}
+.placeholder img {
+  display: inline-block;
+  border-radius: 50%;
+}
+
+/*esri css*/
+.esri-item-gallery .esri-item-container {
+    float: left;
+    text-align: center;
+    padding: 10px;
+    width: 204px;
+    display: inline-block;
+  }
+
+  .esri-item-gallery .esri-image {
+    width: 200px;
+    height: 133px;
+    border: 2px solid gray;
+    border-radius: 5px;
+  }
+
+  .esri-item-gallery .esri-null-image {
+    line-height: 133px;
+    text-align: center;
+    color: #999999;
+  }
+
+  .esri-item-gallery .esri-title {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .esri-item-gallery .esri-null-title {
+    color: #999999;
+  }
+
+  .action {
+    /*color: blue;*/
+    cursor: pointer;
+    text-decoration: underline;
+  }
+
+  .auditRowPass .fail,.auditRowFail .pass {
+      display:none;
+  }
+  .auditRowPass .pass,.auditRowFail .fail {
+      display:inline;
+  }
+
+  table tr.loading {
+/*      background:blue; */
+      display:none;
+  }
+
+    table.loaded tr.loading {
+        display: table-row;
+/*        background:green; */
+    }
