@@ -588,6 +588,7 @@
                                             <span class="help-block" data-bind="text: selected().doc.AuditData.errors.accessInformation.messages"></span>
                                             <!-- /ko -->
                                         </div>
+                                        <!-- ko ifnot: selected().doc.type() === 'Web Map' -->
                                         <div class="form-group has-success" data-bind="css: {'has-error': selected().doc.AuditData.errors.url&&selected().doc.AuditData.errors.url.compliant()===false"}>
                                             <label for="inputUrl">Url</label>
                                             <input class="form-control" id="inputUrl" data-bind="value: selected().doc.url, valueUpdate: 'afterkeydown'" type="url">
@@ -595,6 +596,7 @@
                                             <span class="help-block" data-bind="text: selected().doc.AuditData.errors.url.messages"></span>
                                             <!-- /ko -->
                                         </div>
+                                        <!-- /ko -->
                                     </div>
                                 </div>
                                 <!--<div class="form-group">-->
