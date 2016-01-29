@@ -8,7 +8,6 @@ egam.gpoItems = {
 
 $(document).ready(function () {
 
-
   $(document).on('click', '.nav-sidebar li', function () {
     $(".nav-sidebar li").removeClass("active");
     $(this).addClass("active");
@@ -29,16 +28,14 @@ $(document).ready(function () {
     //tinymce.remove();
   });
 
-
   //Click event for Help Modal
   $('#egamHelp').on('click', function(e){
     $('#helpModal').modal('show');
   });
 
   //Add tooltips
-  var options = {delay: { "show": 1000, "hide": 100 }};
+  var options = {delay: { "show": 500, "hide": 100 }};
   $('[data-toggle="tooltip"]').tooltip(options);
-
 
   ko.bindingHandlers['wysiwyg'].defaults = {
     'plugins': [ 'link textcolor colorpicker' ],
@@ -133,6 +130,10 @@ function populateUserTables(query, projection) {
         var formattedDate = monthNames[dDate.getMonth()] + " " + dDate.getDate() +", " + dDate.getFullYear();
 
         return formattedDate;
+      }, this);
+      //Link to item in GPO
+      this.gpoLink = ko.computed(function(){
+        return "http://epa.maps.arcgis.com/home/item.html?id=" + self.doc.id();
       }, this);
 
       //Doc of changed fields
