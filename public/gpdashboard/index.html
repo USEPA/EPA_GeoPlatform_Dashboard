@@ -434,14 +434,14 @@
                             <select class="search form-control input-sm"><option value="">All</option></select>
                         </span>
                     </th>
+                      <th>Modified</br>
+                        <span onclick="event.stopPropagation();" >
+                            <!--<select class="search form-control input-sm"><option value="">All</option></select>-->
+                        </span>
+                      </th>
                     <th>Audit</br>
                         <span onclick="event.stopPropagation();" >
                             <select class="search form-control input-sm"><option value="">All</option></select>
-                        </span>
-                    </th>
-                    <th>Modified</br>
-                        <span onclick="event.stopPropagation();" >
-                            <!--<select class="search form-control input-sm"><option value="">All</option></select>-->
                         </span>
                     </th>
                   </tr>
@@ -474,11 +474,14 @@
                       <td data-bind="text: doc.type"></td>
                       <td data-bind="text: doc.numViews"></td>
                       <td data-bind="text: doc.owner"></td>
+                        <td data-bind="text: modDate"></td>
                       <td data-bind="css: {auditRowPass: doc.AuditData.compliant(),auditRowFail: !doc.AuditData.compliant()},attr: { 'data-search': complianceStatus,'data-order': complianceStatus}">
                           <img class="pass" src="img/greenOK.jpg" alt="Pass" style="width:25px">
                           <img class="fail" src="img/warning.png" alt="Fail" style="width:25px">
+                          <span onclick="event.stopPropagation();" style="margin-left: 10px">
+                              <a class="glyphicon glyphicon-link" data-bind="attr: {href: gpoLink}" target="_blank" aria-hidden="true"></a>
+                          </span>
                         </td >
-                      <td data-bind="text: modDate"></td>
                     </tr>
                   </tbody>
               </table>
@@ -492,7 +495,8 @@
                     <div class="modal-content">
                         <div class="modal-header">
                             <button type="button" class="close" data-dismiss="modal" aria-label="Close" ><span aria-hidden="true">&times;</span></button>
-                            <h4 class="modal-title" id="myModalLabel">Item Details</h4>
+                            <h4 class="modal-title" id="myModalLabel">Item Details
+                                    <span><a class="glyphicon glyphicon-link" data-bind="attr: {href: selected().gpoLink}" target="_blank" aria-hidden="true" data-toggle="tooltip" data-placement="right" title="Go to Item in GPO"></a></span></h4>
                         </div>
                         <div class="modal-body">
                             <form id="modalForm" role="form" data-toggle="validator" data-disable="false" enctype="multipart/form-data" method="post">
