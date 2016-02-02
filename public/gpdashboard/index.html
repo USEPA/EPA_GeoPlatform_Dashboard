@@ -407,12 +407,12 @@
                 <thead>
                   <tr>
                       <th style="display:none"></th>
-                    <th>Title</br>
+                    <th>Title<br>
                         <span onclick="event.stopPropagation();" >
                             <input class="search form-control input-sm" placeholder="Search By Title">
                         </span>
                     </th>
-                    <th class="accessColumn">Access</br>
+                    <th class="accessColumn">Access<br>
                         <span onclick="event.stopPropagation();" >
                             <select id="dropAccess" class="search form-control input-sm">
                                 <option value="">All</option>
@@ -423,23 +423,23 @@
                             </select>
                         </span>
                     </th>
-                    <th>Type</br>
+                    <th>Type<br>
                         <span onclick="event.stopPropagation();" >
                             <select class="search form-control input-sm"><option value="">All</option></select>
                         </span>
                     </th>
                     <th>Views</th>
-                    <th class="ownerColumn">Owner</br>
+                    <th class="ownerColumn">Owner<br>
                         <span onclick="event.stopPropagation();" >
                             <select class="search form-control input-sm"><option value="">All</option></select>
                         </span>
                     </th>
-                      <th>Modified</br>
+                      <th>Modified<br>
                         <span onclick="event.stopPropagation();" >
                             <!--<select class="search form-control input-sm"><option value="">All</option></select>-->
                         </span>
                       </th>
-                    <th>Audit</br>
+                    <th>Audit<br>
                         <span onclick="event.stopPropagation();" >
                             <select class="search form-control input-sm"><option value="">All</option></select>
                         </span>
@@ -593,7 +593,8 @@
                                             <!-- /ko -->
                                         </div>
                                         <!-- ko ifnot: selected().doc.type() === 'Web Map' -->
-                                        <div class="form-group has-success" data-bind="css: {'has-error': selected().doc.AuditData.errors.url&&selected().doc.AuditData.errors.url.compliant()===false"}>
+                                        <div class="form-group has-success"
+                                             data-bind="css: {'has-error': selected().doc.AuditData.errors.url&&selected().doc.AuditData.errors.url.compliant()===false}">
                                             <label for="inputUrl">Url</label>
                                             <input class="form-control" id="inputUrl" data-bind="value: selected().doc.url, valueUpdate: 'afterkeydown'" type="url">
                                             <!-- ko if: selected().doc.AuditData.errors.url -->
@@ -694,7 +695,6 @@
 
         </div>
       </div>
-    </div>
 
 
     <script src="js/jquery1.11.3/jquery.min.js"></script>
