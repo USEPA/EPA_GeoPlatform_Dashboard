@@ -163,7 +163,6 @@ Object.keys(Audit.prototype.registry).forEach(function (key) {
     args = Array.prototype.concat([this[getResultsFunctionName], processItems], args);
     this.checkGeneric.apply(this, args);
   };
-
 });
 
 //These are the get{Validation}Result functions that perform the actual validations

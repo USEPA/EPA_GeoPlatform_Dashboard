@@ -36,7 +36,7 @@
           </button>
           <a class="navbar-brand" href="#" >
             <img src="img/epa1.png" style="width:40px; margin:-10px 5px 0px 0px; display:inline-block;"/>
-            GeoPlatform Dashboard
+            GeoPlatform Dashboard (Beta)
           </a>
         </div>
         <div id="navbar" class="navbar-collapse collapse">
@@ -434,6 +434,11 @@
                             <select class="search form-control input-sm"><option value="">All</option></select>
                         </span>
                     </th>
+                      <th>Modified</br>
+                        <span onclick="event.stopPropagation();" >
+                            <!--<select class="search form-control input-sm"><option value="">All</option></select>-->
+                        </span>
+                      </th>
                     <th>Audit</br>
                         <span onclick="event.stopPropagation();" >
                             <select class="search form-control input-sm"><option value="">All</option></select>
@@ -469,9 +474,13 @@
                       <td data-bind="text: doc.type"></td>
                       <td data-bind="text: doc.numViews"></td>
                       <td data-bind="text: doc.owner"></td>
+                        <td data-bind="text: modDate"></td>
                       <td data-bind="css: {auditRowPass: doc.AuditData.compliant(),auditRowFail: !doc.AuditData.compliant()},attr: { 'data-search': complianceStatus,'data-order': complianceStatus}">
                           <img class="pass" src="img/greenOK.jpg" alt="Pass" style="width:25px">
                           <img class="fail" src="img/warning.png" alt="Fail" style="width:25px">
+                          <span onclick="event.stopPropagation();" style="margin-left: 10px">
+                              <a class="glyphicon glyphicon-link" data-bind="attr: {href: gpoLink}" target="_blank" aria-hidden="true"></a>
+                          </span>
                         </td >
                     </tr>
                   </tbody>
@@ -486,7 +495,8 @@
                     <div class="modal-content">
                         <div class="modal-header">
                             <button type="button" class="close" data-dismiss="modal" aria-label="Close" ><span aria-hidden="true">&times;</span></button>
-                            <h4 class="modal-title" id="myModalLabel">Item Details</h4>
+                            <h4 class="modal-title" id="myModalLabel">Item Details
+                                    <span><a class="glyphicon glyphicon-link" data-bind="attr: {href: selected().gpoLink}" target="_blank" aria-hidden="true" data-toggle="tooltip" data-placement="right" title="Go to Item in GPO"></a></span></h4>
                         </div>
                         <div class="modal-body">
                             <form id="modalForm" role="form" data-toggle="validator" data-disable="false" enctype="multipart/form-data" method="post">
@@ -503,7 +513,7 @@
                                                     <!--<img data-bind="attr: {src: selected().tnURLs}">-->
                                                     <!-- /ko -->
                                                     <!-- ko ifnot: selected().doc.thumbnail -->
-                                                    <!--<img src="../img/noImage.png">-->
+                                                    <!--<img src="img/noImage.png">-->
                                                     <!-- /ko -->
                                                 </div>
                                                 <span class="help-block" data-bind="text: selected().doc.AuditData.errors.thumbnail.messages">Requried</span>
@@ -582,6 +592,7 @@
                                             <span class="help-block" data-bind="text: selected().doc.AuditData.errors.accessInformation.messages"></span>
                                             <!-- /ko -->
                                         </div>
+                                        <!-- ko ifnot: selected().doc.type() === 'Web Map' -->
                                         <div class="form-group has-success" data-bind="css: {'has-error': selected().doc.AuditData.errors.url&&selected().doc.AuditData.errors.url.compliant()===false"}>
                                             <label for="inputUrl">Url</label>
                                             <input class="form-control" id="inputUrl" data-bind="value: selected().doc.url, valueUpdate: 'afterkeydown'" type="url">
@@ -589,11 +600,12 @@
                                             <span class="help-block" data-bind="text: selected().doc.AuditData.errors.url.messages"></span>
                                             <!-- /ko -->
                                         </div>
+                                        <!-- /ko -->
                                     </div>
                                 </div>
                                 <!--<div class="form-group">-->
                                     <!--<label for="test">Test Fielde</label>-->
-                                    <!--<input class="form-control"  id="test" data-bind="value: selected().lI" type="text">-->
+                                    <!--<input class="form-control"  id="test" data-bind="value: selected().modDate" type="text">-->
                                 <!--</div>-->
 
                             </form>
@@ -691,8 +703,8 @@
     <script src="bootstrap/js/bootstrap.min.js"></script>
     <script src="bootstrap/js/jasny-bootstrap.min.js"></script>
 
-    <script src="js/tinymce/tinymce4.3.2.min.js"></script>
-    <script src="js/tinymce/jquery.tinymce4.3.2.min.js"></script>
+    <script src="js/tinymce/tinymce.min.js"></script>
+    <script src="js/tinymce/tinymce.jquery.min.js"></script>
     <script src="js/wysiwyg.js"></script>
 
     <script src="js/gpintel.js"></script>

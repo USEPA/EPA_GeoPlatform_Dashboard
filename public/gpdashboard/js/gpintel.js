@@ -8,7 +8,6 @@ egam.gpoItems = {
 
 $(document).ready(function () {
 
-
   $(document).on('click', '.nav-sidebar li', function () {
     $(".nav-sidebar li").removeClass("active");
     $(this).addClass("active");
@@ -29,16 +28,14 @@ $(document).ready(function () {
     //tinymce.remove();
   });
 
-
   //Click event for Help Modal
   $('#egamHelp').on('click', function(e){
     $('#helpModal').modal('show');
   });
 
   //Add tooltips
-  var options = {delay: { "show": 1000, "hide": 100 }};
+  var options = {delay: { "show": 500, "hide": 100 }};
   $('[data-toggle="tooltip"]').tooltip(options);
-
 
   ko.bindingHandlers['wysiwyg'].defaults = {
     'plugins': [ 'link textcolor colorpicker' ],
@@ -115,10 +112,28 @@ function populateUserTables(query, projection) {
       //computed thumbnail url
       this.tnURLs = ko.computed(function () {
         if(self.doc.thumbnail() == null){
-          return "../img/noImage.png";
+          return "img/noImage.png";
         }else{
           return "https://epa.maps.arcgis.com/sharing/rest/content/items/" + self.doc.id() + "/info/" + self.doc.thumbnail() + "?token=" + utoken;
         }
+      }, this);
+      //Format Modified Date
+      this.modDate = ko.computed(function(){
+        var monthNames = [
+          "Jan", "Feb", "Mar",
+          "Apr", "May", "Jun", "Jul",
+          "Aug", "Sep", "Oct",
+          "Nov", "Dec"
+        ];
+
+        var dDate = new Date(self.doc.modified());
+        var formattedDate = monthNames[dDate.getMonth()] + " " + dDate.getDate() +", " + dDate.getFullYear();
+
+        return formattedDate;
+      }, this);
+      //Link to item in GPO
+      this.gpoLink = ko.computed(function(){
+        return "http://epa.maps.arcgis.com/home/item.html?id=" + self.doc.id();
       }, this);
 
       //Doc of changed fields
@@ -227,7 +242,6 @@ function populateUserTables(query, projection) {
         var auditRes = new Audit();
         auditRes.validate(unmappedDoc, "");
         ko.mapping.fromJS(unmappedDoc, this.selected().doc);
-
 
         var mydata = new FormData();
         mydata.append("updateDocs", JSON.stringify(this.selected().changeDoc));
