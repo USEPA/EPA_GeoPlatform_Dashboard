@@ -29,11 +29,10 @@ require([
   on(dom.byId("sign-in"), "click", function() {
     console.log("Signing In", arguments);
     // user will be shown the OAuth Sign In page
-    console.log(info.portalUrl + "/sharing");
     esriId.getCredential(info.portalUrl + "/sharing", {
       oAuthPopupConfirmation: false
     }).then(function() {
-      console.log("Made it in");
+      console.log("Signed In");
       displayItems();
     }).otherwise(function (error) {
         console.log("Error occurred while signing in: ", error);
