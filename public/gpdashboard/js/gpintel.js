@@ -219,8 +219,12 @@ function populateUserTables(query, projection) {
         //alert("Posting");
 
         //need to add thumbnail name to document before auditing
-        var thumbnailFile = $('#thumbnail')[0].files[0];
-        if (thumbnailFile === undefined) {
+        var thumbnailFile = null;
+        try {
+          thumbnailFile = $('#thumbnail')[0].files[0];
+        }catch (ex) {
+        }
+        if (! thumbnailFile) {
           console.log('No thumbnail to post');
         } else {
           //Add to to change doc

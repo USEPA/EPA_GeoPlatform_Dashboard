@@ -157,13 +157,12 @@ Object.keys(Audit.prototype.registry).forEach(function (key) {
   var processItems = registryitem.processItems !== false;
   Audit.prototype[checkFunctionName] = function () {
     var args = Array.prototype.slice.call(arguments);
+//Add the name of the function here because IE doesn't recognize the name property of functions
+//Now I don't have to name the functions anymore. I was nameing the function so I would know what error template to use for the function
+    this[getResultsFunctionName].name = functionName.charAt(0).toLowerCase() + functionName.slice(1); //note the template name begins with lowercase
     args = Array.prototype.concat([this[getResultsFunctionName], processItems], args);
     this.checkGeneric.apply(this, args);
   };
-//Add the name of the function here because IE doesn't recognize the name property of functions
-//Now I don't have to name the functions anymore. I was nameing the function so I would know what error template to use for the function
-  Audit.prototype[checkFunctionName].name = functionName;
-
 });
 
 //These are the get{Validation}Result functions that perform the actual validations
