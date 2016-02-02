@@ -112,7 +112,7 @@ function populateUserTables(query, projection) {
       //computed thumbnail url
       this.tnURLs = ko.computed(function () {
         if(self.doc.thumbnail() == null){
-          return "../img/noImage.png";
+          return "img/noImage.png";
         }else{
           return "https://epa.maps.arcgis.com/sharing/rest/content/items/" + self.doc.id() + "/info/" + self.doc.thumbnail() + "?token=" + utoken;
         }
