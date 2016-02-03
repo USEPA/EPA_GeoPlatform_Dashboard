@@ -5,11 +5,11 @@ require([
 ], function(arcgisPortal, OAuthInfo, esriId, domStyle, domAttr, dom, on, arrayUtils) {
   var info = new OAuthInfo({
     appId: "CXkB0iPulNZP9xQo",
-    portalUrl: "http://epa.maps.arcgis.com",
+    portalUrl: "https://epa.maps.arcgis.com",
     //authNamespace to prevent the user's signed in state from being shared
     //with other apps on the same domain with the same authNamespace value.
     //authNamespace: "portal_oauth_popup",
-    popup: true
+    popup: false
   });
   esriId.registerOAuthInfos([info]);
 
@@ -27,13 +27,16 @@ require([
   );
 
   on(dom.byId("sign-in"), "click", function() {
-    console.log("click", arguments);
+    console.log("Signing In", arguments);
     // user will be shown the OAuth Sign In page
     esriId.getCredential(info.portalUrl + "/sharing", {
       oAuthPopupConfirmation: false
     }).then(function() {
+      console.log("Signed In");
       displayItems();
-    });
+    }).otherwise(function (error) {
+        console.log("Error occurred while signing in: ", error);
+      })
   });
 
   on(dom.byId("sign-out"), "click", function() {

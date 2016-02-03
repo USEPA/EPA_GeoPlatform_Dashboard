@@ -150,12 +150,16 @@ Audit.prototype.clear = function (doc) {
 Object.keys(Audit.prototype.registry).forEach(function (key) {
   //capitalize key to get camel case
   var registryitem = Audit.prototype.registry[key];
-  var checkFunctionName = "check" + key.charAt(0).toUpperCase() + key.substring(1);
-  var getResultsFunctionName = "get" + key.charAt(0).toUpperCase() + key.substring(1) + "Result";
+  var functionName = key.charAt(0).toUpperCase() + key.substring(1);
+  var checkFunctionName = "check" + functionName;
+  var getResultsFunctionName = "get" + functionName + "Result";
   //if not processItems variable set then defaults to true. must set to false to get false ie. falsey empty value will default to true.
   var processItems = registryitem.processItems !== false;
   Audit.prototype[checkFunctionName] = function () {
     var args = Array.prototype.slice.call(arguments);
+//Add the name of the function here because IE doesn't recognize the name property of functions
+//Now I don't have to name the functions anymore. I was nameing the function so I would know what error template to use for the function
+    this[getResultsFunctionName].name = functionName.charAt(0).toLowerCase() + functionName.slice(1); //note the template name begins with lowercase
     args = Array.prototype.concat([this[getResultsFunctionName], processItems], args);
     this.checkGeneric.apply(this, args);
   };
@@ -173,6 +177,7 @@ Object.keys(Audit.prototype.registry).forEach(function (key) {
 // get{Validation}Result can also return an array of results if more than one result/error was returned
 // It is important to make the function name of get{Validation}Result to be {Validation} for easier identification
 // I am thinking about changing this requirement
+// NOTE: You don't have to name the functions anymore I have lifted that requirement because it wasn't working in IE 11 (Now I directly set the name of the template as get{FunctionName}Result.name=FunctionName)
 
 Audit.prototype.getRequiredFieldResult = function requiredField(myString, cleanHTML) {
   if (cleanHTML === true) myString = this.cleanHTML(myString);
