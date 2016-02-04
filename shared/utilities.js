@@ -109,16 +109,43 @@ utilities.sliceObject = function (obj,slice) {
 };
 
 //Get array from DB from single field
-utilities.getArrayFromDB = function (collection,query,field) {
+
+utilities.getArrayFromDBnoStream = function (collection,query,field) {
+  console.log('remove getArrayFromDB');
   var Q = require('q');
   var proj = {fields:{}};
   proj[field] = 1;
   return Q(collection.find(query, proj))
 //  return Q(collection.find(query, {fields:{authGroups:1}}))
     .then(function (docs) {
+      console.log('then getArrayFromDB');
       return docs.map(function (doc) {
         return doc[field];});
-      });
+    });
+};
+
+utilities.getArrayFromDB = function (collection,query,field) {
+//This should be faster with streaming
+  var Q = require('q');
+
+  var outArray = [];
+  var defer = Q.defer();
+  var fields = {};
+//Have to project out only the field desired or it was REALLY slow
+  fields[field] = 1;
+  collection.find(query, {fields:fields,stream:true})
+    .each(function (doc) {
+//push doc.field to the array now
+      outArray.push(doc[field]);
+    })
+    .error(function (err) {
+      defer.reject("Error getting Array From DB: " + err);
+    })
+    .success(function () {
+      defer.resolve(outArray);
+    });
+
+  return defer.promise;
 };
 
 utilities.getDistinctArrayFromDBaggregate = function (collection,query,field) {
