@@ -2,7 +2,7 @@
 var egam = {};
 egam.gpoItems = {
   resultSet: [],
-  rowModel: null,
+  tableModel: null,
   dataTable: null
 };
 
@@ -14,18 +14,6 @@ $(document).ready(function () {
     var view = $(this).find(":first").attr("id");
     $('#' + view + 'View').collapse('show');
     $('.view').not(document.getElementById(view)).collapse('hide');
-  });
-
-  //onshow event for Item Details modal
-  $('#myModal').on('shown.bs.modal', function (e) {
-    //console.log("Show Bootstrap modal");
-    //$('#descriptionEditor').tinymce( { width: '100%', menubar: false});
-
-  });
-
-  $('#myModal').on('hidden.bs.modal', function (e) {
-    //console.log("Hide Bootstrap modal");
-    //tinymce.remove();
   });
 
   //Click event for Help Modal
@@ -47,45 +35,21 @@ $(document).ready(function () {
     'body_class': 'form-group has-success form-control'
   };
 
-
 });
 
 
-
-
-
-// Fill table with data queried out of Mongo via Express/Monk
-function populateTable(vTable, query) {
-
-  var tableContent = '';
-
-  //for query pass a string because things like null were being converted to empty string
-  query = JSON.stringify(query);
-
-  $.getJSON('gpoitems/list', {
-    query: query
-  }, function (data) {
-    ko.applyBindings({
-      content: data
-    });
-  });
-}
-
-
-//populate tables for GPO User view
+//Populate table for GPO User's Items View
+//Projection in Mongo/Monk is what fields you want to return and sorting, offsetting, etc.
 function populateUserTables(query, projection) {
   query = JSON.stringify(query);
   projection = JSON.stringify(projection);
 
-  var utoken = egam.portalUser.credential.token;
-
   //Use this so we know when everything is loaded
   var defer = $.Deferred();
 
-  // jQuery AJAX call for JSON
-//  $.getJSON('gpoitems/list', {
-// Do a post because some long query strings were breaking staging server reverse proxy
-    $.post('gpoitems/list', {
+  //Do a post because some long query strings were breaking staging server reverse proxy
+  //hit our Express endpoint to get the list of items for this logged in user
+  $.post('gpoitems/list', {
     query: query,
     projection: projection
   }, function (data) {
@@ -94,358 +58,42 @@ function populateUserTables(query, projection) {
     var dataResults = data;
     if ("results" in data) dataResults = data.results;
 
-    $('#loadingMsgCountContainer').removeClass('hidden');
+    $("#loadingMsgCountContainer").removeClass("hidden");
     $("#loadingMsgCount").text(0);
     $("#loadingMsgTotalCount").text(dataResults.length);
-
-
-    var rowModel1 = function (i, loading) {
-      var self = this;
-      this.loading = loading || false;
-      //This is the doc
-      this.doc = ko.mapping.fromJS(i);
-
-      this.complianceStatus = ko.computed(function () {
-        return this.doc.AuditData.compliant() ? 'Pass' : 'Fail'
-      }, this);
-
-      //computed thumbnail url
-      this.tnURLs = ko.computed(function () {
-        if(self.doc.thumbnail() == null){
-          return "img/noImage.png";
-        }else{
-          return "https://epa.maps.arcgis.com/sharing/rest/content/items/" + self.doc.id() + "/info/" + self.doc.thumbnail() + "?token=" + utoken;
-        }
-      }, this);
-      //Format Modified Date
-      this.modDate = ko.computed(function(){
-        var monthNames = [
-          "Jan", "Feb", "Mar",
-          "Apr", "May", "Jun", "Jul",
-          "Aug", "Sep", "Oct",
-          "Nov", "Dec"
-        ];
-
-        var dDate = new Date(self.doc.modified());
-        var formattedDate = monthNames[dDate.getMonth()] + " " + dDate.getDate() +", " + dDate.getFullYear();
-
-        return formattedDate;
-      }, this);
-      //Link to item in GPO
-      this.gpoLink = ko.computed(function(){
-        return "http://epa.maps.arcgis.com/home/item.html?id=" + self.doc.id();
-      }, this);
-
-      //Doc of changed fields
-      this.changeDoc = {};
-
-      //Subscribes Setup
-      this.doc.title.subscribe(function (evt) {
-        this.execAudit("title");
-        this.addFieldChange("title", evt);
-      }.bind(this));
-
-      this.doc.snippet.subscribe(function (evt) {
-        this.execAudit("snippet");
-        this.addFieldChange("snippet", evt);
-      }.bind(this));
-
-      this.doc.description.subscribe(function (evt) {
-        this.execAudit("description");
-        this.addFieldChange("description", evt);
-      }.bind(this));
-
-      /* this is actually Access and Use Constraints */
-      this.doc.licenseInfo.subscribe(function (evt) {
-        this.execAudit("licenseInfo");
-        this.addFieldChange("licenseInfo", evt);
-      }.bind(this));
-
-      /* this is actually credits */
-      this.doc.accessInformation.subscribe(function (evt) {
-        this.execAudit("accessInformation");
-        this.addFieldChange("accessInformation", evt);
-      }.bind(this));
-
-      this.doc.url.subscribe(function (evt) {
-        this.execAudit("url");
-        this.addFieldChange("url", evt);
-      }.bind(this));
-
-      this.doc.tags.subscribe(function (evt) {
-        this.execAudit("tags");
-        this.addFieldChange("tags", this.doc.tags());
-      }.bind(this), null, 'arrayChange');
-
-      //Add and field that has changed to the changeDoc
-      this.addFieldChange = function (changeField, changeValue) {
-        this.changeDoc["id"] = this.doc.id();
-        this.changeDoc[changeField] = changeValue;
-        //alert(JSON.stringify(this.changeDoc));
-      };
-
-      //this.tnURLs.subscribe(function(){
-      //  alert("Change");
-      //  this.execAudit("thumbnail");
-      //}.bind(this));
-
-      //Execute Audit on specified field in doc
-      this.execAudit = function (auditField) {
-        var unmappedDoc = ko.mapping.toJS(this.doc);
-        var auditRes = new Audit();
-        auditRes.validate(unmappedDoc, auditField);
-        ko.mapping.fromJS(unmappedDoc, this.doc);
-      };
-
-      //tags
-      this.tagItemToAdd = ko.observable("");
-      this.selectedItems = ko.observableArray([""]);
-      //Add tag to tags array
-      this.addItem = function () {
-        //alert("here");
-        if ((this.selected().tagItemToAdd() != "") && (this.selected
-          ().doc.tags.indexOf(this.selected().tagItemToAdd()) < 0)) // Prevent blanks and duplicates
-        this.selected().doc.tags.push(this.selected().tagItemToAdd());
-        this.selected().tagItemToAdd(""); // Clear the text box
-      };
-      //Remove tag from tags array
-      this.removeSelected = function () {
-        this.selected().doc.tags.removeAll(this.selected().selectedItems());
-        this.selected().selectedItems([]); // Clear selection
-      };
-
-      //Post updated docs back to Mongo
-      this.postback = function () {
-        //alert("Posting");
-
-        //need to add thumbnail name to document before auditing
-        var thumbnailFile = null;
-        try {
-          thumbnailFile = $('#thumbnail')[0].files[0];
-        }catch (ex) {
-        }
-        if (! thumbnailFile) {
-          console.log('No thumbnail to post');
-        } else {
-          //Add to to change doc
-          i.thumbnail = "thumbnail/" + thumbnailFile.name;
-          this.selected().addFieldChange("thumbnail", i.thumbnail);
-          //self.doc.thumbnail(i.thumbnail);
-          //self.doc.thumbnail.valueHasMutated();
-        }
-        //var thumbnail = $('#thumbnail')[0].files[0];
-        //if (thumbnail && thumbnail.name) unmappedDoc.thumbnail = "thumbnail/" + thumbnail.name;
-
-        //Original Audit of full Doc
-        var unmappedDoc = ko.mapping.toJS(this.selected().doc);
-
-        var auditRes = new Audit();
-        auditRes.validate(unmappedDoc, "");
-        ko.mapping.fromJS(unmappedDoc, this.selected().doc);
-
-        var mydata = new FormData();
-        mydata.append("updateDocs", JSON.stringify(this.selected().changeDoc));
-        //mydata.append("updateDoc", unmappedDoc);
-        mydata.append("thumbnail", thumbnailFile);
-        $.ajax({
-          url: 'gpoitems/update',
-          type: 'POST',
-          data: mydata,
-          cache: false,
-          dataType: 'json',
-          processData: false, // Don't process the files
-          contentType: false, // Set content type to false as jQuery will tell the server its a query string request
-          success: function (data, textStatus, jqXHR) {
-            if (data.errors.length < 1)
-            {
-              // Success so call function to process the form
-              console.log('success: ' + data);
-
-              if (thumbnailFile !== undefined) {
-                self.doc.thumbnail(i.thumbnail);
-                self.doc.thumbnail.valueHasMutated();
-                //$('#agoThumb').toggle();
-                //$('#imageUpload').toggle();
-                //$('#thumbnail').fileinput('clear');
-              }
-
-              //refresh the data table so it can search updated info
-              //              egam.gpoItems.dataTable.destroy();
-              egam.gpoItems.dataTable.fnDestroy();
-              egam.renderGPOitemsDataTable();
-            }
-            else
-            {
-              // Handle errors here
-              console.log('ERRORS: ' + data);
-            }
-          },
-          error: function (jqXHR, textStatus, errorThrown) {
-            // Handle errors here
-            console.log('ERRORS: ' + textStatus);
-            // STOP LOADING SPINNER
-          }
-        });
-
-        console.log("Post back updated Items");
-      };
-
-
-    };
-
-    var RootViewModel = function (data) {
-      var self = this;
-
-      self.content = ko.observableArray(data.map(function (i) {
-        return new rowModel1(i);
-      }));
-
-      self.select = function (item) {
-        self.selected(item);
-      };
-      self.selectIndex = function (index) {
-        var selectedItem = self.content()[index];
-        self.selected(selectedItem);
-      };
-
-      self.selected = ko.observable();
-      if (self.content().length > 0) self.selected = ko.observable(self.content()[0]);
-
-      self.clear = function () {
-        self.content().length = 0;
-      };
-
-      self.add = function (data, callback) {
-        //Use this so we know when everything is loaded
-        var defer = $.Deferred();
-
-        //This lets things work async style so that page is not locked up when ko is mapping
-        //Maybe use an async library later
-        var i = 0;
-        var interval = setInterval(function () {
-          if (data.length > 0) {
-            self.content.push(new rowModel1(data[i], true));
-            if (callback) callback(i);
-          }
-          i += 1;
-          if (i >= data.length) {
-            defer.resolve();
-            clearInterval(interval);
-          }
-        }, 0);
-
-        return defer;
-      };
-
-      //switch view for image upload
-      $('.fileinput').on('change.bs.fileinput', function (e) {
-        $('#agoThumb').toggle();
-        $('#imageUpload').toggle();
-      });
-      //On modal close with out saving change thumbnail view clear thumbnail form
-      $('#myModal').on('hidden.bs.modal', function (e) {
-        var thumbnailFile = $('#thumbnail')[0].files[0];
-        if (thumbnailFile !== undefined) {
-          $('#agoThumb').toggle();
-          $('#imageUpload').toggle();
-          $('.fileinput').fileinput('clear');
-        }
-      });
-
-
-      self.addPushAll = function (data) {
-        //Use this so we know when everything is loaded
-        var defer = $.Deferred();
-
-        //This lets things work async style so that page is not locked up when ko is mapping
-        //Maybe use an async library later
-        var interval = setInterval(function () {
-          var array = data.map(function (i) {
-            return new rowModel1(i)
-          });
-
-          ko.utils.arrayPushAll(self.content, array);
-
-          defer.resolve();
-          clearInterval(interval);
-        }, 0);
-
-        return defer;
-      };
-
-      self.addPushRedefine = function (data) {
-        //Use this so we know when everything is loaded
-        var defer = $.Deferred();
-
-        var array = $.extend([], self.content());
-
-        //This lets thing work async style so that page is not locked up when ko is mapping
-        //Maybe use an async library later
-        var i = 0;
-        var interval = setInterval(function () {
-          if (data.length > 0) {
-            array.push(new rowModel1(data[i], true));
-          }
-          i += 1;
-          if (i >= data.length) {
-            console.log("before setting" + array.length);
-            setTimeout(function () {
-              self.content(array);
-            }, 0);
-            defer.resolve();
-            clearInterval(interval);
-          }
-        }, 0);
-
-        return defer;
-      };
-
-    };
-
-    var rowModelTest = function (i, loading) {
-      //Test limited row model that doesn't do knockout observables
-      var self = this;
-      this.doc = i;
-      this.compliant = i.AuditData.compliant;
-      this.doc.AuditData.compliant = function () {
-        return self.compliant
-      };
-
-      this.complianceStatus = function () {
-        return self.compliant ? 'Pass' : 'Fail'
-      };
-      this.loading = loading || false;
-    };
-
 
     //Show the loading message and count. Hide the table.
     $('div#loadingMsg').removeClass('hidden');
     $('div#overviewTable').addClass('hidden');
-    $("#loadingMsgCountContainer").removeClass('hidden');
 
-    //If first time every binding to table need to apply binding, but can only bind once so don't bind again if reloading table
+    //If first time ever binding to table, need to apply binding, but can only bind once so don't bind again if
+    //reloading table
     var needToApplyBindings = false;
-    if (egam.gpoItems.rowModel) {
+
+    if (egam.gpoItems.tableModel) {
+      //only occurs if reloading the whole table
       //have to actually remove dataTable rows and destroy datatable in order to get knockout to rebind table
       if (egam.gpoItems.dataTable) {
         egam.gpoItems.dataTable.api().clear().draw();
-        if ("fnDestroy" in egam.gpoItems.dataTable)
-          egam.gpoItems.dataTable.fnDestroy();
+        if ("fnDestroy" in egam.gpoItems.dataTable) egam.gpoItems.dataTable.fnDestroy();
       }
-      egam.gpoItems.rowModel.content.removeAll();
-      console.log("post remove" + egam.gpoItems.rowModel.content().length);
+      egam.gpoItems.tableModel.content.removeAll();
+      console.log("Wiped out table model and data table: " + egam.gpoItems.tableModel.content().length);
     } else {
-      egam.gpoItems.rowModel = new RootViewModel([]);
+      //setting up the new tableModel instance with no rows yet
+      egam.gpoItems.tableModel = new egam.gpoItemTableModel([]);
       needToApplyBindings = true;
     }
+
     //Add these using .add because it should be async and lock up UI less
-    egam.gpoItems.rowModel.add(dataResults, updateLoadingCountMessage)
+    //dataResults is just an array of objects
+    egam.gpoItems.tableModel.add(dataResults, updateLoadingCountMessage)
       .then(function () {
         //If there are no rows then don't try to bind
         if (dataResults.length < 1) return defer.resolve();
         //cluge to make row model work because it is trying to bind rowmodel.selected()
-        egam.gpoItems.rowModel.selectIndex(0);
-        if (needToApplyBindings) ko.applyBindings(egam.gpoItems.rowModel);
+        egam.gpoItems.tableModel.selectIndex(0);
+        if (needToApplyBindings) ko.applyBindings(egam.gpoItems.tableModel);
 
         console.log("Create data table");
         setTimeout(function () {
@@ -468,8 +116,8 @@ function populateUserTables(query, projection) {
     calcItemsPassingAudit(dataResults);
 
 // This was loading first page and then the rest. Will remove later
-//    if (egam.gpoItems.rowModel) {
-//      egam.gpoItems.rowModel.add(dataResults)
+//    if (egam.gpoItems.tableModel) {
+//      egam.gpoItems.tableModel.add(dataResults)
 //        .then(function() {
 //          console.log("Create data table");
 //          setTimeout(function() {
@@ -482,10 +130,10 @@ function populateUserTables(query, projection) {
 //          }, 0);
 //        });
 //    } else {
-//      egam.gpoItems.rowModel = new RootViewModel(dataResults);
+//      egam.gpoItems.tableModel = new egam.gpoItemTableModel(dataResults);
 //      // This would only bind the table
-//      //      ko.applyBindings(egam.gpoItems.rowModel,$("#gpoitemtable1")[0]);
-//      ko.applyBindings(egam.gpoItems.rowModel);
+//      //      ko.applyBindings(egam.gpoItems.tableModel,$("#gpoitemtable1")[0]);
+//      ko.applyBindings(egam.gpoItems.tableModel);
 //      defer.resolve();
 //    }
 
@@ -736,3 +384,319 @@ egam.setAuthGroupsDropdown = function (ownerIDsByAuthGroup) {
     dropAuthGroups.append($("<option>", {value: authGroup}).text(authGroup));
   });
 };
+
+
+egam.gpoItemModel = function (i, loading) {
+  var self = this;
+  this.loading = loading || false;
+  //This is the doc
+  this.doc = ko.mapping.fromJS(i);
+
+  this.complianceStatus = ko.computed(function () {
+    return this.doc.AuditData.compliant() ? 'Pass' : 'Fail'
+  }, this);
+
+  //computed thumbnail url
+  this.tnURLs = ko.computed(function () {
+    if(self.doc.thumbnail() == null){
+      return "img/noImage.png";
+    }else{
+      return "https://epa.maps.arcgis.com/sharing/rest/content/items/" + self.doc.id() + "/info/" + self.doc.thumbnail() + "?token=" + egam.portalUser.credential.token;
+    }
+  }, this);
+  //Format Modified Date
+  this.modDate = ko.computed(function(){
+    var monthNames = [
+      "Jan", "Feb", "Mar",
+      "Apr", "May", "Jun", "Jul",
+      "Aug", "Sep", "Oct",
+      "Nov", "Dec"
+    ];
+
+    var dDate = new Date(self.doc.modified());
+    var formattedDate = monthNames[dDate.getMonth()] + " " + dDate.getDate() +", " + dDate.getFullYear();
+
+    return formattedDate;
+  }, this);
+  //Link to item in GPO
+  this.gpoLink = ko.computed(function(){
+    return "http://epa.maps.arcgis.com/home/item.html?id=" + self.doc.id();
+  }, this);
+
+  //Doc of changed fields
+  this.changeDoc = {};
+
+  //Subscribes Setup
+  this.doc.title.subscribe(function (evt) {
+    this.execAudit("title");
+    this.addFieldChange("title", evt);
+  }.bind(this));
+
+  this.doc.snippet.subscribe(function (evt) {
+    this.execAudit("snippet");
+    this.addFieldChange("snippet", evt);
+  }.bind(this));
+
+  this.doc.description.subscribe(function (evt) {
+    this.execAudit("description");
+    this.addFieldChange("description", evt);
+  }.bind(this));
+
+  /* this is actually Access and Use Constraints */
+  this.doc.licenseInfo.subscribe(function (evt) {
+    this.execAudit("licenseInfo");
+    this.addFieldChange("licenseInfo", evt);
+  }.bind(this));
+
+  /* this is actually credits */
+  this.doc.accessInformation.subscribe(function (evt) {
+    this.execAudit("accessInformation");
+    this.addFieldChange("accessInformation", evt);
+  }.bind(this));
+
+  this.doc.url.subscribe(function (evt) {
+    this.execAudit("url");
+    this.addFieldChange("url", evt);
+  }.bind(this));
+
+  this.doc.tags.subscribe(function (evt) {
+    this.execAudit("tags");
+    this.addFieldChange("tags", this.doc.tags());
+  }.bind(this), null, 'arrayChange');
+
+  //Add and field that has changed to the changeDoc
+  this.addFieldChange = function (changeField, changeValue) {
+    this.changeDoc["id"] = this.doc.id();
+    this.changeDoc[changeField] = changeValue;
+    //alert(JSON.stringify(this.changeDoc));
+  };
+
+  //this.tnURLs.subscribe(function(){
+  //  alert("Change");
+  //  this.execAudit("thumbnail");
+  //}.bind(this));
+
+  //Execute Audit on specified field in doc
+  this.execAudit = function (auditField) {
+    var unmappedDoc = ko.mapping.toJS(this.doc);
+    var auditRes = new Audit();
+    auditRes.validate(unmappedDoc, auditField);
+    ko.mapping.fromJS(unmappedDoc, this.doc);
+  };
+
+  //tags
+  this.tagItemToAdd = ko.observable("");
+  this.selectedItems = ko.observableArray([""]);
+  //Add tag to tags array
+  this.addItem = function () {
+    //alert("here");
+    if ((this.selected().tagItemToAdd() != "") && (this.selected
+      ().doc.tags.indexOf(this.selected().tagItemToAdd()) < 0)) // Prevent blanks and duplicates
+      this.selected().doc.tags.push(this.selected().tagItemToAdd());
+    this.selected().tagItemToAdd(""); // Clear the text box
+  };
+  //Remove tag from tags array
+  this.removeSelected = function () {
+    this.selected().doc.tags.removeAll(this.selected().selectedItems());
+    this.selected().selectedItems([]); // Clear selection
+  };
+
+  //Post updated docs back to Mongo
+  this.postback = function () {
+    //alert("Posting");
+
+    //need to add thumbnail name to document before auditing
+    var thumbnailFile = null;
+    try {
+      thumbnailFile = $('#thumbnail')[0].files[0];
+    }catch (ex) {
+    }
+    if (! thumbnailFile) {
+      console.log('No thumbnail to post');
+    } else {
+      //Add to to change doc
+      i.thumbnail = "thumbnail/" + thumbnailFile.name;
+      this.selected().addFieldChange("thumbnail", i.thumbnail);
+      //self.doc.thumbnail(i.thumbnail);
+      //self.doc.thumbnail.valueHasMutated();
+    }
+    //var thumbnail = $('#thumbnail')[0].files[0];
+    //if (thumbnail && thumbnail.name) unmappedDoc.thumbnail = "thumbnail/" + thumbnail.name;
+
+    //Original Audit of full Doc
+    var unmappedDoc = ko.mapping.toJS(this.selected().doc);
+
+    var auditRes = new Audit();
+    auditRes.validate(unmappedDoc, "");
+    ko.mapping.fromJS(unmappedDoc, this.selected().doc);
+
+    var mydata = new FormData();
+    mydata.append("updateDocs", JSON.stringify(this.selected().changeDoc));
+    //mydata.append("updateDoc", unmappedDoc);
+    mydata.append("thumbnail", thumbnailFile);
+    $.ajax({
+      url: 'gpoitems/update',
+      type: 'POST',
+      data: mydata,
+      cache: false,
+      dataType: 'json',
+      processData: false, // Don't process the files
+      contentType: false, // Set content type to false as jQuery will tell the server its a query string request
+      success: function (data, textStatus, jqXHR) {
+        if (data.errors.length < 1)
+        {
+          // Success so call function to process the form
+          console.log('success: ' + data);
+
+          if (thumbnailFile !== undefined) {
+            self.doc.thumbnail(i.thumbnail);
+            self.doc.thumbnail.valueHasMutated();
+            //$('#agoThumb').toggle();
+            //$('#imageUpload').toggle();
+            //$('#thumbnail').fileinput('clear');
+          }
+
+          //refresh the data table so it can search updated info
+          //              egam.gpoItems.dataTable.destroy();
+          egam.gpoItems.dataTable.fnDestroy();
+          egam.renderGPOitemsDataTable();
+        }
+        else
+        {
+          // Handle errors here
+          console.log('ERRORS: ' + data);
+        }
+      },
+      error: function (jqXHR, textStatus, errorThrown) {
+        // Handle errors here
+        console.log('ERRORS: ' + textStatus);
+        // STOP LOADING SPINNER
+      }
+    });
+
+    console.log("Post back updated Items");
+  };
+};
+
+
+//data here is the actual array of JSON documents that came back from the REST endpoint
+egam.gpoItemTableModel = function (data) {
+  var self = this;
+
+  self.content = ko.observableArray(data.map(function (doc) {
+    return new egam.gpoItemModel(doc);
+  }));
+
+  //on the entire table, we need to know which item is selected to use later with modal, etc.
+  self.select = function (item) {
+    self.selected(item);
+  };
+
+  //allows you to select an item based on index, usually index will be coming from row number
+  self.selectIndex = function (index) {
+    var selectedItem = self.content()[index];
+    self.selected(selectedItem);
+  };
+
+  //a new observable for the selected row
+  self.selected = ko.observable();
+
+  if (self.content().length > 0) {
+    //automatically select the 1st item in the table
+    //no idea why we are doing this?
+    self.selected = ko.observable(self.content()[0]);
+  }
+
+  self.clear = function () {
+    self.content().length = 0;
+  };
+
+  //data is an array of documents from the REST endpoint
+  self.add = function (data, callback) {
+    //Use this so we know when everything is loaded
+    var defer = $.Deferred();
+
+    //This lets things work async style so that page is not locked up when ko is mapping
+    //Maybe use an async library later
+    var i = 0;
+    var interval = setInterval(function () {
+      if (data.length > 0) {
+        self.content.push(new egam.gpoItemModel(data[i], true));
+        if (callback) callback(i);
+      }
+      i += 1;
+      if (i >= data.length) {
+        defer.resolve();
+        clearInterval(interval);
+      }
+    }, 0);
+
+    return defer;
+  };
+
+  //switch view for image upload
+  $('.fileinput').on('change.bs.fileinput', function (e) {
+    $('#agoThumb').toggle();
+    $('#imageUpload').toggle();
+  });
+  //On modal close with out saving change thumbnail view clear thumbnail form
+  $('#myModal').on('hidden.bs.modal', function (e) {
+    var thumbnailFile = $('#thumbnail')[0].files[0];
+    if (thumbnailFile !== undefined) {
+      $('#agoThumb').toggle();
+      $('#imageUpload').toggle();
+      $('.fileinput').fileinput('clear');
+    }
+  });
+
+
+  self.addPushAll = function (data) {
+    //Use this so we know when everything is loaded
+    var defer = $.Deferred();
+
+    //This lets things work async style so that page is not locked up when ko is mapping
+    //Maybe use an async library later
+    var interval = setInterval(function () {
+      var array = data.map(function (i) {
+        return new egam.gpoItemModel(i)
+      });
+
+      ko.utils.arrayPushAll(self.content, array);
+
+      defer.resolve();
+      clearInterval(interval);
+    }, 0);
+
+    return defer;
+  };
+
+  self.addPushRedefine = function (data) {
+    //Use this so we know when everything is loaded
+    var defer = $.Deferred();
+
+    var array = $.extend([], self.content());
+
+    //This lets thing work async style so that page is not locked up when ko is mapping
+    //Maybe use an async library later
+    var i = 0;
+    var interval = setInterval(function () {
+      if (data.length > 0) {
+        array.push(new egam.gpoItemModel(data[i], true));
+      }
+      i += 1;
+      if (i >= data.length) {
+        console.log("before setting" + array.length);
+        setTimeout(function () {
+          self.content(array);
+        }, 0);
+        defer.resolve();
+        clearInterval(interval);
+      }
+    }, 0);
+
+    return defer;
+  };
+};
+
+
+
