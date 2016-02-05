@@ -9,6 +9,13 @@ var config = require(appRoot + '/config/env');
 var DownloadGPOdataClass = require(appRoot + '/shared/DownloadGPOdata')
 var downloadGPOdata = new DownloadGPOdataClass();
 
+var downloadGPOdataConfig = {};
+try {
+  downloadGPOdataConfig = config.scripts.downloadGPOdata;
+  if (typeof downloadGPOdataConfig !== "object") downloadGPOdataConfig = {}; //Make sure downloadGPOdataConfig is an object
+}catch (e){
+}
+
 //This is the number of items downloaded from AGOL in one request (max is 100)
 downloadGPOdata.requestItemCount = 100;
 
@@ -27,7 +34,8 @@ downloadGPOdata.AsyncAuditRowLimit = 100;
 //For overnight script we want to get slash and metadata so set to false
 // For testing overnight to only get metadata set it to true, will be much faster
 //Other application of DownloadGPOdata.
-downloadGPOdata.onlyGetMetaData = true;
+downloadGPOdata.onlyGetMetaData = downloadGPOdataConfig.onlyGetMetaData | false;
+
 //This will make execution must faster since we don not have to download all remote items and only need to download modified
 //Set this to false for the overnight download so that we don't keep the removed items locally
 //But don't do this if you are downloading the entire DB at first because querying on AGOL by Modified Date is actually slow over entire data set
