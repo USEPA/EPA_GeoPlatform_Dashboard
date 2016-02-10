@@ -51,7 +51,7 @@
             <!-- <li><a href="#">Dashboard</a></li> -->
             <li id="userId" style="display: none"></li>
             <li id="personalizedPanel" style="display: none; "><a id="sign-out" href="#">Sign Out</a></li>
-            <li id="anonymousPanel" style="display: block"><a href="#" id="sign-in" >Sign In</a></li>
+            <li id="anonymousPanel" style="display: block"><a href="#" id="sign-in-navbar" >Sign In</a></li>
             <li><a id="egamHelp" href="#">Help</a></li>
           </ul>
 
@@ -307,7 +307,7 @@
 
     <div class="container-fluid">
       <div class="row">
-        <div class="col-sm-3 col-md-2 sidebar">
+        <div class="col-sm-3 col-md-2 sidebar" id="sideNav" style="display: none; ">
             <ul class="nav nav-pills nav-stacked" role="tablist">
                 <li role="presentation" class="active"><a href="#overviewView" role="tab" aria-controls="overviewView" data-toggle="tab">GeoPlatform Online Content</a></li>
                 <li role="presentation"><a href="#metricsView" role="tab" aria-controls="metricsView"
@@ -325,7 +325,15 @@
             <!--<li><a  id="environment"  href="#" >GeoPlatform Hosting Environment (Future)</a></li>-->
           <!--</ul>-->
         </div>
-
+        <!-- Splash  Screen -->
+        <div id="splashContainer" class="container">
+            <div class="jumbotron">
+                <h2>EPA GeoPlatform Dashboard</h2>
+                <p class="lead">EPA GeoPlatform Application for Meta-Intelligence: a toolbox for administrators and data publishers.</p>
+                <p><a class="btn btn-lg btn-success" id='sign-in-biggreen'>Sign in to get started</a></p>
+            </div>
+        </div>
+        
         <div id="mainWindow" style="display: none; " class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
 <!-- epa AGOL login -->
           <!-- <div id="anonymousPanel" style="display: none; padding: 5px; text-align: center;">
@@ -340,7 +348,7 @@
 
           <div id="itemGallery" class="esri-item-gallery" style="width: 100%;"></div>
  -->
-          <!-- Splash  Screen -->
+          
        <!-- <div id="splashContainer" class="container">
             <div class="jumbotron">
                 <h2>ArcGIS Online Assistant</h2>

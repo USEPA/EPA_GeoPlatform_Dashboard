@@ -26,7 +26,10 @@ require([
     }
   );
 
-  on(dom.byId("sign-in"), "click", function() {
+  on(dom.byId("sign-in-navbar"), "click", signIn);
+  on(dom.byId("sign-in-biggreen"), "click", signIn);
+  
+  function signIn() {
     console.log("Signing In", arguments);
     // user will be shown the OAuth Sign In page
     esriId.getCredential(info.portalUrl + "/sharing", {
@@ -37,8 +40,8 @@ require([
     }).otherwise(function (error) {
         console.log("Error occurred while signing in: ", error);
       })
-  });
-
+  }
+  
   on(dom.byId("sign-out"), "click", function() {
     esriId.destroyCredentials();
     //log out of the express server
@@ -57,7 +60,9 @@ require([
     $('div#overviewTable').addClass('hidden');
     //todo: Move to CSS
     domStyle.set("anonymousPanel", "display", "none");
+    domStyle.set("splashContainer", "display", "none");
     domStyle.set("personalizedPanel", "display", "block");
+    domStyle.set("sideNav", "display", "block");
     domStyle.set("mainWindow", "display", "block");
 
     //Now sign into AGOL/GPO and then sign into Express app
