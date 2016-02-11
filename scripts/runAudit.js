@@ -47,7 +47,7 @@ q.drain = function() {
   }
 };
 
-itemscollection.find({}, { stream: true })
+itemscollection.find({}, {fields:{SlashData:0}, stream: true })
   .each(function(doc){
     if (doc) q.push(doc); // dispatching doc to async.queue
   })
