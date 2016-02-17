@@ -54,24 +54,6 @@
             <li id="anonymousPanel" style="display: block"><a href="#" id="sign-in-navbar" >Sign In</a></li>
             <li><a id="egamHelp" href="#">Help</a></li>
           </ul>
-
-          <form class="navbar-form navbar-right">
-          </form>
-
-         <!-- <div id="personalizedPanel" style="display: none; ">
-          Welcome <span id="userId" style="font-weight: bold;"></span>
-           -
-          <span id="sign-out" class="action">Sign Out</span>
-          </div> -->
-      <!-- <form class="navbar-form navbar-right" role="search">
-                    <div class="form-group">
-                        <input type="text" class="form-control" name="username" placeholder="Username">
-                    </div>
-                    <div class="form-group">
-                        <input type="text" class="form-control" name="password" placeholder="Password">
-                    </div>
-                    <button type="submit" class="btn btn-default">Sign In</button>
-                </form> -->
         </div>
       </div>
     </nav>
@@ -309,23 +291,27 @@
       <div class="row">
         <div class="col-sm-3 col-md-2 sidebar" id="sideNav" style="display: none; ">
             <ul class="nav nav-pills nav-stacked" role="tablist">
-                <li role="presentation" class="active"><a href="#overviewView" role="tab" aria-controls="overviewView" data-toggle="tab">GeoPlatform Online Content</a></li>
-                <li role="presentation"><a href="#metricsView" role="tab" aria-controls="metricsView"
-                                           data-toggle="tab">GeoPlatform Online Metrics (Future)</a></li>
-                <li role="presentation"><a href="#environmentView" role="tab" aria-controls="metricsView" data-toggle="tab">GeoPlatform Hosting Environment (Future)</a></li>
-                <li role="presentation"><a href="#userMgmtView" role="tab" aria-controls="userMgmtView"
-                                           data-toggle="tab">User Management (Future)</a></li>
-                <li role="presentation"><a href="#edgView" role="tab" aria-controls="edgView"
-                                           data-toggle="tab">EDG Items (Future)</a></li>
-
+                <li role="presentation" class="active">
+                    <a href="#overviewView" role="tab" aria-controls="overviewView" data-toggle="tab">GeoPlatform Online Content</a>
+                </li>
+                <li role="presentation">
+                    <a href="#metricsView" role="tab" aria-controls="metricsView"
+                                           data-toggle="tab">GeoPlatform Online Metrics (Future)</a>
+                </li>
+                <li role="presentation">
+                    <a href="#environmentView" role="tab" aria-controls="environmentView" data-toggle="tab">GeoPlatform Hosting Environment</a>
+                </li>
+                <li role="presentation">
+                    <a href="#userMgmtView" role="tab" aria-controls="userMgmtView"
+                                           data-toggle="tab">User Management (Future)</a>
+                </li>
+                <li role="presentation">
+                    <a href="#edgView" role="tab" aria-controls="edgView"
+                                           data-toggle="tab">EDG Items (Future)</a>
+                </li>
             </ul>
-          <!--<ul class="nav nav-sidebar">-->
-            <!--<li class="active"><a id="overview" href="#overviewTable">GeoPlatform Online (GPO) Content <span class="sr-only">(current)</span></a></li>-->
-            <!--<li ><a  id="metrics" href="#metricsTable" >GPO Metrics (Future)</a></li>-->
-            <!--<li><a  id="environment"  href="#" >GeoPlatform Hosting Environment (Future)</a></li>-->
-          <!--</ul>-->
         </div>
-        <!-- Splash  Screen -->
+
         <div id="splashContainer" class="container">
             <div class="jumbotron">
                 <h2>EPA GeoPlatform Dashboard</h2>
@@ -334,69 +320,22 @@
             </div>
         </div>
         
-        <div id="mainWindow" style="display: none; " class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
-<!-- epa AGOL login -->
-          <!-- <div id="anonymousPanel" style="display: none; padding: 5px; text-align: center;">
-          <span id="sign-in" class="action">Sign In</span> and view your ArcGIS Online items.
-          </div>
-
-          <div id="personalizedPanel" style="display: none; padding: 5px; text-align: center;">
-          Welcome <span id="userId" style="font-weight: bold;"></span>
-           -
-          <span id="sign-out" class="action">Sign Out</span>
-          </div>
-
-          <div id="itemGallery" class="esri-item-gallery" style="width: 100%;"></div>
- -->
-          
-       <!-- <div id="splashContainer" class="container">
-            <div class="jumbotron">
-                <h2>ArcGIS Online Assistant</h2>
-                <p class="lead">A swiss army knife for your ArcGIS Online and Portal for ArcGIS accounts.</p>
-                <p><a class="btn btn-lg btn-success" role="button" data-action="login" disabled="disabled">Log in to get started</a></p>
-                <p><a class="portal-signin" data-toggle="modal">
-                    Click here to log in to a Portal instance
-                </a></p>
-            </div> -->
-     <!-- Splash  Screen -->
-
-            <!-- <div class="row marketing">
-                <div class="col-lg-4">
-                    <h4>Inspect</h4>
-                    <p>View the underlying JSON for any item in ArcGIS Online or your Portal.</p>
-                </div>
-                <div class="col-lg-4">
-                    <h4>Update</h4>
-                    <p>Modify the URLs for services in web maps and registered applications.</p>
-                </div>
-                <div class="col-lg-4">
-                    <h4>Copy</h4>
-                    <p>Search for and copy content to your account and other accounts.</p>
-                </div>
-            </div>
-       </div> -->
-<!-- End Splash Screen -->
-          <!--
-          <h1 class="page-header">EPA GeoPlatform</h1>
-  -->
-          <div class="row placeholders">
-          <div class="col-xs-6 col-sm-3 placeholder">
-              <img data-src="holder.js/200x200/auto/sky" class="img-responsive" alt="" style="display:none">
+        <div id="mainWindow" style="display: none; "
+             class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
+          <div id="gpoContentHeader" class="row placeholders">
+          <div class="col-xs-6 col-sm-3">
               <h4>Public Items Audit Result</h4>
               <span id="percPublicPassingAudit" class="text-muted">75% Passing</span>
             </div>
-            <div class="col-xs-6 col-sm-3 placeholder">
-              <img data-src="holder.js/200x200/auto/sky" class="img-responsive" alt="Generic placeholder thumbnail" style="display:none">
+            <div class="col-xs-6 col-sm-3">
               <h4>My Items</h4>
               <span id="agoItems" class="text-muted"></span>
             </div>
-            <div class="col-xs-6 col-sm-3 placeholder">
-              <img data-src="holder.js/200x200/auto/vine" class="img-responsive" alt="Generic placeholder thumbnail" style="display:none">
+            <div class="col-xs-6 col-sm-3">
               <h4>My Groups</h4>
               <span id="agoGroups" class="text-muted"></span>
             </div>
-              <div class="col-xs-6 col-sm-3 placeholder">
-                  <img data-src="holder.js/200x200/auto/vine" class="img-responsive" alt="Generic placeholder thumbnail" style="display:none">
+              <div class="col-xs-6 col-sm-3">
                   <h4 style="white-space:nowrap;">Auth Groups
                   </h4>
                   <a data-toggle="tooltip" data-placement="left" title="Show/Hide Auth Groups"><span id="authGroupsCount" class="text-muted" data-toggle="collapse" href="#collapseExample" aria-expanded="false" aria-controls="collapseExample"></span></a>
@@ -406,7 +345,6 @@
                       <a id="downloadAuthgroupsCSVregions" href="gpoUsers/list.csv/authGroups/" class="hidden">download users</a>
                   </div>
               </div>
-
           </div>
          <div class="tab-content">
           <!-- Begin overview class="view collapse in"-->
@@ -525,23 +463,14 @@
                                                     <img id="agoThumbImg" data-bind="attr: {src: selected().tnURLs}">
                                                 </div>
                                                 <div id="imageUpload" class="fileinput-preview thumbnail" data-trigger="fileinput" style="width: 200px; height: 135px; Display: none">
-                                                    <!-- ko if: selected().doc.thumbnail -->
-                                                    <!--<img data-bind="attr: {src: selected().tnURLs}">-->
-                                                    <!-- /ko -->
-                                                    <!-- ko ifnot: selected().doc.thumbnail -->
-                                                    <!--<img src="img/noImage.png">-->
-                                                    <!-- /ko -->
                                                 </div>
                                                 <span class="help-block" data-bind="text: selected().doc.AuditData.errors.thumbnail.messages">Requried</span>
                                                 <div>
                                                     <span class="btn btn-default btn-file"><span class="fileinput-new">change</span><span class="fileinput-exists">Change</span><input id="thumbnail" type="file" name="..."></span>
-                                                    <!--<a href="#" class="btn btn-default fileinput-exists" data-dismiss="fileinput">Remove</a>-->
                                                 </div>
                                             </div>
-
                                         </div>
-                                        <!--<form >  data-bind="submit:selected().addItem" type="submit"-->
-                                        <!--<form id="tagForm" data-toggle="validator" data-disable="false" data-bind="submit:selected().addItem" >-->
+
                                         <div class="form-group">
 
                                         </div>
@@ -562,11 +491,6 @@
                                         <!--</form>-->
                                     </div>
                                     <div class="col-md-8" >
-                                        <!--<div class="form-group has-feedback" >-->
-                                            <!--<label for="updateDoc">Title</label>-->
-                                            <!--<input class="form-control"  id="updateDoc" name="updateDoc" data-bind="value: selected().id" data-error="Required" type="text" required>-->
-                                            <!--<span class="help-block with-errors"></span>-->
-                                        <!--</div>-->
                                         <div class="form-group has-success" data-bind="css: {'has-error': selected().doc.AuditData.errors.title&&selected().doc.AuditData.errors.title.compliant()===false}">
                                             <label for="title">Title</label>
                                             <input class="form-control"  id="title" data-bind="value: selected().doc.title, valueUpdate: 'afterkeydown'" type="text">
@@ -620,21 +544,8 @@
                                         <!-- /ko -->
                                     </div>
                                 </div>
-                                <!--<div class="form-group">-->
-                                    <!--<label for="test">Test Fielde</label>-->
-                                    <!--<input class="form-control"  id="test" data-bind="value: selected().modDate" type="text">-->
-                                <!--</div>-->
 
                             </form>
-                            <!--<form action="gpoitems/update" enctype="multipart/form-data" method="post">-->
-                            <!--<div class="form-group">-->
-                                <!--&lt;!&ndash;<input type="text" id="updateDoc" name="updateDoc" data-bind="value: selected().uDoc"/><br>&ndash;&gt;-->
-                                <!--<textarea id="updateDocs" name="updateDocs" cols="50" rows="5" >[{"id" : "40894bca74de46d4b92abd8fd0a5160e,"title" : "AChangeTest"}]</textarea>-->
-                            <!--</div>-->
-                            <!--&lt;!&ndash;<div class="form-group">&ndash;&gt;-->
-                            <!--&lt;!&ndash;<input type="submit" id="submit" name="submit" />&ndash;&gt;-->
-                            <!--&lt;!&ndash;</div>&ndash;&gt;-->
-                        <!--</form>-->
                         </div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-default" data-dismiss="modal" >Close</button>
@@ -660,48 +571,42 @@
             </div>
             <!-- End  Metrics View -->
 
-            <!--  GPO View -->
+            <!--  GPHE View -->
             <div role="tabpanel" class="tab-pane" id="environmentView" >
-            <div id="enviroTable" class="table-responsive">
-            <h2 class="sub-header">GeoPlatform Hosting Environment (GPHE) - ArcGIS Servers</h2>
-                <div class="jumbotron vertical-center">
-                    <div class="text-center">
-                        <h1 class="alert alert-warning">Site Under Construction</h1>
-                        <p>We are currently building something awesome that will be available soon!</p>
-                    </div>
+                <h2 class="sub-header">GeoPlatform Hosting Environment (GPHE) - ArcGIS Servers</h2>
+                <table id="environmentTable" class="table table-hover table-bordered table-responsive"></table>
+            </div>
+            <!-- End GPHE View -->
 
-                </div>
-          </div>
-          </div>
-            <!-- End GPO View -->
-         <!-- userMgmtView  View -->
-         <div role="tabpanel" class="tab-pane" id="userMgmtView" >
-             <div id="userMgmtViewTable" class="table-responsive">
-                 <h2 class="sub-header">User Management</h2>
-                 <div class="jumbotron vertical-center">
-                     <div class="text-center">
-                         <h1 class="alert alert-warning">Site Under Construction</h1>
-                         <p>We are currently building something awesome that will be available soon!</p>
+
+             <!-- userMgmtView  View -->
+             <div role="tabpanel" class="tab-pane" id="userMgmtView" >
+                 <div id="userMgmtViewTable" class="table-responsive">
+                     <h2 class="sub-header">User Management</h2>
+                     <div class="jumbotron vertical-center">
+                         <div class="text-center">
+                             <h1 class="alert alert-warning">Site Under Construction</h1>
+                             <p>We are currently building something awesome that will be available soon!</p>
+                         </div>
+
                      </div>
-
                  </div>
              </div>
-         </div>
-         <!-- End userMgmtView  View -->
-         <!-- userMgmtView  View -->
-         <div role="tabpanel" class="tab-pane" id="edgView" >
-             <div id="edgViewViewTable" class="table-responsive">
-                 <h2 class="sub-header">EDG Items</h2>
-                 <div class="jumbotron vertical-center">
-                     <div class="text-center">
-                         <h1 class="alert alert-warning">Site Under Construction</h1>
-                         <p>We are currently building something awesome that will be available soon!</p>
-                     </div>
+             <!-- End userMgmtView  View -->
+             <!-- userMgmtView  View -->
+             <div role="tabpanel" class="tab-pane" id="edgView" >
+                 <div id="edgViewViewTable" class="table-responsive">
+                     <h2 class="sub-header">EDG Items</h2>
+                     <div class="jumbotron vertical-center">
+                         <div class="text-center">
+                             <h1 class="alert alert-warning">Site Under Construction</h1>
+                             <p>We are currently building something awesome that will be available soon!</p>
+                         </div>
 
+                     </div>
                  </div>
              </div>
-         </div>
-         <!-- End userMgmtView  View -->
+             <!-- End userMgmtView  View -->
 
          </div>
 
@@ -709,8 +614,8 @@
           <!-- End main -->
 
 
-        </div>
       </div>
+    </div>
 
 
     <script src="js/jquery1.11.3/jquery.min.js"></script>
