@@ -20,7 +20,6 @@ require([
   ).otherwise(
     function() {
       // Anonymous view
-      //todo: Move to CSS (visible and hidden classes)
       domStyle.set("anonymousPanel", "display", "block");
       domStyle.set("personalizedPanel", "display", "none");
     }
@@ -90,7 +89,7 @@ require([
 
           //set up the authGroups dropdown
           egam.setAuthGroupsDropdown(egam.communityUser.ownerIDsByAuthGroup);
-//set authGroups count
+          //set authGroups count
           $("#authGroupsCount").html("<a>" + Object.keys(egam.communityUser.ownerIDsByAuthGroup).length + "</a>");
 
           //Is User Admin or lower
@@ -167,7 +166,7 @@ require([
       fields = {};
     }
 
-//If super user only get public items initially
+    //If super user only get public items initially
     var query={};
     if (egam.communityUser.isSuperUser) {
       query={access:"public"};
@@ -184,7 +183,8 @@ require([
         $('div#loadingMsg').addClass('hidden');
         $('div#overviewTable').removeClass('hidden');
         $("#loadingMsgCountContainer").addClass('hidden');
-//show the authgroups drop down not that items have been loaded
+
+        //show the authgroups drop down not that items have been loaded
         $('#dropAuthGroups').removeClass('hidden');
         $('#downloadAuthgroupsCSVall').removeClass('hidden');
 
@@ -193,31 +193,6 @@ require([
       .fail(function(err) {
         console.error(err);
       });
-
-// This was loading first page and then the rest. Will remove later
-//    populateUserTables({}, {
-//      limit: 10,
-//      sort: {
-//        modified: -1
-//      },
-//      fields: fields
-//    }, false)
-//      .then(function() {
-//        // Hide the loading panel now after first page is loaded
-//        $('div#loadingMsg').addClass('hidden');
-//        $('div#overviewTable').removeClass('hidden');
-//
-//        return populateUserTables({}, {
-//          skip: 10,
-//          sort: {
-//            modified: -1
-//          },
-//          fields: fields
-//        }, true);
-//      })
-//      .fail(function(err) {
-//        console.error(err);
-//      });
 
   }
 
