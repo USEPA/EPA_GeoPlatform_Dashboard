@@ -1,4 +1,7 @@
 var DownloadGPOdata =  function(){
+  //To only get metadata set to true, usually set to false
+  this.onlyGetMetaData = false;
+
 //This can be run to only update a list of ownerIDs if given. null means get all ownerIDs.
   this.ownerIDs = null;
 //  this.ownerIDs = ["aaron.evans_EPA"];
@@ -22,15 +25,15 @@ var DownloadGPOdata =  function(){
 //set to null to run all at one time
   this.AsyncAuditRowLimit = 100;
 
-//To only get metadata set to true, usually set to false
-  this.onlyGetMetaData = false;
 //This will make execution must faster since we don not have to download all remote items and only need to download modified
   this.dontRemoveGPOitems= false;
 //To only save json and text and not binaries set to true, usually set to false
+  //Some of the SlashData, which is either huge text (32MB) or actual binary like a shapefile
   this.dontSaveBinary = false;
 //This is just for testing if we don't want all docs, usually set to null
   this.TotalRowLimit=null;
 //For testing download of specific slash data, usually set to null
+  //to get a small subset of slashdata
   this.HardCodeSlashDataTestIDs =null;
 //If token is already available then set token on object. Don't need to request and download another one.
   this.token = null;
@@ -52,6 +55,7 @@ var DownloadGPOdata =  function(){
   this.request = require('request');
   this.Q = require('q');
 
+  //finds the path to the application root automagically
   this.appRoot=require('app-root-path');
   this.utilities=require(this.appRoot + '/shared/utilities');
   this.hrClass = require(this.appRoot + '/shared/HandleGPOresponses');
@@ -100,7 +104,7 @@ DownloadGPOdata.prototype.downloadInner = function () {
     this.db = new this.mongo.Db(mongoURL.pathname.replace("/",""), new this.mongo.Server(mongoURL.hostname,mongoURL.port));
   }
 
-//hr.saveD is where we store the output from REST calls like token and OrgID so it can be used by handlers
+//hr.saved is where we store the output from REST calls like token and OrgID so it can be used by handlers
 
 //When getting items with sync this keep track of what requestStart we are on
   this.hr.saved.requestStart=1;
@@ -137,7 +141,7 @@ DownloadGPOdata.prototype.downloadInner = function () {
       this.downloadLogs.log('Getting Meta Data using Full Async ');
       getGPOitems=this.getGPOitemsAsync;
     }else {
-      this.downloadLogs.log('Getting Meta Data using Hybrid ');
+      this.downloadLogs.log('Getting Meta Data (Non-Slash) using Hybrid ');
       getGPOitems=this.getGPOitemsHybrid;
     }
     if(this.AsyncRowLimit===null){
@@ -191,7 +195,6 @@ DownloadGPOdata.prototype.getSelfInvokedFunction = function (f) {
 
 DownloadGPOdata.prototype.connectDB = function () {
   this.gfs = this.GridFSstream(this.db, this.mongo);
-
   return this.Q.ninvoke(this.db,"open");
 };
 
@@ -248,7 +251,7 @@ DownloadGPOdata.prototype.getOrgId = function () {
   return this.hr.callAGOL(requestPars,{'id':'orgID'});
 };
 
-//routines for gettting all the items metadata from AGOL (Have to do this so we know what items to delete from working local copy)
+//routines for getting all the items metadata from AGOL (Have to do this so we know what items to delete from working local copy)
 DownloadGPOdata.prototype.getGPOitemsChunk = function (requestStart,HandleGPOitemsResponse) {
   if (! requestStart) {
     requestStart=this.hr.saved.requestStart;
@@ -259,67 +262,45 @@ DownloadGPOdata.prototype.getGPOitemsChunk = function (requestStart,HandleGPOite
   var query = 'orgid:' + this.hr.saved.orgID;
   if (Array.isArray(this.ownerIDs) && this.ownerIDs.length>0) {
     var ownerQueries = this.ownerIDs.map(function (ownerID) {return "owner:"+ownerID});
+        var ownerQueryString = "(" + ownerQueries.join(" OR ") + ")";
 
-//    this.downloadLogs.log("ownerQueries length = " + ownerQueries.length);
-
-    var ownerQueryString = "(" + ownerQueries.join(" OR ") + ")";
 //If query length is too long URL will be too large and return error
 //Therefore will have to download all owners at this point so only change query to ownerQuery if within length limit
     if (ownerQueryString.length<5000) {
       //Don't need orgid if we have owner IDs
       query = ownerQueryString;
     }
-
-//Just to test how long the query can be
-//    this.downloadLogs.log("Full ownerQueryString length " + ownerQueryString.length);
-//    var ownerQueryString = "";
-//    var queryStringLimit = 5000;
-//    var ownerQueryStringCount = 0;
-//    ownerQueries.some(function (owner) {
-//      if (ownerQueryString.length<queryStringLimit) {
-//        ownerQueryStringCount += 1;
-//        if (ownerQueryString) ownerQueryString += " OR ";
-//        ownerQueryString += owner;
-//      }
-//      return ownerQueryString.length>=queryStringLimit;
-//    });
-//    query=ownerQueryString;
-//    this.downloadLogs.log("ownerQueryString = " + ownerQueryStringCount + ownerQueryString);
-
   }
 
-//If not removing local gpo items that have been removed from AGOL then only need to download modified items
-//  if (this.dontRemoveGPOitems) {
-//Also now we have to page by sorting by modified date to have to query using last max modified date as lower limit
+  //If not removing local gpo items that have been removed from AGOL, then only need to download modified items
+  //Also now we have to page by sorting by modified date to have to query using last max modified date as lower limit
   if (this.hr.saved.remoteMaxModifiedDate) {
-//have to pad modified ms from 1970
+    //have to pad modified ms from 1970
     var now = (new Date()).getTime();
-//    query += ' AND modified:[' + this.padNumber(this.hr.saved.localMaxModifiedDate) + ' TO ' + this.padNumber(now) + ']';
     query += ' AND modified:[' + this.padNumber(this.hr.saved.remoteMaxModifiedDate) + ' TO ' + this.padNumber(now) + ']';
-//Also don't get the remoteMaxModifiedDate, the REST API doesn't allow > only >=
+    //Also don't get the remoteMaxModifiedDate, the REST API doesn't allow > only >=
     query += ' AND NOT modified:' + this.padNumber(this.hr.saved.remoteMaxModifiedDate);
   }
 
   var parameters = {'q':query,'token' : this.hr.saved.token,'f' : 'json','start':requestStart,'num':this.requestItemCount };
+
   //Due to paging of 10,000 item pages in query need to sort by modified date now (also add id in case modified is same. I was losing items)
-//  if (this.requestQueryRowLimit ) parameters.sortField='modified,id';
   parameters.sortField='modified,id';
 
-//testing single ID
-//  var parameters = {'q':'id:e58dcd33a6d4474caf9d0dd7ea75778e','token' : hr.saved.token,'f' : 'json','start':requestStart,'num':requestItemCount };
+  //testing single ID
+  //var parameters = {'q':'id:e58dcd33a6d4474caf9d0dd7ea75778e','token' : hr.saved.token,'f' : 'json','start':requestStart,'num':requestItemCount };
 
   var requestPars = {method:'get', url:url, qs:parameters };
-//  this.downloadLogs.log(parameters);
 
   if (! HandleGPOitemsResponse) {
     if (this.useSync) {
-//      this.downloadLogs.log('HandleGPOitemsResponseSync');
+      //this.downloadLogs.log('HandleGPOitemsResponseSync');
       HandleGPOitemsResponse = this.HandleGPOitemsResponseSync;
     } else if (this.AsyncRequestLimit === null) {
-//      this.downloadLogs.log('handleGPOitemsResponseAsync');
+      //this.downloadLogs.log('handleGPOitemsResponseAsync');
       HandleGPOitemsResponse = this.handleGPOitemsResponseAsync;
     } else {
-//      this.downloadLogs.log('HandleGPOitemsResponseHybrid');
+      //this.downloadLogs.log('HandleGPOitemsResponseHybrid');
       HandleGPOitemsResponse = this.handleGPOitemsResponseAsync;
     }
   }
@@ -327,7 +308,8 @@ DownloadGPOdata.prototype.getGPOitemsChunk = function (requestStart,HandleGPOite
 };
 
 DownloadGPOdata.prototype.padNumber = function (num, size) {
-  if (! size) size=19; //This is for AGOL modified date
+  //This is for AGOL modified date
+  if (! size) size=19;
   var s = num+"";
   while (s.length < size) s = "0" + s;
   return s;
@@ -451,7 +433,7 @@ DownloadGPOdata.prototype.storeModifiedDocs = function (body) {
   var remoteGPOids = body.results.map(function(doc) {return doc.id});
   self.hr.saved.remoteGPOids =self.hr.saved.remoteGPOids.concat(remoteGPOids);
 
-//Ned to update all access fields because when they change doc is not modified (ESRI bug)
+//Need to update all access fields because when they change doc is not modified (ESRI bug)
   var remoteGPOaccessFields = body.results.map(function(doc) {return {id:doc.id,access:doc.access}});
 
 //only the modified/created gpo items more recent than local will be upserted
@@ -459,6 +441,7 @@ DownloadGPOdata.prototype.storeModifiedDocs = function (body) {
 //  var modifiedGPOitems = body.results.filter(function(doc) {doc.SlashData=null;return doc.modified>self.hr.saved.localMaxModifiedDate});
 //Now each owner has their OWN max modified date because each owner can download their stuff independently
 //Therefore the max modified date for entire set of owners could be larger than an individual owner's max modified date and individual owner would not be updated properly
+  //filter out anything greater than the modified date we look for
   var modifiedGPOitems = body.results.filter(function(doc) {
     doc.SlashData=null;
 //If no max modified date then initialize to zero
@@ -467,7 +450,8 @@ DownloadGPOdata.prototype.storeModifiedDocs = function (body) {
     return doc.modified>maxModDate;
   });
 
-//NOt get array of only the modified ID's because we will be looping over all id's later to get Slash Data but don't want to keep all GPO items in memory
+//Not get array of only the modified ID's because we will be looping over all id's later to get Slash Data but don't
+// want to keep all GPO items in memory
   var modifiedGPOids = modifiedGPOitems.map(function(doc) {return doc.id});
 
   self.hr.saved.modifiedGPOids =self.hr.saved.modifiedGPOids.concat(modifiedGPOids);
@@ -478,26 +462,26 @@ DownloadGPOdata.prototype.storeModifiedDocs = function (body) {
 
   //Begin hardcoded test of specific slash data downloads
   if (self.HardCodeSlashDataTestIDs) {
-    modifiedGPOitems=[]
+    modifiedGPOitems=[];
     modifiedGPOids=self.HardCodeSlashDataTestIDs;
     self.hr.saved.modifiedGPOids=modifiedGPOids;
   }
-//End ardcoded test of specific slash data downloads
+  //End hardcoded test of specific slash data downloads
 
   self.hr.saved.modifiedGPOcount = self.hr.saved.modifiedGPOids.length;
-
 
   this.downloadLogs.log("Remote GPO item count " + self.hr.saved.remoteGPOids.length );
   this.downloadLogs.log("Modified GPO item count " + self.hr.saved.modifiedGPOids.length );
 
-
-//This returns a promise which is resolved when database records are inserted
+  //This returns a promise which is resolved when database records are inserted
   return self.saveModifiedGPOitems(modifiedGPOids,modifiedGPOitems)
     .then(function () {
       self.updateAccessFields(remoteGPOaccessFields);
     });
 };
 
+//Esri doesn't count changing the sharing status (access field) as a "modification", so it doesn't update the modified
+// date
 DownloadGPOdata.prototype.updateAccessFields = function (docs) {
   return this.utilities.batchUpdateDB(this.itemscollection,docs,"id");
 };
@@ -507,36 +491,20 @@ DownloadGPOdata.prototype.saveModifiedGPOitems = function (modifiedGPOids,modifi
   var self = this;
   var backupDate = new Date();
 
-//The date is already embedded in ObjectID and id is embedded in doc so all we need to do is insert row in history
-//But I am just saving data this way so we can get date out of db eaiser than transforming objectID to get timestamp for each query
-//ObjectID can still be used for filtering/aggregating because it is automatically indexed
+  //The date is already embedded in ObjectID and id is embedded in doc so all we need to do is insert row in history
+  //But I am just saving data this way so we can get date out of db easier than transforming objectID to get timestamp
+  // for each query
+  //ObjectID can still be used for filtering/aggregating because it is automatically indexed
   var historyGPOitems = modifiedGPOitems.map(function(doc) {return {id:doc.id,date:backupDate,doc:doc}});
 
-//  this.downloadLogs.log("insert historyGPOitems count" + historyGPOitems.length);
-//  this.downloadLogs.log("insert modifiedGPOitems count "  + modifiedGPOitems.length);
-
-//  console.log("!!!!!!! modifiedGPOids.length !!!!!!!!!" + modifiedGPOids.length);
+  //this.downloadLogs.log("insert historyGPOitems count" + historyGPOitems.length);
+  //this.downloadLogs.log("insert modifiedGPOitems count "  + modifiedGPOitems.length);
 
   if (modifiedGPOitems.length > 0) {
     return self.Q(self.itemscollection.remove( {id:{$in:modifiedGPOids}} ))
-//    return self.Q(self.itemscollection.find( {id:{$in:modifiedGPOids}} ))
-//      .then(function (docs) {console.log("!!!!!!! $in:modifiedGPOids !!!!!!!!!  " + JSON.stringify(docs))})
-//    return self.Q(true)
-//      .then(function () {
-//        var defer = self.Q.defer();
-//        self.Q(self.itemscollection.remove( {id:{$in:modifiedGPOids}} ,function (err,removed) {
-//          console.log("*#*#*#*# removed modifiedGPOids *#*#*#*#" + removed);
-//          defer.resolve();
-//        } ));
-//        return defer.promise;}
-//    )
-//      .then(function () {return self.Q(self.itemscollection.remove( {id:{$in:modifiedGPOids}})) })
-//      .then(function () {return self.itemscollection.remove( {id:{$in:modifiedGPOids}}) })
       .then(function () {return self.Q(self.itemscollection.insert(modifiedGPOitems))})
       .then(function () {return self.Q(self.historycollection.insert(historyGPOitems))})
       .then(function () {return self.getGPOaudit(modifiedGPOitems);});
-//      .then(function () {return self.getLocalGPOids()})
-//      .then(function () {console.log("!!!!!!! start, this.hr.saved.localGPOcount !!!!!!!!! " + bodyStart + ' ' + self.hr.saved.localGPOcount)});
   }else {
     return self.Q(true);
   }
@@ -643,7 +611,7 @@ DownloadGPOdata.prototype.handleGetRequestStartArray = function (body) {
   return body;
 };
 
-//Endo of routine that get all new meta data
+//End of routine that get all new meta data
 
 //Routine to get the slash data
 
@@ -722,19 +690,21 @@ DownloadGPOdata.prototype.getLatestHistoryID = function (GPOid) {
 
 DownloadGPOdata.prototype.getHandleGPOslashData = function (defer,currentGPOid,historyID) {
   var self=this;
-//Must have access to the defer created for calling request function that produced response so it can be resolved
+  //Must have access to the defer created for calling request function that produced response so it can be resolved
+  //response is an HTTP response object, magic from the Requests NPM module
   return function HandleGPOslashdata(response) {
-//NOte the response sent to here is the readable stream form of response not the object that contains the body
+    //Note the response sent to here is the readable stream form of response not the object that contains the body
 
-//if response is text then just save to mongo normall on GPOitems
-//Otherwise save to Grid FS collection on mongo
+    //If response is text, then just save in GPOItems Collection just like non-SlashData since we don't need GridFS
+    //Otherwise (e.g. binary like zip, jpg, png, shp, octet-stream, ) save to GridFS collection on mongo (not the
+    // GPOItems)
     var contentType = response.headers['content-type'] || '';
     var SlashData = {text:null,json:null,binaryID:null,type:contentType};
 
+    //a few different types of text, e.g. text/plain;charset=utf-8, text/html;charset=utf-8
     if (contentType.match('^text/')) {
-//if not binary then just read in chunks of data
+      //if not binary then just read in chunks of data
       var body = '';
-
       response.on('data', function(chunk) {
         body += chunk;
       });
@@ -742,22 +712,26 @@ DownloadGPOdata.prototype.getHandleGPOslashData = function (defer,currentGPOid,h
       response.on('end', function () {
         //check if json then create an object, otherwise just save the text
         try {
+          //checks if we can convert this into a JS literal object
+          //if we can convert it, we store it as SlashData.json
+          //in most cases, json parse should work fine
           var json = JSON.parse(body);
           if (json && typeof json === "object")  SlashData.json = json;
         }catch (e) {
           SlashData.text = body;
         }
-//Now update the DB. must pass defere so it can be resolved when done updating
+
+        //Now update the DB. must pass deferred so it can be resolved when done updating
         self.updateModifiedGPOdata(defer,currentGPOid,historyID,SlashData);
 
       });
 
     } else {
-//This function take response which implements readable stream and writes to Grid FS. Also saves Slash Data (binaryID) to GPO items.
+      //This function take response which implements readable stream and writes to Grid FS. Also saves Slash Data (binaryID) to GPO items.
       if (self.dontSaveBinary) {
         defer.resolve(SlashData);
       }else {
-//Try to get filename from response header
+        //Try to get filename from response header
         try {
           var contentDisposition = require("content-disposition");
           var disposition= contentDisposition.parse(response.headers["content-disposition"]);
@@ -802,29 +776,30 @@ DownloadGPOdata.prototype.getHandleGPOthumbnail = function (defer,currentGPOid,h
 
 DownloadGPOdata.prototype.saveStreamToGridFS = function (readableStream,id,historyID,SlashData,filename,binaryType) {
   var self = this;
-//this function returns a promise so we can know when it is done with everything
+  //this function returns a promise so we can know when it is done with everything
   var gridDefer = self.Q.defer();
 
-//If they don't pass filename then set it equal to id
+  //If they don't pass filename then set it equal to id
   if (! filename) filename = id;
 
   //by default save binaryID of slashData as "binaryID" but binaryID of say thumbnail should be like thumbnailID
-  if (! binaryType) binaryType="binary"
+  if (! binaryType) binaryType="binary";
 
-//if gfs object hasn't been created yet then get now
+  //if gfs object hasn't been created yet then get now
   if (! self.gfs) self.gfs = GridFSstream(self.db, self.mongo);
 
-//use gpo item id as name of file in grid fs
+  //use gpo item id as name of file in grid fs
   var writestream = self.gfs.createWriteStream(
     {filename: filename,
       metadata: {id:id,type:binaryType}}
   );
-//when done writing need to resolve the promise
+
+  //when done writing need to resolve the promise
   writestream.on('close', function (file) {
     self.downloadLogs.log('File with id = ' + id + ' and file = ' + file.filename + ' written to GridFS');
-//add the actual file id to SlashData
+    //add the actual file id to SlashData
     SlashData[binaryType + "ID"]= file._id;
-//Now update the DB. must pass defer so it can be resolved when done updating
+    //Now update the DB. must pass defer so it can be resolved when done updating
     self.updateModifiedGPOdataBinaryID(gridDefer,id,historyID,SlashData);
 
   });
@@ -832,23 +807,22 @@ DownloadGPOdata.prototype.saveStreamToGridFS = function (readableStream,id,histo
   writestream.on('error', function (err) {
     gridDefer.reject('Error writing stream to GridFS : ' + err);
   });
-//Now actually pipe response into gfs writestream
+  //Now actually pipe response into gfs writestream
   readableStream.pipe(writestream);
 
   return gridDefer.promise;
 };
 
-//seperate this from the Object->Text->GridFS flow of attempts for content-type LIKE text/ items
+//separate this from the Object->Text->GridFS flow of attempts for content-type LIKE text/ items
 DownloadGPOdata.prototype.updateModifiedGPOdataBinaryID = function (gridDefer,id,historyID,SlashData) {
-//Note this.Q.all takes multiple promises and is done when all are done
-//It accepts a defer from calling function that it can reject or resolve when done
+  //Note this.Q.all takes multiple promises and is done when all are done
+  //It accepts a defer from calling function that it can reject or resolve when done
   this.Q.all([
     this.Q(this.itemscollection.update({id:id},{$set:{SlashData:SlashData}})),
     this.Q(this.historycollection.update({_id:historyID},{$set:{"doc.SlashData":SlashData}}))
   ])
     .catch(function(err) {
-//Don't reject the deferred because it will break the chain need to try update with json as text instead of object
-//     defer.reject("Error updating slash data for " + id + " : " + err);})
+      //Don't reject the deferred because it will break the chain need to try update with json as text instead of object
       gridDefer.reject("Error updating Slash Data Binary ID for " + id + " : " + err);
     })
     .done(function () {
@@ -859,31 +833,29 @@ DownloadGPOdata.prototype.updateModifiedGPOdataBinaryID = function (gridDefer,id
 
 DownloadGPOdata.prototype.updateModifiedGPOdata = function (defer,id,historyID,SlashData) {
   var self = this;
-//Note this.Q.all takes multiple promises and is done when all are done
+  //Note this.Q.all takes multiple promises and is done when all are done
   self.Q.all([
     self.Q(self.itemscollection.update({id:id},{$set:{SlashData:SlashData}})),
     self.Q(self.historycollection.update({_id:historyID},{$set:{"doc.SlashData":SlashData}}))
   ])
     .catch(function(err) {
-//Don't reject the deferred because it will break the chain need to try update with json as text instead of object
-//     defer.reject("Error updating slash data for " + id + " : " + err);})
-      self.downloadLogs.log("Trying to save as Text, Error updating slash data as Object for " + id + " : " + err);
-//If there is an error try to resolve it saving data as text instad of JSON object
-//If error saving as text or binary
-      return self.UpdateModifieGPOdataAsText(id,historyID,SlashData).catch(function (err) {
-        defer.reject("Error forcing updating slash data forced to Grid FS : " + err);
+      //Don't reject the deferred because it will break the chain need to try update with json as text instead of object
+      self.downloadLogs.log("Now we are trying to save as text, since it couldn't save as an object for " + id + " : " + err);
+      //If there is an error try to resolve it saving data as text instead of JSON object
+      //If error saving as text or binary
+      return self.UpdateModifiedGPOdataAsText(id,historyID,SlashData).catch(function (err) {
+        defer.reject("Error forcing updating slash data - forced to GridFS : " + err);
       });
     })
     .done(function () {
-//      self.downloadLogs.log('Done updating Modified Slash Data for ' + id);
       defer.resolve(SlashData)
     });
 };
 
-//This is called after update crahsed probably because of dot in field name
-DownloadGPOdata.prototype.UpdateModifieGPOdataAsText = function (id,historyID,SlashData) {
+//This is called after update crashed probably because of dot in field name
+DownloadGPOdata.prototype.UpdateModifiedGPOdataAsText = function (id,historyID,SlashData) {
   var self = this;
-//This has to return a promise so calling function will wait til everything in here is done
+  //This has to return a promise so calling function will wait till everything in here is done
   var textDefer = self.Q.defer();
   SlashData.text=JSON.stringify(SlashData.json);
   SlashData.json = null;
@@ -892,16 +864,16 @@ DownloadGPOdata.prototype.UpdateModifieGPOdataAsText = function (id,historyID,Sl
     self.Q(this.historycollection.update({_id:historyID},{$set:{"doc.SlashData":SlashData}}))
   ])
     .catch(function (err) {
-      self.downloadLogs.log("Trying to save as Grid FS, Error updating slash data forced AS Text for " + id + " : " + err);
-//Try to save a grid FS (should normally work for all size/type of data)
+      self.downloadLogs.log("We tried to save as Text, but it was GIANT, so saving as GridFS (Binary) for ID: " + id + " : " + err);
+      //Try to save a grid FS (should normally work for all size/type of data)
       var textStream = self.utilities.streamify(SlashData.text);
       SlashData.text=null;
       return self.saveStreamToGridFS(textStream, id, historyID,SlashData, id + ".txt").catch(function (err) {
-        textDefer.reject("Error forcing updating slash data forced to Grid FS : " + err);
+        textDefer.reject("ERROR! after trying to save as text, and then forcing to save SlashData to GridFS and then" +
+          " failing to save as GridFS: " + err);
       });
     })
     .done(function () {
-//      self.downloadLogs.log('Done updating Modified Slash Data for ' + id);
       textDefer.resolve()
     });
   return textDefer.promise;
@@ -962,6 +934,7 @@ DownloadGPOdata.prototype.getGPOdataAsync = function () {
   return defer.promise
 };
 
+//removes the local mongo records which have been removed from the Esri system, but still in the history
 DownloadGPOdata.prototype.removeLocalGPOitems = function () {
   var self = this;
 //Get the localGPOids from DB (Mongo) before we find use remoteGPOids to remove IDs removed from remote (GPO)
