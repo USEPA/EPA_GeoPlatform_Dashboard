@@ -345,12 +345,16 @@ egam.setAuthGroupsDropdown = function (ownerIDsByAuthGroup) {
   });
 };
 
+//creating a revertable
+
 
 egam.gpoItemModel = function (i, loading) {
   var self = this;
   this.loading = loading || false;
   //This is the doc
   this.doc = ko.mapping.fromJS(i);
+
+  this.cachedDoc = ko.mapping.fromJS(i);
 
   this.complianceStatus = ko.computed(function () {
     return this.doc.AuditData.compliant() ? 'Pass' : 'Fail'
@@ -426,7 +430,7 @@ egam.gpoItemModel = function (i, loading) {
 
   //Add and field that has changed to the changeDoc
   this.addFieldChange = function (changeField, changeValue) {
-    this.changeDoc["id"] = this.doc.id();
+    //this.changeDoc["id"] = this.doc.id();
     this.changeDoc[changeField] = changeValue;
   };
 
@@ -524,6 +528,25 @@ egam.gpoItemModel = function (i, loading) {
 
     console.log("Post back updated Items");
   };
+
+  this.closeModal = function(){
+    for (var key in self.changeDoc) {
+      if (self.changeDoc.hasOwnProperty(key)) {
+        //alert(key + " -> " + self.changeDoc[key]);
+        //if(key == "id" || key == "licenseInfo")
+        if(self.changeDoc[key] != self.cachedDoc[key] ){
+
+          //alert("There is a change: " + key + " -> " + self.changeDoc[key]);
+          //alert(self.cachedDoc[key]());
+          //alert("There is a change");
+          self.doc[key](self.cachedDoc[key]);
+          //delete self.changeDoc[key];
+        }
+      }
+    }
+
+  };
+
 };
 
 
@@ -538,6 +561,7 @@ egam.gpoItemTableModel = function (data) {
   //on the entire table, we need to know which item is selected to use later with modal, etc.
   self.select = function (item) {
     self.selected(item);
+
   };
 
   //allows you to select an item based on index, usually index will be coming from row number
