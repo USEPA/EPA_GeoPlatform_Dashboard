@@ -581,16 +581,47 @@
 
              <!-- userMgmtView  View -->
              <div role="tabpanel" class="tab-pane" id="userMgmtView" >
-                 <div id="userMgmtViewTable" class="table-responsive">
-                     <h2 class="sub-header">User Management</h2>
-                     <div class="jumbotron vertical-center">
-                         <div class="text-center">
-                             <h1 class="alert alert-warning">Site Under Construction</h1>
-                             <p>We are currently building something awesome that will be available soon!</p>
-                         </div>
+                 <h2 class="sub-header">User Management</h2>
+                 <table id="userMgmtTable" class="table table-hover table-bordered table-responsive">
+                     <tbody>
+                        <tr class="danger">
+                            <td>
+                                <div class="checkbox">
+                                    <label>
+                                        <input type="checkbox"> Sponsor Me!
+                                    </label>
+                                </div>
+                            </td>
+                            <td>John Doe</td>
+                            <td>This is wher sponsor Infomation would go</td>
+                            <td>Auth Group</td>
+                            <td>May 1, 2015</td>
+                            <td>December 15, 2015</td>
+                        </tr>
+                     </tbody>
+                     <!--<tbody data-bind="foreach: content">-->
+                         <!--<tr data-bind="css: {danger: !doc.AuditData.compliant(),loading: loading}, click: $parent.select" data-toggle="modal" data-target="#myModal" >-->
+                             <!--<td data-bind="attr: { 'data-order': doc.modified}" style="display:none"></td>-->
+                             <!--<td data-bind="text: doc.title" ></td>-->
+                             <!--<td data-bind="text: doc.access"></td>-->
+                             <!--<td data-bind="text: doc.type"></td>-->
+                             <!--<td data-bind="text: doc.numViews"></td>-->
+                             <!--<td data-bind="text: doc.owner"></td>-->
+                             <!--<td data-bind="text: modDate"></td>-->
+                         <!--</tr>-->
+                     <!--</tbody>-->
+                 </table>
+                 <!--<div id="userMgmtViewTable" class="table-responsive">-->
+                     <!--<h2 class="sub-header">User Management</h2>-->
+                     <!--<div class="jumbotron vertical-center">-->
+                         <!--<div class="text-center">-->
+                             <!--<h1 class="alert alert-warning">Site Under Construction</h1>-->
+                             <!--<p>We are currently building something awesome that will be available soon!</p>-->
+                         <!--</div>-->
 
-                     </div>
-                 </div>
+                     <!--</div>-->
+                 <!--</div>-->
+
              </div>
              <!-- End userMgmtView  View -->
              <!-- userMgmtView  View -->

@@ -46,6 +46,20 @@ $(document).ready(function () {
     ]
   } );
 
+//User mamagement Table
+  $('#userMgmtTable').DataTable( {
+    columns: [
+      {title: "Sponsor Me!"},
+      {title: "Name"},
+      {title: "Sponsorship"},
+      {title: "Auth Group"},
+      {title: "Date Added to GPO"},
+      {title: "Date Last Review"},
+    ],
+    "order": [
+      [0, "desc"]
+    ]
+  });
 
 });
 
