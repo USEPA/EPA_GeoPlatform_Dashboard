@@ -48,6 +48,7 @@ $(document).ready(function () {
 
 //User mamagement Table
   $('#userMgmtTable').DataTable( {
+    dom: '<"toolbar">frtip',
     columns: [
       {title: "Sponsor Me!"},
       {title: "Name"},
@@ -60,6 +61,7 @@ $(document).ready(function () {
       [0, "desc"]
     ]
   });
+  $("div.toolbar").html('<div class="btn-group" data-toggle="buttons" style="float: inherit"><label class="btn btn-primary active"><input type="radio" name="options" id="option1" autocomplete="off" checked> Radio 1</label></div>');
 
 });
 
