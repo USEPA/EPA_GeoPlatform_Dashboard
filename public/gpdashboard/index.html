@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="EPA GeoPlatform Dashboard">
     <meta name="author" content="EPA National Geospatial Support (NGS) Team">
-    <!--[AE-DY-TH-BG]-->
+    <!--[AE-DY-TH-BC-BG]-->
     <link rel="icon" href="img/favicon.png">
 
     <link href="bootstrap/css/bootstrap.min.css" rel="stylesheet">
@@ -26,8 +26,11 @@
 	  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
 	  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
 	  ga('create', 'UA-73331985-1', 'auto');
-	  ga('send', 'pageview');
+      ga('require', 'autotrack');
+      ga('send', 'pageview');
 	</script>
+    <script src='js/ga/autotrack.js'></script>
+
     <title>GeoPlatform Dashboard</title>
   </head>
 
@@ -48,7 +51,6 @@
         </div>
         <div id="navbar" class="navbar-collapse collapse">
           <ul class="nav navbar-nav navbar-right">
-            <!-- <li><a href="#">Dashboard</a></li> -->
             <li id="userId" style="display: none"></li>
             <li id="personalizedPanel" style="display: none; "><a id="sign-out" href="#">Sign Out</a></li>
             <li id="anonymousPanel" style="display: block"><a href="#" id="sign-in-navbar" >Sign In</a></li>
@@ -57,6 +59,7 @@
         </div>
       </div>
     </nav>
+
     <!--Help Modal-->
     <div class="modal fade" id="helpModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
         <div class="modal-dialog modal-lg" role="document">
@@ -432,10 +435,7 @@
                       <td data-bind="css: {auditRowPass: doc.AuditData.compliant(),auditRowFail: !doc.AuditData.compliant()},attr: { 'data-search': complianceStatus,'data-order': complianceStatus}">
                           <img class="pass" src="img/greenOK.jpg" alt="Pass" style="width:25px">
                           <img class="fail" src="img/warning.png" alt="Fail" style="width:25px">
-                          <span onclick="event.stopPropagation();" style="margin-left: 10px">
-                              <a class="glyphicon glyphicon-link" data-bind="attr: {href: gpoLink}" target="_blank" aria-hidden="true"></a>
-                          </span>
-                        </td >
+                      </td >
                     </tr>
                   </tbody>
               </table>
