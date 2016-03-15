@@ -6,6 +6,12 @@ egam.gpoItems = {
   dataTable: null
 };
 
+egam.edgItems = {
+  resultSet: [],
+  tableModel: null,
+  dataTable: null
+};
+
 $(document).ready(function () {
 
   $(document).on('click', '.nav li', function (e) {
@@ -15,6 +21,9 @@ $(document).ready(function () {
     $('#' + view + 'View').collapse('show');
     $('.view').not(document.getElementById(view)).collapse('hide');
     //console.log("Sidebar click: " + e);
+    if (e.target.hash == "#edgView") {
+      egam.edginit();
+    }
   });
 
   //Click event for Help Modal
@@ -45,10 +54,25 @@ $(document).ready(function () {
       { title: "Service Description" }
     ]
   } );
-
-
 });
 
+
+egam.edginit = function() {
+  //setting up the new tableModel instance with no rows yet
+  egam.edgItems.tableModel = new egam.edgItemTableModel([]);
+  // get data from edg
+  $.getJSON("https://edg.epa.gov/metadata/rest/find/document?f=dcat&max=2500&callback=?", function(data) {
+    // bind the data
+    ko.applyBindings(new egam.edgItemModel(data), document.getElementById('edgViewViewTable'));
+    // apply DataTables magic
+    egam.renderEDGitemsDataTable()
+        .then(function (dt) {
+          egam.edgItems.dataTable = dt;
+          defer.resolve()
+        });
+  });
+
+}
 
 //Populate table for GPO User's Items View
 //Projection in Mongo/Monk is what fields you want to return and sorting, offsetting, etc.
@@ -105,7 +129,7 @@ function populateUserTables(query, projection) {
         if (dataResults.length < 1) return defer.resolve();
         //cluge to make row model work because it is trying to bind rowmodel.selected()
         egam.gpoItems.tableModel.selectIndex(0);
-        if (needToApplyBindings) ko.applyBindings(egam.gpoItems.tableModel);
+        if (needToApplyBindings) ko.applyBindings(egam.gpoItems.tableModel, document.getElementById('overviewTable'));
 
         setTimeout(function () {
           if (egam.gpoItems.dataTable && "fnDestroy" in egam.gpoItems.dataTable)
@@ -142,6 +166,20 @@ function calcItemsPassingAudit(dataResults) {
   var percentPassing = Math.round((passing / dataResults.length) * 100);
   $('#percPublicPassingAudit').text(percentPassing + "% Passing");
 }
+
+egam.renderEDGitemsDataTable = function () {
+  //apply data table magic, ordered ascending by title
+  //Use this so we know when table is rendered
+  var defer = $.Deferred();
+
+  $('#edgitemtable').DataTable({
+    //"order": [
+    //  [0, "desc"]
+    //],
+  });
+  return defer;
+};
+
 
 egam.renderGPOitemsDataTable = function () {
   //apply data table magic, ordered ascending by title
@@ -280,6 +318,7 @@ egam.accessSelectEventHandler = function () {
       modified: -1
     },
     fields: egam.gpoItems.resultFields
+
   })
     .then(function () {
       // Hide the loading panel now after first page is loaded
@@ -345,6 +384,11 @@ egam.setAuthGroupsDropdown = function (ownerIDsByAuthGroup) {
   });
 };
 
+egam.edgItemModel = function (data) {
+  var self = this;
+  // knockout mapping JSON data to view model
+  ko.mapping.fromJS(data, {}, self);
+}
 
 egam.gpoItemModel = function (i, loading) {
   var self = this;
@@ -526,6 +570,39 @@ egam.gpoItemModel = function (i, loading) {
   };
 };
 
+
+//data here is the actual array of edg JSON documents that came back from the REST endpoint
+egam.edgItemTableModel = function (data) {
+  var self = this;
+
+  self.content = ko.observableArray(data.map(function (doc) {
+    return new egam.edgItemModel(doc);
+  }));
+
+  //on the entire table, we need to know which item is selected to use later with modal, etc.
+  self.select = function (item) {
+    self.selected(item);
+  };
+
+  //allows you to select an item based on index, usually index will be coming from row number
+  self.selectIndex = function (index) {
+    var selectedItem = self.content()[index];
+    self.selected(selectedItem);
+  };
+
+  //a new observable for the selected row
+  self.selected = ko.observable();
+
+  if (self.content().length > 0) {
+    //automatically select the 1st item in the table
+    //no idea why we are doing this?
+    self.selected = ko.observable(self.content()[0]);
+  }
+
+  self.clear = function () {
+    self.content().length = 0;
+  };
+}
 
 //data here is the actual array of JSON documents that came back from the REST endpoint
 egam.gpoItemTableModel = function (data) {
