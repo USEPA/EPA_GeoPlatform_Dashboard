@@ -129,7 +129,7 @@ function populateUserTables(query, projection) {
         if (dataResults.length < 1) return defer.resolve();
         //cluge to make row model work because it is trying to bind rowmodel.selected()
         egam.gpoItems.tableModel.selectIndex(0);
-        if (needToApplyBindings) ko.applyBindings(egam.gpoItems.tableModel, document.getElementById('GPO-wrapper'));
+        if (needToApplyBindings) ko.applyBindings(egam.gpoItems.tableModel, document.getElementById('overviewView'));
 
         setTimeout(function () {
           if (egam.gpoItems.dataTable && "fnDestroy" in egam.gpoItems.dataTable)
