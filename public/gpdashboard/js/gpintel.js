@@ -30,6 +30,12 @@ $(document).ready(function () {
   $('#egamHelp').on('click', function(e){
     $('#helpModal').modal('show');
   });
+  
+  $('#edgModalView').on('click', function(e) {
+    $('#edgModal').modal('show');
+    var title = $('#title').val();
+    egam.edginit(title, true);
+  });
 
   //Add tooltips
   var options = {delay: { "show": 500, "hide": 100 }};
@@ -57,20 +63,48 @@ $(document).ready(function () {
 });
 
 
-egam.edginit = function() {
-  //setting up the new tableModel instance with no rows yet
-  egam.edgItems.tableModel = new egam.edgItemTableModel([]);
-  // get data from edg
-  $.getJSON("https://edg.epa.gov/metadata/rest/find/document?f=dcat&max=2500&callback=?", function(data) {
-    // bind the data
-    ko.applyBindings(new egam.edgItemModel(data), document.getElementById('edgViewViewTable'));
-    // apply DataTables magic
-    egam.renderEDGitemsDataTable()
-        .then(function (dt) {
-          egam.edgItems.dataTable = dt;
-          defer.resolve()
-        });
-  });
+egam.edginit = function(title='', modal=false) {
+
+
+  if (egam.edgItems.tableModel) {
+    //only occurs if reloading the whole table
+    //have to actually remove dataTable rows and destroy datatable in order to get knockout to rebind table
+    if (egam.edgItems.dataTable) {
+      egam.edgItems.dataTable.api().clear().draw();
+      if ("fnDestroy" in egam.edgItems.dataTable) egam.edgItems.dataTable.fnDestroy();
+    }
+    egam.edgItems.tableModel.content.removeAll();
+    console.log("Wiped out table model and data table: " + egam.edgItems.tableModel.content().length);
+  } else {
+    //setting up the new tableModel instance with no rows yet
+    egam.edgItems.tableModel = new egam.edgItemTableModel([]);
+  }
+
+  if(!modal) {
+    // get data from edg
+    $.getJSON("https://edg.epa.gov/metadata/rest/find/document?f=dcat&max=2500&callback=?", function (data) {
+      // bind the data
+      ko.applyBindings(new egam.edgItemModel(data), document.getElementById('edgViewViewTable'));
+      // apply DataTables magic
+      egam.renderEDGitemsDataTable()
+          .then(function (dt) {
+            egam.edgItems.dataTable = dt;
+            defer.resolve()
+          });
+    });
+  } else {
+    // get data from edg
+    $.getJSON("https://edg.epa.gov/metadata/rest/find/document?f=dcat&max=10&searchText=" + title + "&callback=?", function (data) {
+      // bind the data
+      ko.applyBindings(new egam.edgItemModel(data), document.getElementById('edgModal'));
+      // apply DataTables magic
+      egam.renderEDGitemsDataTable()
+          .then(function (dt) {
+            egam.edgItems.dataTable = dt;
+            defer.resolve()
+          });
+    });
+  }
 
 }
 
