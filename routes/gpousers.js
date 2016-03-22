@@ -51,13 +51,25 @@ module.exports = function (app) {
 //This function gets input for both post and get for now
     var query = utilities.getRequestInputs(req).query;
 
-//parse JSON querdfy in object
+//parse JSON query in object
     if (typeof query === "string") query = JSON.parse(query);
 //If query is falsey make it empty object
     if (!query) query = {};
 
 //Now we can filter using url route filter if supplied eg. authGroups/EPA Region 1
-    if (req.params.filterType) query[req.params.filterType] = {"$regex": req.params.filterValue};
+    var filterValue=req.params.filterValue;
+    if (req.params.filterType) {
+//try to convert to something other than string
+      try {
+        filterValue = JSON.parse(filterValue);
+      }catch(ex) {}
+      if (filterValue=="string") {
+        query[req.params.filterType] = {"$regex": filterValue};
+      }else {
+//if not string passed in then don't do regex search
+        query[req.params.filterType] = filterValue;
+      }
+    }
 
     //This function gets input for both post and get for now
     var projection = utilities.getRequestInputs(req).projection;
@@ -69,8 +81,10 @@ module.exports = function (app) {
 
 //Only return gpo itmes where this user is the owner (or later probably group admin)
 //comment this out just to test with all
-//Super user is not limited by ownerIDs
-    if (!isSuperUser) query.username = {"$in": ownerIDs};
+//Super user is not limited by ownerIDs. If admin is finding External User then show all external users
+    var findingExternalUsers = (req.session.user.isAdmin && ((req.params.filterType=="isExternal" && filterValue==true) || query.isExternal===true));
+
+    if (! isSuperUser && ! findingExternalUsers) query.username = {"$in": ownerIDs};
 
     if (isCSV === true) {
       streamGPOusersCSV()

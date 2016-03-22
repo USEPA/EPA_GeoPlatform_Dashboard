@@ -311,7 +311,7 @@ DownloadGPOusers.prototype.HandleGPOusersResponseSync = function (body) {
 
 DownloadGPOusers.prototype.HandleGPOusersResponseAsync = function (body) {
   if ('error' in body) {
-    this.downloadLogs.error("Error getting GPO users: " + body.error.message)
+    this.downloadLogs.error("Error getting GPO users: " + body.error.message);
     return true;
   }
   this.downloadLogs.log('request Start ' + (body.start ) + ' to ' + (body.start + body.results.length - 1) + ' (users retrieved: ' +
@@ -344,21 +344,22 @@ DownloadGPOusers.prototype.storeModifiedDocs = function (body) {
   self.hr.saved.remoteGPOids = self.hr.saved.remoteGPOids.concat(remoteGPOids)
 //only the modified/created gpo items more recent than local will be upserted
 //add empty array group field in here in case it doesn't get added later just
-//also isAdmin field and empty array ownerIDs field that will be dealt with later with another script
+//also isAdmin,isExternal fields and empty array ownerIDs field that will be dealt with later with another script
 
 //Don't have to keep all user fields I guess
   var modifiedGPOitems = body.results.map(function (doc) {
-    return self.utilities.sliceObject(doc, ['username', 'fullName', 'modified', 'created'])
+    return self.utilities.sliceObject(doc, ['username', 'fullName','modified', 'created'])
   });
 
   modifiedGPOitems = modifiedGPOitems.filter(function (doc) {
     doc.groups = [];
     doc.authGroups = [];
     doc.isAdmin = false;
+    doc.isExternal = false;
     return doc.modified > self.hr.saved.localMaxModifiedDate
   });
 
-//NOt get array of only the modified ID's because we will be looping over all id's later to get Slash Data but don't want to keep all GPO items in memory
+//NOt get array of only the modified ID's because we will be looping over all id's later to get group Data but don't want to keep all GPO users in memory
   var modifiedGPOids = modifiedGPOitems.map(function (doc) {
     return doc.username || ''
   }); //Don't want undefined or null list of usernames because if username not on doc then remove( {username:{$in:[,,,,,]}} ) will remove all

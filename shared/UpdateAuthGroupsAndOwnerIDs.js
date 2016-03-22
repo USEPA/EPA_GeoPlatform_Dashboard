@@ -58,9 +58,12 @@ UpdateAuthGroupsAndOwnerIDs.prototype.updateAuthGroupsInner = function(user) {
   var arrayExtended = require('array-extended');
   var merge = require('merge');
 
-//Check if this is admin and save that to DB also just for convenience
+//Check if this is admin and save isAdmin field to DB just for convenience
+//Also have to fing user.role and user.provider and user.email in here on the full community/portal user object because these fields are not in search results
   var isAdmin = false;
   if (user.role==='org_admin') isAdmin=true;
+  var isExternal = false;
+  if (user.provider!=='enterprise') isExternal=true;
 
 
 //Get groups from user object. Might need to transform groups from array of group objects to array of group names
@@ -75,7 +78,8 @@ UpdateAuthGroupsAndOwnerIDs.prototype.updateAuthGroupsInner = function(user) {
   }
 
 //Now update the authGroup Info and return the updated Info so it can be used later to find OwnerIDs
-  var updateUser = {username:user.username,role:user.role,authGroups: authGroups,isAdmin: isAdmin,groups:groups};
+//Note have to save a bunch of extra stuff here that is on the full community/portal user object but not on the user search result object
+  var updateUser = {username:user.username,email:user.email,role:user.role,authGroups: authGroups,isAdmin: isAdmin,isExternal:isExternal, groups:groups, provider: user.provider};
   if (isAdmin) console.log("Updated Info:" + JSON.stringify(updateUser));
   return Q(self.usersCollection.update({username: user.username}, {$set: updateUser}))
     .then(function () {
