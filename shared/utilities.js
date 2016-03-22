@@ -19,7 +19,7 @@ utilities.getCleanRequestInputs = function(req,errors) {
   Object.keys(inputs).forEach(
       function (key) {
         if (typeof inputs[key] !== "string") {
-          error.push(key + " must be a string");
+          errors.push(key + " must be a string");
           inputs[key] = JSON.stringify(inputs[key]);
         }
       });

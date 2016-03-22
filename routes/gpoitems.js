@@ -164,6 +164,7 @@ module.exports = function(app) {
     var hr = new hrClass(config);
 
     var itemscollection = monk.get('GPOitems');
+    var extensionscollection = monk.get('GPOitemExtensions');
     var gfs = app.get('gfs');
 
     var error=null;
@@ -233,7 +234,7 @@ module.exports = function(app) {
 
     function updateSingleGPOitem(updateDoc,async) {
 //If in async mode need to create new updateGPOitem instance each time so each will have it's own data
-      if (! updateGPOitem || async===true) updateGPOitem=new UpdateGPOitemClass(itemscollection,req.session,config,gfs);
+      if (! updateGPOitem || async===true) updateGPOitem=new UpdateGPOitemClass(itemscollection,extensionscollection,req.session,config,gfs);
 //Pass thumbnail file upload object if exists
       if (thumbnail) updateGPOitem.thumbnail = thumbnail;
 

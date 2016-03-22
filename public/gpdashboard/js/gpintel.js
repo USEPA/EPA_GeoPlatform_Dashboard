@@ -6,6 +6,12 @@ egam.gpoItems = {
   dataTable: null
 };
 
+egam.edgItems = {
+  resultSet: [],
+  tableModel: null,
+  dataTable: null
+};
+
 $(document).ready(function () {
 
   $(document).on('click', '.nav li', function (e) {
@@ -15,6 +21,9 @@ $(document).ready(function () {
     $('#' + view + 'View').collapse('show');
     $('.view').not(document.getElementById(view)).collapse('hide');
     //console.log("Sidebar click: " + e);
+    if (e.target.hash == "#edgView") {
+      egam.edginit();
+    }
   });
 
   //Click event for Help Modal
@@ -45,65 +54,25 @@ $(document).ready(function () {
       { title: "Service Description" }
     ]
   } );
-//User Managment table
- testdata = [{"Sponsored": false, "Name": "John Doe", "Sponsorship": "This is where sponsor Infomation would go", "AuthGroup": "Auth Group", "DateAdded": "May 1, 2015", "LastReview": "December 15, 2015"},{"Sponsored": true, "Name": "Jane Doe", "Sponsorship": "Sponsored by Brett", "AuthGroup": "Auth Group", "DateAdded": "May 6, 2013", "LastReview": "January 15, 2016"}, {"Sponsored": true, "Name": "John Wayne", "Sponsorship": "Sponsored by Torrin", "AuthGroup": "Auth Group", "DateAdded": "April 6, 2012", "LastReview": "October 15, 2015"}];
-
-  //parsedJson = JSON.parse(testdata);
-  $.fn.dataTable.ext.buttons.alert = {
-    className: 'buttons-alert',
-
-    action: function ( e, dt, node, config ) {
-      alert( this.text() );
-    }
-  };
-
-//User mamagement Table
-  userManagementTable = $('#userMgmtTable').DataTable( {
-    //"data": testdata,
-    //dom: '<"toolbar">frtip',
-    dom: 'Bfrtip',
-    buttons: [
-      {
-        extend:'alert',
-        text: 'All Users'
-      },
-      {
-        extend:'alert',
-        text: 'Sponsored'
-      },
-      {
-        extend:'alert',
-        text: 'Unsponsored'
-      }
-
-    ],
-    //"aoColumns": [
-    //  { "mData": "Sponsored" },
-    //  { "mData": "Name" },
-    //  { "mData": "Sponsorship" },
-    //  { "mData": "Auth Group" },
-    //  { "mData": "DateAdded" },
-    //  { "mData": "LastReview" }
-    //],
-    "order": [
-      [0, "desc"]
-    ]
-  });
-  //$("div.toolbar").html('<div class="btn-group" data-toggle="buttons" style="float: inherit"><label class="btn btn-primary active"><input type="radio" name="options" id="allUsers" autocomplete="off" checked> All Users</label><label class="btn btn-primary"><input type="radio" name="options" id="option2" autocomplete="off">Unsponsored</label><label class="btn btn-primary"><input type="radio" name="options" id="option3" autocomplete="off">Sponsored</label></div>');
-
-  var userMngntTableView = function(users){
-    this.users = ko.observableArray(users);
-    //this.name = ko.observable(users.Name);
-    //this.spon = ko.observable(users.Sponsorship);
-  }
-  ko.applyBindings(new userMngntTableView(testdata), document.getElementById("userMgmtTable"));
-
-  $('#allUsers').click(function(){
-    alert("all Users");
-  });
-
 });
 
+
+egam.edginit = function() {
+  //setting up the new tableModel instance with no rows yet
+  egam.edgItems.tableModel = new egam.edgItemTableModel([]);
+  // get data from edg
+  $.getJSON("https://edg.epa.gov/metadata/rest/find/document?f=dcat&max=2500&callback=?", function(data) {
+    // bind the data
+    ko.applyBindings(new egam.edgItemModel(data), document.getElementById('edgViewViewTable'));
+    // apply DataTables magic
+    egam.renderEDGitemsDataTable()
+        .then(function (dt) {
+          egam.edgItems.dataTable = dt;
+          defer.resolve()
+        });
+  });
+
+}
 
 //Populate table for GPO User's Items View
 //Projection in Mongo/Monk is what fields you want to return and sorting, offsetting, etc.
@@ -160,7 +129,7 @@ function populateUserTables(query, projection) {
         if (dataResults.length < 1) return defer.resolve();
         //cluge to make row model work because it is trying to bind rowmodel.selected()
         egam.gpoItems.tableModel.selectIndex(0);
-        if (needToApplyBindings) ko.applyBindings(egam.gpoItems.tableModel, document.getElementById("gpoitemtable1"));
+        if (needToApplyBindings) ko.applyBindings(egam.gpoItems.tableModel, document.getElementById('overviewView'));
 
         setTimeout(function () {
           if (egam.gpoItems.dataTable && "fnDestroy" in egam.gpoItems.dataTable)
@@ -197,6 +166,20 @@ function calcItemsPassingAudit(dataResults) {
   var percentPassing = Math.round((passing / dataResults.length) * 100);
   $('#percPublicPassingAudit').text(percentPassing + "% Passing");
 }
+
+egam.renderEDGitemsDataTable = function () {
+  //apply data table magic, ordered ascending by title
+  //Use this so we know when table is rendered
+  var defer = $.Deferred();
+
+  $('#edgitemtable').DataTable({
+    //"order": [
+    //  [0, "desc"]
+    //],
+  });
+  return defer;
+};
+
 
 egam.renderGPOitemsDataTable = function () {
   //apply data table magic, ordered ascending by title
@@ -335,6 +318,7 @@ egam.accessSelectEventHandler = function () {
       modified: -1
     },
     fields: egam.gpoItems.resultFields
+
   })
     .then(function () {
       // Hide the loading panel now after first page is loaded
@@ -400,6 +384,11 @@ egam.setAuthGroupsDropdown = function (ownerIDsByAuthGroup) {
   });
 };
 
+egam.edgItemModel = function (data) {
+  var self = this;
+  // knockout mapping JSON data to view model
+  ko.mapping.fromJS(data, {}, self);
+}
 
 egam.gpoItemModel = function (i, loading) {
   var self = this;
@@ -529,7 +518,7 @@ egam.gpoItemModel = function (i, loading) {
     }
     //var thumbnail = $('#thumbnail')[0].files[0];
     //if (thumbnail && thumbnail.name) unmappedDoc.thumbnail = "thumbnail/" + thumbnail.name;
-    //console.log(JSON.stringify(this.selected().doc))
+
     //Original Audit of full Doc
     var unmappedDoc = ko.mapping.toJS(this.selected().doc);
 
@@ -581,6 +570,39 @@ egam.gpoItemModel = function (i, loading) {
   };
 };
 
+
+//data here is the actual array of edg JSON documents that came back from the REST endpoint
+egam.edgItemTableModel = function (data) {
+  var self = this;
+
+  self.content = ko.observableArray(data.map(function (doc) {
+    return new egam.edgItemModel(doc);
+  }));
+
+  //on the entire table, we need to know which item is selected to use later with modal, etc.
+  self.select = function (item) {
+    self.selected(item);
+  };
+
+  //allows you to select an item based on index, usually index will be coming from row number
+  self.selectIndex = function (index) {
+    var selectedItem = self.content()[index];
+    self.selected(selectedItem);
+  };
+
+  //a new observable for the selected row
+  self.selected = ko.observable();
+
+  if (self.content().length > 0) {
+    //automatically select the 1st item in the table
+    //no idea why we are doing this?
+    self.selected = ko.observable(self.content()[0]);
+  }
+
+  self.clear = function () {
+    self.content().length = 0;
+  };
+}
 
 //data here is the actual array of JSON documents that came back from the REST endpoint
 egam.gpoItemTableModel = function (data) {
