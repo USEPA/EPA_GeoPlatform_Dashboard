@@ -12,6 +12,7 @@
     <link href="bootstrap/css/bootstrap.min.css" rel="stylesheet">
     <link href="bootstrap/css/jasny-bootstrap.min.css" rel="stylesheet">
     <link href="bootstrap/css/dataTables.bootstrap.min.css" rel="stylesheet">
+      <link href="bootstrap/css/buttons.dataTables.min.css" rel="stylesheet">
     <link href="css/dashboard.css" rel="stylesheet">
 
     <!--[if lt IE 9]>
@@ -583,22 +584,59 @@
              <div role="tabpanel" class="tab-pane" id="userMgmtView" >
                  <h2 class="sub-header">User Management</h2>
                  <table id="userMgmtTable" class="table table-hover table-bordered table-responsive">
-                     <tbody>
-                        <tr>
-                            <td>
-                                <div class="checkbox">
-                                    <label>
-                                        <input type="checkbox"> Sponsor Me!
-                                    </label>
-                                </div>
-                            </td>
-                            <td>John Doe</td>
-                            <td>This is wher sponsor Infomation would go</td>
-                            <td>Auth Group</td>
-                            <td>May 1, 2015</td>
-                            <td>December 15, 2015</td>
-                        </tr>
+                     <thead>
+                     <tr>
+                         <th>Sponsored</th>
+                         <th>Name</th>
+                         <th>Sponsorship</th>
+                         <th>Auth Group</th>
+                         <th>DataAdded</th>
+                         <th>LastReview</th>
+                     </tr>
+                     </thead>
+                     <tbody data-bind="foreach: users">
+                     <tr>
+                         <td>
+                             <div data-bind="ifnot: Sponsored">
+                                 <button class="btn btn-primary" id="sponsorBtn">Sponsor Me!</button>
+                             </div>
+                             <div data-bind="if: Sponsored">
+                                 <button class="btn btn-primary" id="renewBtn">Renew</button>
+                             </div>
+                         </td>
+                         <td data-bind="text: Name"></td>
+                         <td data-bind="text: Sponsorship"></td>
+                         <td data-bind="text: AuthGroup"></td>
+                         <td data-bind="text: DateAdded"></td>
+                         <td data-bind="text: LastReview"></td>
+                     </tr>
                      </tbody>
+                     <tfoot>
+                     <tr>
+                         <th>Sponsored</th>
+                         <th>Name</th>
+                         <th>Sponsorship</th>
+                         <th>Auth Group</th>
+                         <th>DataAdded</th>
+                         <th>LastReview</th>
+                     </tr>
+                     </tfoot>
+                     <!--<tbody>-->
+                        <!--<tr>-->
+                            <!--<td>-->
+                                <!--<div class="checkbox">-->
+                                    <!--<label>-->
+                                        <!--<input type="checkbox"> Sponsor Me!-->
+                                    <!--</label>-->
+                                <!--</div>-->
+                            <!--</td>-->
+                            <!--<td>John Doe</td>-->
+                            <!--<td>This is wher sponsor Infomation would go</td>-->
+                            <!--<td>Auth Group</td>-->
+                            <!--<td>May 1, 2015</td>-->
+                            <!--<td>December 15, 2015</td>-->
+                        <!--</tr>-->
+                     <!--</tbody>-->
                      <!--<tbody data-bind="foreach: content">-->
                          <!--<tr data-bind="css: {danger: !doc.AuditData.compliant(),loading: loading}, click: $parent.select" data-toggle="modal" data-target="#myModal" >-->
                              <!--<td data-bind="attr: { 'data-order': doc.modified}" style="display:none"></td>-->
@@ -651,6 +689,7 @@
 
     <script src="js/jquery1.11.3/jquery.min.js"></script>
     <script src="js/jquery1.11.3/jquery.dataTables.min.js"></script>
+    <script src="js/jquery1.11.3/dataTables.buttons.min.js"></script>
     <script src="js/jquery1.11.3/dataTables.bootstrap.min.js"></script>
     <script src="bootstrap/js/bootstrap.min.js"></script>
     <script src="bootstrap/js/jasny-bootstrap.min.js"></script>

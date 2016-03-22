@@ -45,23 +45,62 @@ $(document).ready(function () {
       { title: "Service Description" }
     ]
   } );
+//User Managment table
+ testdata = [{"Sponsored": false, "Name": "John Doe", "Sponsorship": "This is where sponsor Infomation would go", "AuthGroup": "Auth Group", "DateAdded": "May 1, 2015", "LastReview": "December 15, 2015"},{"Sponsored": true, "Name": "Jane Doe", "Sponsorship": "Sponsored by Brett", "AuthGroup": "Auth Group", "DateAdded": "May 6, 2013", "LastReview": "January 15, 2016"}, {"Sponsored": true, "Name": "John Wayne", "Sponsorship": "Sponsored by Torrin", "AuthGroup": "Auth Group", "DateAdded": "April 6, 2012", "LastReview": "October 15, 2015"}];
+
+  //parsedJson = JSON.parse(testdata);
+  $.fn.dataTable.ext.buttons.alert = {
+    className: 'buttons-alert',
+
+    action: function ( e, dt, node, config ) {
+      alert( this.text() );
+    }
+  };
 
 //User mamagement Table
-  $('#userMgmtTable').DataTable( {
-    dom: '<"toolbar">frtip',
-    columns: [
-      {title: "Sponsor Me!"},
-      {title: "Name"},
-      {title: "Sponsorship"},
-      {title: "Auth Group"},
-      {title: "Date Added to GPO"},
-      {title: "Date Last Review"},
+  userManagementTable = $('#userMgmtTable').DataTable( {
+    //"data": testdata,
+    //dom: '<"toolbar">frtip',
+    dom: 'Bfrtip',
+    buttons: [
+      {
+        extend:'alert',
+        text: 'All Users'
+      },
+      {
+        extend:'alert',
+        text: 'Sponsored'
+      },
+      {
+        extend:'alert',
+        text: 'Unsponsored'
+      }
+
     ],
+    //"aoColumns": [
+    //  { "mData": "Sponsored" },
+    //  { "mData": "Name" },
+    //  { "mData": "Sponsorship" },
+    //  { "mData": "Auth Group" },
+    //  { "mData": "DateAdded" },
+    //  { "mData": "LastReview" }
+    //],
     "order": [
       [0, "desc"]
     ]
   });
-  $("div.toolbar").html('<div class="btn-group" data-toggle="buttons" style="float: inherit"><label class="btn btn-primary active"><input type="radio" name="options" id="option1" autocomplete="off" checked> Radio 1</label></div>');
+  //$("div.toolbar").html('<div class="btn-group" data-toggle="buttons" style="float: inherit"><label class="btn btn-primary active"><input type="radio" name="options" id="allUsers" autocomplete="off" checked> All Users</label><label class="btn btn-primary"><input type="radio" name="options" id="option2" autocomplete="off">Unsponsored</label><label class="btn btn-primary"><input type="radio" name="options" id="option3" autocomplete="off">Sponsored</label></div>');
+
+  var userMngntTableView = function(users){
+    this.users = ko.observableArray(users);
+    //this.name = ko.observable(users.Name);
+    //this.spon = ko.observable(users.Sponsorship);
+  }
+  ko.applyBindings(new userMngntTableView(testdata), document.getElementById("userMgmtTable"));
+
+  $('#allUsers').click(function(){
+    alert("all Users");
+  });
 
 });
 
@@ -121,7 +160,7 @@ function populateUserTables(query, projection) {
         if (dataResults.length < 1) return defer.resolve();
         //cluge to make row model work because it is trying to bind rowmodel.selected()
         egam.gpoItems.tableModel.selectIndex(0);
-        if (needToApplyBindings) ko.applyBindings(egam.gpoItems.tableModel);
+        if (needToApplyBindings) ko.applyBindings(egam.gpoItems.tableModel, document.getElementById("gpoitemtable1"));
 
         setTimeout(function () {
           if (egam.gpoItems.dataTable && "fnDestroy" in egam.gpoItems.dataTable)
@@ -490,7 +529,7 @@ egam.gpoItemModel = function (i, loading) {
     }
     //var thumbnail = $('#thumbnail')[0].files[0];
     //if (thumbnail && thumbnail.name) unmappedDoc.thumbnail = "thumbnail/" + thumbnail.name;
-
+    //console.log(JSON.stringify(this.selected().doc))
     //Original Audit of full Doc
     var unmappedDoc = ko.mapping.toJS(this.selected().doc);
 

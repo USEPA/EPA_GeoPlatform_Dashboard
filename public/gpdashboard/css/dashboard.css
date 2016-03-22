@@ -23,7 +23,9 @@ a, span, tr, h4:hover {
 /*
  * Global add-ons
  */
-
+.toolbar{
+  float: left;
+}
 .sub-header {
   padding-bottom: 10px;
   border-bottom: 1px solid #eee;
