@@ -98,7 +98,7 @@ egam.edginit = function(title='', modal=false) {
       // bind the data
       ko.applyBindings(new egam.edgItemModel(data), document.getElementById('edgModal'));
       // apply DataTables magic
-      egam.renderEDGitemsDataTable()
+      egam.renderEDGitemsDataTable(true)
           .then(function (dt) {
             egam.edgItems.dataTable = dt;
             defer.resolve()
@@ -201,16 +201,19 @@ function calcItemsPassingAudit(dataResults) {
   $('#percPublicPassingAudit').text(percentPassing + "% Passing");
 }
 
-egam.renderEDGitemsDataTable = function () {
+egam.renderEDGitemsDataTable = function (modal=false) {
   //apply data table magic, ordered ascending by title
   //Use this so we know when table is rendered
   var defer = $.Deferred();
-
-  $('#edgitemtable').DataTable({
-    //"order": [
-    //  [0, "desc"]
-    //],
-  });
+  if (!modal) {
+    $('#edgitemtable').DataTable({
+      retrieve: true,
+    });
+  } else {
+    $('#edgitemmodaltable').DataTable({
+      retrieve: true,
+    });
+  }
   return defer;
 };
 
