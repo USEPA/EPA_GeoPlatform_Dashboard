@@ -54,6 +54,7 @@ $(document).ready(function () {
       { title: "Service Description" }
     ]
   } );
+
 });
 
 
@@ -71,6 +72,55 @@ egam.edginit = function() {
           defer.resolve()
         });
   });
+
+}
+
+//Populate the User Management Table
+function populateUserMngntTable(){
+  alert("populate table");
+  var queryUM = {}; //{isExternal:true};
+  $.post('gpousers/list', {
+    query: queryUM
+  }, function(data){
+    //alert(data);
+
+    $.fn.dataTable.ext.buttons.alert = {
+      className: 'buttons-alert',
+      action: function ( e, dt, node, config ) {
+        alert( this.text() );
+      }
+    };
+
+    userManagementTable = $('#userMgmtTable').DataTable( {
+      dom: 'Bfrtip',
+      buttons: [
+        {
+          extend:'alert',
+          text: 'All Users'
+        },
+        {
+          extend:'alert',
+          text: 'Sponsored'
+        },
+        {
+          extend:'alert',
+          text: 'Unsponsored'
+        }
+      ],
+      "order": [
+        [0, "desc"]
+      ]
+    });
+
+    var viewModel = function(usersDoc){
+      this.users = ko.observableArray(usersDoc);
+      //this.uDoc = ko.mapping.fromJS(users);
+    };
+
+    alert(data);
+    ko.applyBindings(new viewModel(data), document.getElementById("userMgmtTable"));
+  });
+
 
 }
 

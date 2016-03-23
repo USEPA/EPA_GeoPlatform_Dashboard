@@ -193,7 +193,8 @@ require([
       .fail(function(err) {
         console.error(err);
       });
-
+    //populate user management table
+    populateUserMngntTable();
   }
 
   function createGallery(items) {
