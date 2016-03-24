@@ -423,13 +423,13 @@
                           <img src="img/item_type_icons/mapimages16.png">
                           <!-- /ko -->
                       </td>
-                      <td data-bind="text: doc.title" ></td>
-                      <td data-bind="text: doc.access"></td>
-                      <td data-bind="text: doc.type"></td>
-                      <td data-bind="text: doc.numViews"></td>
-                      <td data-bind="text: doc.owner"></td>
+                      <td data-bind="text: cachedDoc.title" ></td>
+                      <td data-bind="text: cachedDoc.access"></td>
+                      <td data-bind="text: cachedDoc.type"></td>
+                      <td data-bind="text: cachedDoc.numViews"></td>
+                      <td data-bind="text: cachedDoc.owner"></td>
                         <td data-bind="text: modDate"></td>
-                      <td data-bind="css: {auditRowPass: doc.AuditData.compliant(),auditRowFail: !doc.AuditData.compliant()},attr: { 'data-search': complianceStatus,'data-order': complianceStatus}">
+                      <td data-bind="css: {auditRowPass: cachedDoc.AuditData.compliant(),auditRowFail: !cachedDoc.AuditData.compliant()},attr: { 'data-search': complianceStatus,'data-order': complianceStatus}">
                           <img class="pass" src="img/greenOK.jpg" alt="Pass" style="width:25px">
                           <img class="fail" src="img/warning.png" alt="Fail" style="width:25px">
                           <span onclick="event.stopPropagation();" style="margin-left: 10px">

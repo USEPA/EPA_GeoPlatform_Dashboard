@@ -500,6 +500,7 @@ egam.gpoItemModel = function (i, loading) {
       success: function (data, textStatus, jqXHR) {
         if (data.errors.length < 1)
         {
+
           // Success so call function to process the form
           console.log('success: ' + data);
 
@@ -530,23 +531,24 @@ egam.gpoItemModel = function (i, loading) {
   };
 
   this.closeModal = function(){
-    for (var key in self.changeDoc) {
-      if (self.changeDoc.hasOwnProperty(key)) {
-        //alert(key + " -> " + self.changeDoc[key]);
-        //if(key == "id" || key == "licenseInfo")
-        if(self.changeDoc[key] != self.cachedDoc[key] ){
-
-          //alert("There is a change: " + key + " -> " + self.changeDoc[key]);
-          //alert(self.cachedDoc[key]());
-          //alert("There is a change");
-          self.doc[key](self.cachedDoc[key]);
-          //delete self.changeDoc[key];
-        }
-      }
-    }
+    //self.doc = ko.mapping.fromJS(i);
+    //for (var key in self.changeDoc) {
+    //  if (self.changeDoc.hasOwnProperty(key)) {
+    //    //alert(key + " -> " + self.changeDoc[key]);
+    //    //if(key == "id" || key == "licenseInfo")
+    //    if(self.changeDoc[key] != self.cachedDoc[key] ){
+    //
+    //      //alert("There is a change: " + key + " -> " + self.changeDoc[key]);
+    //      //alert(self.cachedDoc[key]());
+    //      //alert("There is a change");
+    //      //self.doc[key](self.cachedDoc[key]);
+    //      self.doc = self.cachedDoc;
+    //      //delete self.changeDoc[key];
+    //    }
+    //  }
+    //}
 
   };
-
 };
 
 
