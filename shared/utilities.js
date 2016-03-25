@@ -60,7 +60,7 @@ utilities.getHandleError = function (resObject,code) {
 //Have to keep the same reference so can't just reassign
     resObject.error = {message: error.message, code: code};
     resObject.body = null;
-    console.log("getHandleError  " + error.stack);
+//    console.log("getHandleError  " + error.stack);
   }
 };
 
@@ -106,6 +106,12 @@ utilities.sliceObject = function (obj,slice) {
   });
 
   return mySlice;
+};
+
+utilities.constructFromArgsArray = function (constructor, argArray) {
+    var args = [null].concat(argArray);
+    var factoryFunction = constructor.bind.apply(constructor, args);
+    return new factoryFunction();
 };
 
 //Get array from DB from single field

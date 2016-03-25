@@ -23,7 +23,7 @@ var UpdateGPOitem =  function(itemscollection,extensionscollection,session,confi
   this.appRoot = appRoot=require('app-root-path');
 //These are fields on doc we can possibly update to GPO
   this.updateFields=require(appRoot + '/config/updateGPOitemFields');
-//These are fields on doc we can possibly update to GPO
+//These are extension fields on doc we can possibly update
   this.updateExtensionFields=require(appRoot + '/config/updateGPOitemExtensionFields');
 //initialize the audit object
   var AuditClass=require(appRoot + '/shared/Audit.js');
@@ -52,12 +52,12 @@ UpdateGPOitem.prototype.update = function(updateDoc) {
         self.resObject={error: {message: "You do not have Access to Update GPO item: " + self.updateDoc.id, code: "InvalidAccess"}, body: null};
       }})
     .catch(function (err) {
-      console.error("Error running UpdateGPOitem.update for " + updateDoc.id + " : " + err.stack) ;
+      console.error("Error running UpdateGPOitem.update for " + self.updateDoc.id + " : " + err.stack) ;
       self.utilities.getHandleError(self.resObject,"UpdateError")(err);
     })
     .then(function () {if (self.thumbnail && self.thumbnail.path) return Q.ninvoke(fs,"unlink",self.thumbnail.path)})
     .catch(function (err) {
-      console.error("Error removing thumb in UpdateGPOitem.update for " + updateDoc.id + " : " + err.stack) ;
+      console.error("Error removing thumb in UpdateGPOitem.update for " + self.updateDoc.id + " : " + err.stack) ;
       self.utilities.getHandleError(self.resObject,"UpdateError")(err);
     })
     .then(function () {
@@ -159,7 +159,7 @@ UpdateGPOitem.prototype.updateLocalGPOitem= function() {
 
 //Get the doc and do audit before updating
 // audit
-  return (self.itemscollection.findOne({id:updateDocID}, {}))
+  return Q(self.itemscollection.findOne({id:updateDocID}, {}))
     .then(function (doc) {
 //merge the updated info into the existing doc in DB before validating
       merge.recursive(doc, self.updateDoc);
