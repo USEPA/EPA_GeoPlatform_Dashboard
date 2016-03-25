@@ -189,6 +189,58 @@ module.exports = function (app) {
 
   }
 
+  router.use('/update', function(req, res) {
+    var username = "";
+    if ('session' in req && req.session.username) username=req.session.username;
+//If they are not logged in (no username then
+    if (! username) return res.json({error: {message: "Must be logged in to make this request.", code: "LoginRequired"}, body: null});
+
+    var utilities = require(app.get('appRoot') + '/shared/utilities');
+//    var db = req.db;
+    var monk = app.get('monk');
+    var config = app.get('config');
+
+    var userscollection = monk.get('GPOusers');
+    var extensionscollection = monk.get('GPOuserExtensions');
+
+    var error=null;
+//This function gets input for both post and get for now
+    var updateDocs = utilities.getRequestInputs(req).updateDocs;
+    try {
+      updateDocs = JSON.parse(updateDocs);
+    }catch (ex){
+      return res.json({error: {message: "Update Doc is not valid JSON", code: "InvalidJSON"}, body: null})
+    }
+
+//If they pass an array of docs don't support multiple thumbnails for now.
+// Can add later when we know how front end will pass them
+    if (! Array.isArray(updateDocs)) {
+      updateDocs=[updateDocs];
+    }
+
+    //Set up the method to run the updates with
+    var useSync=false;
+    var AsyncRowLimit=5;
+
+    var UpdateGPOclass = require(app.get('appRoot') + 'shared/UpdateGPOuser');
+
+    //This function will get the Update Class Instance needed to run .update
+    var getUpdateClassInstance = function (row) {
+      var updateInstance = new UpdateGPOclass(userscollection,extensionscollection,req.session,config);
+//don't need to add anything else like thumbnail to the instance, just return the instance
+      updateInstance;
+      return updateInstance;
+    };
+
+//This function handles the batch update process and is reusable
+    var batchUpdateGPO = require(app.get('appRoot') + '/shared/batchUpdateGPO');
+    batchUpdateGPO(updateDocs,getUpdateClassInstance,"User","username",useSync,AsyncRowLimit)
+      .done(function (resObjects) {
+        res.json(resObjects);
+      });
+
+//end of update endpoint
+  });
 
   return router;
 };
