@@ -65,6 +65,9 @@ $(document).ready(function () {
 
 egam.edginit = function(title='', modal=false) {
 
+  //If first time ever binding to table, need to apply binding, but can only bind once so don't bind again if
+  //reloading table
+  var needToApplyBindings = false;
 
   if (egam.edgItems.tableModel) {
     //only occurs if reloading the whole table
@@ -78,33 +81,36 @@ egam.edginit = function(title='', modal=false) {
   } else {
     //setting up the new tableModel instance with no rows yet
     egam.edgItems.tableModel = new egam.edgItemTableModel([]);
+    needToApplyBindings = true;
   }
 
-  if(!modal) {
-    // get data from edg
-    $.getJSON("https://edg.epa.gov/metadata/rest/find/document?f=dcat&max=2500&callback=?", function (data) {
-      // bind the data
-      ko.applyBindings(new egam.edgItemModel(data), document.getElementById('edgViewViewTable'));
-      // apply DataTables magic
-      egam.renderEDGitemsDataTable()
-          .then(function (dt) {
-            egam.edgItems.dataTable = dt;
-            defer.resolve()
-          });
-    });
-  } else {
-    // get data from edg
-    $.getJSON("https://edg.epa.gov/metadata/rest/find/document?f=dcat&max=10&searchText=" + title + "&callback=?", function (data) {
-      // bind the data
-      ko.applyBindings(new egam.edgItemModel(data), document.getElementById('edgModal'));
-      // apply DataTables magic
-      egam.renderEDGitemsDataTable(true)
-          .then(function (dt) {
-            egam.edgItems.dataTable = dt;
-            defer.resolve()
-          });
-    });
+  var edgURL = "https://edg.epa.gov/metadata/rest/find/document?f=dcat&max=100&callback=?";
+  if(modal) {
+    edgURL = "https://edg.epa.gov/metadata/rest/find/document?f=dcat&max=10&searchText=" + title + "&callback=?";
   }
+
+  // get data from edg
+  $.getJSON(edgURL, function (data) {
+    egam.edgItems.tableModel.add(data.dataset)
+        .then(function() {
+
+          //If there are no rows then don't try to bind
+          if (data.dataset.length < 1) return;
+          if (needToApplyBindings) {
+            // bind the data
+            ko.applyBindings(egam.edgItems.tableModel, document.getElementById('edgViewViewTable'));
+            ko.applyBindings(egam.edgItems.tableModel, document.getElementById('edgModal'));
+          }
+          setTimeout(function () {
+            if (egam.edgItems.dataTable && "fnDestroy" in egam.edgItems.dataTable)
+              egam.edgItems.dataTable.fnDestroy();
+            egam.renderEDGitemsDataTable(modal)
+                .then(function (dt) {
+                  egam.edgItems.dataTable = dt;
+                });
+          }, 0);
+        })
+  });
 
 }
 
@@ -206,14 +212,17 @@ egam.renderEDGitemsDataTable = function (modal=false) {
   //Use this so we know when table is rendered
   var defer = $.Deferred();
   if (!modal) {
-    $('#edgitemtable').DataTable({
-      retrieve: true,
-    });
+    div = '#edgitemtable';
   } else {
-    $('#edgitemmodaltable').DataTable({
-      retrieve: true,
-    });
+    div = '#edgitemmodaltable';
   }
+  $(div).DataTable({
+    initComplete: function () {
+      defer.resolve(this);
+      $(div).addClass("loaded");
+    }
+  });
+
   return defer;
 };
 
@@ -639,6 +648,35 @@ egam.edgItemTableModel = function (data) {
   self.clear = function () {
     self.content().length = 0;
   };
+
+
+  //data is an array of documents from the REST endpoint
+  self.add = function (data, callback) {
+    //Use this so we know when everything is loaded
+    var defer = $.Deferred();
+
+    //This lets things work async style so that page is not locked up when ko is mapping
+    //Maybe use an async library later
+    var i = 0;
+    var interval = setInterval(function () {
+      if (i >= data.length) {
+        // Needed because it calls it once more after promise is resolved (don't know why!)
+        return;
+      }
+      if (data.length > 0) {
+        self.content.push(new egam.edgItemModel(data[i], true));
+        if (callback) callback(i);
+      }
+      i += 1;
+      if (i >= data.length) {
+        defer.resolve();
+        clearInterval(interval);
+      }
+    }, 0);
+
+    return defer;
+  };
+
 }
 
 //data here is the actual array of JSON documents that came back from the REST endpoint
