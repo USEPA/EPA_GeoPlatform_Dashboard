@@ -74,6 +74,64 @@ egam.edginit = function() {
 
 }
 
+function populateUserMngntTable(){
+  alert("Populate User Table");
+  var queryUM = {}; //{isExternal:true};
+  $.post('gpousers/list', {
+    query: queryUM
+  }, function(data){
+    //alert(data);
+
+    $.fn.dataTable.ext.buttons.alert = {
+      className: 'buttons-alert',
+      action: function ( e, dt, node, config ) {
+        alert( this.text() );
+      }
+    };
+
+    userManagementTable = $('#userMgmtTable').DataTable( {
+      dom: 'Bfrtip',
+      buttons: [
+        {
+          extend:'alert',
+          text: 'All Users'
+        },
+        {
+          extend:'alert',
+          text: 'Sponsored'
+        },
+        {
+          extend:'alert',
+          text: 'Unsponsored'
+        }
+      ],
+      "order": [
+        [0, "desc"]
+      ]
+    });
+
+    var viewModel2 = function(u){
+      this.uData = ko.mapping.fromJS(u);
+    };
+
+    var viewModel = function(usersDoc){
+      this.users = ko.observableArray(usersDoc.map(function (doc){
+        return new viewModel2(doc);
+      }));
+      //this.uDoc = ko.mapping.fromJS(usersDoc);
+      //this.other = ko.mapping.toJS(this.uDoc);
+      //data.map(function (doc) {
+      //  return new egam.edgItemModel(doc);
+      //}
+      alert("this not work");
+    };
+
+    alert(data);
+
+    ko.applyBindings(new viewModel(JSON.parse(data)), document.getElementById("userMgmtView"));
+  });
+}
+
 //Populate table for GPO User's Items View
 //Projection in Mongo/Monk is what fields you want to return and sorting, offsetting, etc.
 function populateUserTables(query, projection) {
