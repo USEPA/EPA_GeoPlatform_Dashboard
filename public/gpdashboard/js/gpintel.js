@@ -452,18 +452,21 @@ egam.gpoItemModel = function (i, loading) {
   var self = this;
   this.loading = loading || false;
   //This is the doc
-  this.doc = ko.mapping.fromJS(i);
+  var docTemp = ko.mapping.fromJS(i);
+  this.doc = ko.observable(docTemp);
+//THis is just place to store current version of row before they hit save
+  this.tableDoc =  i;
 
   this.complianceStatus = ko.computed(function () {
-    return this.doc.AuditData.compliant() ? 'Pass' : 'Fail'
+    return this.doc().AuditData.compliant() ? 'Pass' : 'Fail'
   }, this);
 
   //computed thumbnail url
   this.tnURLs = ko.computed(function () {
-    if(self.doc.thumbnail() == null){
+    if(self.doc().thumbnail() == null){
       return "img/noImage.png";
     }else{
-      return "https://epa.maps.arcgis.com/sharing/rest/content/items/" + self.doc.id() + "/info/" + self.doc.thumbnail() + "?token=" + egam.portalUser.credential.token;
+      return "https://epa.maps.arcgis.com/sharing/rest/content/items/" + self.doc().id() + "/info/" + self.doc().thumbnail() + "?token=" + egam.portalUser.credential.token;
     }
   }, this);
   //Format Modified Date
@@ -475,69 +478,69 @@ egam.gpoItemModel = function (i, loading) {
       "Nov", "Dec"
     ];
 
-    var dDate = new Date(self.doc.modified());
+    var dDate = new Date(self.doc().modified());
     var formattedDate = monthNames[dDate.getMonth()] + " " + dDate.getDate() +", " + dDate.getFullYear();
 
     return formattedDate;
   }, this);
   //Link to item in GPO
   this.gpoLink = ko.computed(function(){
-    return "http://epa.maps.arcgis.com/home/item.html?id=" + self.doc.id();
+    return "http://epa.maps.arcgis.com/home/item.html?id=" + self.doc().id();
   }, this);
 
   //Doc of changed fields
   this.changeDoc = {};
 
   //Subscribes Setup
-  this.doc.title.subscribe(function (evt) {
+  this.doc().title.subscribe(function (evt) {
     this.execAudit("title");
     this.addFieldChange("title", evt);
   }.bind(this));
 
-  this.doc.snippet.subscribe(function (evt) {
+  this.doc().snippet.subscribe(function (evt) {
     this.execAudit("snippet");
     this.addFieldChange("snippet", evt);
   }.bind(this));
 
-  this.doc.description.subscribe(function (evt) {
+  this.doc().description.subscribe(function (evt) {
     this.execAudit("description");
     this.addFieldChange("description", evt);
   }.bind(this));
 
   /* this is actually Access and Use Constraints */
-  this.doc.licenseInfo.subscribe(function (evt) {
+  this.doc().licenseInfo.subscribe(function (evt) {
     this.execAudit("licenseInfo");
     this.addFieldChange("licenseInfo", evt);
   }.bind(this));
 
   /* this is actually credits */
-  this.doc.accessInformation.subscribe(function (evt) {
+  this.doc().accessInformation.subscribe(function (evt) {
     this.execAudit("accessInformation");
     this.addFieldChange("accessInformation", evt);
   }.bind(this));
 
-  this.doc.url.subscribe(function (evt) {
+  this.doc().url.subscribe(function (evt) {
     this.execAudit("url");
     this.addFieldChange("url", evt);
   }.bind(this));
 
-  this.doc.tags.subscribe(function (evt) {
+  this.doc().tags.subscribe(function (evt) {
     this.execAudit("tags");
-    this.addFieldChange("tags", this.doc.tags());
+    this.addFieldChange("tags", this.doc().tags());
   }.bind(this), null, 'arrayChange');
 
   //Add and field that has changed to the changeDoc
   this.addFieldChange = function (changeField, changeValue) {
-    this.changeDoc["id"] = this.doc.id();
+    this.changeDoc["id"] = this.doc().id();
     this.changeDoc[changeField] = changeValue;
   };
 
   //Execute Audit on specified field in doc
   this.execAudit = function (auditField) {
-    var unmappedDoc = ko.mapping.toJS(this.doc);
+    var unmappedDoc = ko.mapping.toJS(this.doc());
     var auditRes = new Audit();
     auditRes.validate(unmappedDoc, auditField);
-    ko.mapping.fromJS(unmappedDoc, this.doc);
+    ko.mapping.fromJS(unmappedDoc, this.doc());
   };
 
   //tags
@@ -546,13 +549,13 @@ egam.gpoItemModel = function (i, loading) {
   //Add tag to tags array
   this.addItem = function () {
     if ((this.selected().tagItemToAdd() != "") && (this.selected
-      ().doc.tags.indexOf(this.selected().tagItemToAdd()) < 0)) // Prevent blanks and duplicates
-      this.selected().doc.tags.push(this.selected().tagItemToAdd());
+      ().doc().tags.indexOf(this.selected().tagItemToAdd()) < 0)) // Prevent blanks and duplicates
+      this.selected().doc().tags.push(this.selected().tagItemToAdd());
     this.selected().tagItemToAdd(""); // Clear the text box
   };
   //Remove tag from tags array
   this.removeSelected = function () {
-    this.selected().doc.tags.removeAll(this.selected().selectedItems());
+    this.selected().doc().tags.removeAll(this.selected().selectedItems());
     this.selected().selectedItems([]); // Clear selection
   };
 
@@ -578,11 +581,11 @@ egam.gpoItemModel = function (i, loading) {
     //if (thumbnail && thumbnail.name) unmappedDoc.thumbnail = "thumbnail/" + thumbnail.name;
 
     //Original Audit of full Doc
-    var unmappedDoc = ko.mapping.toJS(this.selected().doc);
+    var unmappedDoc = ko.mapping.toJS(this.selected().doc());
 
     var auditRes = new Audit();
     auditRes.validate(unmappedDoc, "");
-    ko.mapping.fromJS(unmappedDoc, this.selected().doc);
+    ko.mapping.fromJS(unmappedDoc, this.selected().doc());
 
     var mydata = new FormData();
     mydata.append("updateDocs", JSON.stringify(this.selected().changeDoc));
@@ -602,14 +605,16 @@ egam.gpoItemModel = function (i, loading) {
           console.log('success: ' + data);
 
           if (thumbnailFile !== undefined) {
-            self.doc.thumbnail(i.thumbnail);
-            self.doc.thumbnail.valueHasMutated();
+            self.doc().thumbnail(i.thumbnail);
+            self.doc().thumbnail.valueHasMutated();
           }
 
           //refresh the data table so it can search updated info
           //              egam.gpoItems.dataTable.destroy();
           egam.gpoItems.dataTable.fnDestroy();
           egam.renderGPOitemsDataTable();
+          //updating currrent doc
+          egam.gpoItems.tableModel.selected().tableDoc = unmappedDoc;
         }
         else
         {
@@ -626,6 +631,18 @@ egam.gpoItemModel = function (i, loading) {
 
     console.log("Post back updated Items");
   };
+
+  //Close button on modal click event
+  this.closeModal = function(){
+    //alert("clicked");
+    var tableDocObservable = ko.mapping.fromJS(this.selected().tableDoc);
+    this.selected().doc(tableDocObservable);
+
+    self.changeDoc = {};
+    //alert(JSON.stringify(self.changeDoc));
+    //alert(JSON.stringify(this.selected().tableDoc));
+  };
+
 };
 
 
