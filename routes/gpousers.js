@@ -200,8 +200,8 @@ module.exports = function (app) {
     var monk = app.get('monk');
     var config = app.get('config');
 
-    var userscollection = monk.get('GPOusers');
-    var extensionscollection = monk.get('GPOuserExtensions');
+    var usersCollection = monk.get('GPOusers');
+    var extensionsCollection = monk.get('GPOuserExtensions');
 
     var error=null;
 //This function gets input for both post and get for now
@@ -220,21 +220,20 @@ module.exports = function (app) {
 
     //Set up the method to run the updates with
     var useSync=false;
-    var AsyncRowLimit=5;
+    var asyncRowLimit=5;
 
     var UpdateGPOclass = require(app.get('appRoot') + 'shared/UpdateGPOuser');
 
     //This function will get the Update Class Instance needed to run .update
     var getUpdateClassInstance = function (row) {
-      var updateInstance = new UpdateGPOclass(userscollection,extensionscollection,req.session,config);
+      var updateInstance = new UpdateGPOclass(usersCollection,extensionsCollection,req.session,config);
 //don't need to add anything else like thumbnail to the instance, just return the instance
-      updateInstance;
       return updateInstance;
     };
 
 //This function handles the batch update process and is reusable
     var batchUpdateGPO = require(app.get('appRoot') + '/shared/batchUpdateGPO');
-    batchUpdateGPO(updateDocs,getUpdateClassInstance,"User","username",useSync,AsyncRowLimit)
+    batchUpdateGPO(updateDocs,getUpdateClassInstance,"User","username",useSync,asyncRowLimit)
       .done(function (resObjects) {
         res.json(resObjects);
       });

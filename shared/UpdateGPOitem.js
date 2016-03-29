@@ -1,106 +1,66 @@
-var UpdateGPOitem =  function(itemscollection,extensionscollection,session,config,gfs){
-//Current doc that will be updated
-  this.updateDoc=null;
-//The collection to update
-  this.itemscollection=itemscollection;
-//The collection to update
-  this.extensionscollection=extensionscollection;
-//The ownerIDs this user can update
-  this.session=session;
-//Config info passed in
-  this.config=config;
+var appRoot = appRoot=require('app-root-path');
+var utilities=require(appRoot + '/shared/utilities');
+//Have to pass the name of this new class as string if inheriting parent constructor
+//var UpdateGPOitem = utilities.inheritClass(UpdateGPOgenericClass,"UpdateGPOitem");
+
+var UpdateGPOgenericClass=require(appRoot + '/shared/UpdateGPOgeneric');
+//call parent constructor and then use child constructor stuff too
+utilities.inheritClass(UpdateGPOgenericClass,UpdateGPOitem);
+
+//Name this function so that class name will come up in debugger, etc.
+function UpdateGPOitem(collection,extensionsCollection,session,config,gfs){
+//run the parent constructor first
+//"id" is the updateKey used for updating and "item" is just updateName which is text used on errors, logging, etc
+  this.__parent__.constructor.call(this,"id","item",collection,extensionsCollection,session,config);
+
+//New stuff now
+
 //For saving to Grid FS
   this.gfs=gfs;
-//Current Owner of item that will be updated
-  this.updateOwner=null;
-//Current SlashData object that will be updated
-//  this.updateSlashData=null;
 //Current thumbnail upload file object passed through
   this.thumbnail=null;
-//This is result object for current doc
-  this.resObject={};
-//get appRoot
-  this.appRoot = appRoot=require('app-root-path');
-//These are fields on doc we can possibly update to GPO
-  this.updateFields=require(appRoot + '/config/updateGPOitemFields');
-//These are extension fields on doc we can possibly update
-  this.updateExtensionFields=require(appRoot + '/config/updateGPOitemExtensionFields');
+
+//Current Owner of item that will be updated
+  this.updateOwner=null;
+
+//note this.appRoot should be loaded from parent constructor
 //initialize the audit object
-  var AuditClass=require(appRoot + '/shared/Audit.js');
+  var AuditClass=require(this.appRoot + '/shared/Audit.js');
   this.audit = new AuditClass();
-
-  this.utilities=require(appRoot + '/shared/utilities');
 };
 
-
-UpdateGPOitem.prototype.update = function(updateDoc) {
-  var self = this;
-  var Q = require('q');
-  var fs = require('fs');
-
-  if (updateDoc) self.updateDoc = updateDoc;
-
-  self.resObject={};
-
-  return self.getOwnerID()
-    .then(function (ownerID) {
-      if (self.updateOwner) {
-//Update Local and Remote GPO item in DB including thumbnail
-        return Q.all([self.updateRemoteGPOitem(),self.updateLocalGPOitem()]);
-//          return Q(self.updateRemoteGPOitem());
-      }else {
-        self.resObject={error: {message: "You do not have Access to Update GPO item: " + self.updateDoc.id, code: "InvalidAccess"}, body: null};
-      }})
-    .catch(function (err) {
-      console.error("Error running UpdateGPOitem.update for " + self.updateDoc.id + " : " + err.stack) ;
-      self.utilities.getHandleError(self.resObject,"UpdateError")(err);
-    })
-    .then(function () {if (self.thumbnail && self.thumbnail.path) return Q.ninvoke(fs,"unlink",self.thumbnail.path)})
-    .catch(function (err) {
-      console.error("Error removing thumb in UpdateGPOitem.update for " + self.updateDoc.id + " : " + err.stack) ;
-      self.utilities.getHandleError(self.resObject,"UpdateError")(err);
-    })
-    .then(function () {
-//Now that update is done we can finally return result
-      return self.resObject;
-    });
-};
-
-UpdateGPOitem.prototype.getOwnerID = function() {
+UpdateGPOitem.prototype.checkPermission = function() {
   var self = this;
   var Q = require('q');
 
   var GPOid = self.updateDoc.id;
-  return Q(self.itemscollection.findOne({id:GPOid},{fields:{owner:1}}))
-//Don't need to update all the slash data just to update the thumbnailID
-//  return Q(self.itemscollection.findOne({id:GPOid},{fields:{owner:1,SlashData:1}}))
+  return Q(self.collection.findOne({id:GPOid},{fields:{owner:1}}))
     .then(function (doc) {
-//Make sure SlashData is at least an empty object for updating later
-//Don't need to update all the slash data just to update the thumbnailID
-//      self.updateSlashData = doc.SlashData || {};
 //If owner ID of this object is accessible by user then update otherwise return error
       if (self.session.ownerIDs.indexOf(doc.owner)>=0) {
         self.updateOwner = doc.owner;
-        return doc.owner;
+        return true;
       }else {
-        return null;
+        return false;
       }
     });
 };
 
-UpdateGPOitem.prototype.updateRemoteGPOitem = function() {
-  var self = this;
-  var Q = require('q');
-
+UpdateGPOitem.prototype.onUpdateSuccess = function () {
   var fs = require('fs');
-//module to deal with requests easier
-  var hrClass = require(self.appRoot + '/shared/HandleGPOresponses');
-  var hr = new hrClass();
+  var Q = require('q');
+  var self = this;
+//if update was a success then remove temporary thumbnail from file system
+  return Q.fcall(function () {if (self.thumbnail && self.thumbnail.path) return Q.ninvoke(fs,"unlink",self.thumbnail.path)})
+    .catch(function (err) {
+      console.error("Error removing temporary thumbnail in UpdateGPOitem.update for " + self.updateDoc.id + " : " + err.stack) ;
+      self.utilities.getHandleError(self.resObject,"UpdateError")(err);
+    });
+};
 
-//Want own copy of the update doc to for formdata to add thumbnail to
-  var formData = self.parseFormData(self.updateDoc,self.updateFields);
-//If there are no fields in update Doc that are editable then return false (eg. maybe they are only passing extensions)
-  if (Object.keys(formData).length < 1) return self.handleUpdateResponse("");
+UpdateGPOitem.prototype.getRemoteUpdateRequest = function(formData) {
+  var fs = require('fs');
+  var self = this;
 
 //get read stream from uploaded thumb file and add to form data with name
   if (self.thumbnail) formData.thumbnail={value:fs.createReadStream(self.thumbnail.path),
@@ -114,74 +74,37 @@ UpdateGPOitem.prototype.updateRemoteGPOitem = function() {
 
 //Pass parameters via form attribute
   var requestPars = {method:'post', url:url, formData:formData, qs:qs };
-
-  return hr.callAGOL(requestPars)
-    .then(function (body) {return self.handleUpdateResponse(body)});
-
+  return requestPars;
 };
 
-UpdateGPOitem.prototype.parseFormData = function (obj,slice) {
-  var mySlice = {};
 
-  slice.forEach(function (key) {
-    if (Array.isArray(obj[key])) {
-      mySlice[key] =obj[key].join(",");
-    }else{
-//needs to be at least empty string
-      mySlice[key] = obj[key] || "";
-    }
-  });
-
-  return mySlice;
-};
-
-UpdateGPOitem.prototype.handleUpdateResponse= function(body) {
-  this.resObject = {error: null, body: {}};
-  return this.resObject;
-};
-
-UpdateGPOitem.prototype.updateLocalGPOitem= function() {
+UpdateGPOitem.prototype.updateLocal= function() {
   var self = this;
   var Q = require('q');
   var merge = require('merge');
 
-//Only update items that we are using
-  var updateDocID = self.updateDoc.id;
-//First need to get only the item extensions such as EDG we will be updating in Extensions collection
-  self.updateDocExtensions=self.utilities.sliceObject(self.updateDoc,self.updateExtensionFields);
-//Now keep only the GPOitem and extension fields we will update
-  self.updateDoc=self.utilities.sliceObject(self.updateDoc,self.updateFields.concat(self.updateExtensionFields));
+//Only update items that we are using (could just hardcode ID instead of updateKey
+  var updateDocID = self.updateDoc[self.updateKey];
+  var queryCommand = {};
+  queryCommand[self.updateKey] = updateDocID;
 
-  //If there are no GPO fields or GPO extension in fields in updateDoc then don't need to do anything
-  var updateDocLength = Object.keys(self.updateDoc).length;
-  var updateDocExtensionsLength = Object.keys(self.updateDocExtensions).length;
-  if (updateDocLength < 1 && updateDocExtensionsLength < 1) return false;
-
-//Get the doc and do audit before updating
+//Get the FULL doc and do audit before updating
 // audit
-  return Q(self.itemscollection.findOne({id:updateDocID}, {}))
-    .then(function (doc) {
-//merge the updated info into the existing doc in DB before validating
-      merge.recursive(doc, self.updateDoc);
-      self.audit.validate(doc);
-      self.updateDoc.AuditData=doc.AuditData;
-      return doc.id;
+  return Q(self.collection.findOne(queryCommand, {SlashData:0}))//Note: slash data not used in audit yet so this might speed up query
+    .then(function (fullDoc) {
+      if (! fullDoc) throw new Error("Error updating Local GPO item. id = " + updateDocID + " does not exist");
+//have to audit before updating
+//merge the updated info into the existing doc in DB before auditing
+      merge.recursive(fullDoc, self.updateDoc);
+      self.audit.validate(fullDoc);
+      self.updateDoc.AuditData=fullDoc.AuditData;
+
+//use the parent version of updateLocalGPO to do the standard update of DB part
+//have to run in the scope of this not the scope of parent
+      return self.__parent__.updateLocal.call(self);
     })
-    .then(function (foundID) {
-      //make sure the id exists before we add item or extension data for it
-      if (foundID != updateDocID ) return false;
-      return Q.all([
-        function () {
-          if (updateDocLength < 1) return false;
-          return Q(self.itemscollection.update({id:updateDocID},{$set:self.updateDoc}));
-        }(),
-//This will upsert only the extensions collection
-        function () {
-          if (updateDocExtensionsLength < 1) return false;
-          return Q(self.extensionscollection.update({id:updateDocID},{$set:self.updateDocExtensions},{upsert:true}));
-        }(),
-        self.saveThumbnailToGridFS()
-      ]);
+    .then(function (success) {
+      return self.saveThumbnailToGridFS();
     });
 
 };
@@ -208,7 +131,7 @@ UpdateGPOitem.prototype.saveThumbnailToGridFS = function() {
 //now update thumbnailID in DB
 //    self.updateSlashData.thumbnailID = file._id;
 
-    Q(self.itemscollection.update({id: self.updateDoc.id}, {$set: {"SlashData.thumbnailID": file._id}}))
+    Q(self.collection.update({id: self.updateDoc.id}, {$set: {"SlashData.thumbnailID": file._id}}))
       .catch(function(err) {
         defer.reject("Error updating Thumbnail Binary ID for " + self.updateDoc.id + " : " + err);
       })
