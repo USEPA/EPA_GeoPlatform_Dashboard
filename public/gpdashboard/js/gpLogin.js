@@ -160,7 +160,8 @@ require([
         modified: 1,
         type: 1,
         owner: 1,
-        access: 1
+        access: 1,
+        EDGdata: 1
       };
     } else {
       fields = {};

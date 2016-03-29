@@ -86,14 +86,14 @@ egam.edginit = function(title='', modal=false) {
 
   var edgURL = "https://edg.epa.gov/metadata/rest/find/document?f=dcat&max=100&callback=?";
   if(modal) {
-    edgURL = "https://edg.epa.gov/metadata/rest/find/document?f=dcat&max=10&searchText=" + title + "&callback=?";
+    edgURL = "https://edg.epa.gov/metadata/rest/find/document?f=dcat&max=10&searchText=title:" + title + "&callback=?";
   }
 
   // get data from edg
   $.getJSON(edgURL, function (data) {
     egam.edgItems.tableModel.add(data.dataset)
         .then(function() {
-
+          console.log(/searchText=title:(.*)\&callback/.exec(data['@id'])[1]);
           //If there are no rows then don't try to bind
           if (data.dataset.length < 1) return;
           if (needToApplyBindings) {
@@ -217,6 +217,7 @@ egam.renderEDGitemsDataTable = function (modal=false) {
     div = '#edgitemmodaltable';
   }
   $(div).DataTable({
+    aaSorting: [],
     initComplete: function () {
       defer.resolve(this);
       $(div).addClass("loaded");
@@ -438,6 +439,9 @@ egam.edgItemModel = function (data) {
 
 egam.gpoItemModel = function (i, loading) {
   var self = this;
+  if (i.id == '7bab68d53b3c41caae8e949d5aa8e026') {
+    console.log("break here");
+  }
   this.loading = loading || false;
   //This is the doc
   var docTemp = ko.mapping.fromJS(i);
@@ -692,6 +696,50 @@ egam.edgItemTableModel = function (data) {
     }, 0);
 
     return defer;
+  };
+
+
+  self.linkRecord = function(gpoID,edgURL) {
+    var mydata = new FormData();
+    mydata.append("updateDocs", JSON.stringify({ id:gpoID, EDGdata:{url:edgURL}}));
+    console.log(mydata);
+    $.ajax({
+      url: 'gpoitems/update',
+      type: 'POST',
+      data: mydata,
+      cache: false,
+      dataType: 'json',
+      processData: false, // Don't process the files
+      contentType: false, // Set content type to false as jQuery will tell the server its a query string request
+      success: function (data, textStatus, jqXHR) {
+        if (data.errors.length < 1)
+        {
+          // Success so call function to process the form
+          console.log('success: ' + data);
+          //egam.gpoItems.tableModel.selected().doc().EDGdata = ko.observable(ko.mapping.fromJS({url:edgURL}));
+          var doctemp = ko.mapping.toJS(egam.gpoItems.tableModel.selected().doc());
+          doctemp.EDGdata = {url:edgURL};
+          egam.gpoItems.tableModel.selected().doc(ko.mapping.fromJS(doctemp));
+          //x = egam.gpoItems.tableModel.selected().doc();
+          $('#edgModal').modal('hide');
+          //refresh the data table so it can search updated info
+          //              egam.gpoItems.dataTable.destroy();
+          egam.gpoItems.dataTable.fnDestroy();
+          egam.renderGPOitemsDataTable();
+          //updating currrent doc
+        }
+        else
+        {
+          // Handle errors here
+          console.log('ERRORS: ' + data);
+        }
+      },
+      error: function (jqXHR, textStatus, errorThrown) {
+        // Handle errors here
+        console.log('ERRORS: ' + textStatus);
+        // STOP LOADING SPINNER
+      }
+    });
   };
 
 }

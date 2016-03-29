@@ -486,8 +486,14 @@
                                       <div class="form-group">
                                           <button class="btn btn-default" data-bind="click: selected().removeSelected, enable: selected().selectedItems().length > 0">Remove</button>
                                       </div>
+                                      <div class="id_holder" data-bind="attr: {id: selected().doc().id}"></div>
                                       <div class="form-group">
                                           <a id="edgModalView" href="#edgModalView">Search for matching EDG record.</a>
+                                      </div>
+                                      <div class="form-group">
+                                          <!-- ko if: selected().doc().EDGdata -->
+                                          <span><a class="glyphicon glyphicon-link" data-bind="attr: {href: selected().doc().EDGdata.url}" target="_blank" aria-hidden="true" data-toggle="tooltip" data-placement="right" title="Compare metadata to linked EDG record."></a></span></h4>
+                                          <!-- /ko -->
                                       </div>
                                       <!--</form>-->
                                   </div>
@@ -576,6 +582,7 @@
                                      <tr>
                                          <th>Title</th>
                                          <th>Owner</th>
+                                         <th>Link Record</th>
                                      </tr>
                                      </thead>
                                      <tbody>
@@ -583,6 +590,7 @@
                                      <tr>
                                          <td><a data-bind="attr: { href: $data.references()[0] }, html: $data.title" target="_blank"></a></td>
                                          <td><a data-bind="attr: { href: $data.contactPoint.hasEmail }, html: $data.contactPoint.fn" target="_blank"></a></td>
+                                         <td><a href="#" data-bind="click: function () {$root.linkRecord( $('.id_holder').attr('id'), $data.references()[0]) }" target="_blank">Link</a></td>
                                      </tr>
                                      <!-- /ko -->
                                      </tbody>
