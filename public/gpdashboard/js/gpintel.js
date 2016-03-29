@@ -86,6 +86,13 @@ function populateUserMngntTable(){
       className: 'buttons-alert',
       action: function ( e, dt, node, config ) {
         alert( this.text() );
+
+        //var filteredData = userManagementTable
+        //    .column( 0 )
+        //    .data()
+        //    .filter( function ( value, index ) {
+        //      return value > 20 ? true : false;
+        //    } );
       }
     };
 
@@ -118,15 +125,10 @@ function populateUserMngntTable(){
       this.users = ko.observableArray(usersDoc.map(function (doc){
         return new viewModel2(doc);
       }));
-      //this.uDoc = ko.mapping.fromJS(usersDoc);
-      //this.other = ko.mapping.toJS(this.uDoc);
-      //data.map(function (doc) {
-      //  return new egam.edgItemModel(doc);
-      //}
-      alert("this not work");
+
     };
 
-    alert(data);
+    //alert(data);
 
     ko.applyBindings(new viewModel(JSON.parse(data)), document.getElementById("userMgmtView"));
   });
