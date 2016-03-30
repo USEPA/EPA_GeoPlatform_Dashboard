@@ -388,7 +388,7 @@ egam.edgItemModel = function (data) {
   var self = this;
   // knockout mapping JSON data to view model
   ko.mapping.fromJS(data, {}, self);
-}
+};
 
 egam.gpoItemModel = function (i, loading) {
   var self = this;
@@ -556,7 +556,7 @@ egam.gpoItemModel = function (i, loading) {
         else
         {
           // Handle errors here
-          console.error('ERRORS: ' + data.error);
+          console.error('ERRORS: ' + data.errors);
         }
       },
       error: function (jqXHR, textStatus, errorThrown) {

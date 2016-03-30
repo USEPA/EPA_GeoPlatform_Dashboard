@@ -99,17 +99,13 @@ module.exports = function (app) {
           req.session.user = user;
           resObject.body.user = user;
         })
-//Now get all of the ownerIDs this user can see based on auth groups membership
+//Now get all of the ownerIDs this user can see based on auth groups membership (if they are admin otherwise just see own stuff)
         .then(function () {
-//Only have to find OwnerIDs for Admins otherwise they only see themselves
-          if (user.role === "org_admin") {
             return updateAuthGroupsAndOwnerIDs.getOwnerIDs(user);
-          } else {
-            return [user.username];
-          }
         })
 //Now that ownerIDs is returned we can save them in Session
         .then(function (ownerIDs) {
+//Note: Super user will see all ownerIDs
           req.session.ownerIDs = ownerIDs;
           return resObject;
         });
@@ -134,16 +130,7 @@ module.exports = function (app) {
 //if not super user return false. otherwise have to find all owner IDs in GPOitems if user is Super User
       req.session.user.isSuperUser = isSuperUser;
 
-      if (!isSuperUser) return false;
-
-//get all OwnerIDs if super user. Note: This is just needed to download owners metadata in task queue format without interference
-      var monk = app.get('monk');
-      var itemsCollection = monk.get('GPOitems');
-      return utilities.getDistinctArrayFromDB(itemsCollection, {}, "owner")
-        .then(function (ownerIDs) {
-          req.session.ownerIDs = ownerIDs;
-          return true;
-        });
+      return isSuperUser;
     }
 
     function updateDBonLogin() {
