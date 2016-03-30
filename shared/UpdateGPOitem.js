@@ -27,7 +27,7 @@ function UpdateGPOitem(collection,extensionsCollection,session,config,gfs){
 //initialize the audit object
   var AuditClass=require(this.appRoot + '/shared/Audit.js');
   this.audit = new AuditClass();
-};
+}
 
 UpdateGPOitem.prototype.checkPermission = function() {
   var self = this;

@@ -57,9 +57,12 @@ utilities.streamify = function(text) {
 utilities.getHandleError = function (resObject,code) {
   return function(error) {
 //Have to keep the same reference so can't just reassign
-    resObject.error = {message: error.message, code: code};
+    if (! Array.isArray(resObject.errors)) resObject.errors = [];
+    var message = error.message || error;
+    resObject.errors.push({message: message, code: code});
     resObject.body = null;
-//    console.log("getHandleError  " + error.stack);
+    console.error("getHandleError  " + (error.stack || error));
+    return resObject;
   }
 };
 

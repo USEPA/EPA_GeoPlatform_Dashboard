@@ -43,7 +43,7 @@ UpdateGPOgeneric.prototype.update = function(updateDoc) {
   //Update Local and Remote GPO user in DB
           return Q.all([self.updateRemote(),self.updateLocal()]);
         }else {
-          self.resObject={error: {message: "You do not have Access to Update GPO " + self.updateName + " " + self.updateDoc[self.updateKey] + ": " + self.updateDoc.username, code: "InvalidAccess"}, body: null};
+          self.resObject={errors: {message: "You do not have Access to Update GPO " + self.updateName + " " + self.updateDoc[self.updateKey] + ": " + self.updateDoc.username, code: "InvalidAccess"}, body: null};
           return false;
         }
       })
@@ -52,7 +52,7 @@ UpdateGPOgeneric.prototype.update = function(updateDoc) {
       self.utilities.getHandleError(self.resObject,"UpdateError")(err);
     })
 //if update was a success
-    .then(function () {if (self.onUpdateSuccess && self.resObject.error) self.onUpdateSuccess()})
+    .then(function () {if (self.onUpdateSuccess && self.resObject.errors.length==0) self.onUpdateSuccess()})
     .then(function () {
 //Now that update is done we can finally return result
       return self.resObject;
@@ -122,7 +122,7 @@ UpdateGPOgeneric.prototype.parseFormData = function (obj,slice) {
 };
 
 UpdateGPOgeneric.prototype.handleUpdateResponse= function(body) {
-  this.resObject = {error: null, body: {}};
+  this.resObject = {errors: [], body: {}};
   return this.resObject;
 };
 

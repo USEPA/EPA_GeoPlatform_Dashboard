@@ -12,7 +12,7 @@ module.exports = function(app) {
     var username = "";
     if ('session' in req && req.session.username) username=req.session.username;
 //If they are not logged in (no username then
-    if (! username) return res.json({error: {message: "Must be logged in to make this request.", code: "LoginRequired"}, body: null});
+    if (! username) return res.json(utilities.getHandleError({},"LoginRequired")("Must be logged in to make this request."));
 
     var ownerIDs = [username];
     if ('session' in req && req.session.ownerIDs) ownerIDs=req.session.ownerIDs;
@@ -153,7 +153,8 @@ module.exports = function(app) {
     var username = "";
     if ('session' in req && req.session.username) username=req.session.username;
 //If they are not logged in (no username then
-    if (! username) return res.json({error: {message: "Must be logged in to make this request.", code: "LoginRequired"}, body: null});
+    if (! username) return res.json(utilities.getHandleError({},"LoginRequired")("Must be logged in to make this request."));
+
 
     var utilities = require(app.get('appRoot') + '/shared/utilities');
 //    var db = req.db;
@@ -170,7 +171,7 @@ module.exports = function(app) {
     try {
       updateDocs = JSON.parse(updateDocs);
     }catch (ex){
-      return res.json({error: {message: "Update Doc is not valid JSON", code: "InvalidJSON"}, body: null})
+      return res.json(utilities.getHandleError({},"InvalidJSON")("Update Doc is not valid JSON."));
     }
 
 //Now get the thumbnail file from request

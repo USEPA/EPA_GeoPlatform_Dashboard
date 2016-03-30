@@ -16,7 +16,7 @@ module.exports = function (app) {
     var errors = [];
     var inputs = utilities.getCleanRequestInputs(req, errors);
 
-    if (errors.length > 0) res.json({error: {message: errors.join("\n"), code: "DirtyRequestInput"}, body: null});
+    if (errors.length > 0) return res.json(utilities.getHandleError({},"DirtyRequestInput")(errors.join("\n")));
 
     var token = inputs.token;
     var username = inputs.username;
@@ -37,7 +37,7 @@ module.exports = function (app) {
     if ('session' in req && req.session.username && username === req.session.username) {
 //If they are already logged into the session don't do it all over again
       console.log("USER ALREADY IN SESSION");
-      res.json({error: null, body: {user: req.session.user}});
+      res.json({errors: [], body: {user: req.session.user}});
     } else {
       hr.callAGOL(requestPars)
         .then(handleResponse)
@@ -60,17 +60,16 @@ module.exports = function (app) {
           req.session.token = token;
           req.session.user = user;
         }
-        resObject = {error: null, body: {user: user}};
-        return resObject;
+        resObject = {errors:[], body: {user: user}};
       } else {
-        resObject = {error: {message: "Username does not match token", code: "UsernameTokenMismatch"}, body: null};
-        return resObject;
+        utilities.getHandleError(resObject,"UsernameTokenMismatch")("Username does not match token");
       }
+      return resObject;
     }
 
     function getAuthGroupsAndOwnerIDs() {
 //If there was an error with resObject then don't need to do this
-      if (resObject.error !== null) return true;
+      if (resObject.errors.length > 0) return false;
 
       var user = req.session.user;
 
@@ -116,7 +115,7 @@ module.exports = function (app) {
 
     function getSuperUser() {
 //If there was an error with resObject then don't need to do this
-      if (resObject.error !== null) return true;
+      if (resObject.errors.length > 0) return false;
 
       var Q = require('q');
       var user = req.session.user;
@@ -230,14 +229,14 @@ module.exports = function (app) {
 
   router.use('/logout', function (req, res, next) {
     if ('session' in req) {
-      console.log("logout: " + req.session.username)
+      console.log("logout: " + req.session.username);
       req.session.destroy();
 //      req.session.username = null;
 //      req.session.token = null;
 //      req.session.user = null;
 //      console.log("logout after: " + req.session.username)
     }
-    res.json({error: null, body: {}});
+    res.json({errors: [], body: {}});
   });
 
 //Get shared/Audit.js from client http reference to Public folder
