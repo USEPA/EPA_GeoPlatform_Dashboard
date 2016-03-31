@@ -285,8 +285,8 @@ egam.renderGPOitemsDataTable = function () {
   return defer;
 };
 
-egam.runAllClientSideFilters = function () {
-  egam.gpoItems.dataTable.api().columns().every(function () {
+egam.runAllClientSideFilters = function (dataTable) {
+  dataTable.api().columns().every(function () {
     var column = this;
     //Don't fire dropAccess handler because it will download again
     if (egam.communityUser.isSuperUser && $(column.header()).hasClass
@@ -326,7 +326,7 @@ egam.accessSelectEventHandler = function () {
       $('div#overviewTable').removeClass('hidden');
       $("#loadingMsgCountContainer").addClass('hidden');
       //Now run any client side filters that were selected
-      egam.runAllClientSideFilters();
+      egam.runAllClientSideFilters(egam.gpoItems.dataTable);
       return true;
     })
     .fail(function (err) {
@@ -434,38 +434,15 @@ egam.gpoItemModel = function (i, loading) {
   this.changeDoc = {};
 
   //Subscribes Setup
-  this.doc().title.subscribe(function (evt) {
-    this.execAudit("title");
-    this.addFieldChange("title", evt);
-  }.bind(this));
-
-  this.doc().snippet.subscribe(function (evt) {
-    this.execAudit("snippet");
-    this.addFieldChange("snippet", evt);
-  }.bind(this));
-
-  this.doc().description.subscribe(function (evt) {
-    this.execAudit("description");
-    this.addFieldChange("description", evt);
-  }.bind(this));
-
-  /* this is actually Access and Use Constraints */
-  this.doc().licenseInfo.subscribe(function (evt) {
-    this.execAudit("licenseInfo");
-    this.addFieldChange("licenseInfo", evt);
-  }.bind(this));
-
-  /* this is actually credits */
-  this.doc().accessInformation.subscribe(function (evt) {
-    this.execAudit("accessInformation");
-    this.addFieldChange("accessInformation", evt);
-  }.bind(this));
-
-  this.doc().url.subscribe(function (evt) {
-    this.execAudit("url");
-    this.addFieldChange("url", evt);
-  }.bind(this));
-
+  this.updateFields = ["title","snippet","description","licenseInfo","accessInformation","url"];
+//condensed this repetitive code
+  $.each(this.updateFields,function (index,field) {
+    self.doc()[field].subscribe(function (evt) {
+      self.execAudit(field);
+      self.addFieldChange(field, evt);
+    }.bind(self));
+  });
+//could condense arrays later if needed
   this.doc().tags.subscribe(function (evt) {
     this.execAudit("tags");
     this.addFieldChange("tags", this.doc().tags());
@@ -515,7 +492,7 @@ egam.gpoItemModel = function (i, loading) {
     } else {
       //Add to to change doc
       i.thumbnail = "thumbnail/" + thumbnailFile.name;
-      this.selected().addFieldChange("thumbnail", i.thumbnail);
+      self.addFieldChange("thumbnail", i.thumbnail);
       //self.doc.thumbnail(i.thumbnail);
       //self.doc.thumbnail.valueHasMutated();
     }
@@ -530,7 +507,12 @@ egam.gpoItemModel = function (i, loading) {
     ko.mapping.fromJS(unmappedDoc, this.selected().doc());
 
     var mydata = new FormData();
-    mydata.append("updateDocs", JSON.stringify(this.selected().changeDoc));
+    var updateDocsJSON = JSON.stringify(self.changeDoc);
+//don't try to update if there is nothing to update
+    if (updateDocsJSON=="{}" && ! thumbnailFile) return;
+//changeDoc should be cleared for next time
+    self.changeDoc = {};
+    mydata.append("updateDocs", updateDocsJSON);
     mydata.append("thumbnail", thumbnailFile);
     $.ajax({
       url: 'gpoitems/update',
@@ -541,7 +523,7 @@ egam.gpoItemModel = function (i, loading) {
       processData: false, // Don't process the files
       contentType: false, // Set content type to false as jQuery will tell the server its a query string request
       success: function (data, textStatus, jqXHR) {
-        if (data.errors.length < 1)
+        if (data.errors < 1)
         {
           // Success so call function to process the form
           console.log('success: ' + data);
@@ -557,11 +539,14 @@ egam.gpoItemModel = function (i, loading) {
           egam.renderGPOitemsDataTable();
           //updating currrent doc
           egam.gpoItems.tableModel.selected().tableDoc = unmappedDoc;
+          //fire the filters again now that table redrawn
+          egam.runAllClientSideFilters(egam.gpoItems.dataTable);
         }
         else
         {
           // Handle errors here
-          console.error('ERRORS: ' + data.errors);
+          console.error('ERRORS: ');
+          console.error(data.errors);
         }
       },
       error: function (jqXHR, textStatus, errorThrown) {

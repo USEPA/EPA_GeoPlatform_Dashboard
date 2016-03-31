@@ -22,6 +22,8 @@ function UpdateGPOitem(collection,extensionsCollection,session,config,gfs){
 
 //Current Owner of item that will be updated
   this.updateOwner=null;
+//Update Folder for item needed
+  this.updateFolder=null;
 
 //note this.appRoot should be loaded from parent constructor
 //initialize the audit object
@@ -34,16 +36,26 @@ UpdateGPOitem.prototype.checkPermission = function() {
   var Q = require('q');
 
   var GPOid = self.updateDoc.id;
+  var hasPermission = false;
   return Q(self.collection.findOne({id:GPOid},{fields:{owner:1}}))
     .then(function (doc) {
 //If owner ID of this object is accessible by user then update otherwise return error
       if (self.session.ownerIDs.indexOf(doc.owner)>=0) {
         self.updateOwner = doc.owner;
-        return true;
-      }else {
-        return false;
+        hasPermission = true;
       }
+    })
+//need to get the folder for the item to update. Dumb design by ESRI.
+// Maybe in future the folder will be on item but for now it's not becuase its not in search result just individual item result
+    //Have to put this in checkpermission because that is the start of stuff before update happens.
+    //Maybe shouldn't be called checkPermission() but beforeUpdate() in the parent class
+    .then(function () {
+      return self.getOwnerFolder(GPOid);
+    })
+    .then(function (){
+      return hasPermission;
     });
+
 };
 
 UpdateGPOitem.prototype.onUpdateSuccess = function () {
@@ -67,8 +79,11 @@ UpdateGPOitem.prototype.getRemoteUpdateRequest = function(formData) {
     options: {filename: self.thumbnail.originalname,
       contentType: self.thumbnail.mimetype}};
 
-  var url= self.config.portal + '/sharing/rest/content/users/' + self.updateOwner + '/items/' + self.updateDoc.id + '/update';
-//      console.log(url);
+  var updateFolder = self.updateFolder || '';
+  if (updateFolder) updateFolder = '/' + updateFolder;
+
+  var url= self.config.portal + '/sharing/rest/content/users/' + self.updateOwner + updateFolder + '/items/' + self.updateDoc.id + '/update';
+      console.log(url);
   var qs = {token: self.session.token,f:'json'};
 //      console.log(req.session.token);
 
@@ -77,6 +92,27 @@ UpdateGPOitem.prototype.getRemoteUpdateRequest = function(formData) {
   return requestPars;
 };
 
+UpdateGPOitem.prototype.getOwnerFolder = function(id) {
+  var self = this;
+  var itemURL = this.config.portal + '/sharing/rest/content/items/' + id ;
+
+  var qs = {token: self.session.token,f:'json'};
+
+//Pass parameters via form attribute
+  var requestPars = {method:'get', url:itemURL, qs:qs };
+
+  return this.hr.callAGOL(requestPars)
+    .then(function (body) {
+//      var body = JSON.parse(bodyJSON);
+      if (body.error) {
+        console.error(body.error);
+        throw(new Error("Error getting owner Folder : " + JSON.stringify(body.error)));
+      }
+      self.updateFolder = body.ownerFolder;
+      console.log(self.updateFolder);
+      return self.updateFolder;
+    });
+};
 
 UpdateGPOitem.prototype.updateLocal= function() {
   var self = this;
