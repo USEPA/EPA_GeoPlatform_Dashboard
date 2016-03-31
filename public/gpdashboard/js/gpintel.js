@@ -388,7 +388,7 @@ egam.edgItemModel = function (data) {
   var self = this;
   // knockout mapping JSON data to view model
   ko.mapping.fromJS(data, {}, self);
-}
+};
 
 egam.gpoItemModel = function (i, loading) {
   var self = this;
@@ -502,7 +502,7 @@ egam.gpoItemModel = function (i, loading) {
   };
 
   //Post updated docs back to Mongo
-  this.postback = function () {
+  this.update = function () {
 
     //need to add thumbnail name to document before auditing
     var thumbnailFile = null;
@@ -561,12 +561,12 @@ egam.gpoItemModel = function (i, loading) {
         else
         {
           // Handle errors here
-          console.log('ERRORS: ' + data);
+          console.error('ERRORS: ' + data.errors);
         }
       },
       error: function (jqXHR, textStatus, errorThrown) {
         // Handle errors here
-        console.log('ERRORS: ' + textStatus);
+        console.log('ERRORS: ' + errorThrown);
         // STOP LOADING SPINNER
       }
     });
