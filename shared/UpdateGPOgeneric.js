@@ -28,12 +28,25 @@ var UpdateGPOgeneric =  function(updateKey,updateName,collection,extensionsColle
 //These are the extension fields on doc we can possibly update
   if (extensionsCollection) this.updateExtensionFields=require(this.appRoot + '/config/updateFields/' + extensionsCollection.name);
 
+  //module to deal with requests easier
+  var hrClass = require(this.appRoot + '/shared/HandleGPOresponses');
+  this.hr = new hrClass();
 };
 
 
 UpdateGPOgeneric.prototype.update = function(updateDoc) {
   var self = this;
   var Q = require('q');
+
+//if there are no fields or now key field in update Doc then return
+  if (Object.keys(updateDoc).length===0) {
+    self.utilities.getHandleError(self.resObject,"EmptyUpdateDoc")("Update doc for " + self.updateName + " does not have any fields ");
+    return Q.fcall(function () {return false});
+  }
+  if (! self.updateKey in updateDoc) {
+    self.utilities.getHandleError(self.resObject,"MissingUpdateDocKey")("Update " + self.updateName + " key field " + self.updateKey + " is missing ");
+    return Q.fcall(function () {return false});
+  }
 
   if (updateDoc) self.updateDoc = updateDoc;
 
@@ -43,7 +56,7 @@ UpdateGPOgeneric.prototype.update = function(updateDoc) {
   //Update Local and Remote GPO user in DB
           return Q.all([self.updateRemote(),self.updateLocal()]);
         }else {
-          self.resObject={errors: {message: "You do not have Access to Update GPO " + self.updateName + " " + self.updateDoc[self.updateKey] + ": " + self.updateDoc.username, code: "InvalidAccess"}, body: null};
+          self.utilities.getHandleError(self.resObject,"InvalidAccess")("You do not have Access to Update GPO " + self.updateName + " " + self.updateDoc[self.updateKey]);
           return false;
         }
       })
@@ -88,9 +101,6 @@ UpdateGPOgeneric.prototype.updateRemote = function() {
 //if self.getRemoteUpdateRequest function not defined in child class then don't do remoteUpdate
   if (! self.getRemoteUpdateRequest) return Q.fcall(function () {return null});
 
-//module to deal with requests easier
-  var hrClass = require(self.appRoot + '/shared/HandleGPOresponses');
-  var hr = new hrClass();
 
 //Want own copy of the update doc to for formdata to add thumbnail to
   var formData = self.parseFormData(self.updateDoc,self.updateFields);
@@ -101,7 +111,7 @@ UpdateGPOgeneric.prototype.updateRemote = function() {
   //If there are no fields in update Doc that are editable then return false (eg. maybe they are only passing extensions)
   if (Object.keys(requestPars.formData).length < 1) return self.handleUpdateResponse("");
 
-  return hr.callAGOL(requestPars)
+  return this.hr.callAGOL(requestPars)
     .then(function (body) {return self.handleUpdateResponse(body)});
 
 };
@@ -122,6 +132,8 @@ UpdateGPOgeneric.prototype.parseFormData = function (obj,slice) {
 };
 
 UpdateGPOgeneric.prototype.handleUpdateResponse= function(body) {
+  if (body.error) throw Error("Error updating " + this.updateName + ": " + JSON.stringify(body.error));
+
   this.resObject = {errors: [], body: {}};
   return this.resObject;
 };
