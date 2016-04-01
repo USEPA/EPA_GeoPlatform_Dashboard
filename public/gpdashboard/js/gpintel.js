@@ -551,6 +551,18 @@ egam.gpoItemModel = function (i, loading) {
     this.selected().selectedItems([]); // Clear selection
   };
 
+  this.loadReconciledFields = function() {
+    var doctemp = ko.mapping.toJS(egam.gpoItems.tableModel.selected().doc());
+    doctemp.title = $('#GPOtitle').val();
+    doctemp.snippet = $('#GPOinputSnippet').val();
+    doctemp.description = $('#GPOinputDesc').val();
+    doctemp.licenseInfo = $('#GPOinputAccessUse').val();
+    doctemp.accessInformation = $('#GPOinputAccessInfo').val();
+  
+    egam.gpoItems.tableModel.selected().doc(ko.mapping.fromJS(doctemp));
+  }
+
+
   //Post updated docs back to Mongo
   this.postback = function () {
 
@@ -699,50 +711,86 @@ egam.edgItemTableModel = function (data) {
   };
 
 
-  self.linkRecord = function(gpoID,edgURL) {
-    var mydata = new FormData();
-    mydata.append("updateDocs", JSON.stringify({ id:gpoID, EDGdata:{url:edgURL}}));
-    console.log(mydata);
-    $.ajax({
-      url: 'gpoitems/update',
-      type: 'POST',
-      data: mydata,
-      cache: false,
-      dataType: 'json',
-      processData: false, // Don't process the files
-      contentType: false, // Set content type to false as jQuery will tell the server its a query string request
-      success: function (data, textStatus, jqXHR) {
-        if (data.errors.length < 1)
-        {
-          // Success so call function to process the form
-          console.log('success: ' + data);
-          //egam.gpoItems.tableModel.selected().doc().EDGdata = ko.observable(ko.mapping.fromJS({url:edgURL}));
-          var doctemp = ko.mapping.toJS(egam.gpoItems.tableModel.selected().doc());
-          doctemp.EDGdata = {url:edgURL};
-          egam.gpoItems.tableModel.selected().doc(ko.mapping.fromJS(doctemp));
-          //x = egam.gpoItems.tableModel.selected().doc();
-          $('#edgModal').modal('hide');
-          //refresh the data table so it can search updated info
-          //              egam.gpoItems.dataTable.destroy();
-          egam.gpoItems.dataTable.fnDestroy();
-          egam.renderGPOitemsDataTable();
-          //updating currrent doc
-        }
-        else
-        {
-          // Handle errors here
-          console.log('ERRORS: ' + data);
-        }
-      },
-      error: function (jqXHR, textStatus, errorThrown) {
-        // Handle errors here
-        console.log('ERRORS: ' + textStatus);
-        // STOP LOADING SPINNER
+  self.linkRecord = function(gpoID, edgURLs) {
+    var edgURL = "";
+    edgURLs.forEach(function(url, index) {
+      if (url.indexOf("edg.epa.gov/metadata/rest/document") > -1) {
+        edgURL = url;
       }
     });
-  };
-
-}
+    if (edgURL) {
+      $.ajax({
+        type: "GET",
+        url: edgURL, // name of file you want to parse
+        dataType: "xml",
+        success: function(xml) {
+          var title = $(xml).find("citation").find("title").text();
+          var purpose = $(xml).find("purpose").text();
+          var abstract = $(xml).find("abstract").text();
+          var useconst = "Access constraints: " + $(xml).find("accconst").text() + " Use constraints: " + $(xml).find("useconst").text();
+          var publisher = $(xml).find("publish").text();
+          var mydata = new FormData();
+          mydata.append("updateDocs", JSON.stringify({
+            id: gpoID, EDGdata: {
+              title: title,
+              purpose:purpose,
+              abstract:abstract,
+              useconst:useconst,
+              publisher:publisher,
+              url: edgURL}
+          }));
+          console.log(mydata);
+          $.ajax({
+            url: 'gpoitems/update',
+            type: 'POST',
+            data: mydata,
+            cache: false,
+            dataType: 'json',
+            processData: false, // Don't process the files
+            contentType: false, // Set content type to false as jQuery will tell the server its a query string request
+            success: function (data, textStatus, jqXHR) {
+              if (data.errors.length < 1) {
+                // Success so call function to process the form
+                console.log('success: ' + data);
+                //egam.gpoItems.tableModel.selected().doc().EDGdata = ko.observable(ko.mapping.fromJS({url:edgURL}));
+                var doctemp = ko.mapping.toJS(egam.gpoItems.tableModel.selected().doc());
+                doctemp.EDGdata = {
+                  title: title,
+                  purpose:purpose,
+                  abstract:abstract,
+                  useconst:useconst,
+                  publisher:publisher,
+                  url: edgURL};
+                egam.gpoItems.tableModel.selected().doc(ko.mapping.fromJS(doctemp));
+                //x = egam.gpoItems.tableModel.selected().doc();
+                $('#edgModal').modal('hide');
+                //refresh the data table so it can search updated info
+                //              egam.gpoItems.dataTable.destroy();
+                egam.gpoItems.dataTable.fnDestroy();
+                egam.renderGPOitemsDataTable();
+                //updating currrent doc
+              }
+              else {
+                // Handle errors here
+                console.log('ERRORS: ' + data);
+              }
+            },
+            error: function (jqXHR, textStatus, errorThrown) {
+              // Handle errors here
+              console.log('ERRORS: ' + textStatus);
+              // STOP LOADING SPINNER
+            }
+          });
+        },
+        error: function(){
+          console.log( "EDG metadata record could not be loaded: " + edgURL );
+        }
+      });
+    } else {
+        console.log("No matching URL for this record: " + gpoID);
+    }
+  }
+};
 
 //data here is the actual array of JSON documents that came back from the REST endpoint
 egam.gpoItemTableModel = function (data) {
