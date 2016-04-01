@@ -36,7 +36,8 @@ UpdateAuthGroupsAndOwnerIDs.prototype.getAvailableAuthGroups = function () {
     if (typeof self.authgroupsCollection==="string") {
 //Note have to use require-reload module so that available auth groups is not cached by require in case we change config file and don't want to restart express server
       var requireReload = require('require-reload')(require);
-      self.availableAuthGroups = requireReload(self.authgroupsCollection);
+//new: config file of authgroups now has object with names field and ids field. names field is array of auth group names. ids is obj keyed by name with id as value
+      self.availableAuthGroups = requireReload(self.authgroupsCollection).names;
       return Q(self.availableAuthGroups);
     }else {
       return Q(self.authgroupsCollection.find({}, {fields:{group:1}}))

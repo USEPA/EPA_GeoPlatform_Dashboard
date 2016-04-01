@@ -59,7 +59,7 @@ module.exports = function (app) {
       try {
         filterValue = JSON.parse(filterValue);
       }catch(ex) {}
-      if (filterValue=="string") {
+      if (typeof filterValue=="string") {
         query[req.params.filterType] = {"$regex": filterValue};
       }else {
 //if not string passed in then don't do regex search
@@ -230,6 +230,9 @@ module.exports = function (app) {
 //This function handles the batch update process and is reusable
     var batchUpdateGPO = require(app.get('appRoot') + '/shared/batchUpdateGPO');
     batchUpdateGPO(updateDocs,getUpdateClassInstance,"User","username",useSync,asyncRowLimit)
+      .catch(function (err) {
+        res.json(utilities.getHandleError({},"UpdateError")("Error running batchUpdateGPO." + err.stack));
+      })
       .done(function (resObjects) {
         res.json(resObjects);
       });

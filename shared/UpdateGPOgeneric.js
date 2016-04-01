@@ -16,7 +16,7 @@ var UpdateGPOgeneric =  function(updateKey,updateName,collection,extensionsColle
   this.updateDoc=null;
 
 //This is result object for current doc
-  this.resObject={};
+  this.resObject={errors:[],body:null};
 //get appRoot
   this.appRoot = appRoot=require('app-root-path');
 //
@@ -101,19 +101,24 @@ UpdateGPOgeneric.prototype.updateRemote = function() {
 //if self.getRemoteUpdateRequest function not defined in child class then don't do remoteUpdate
   if (! self.getRemoteUpdateRequest) return Q.fcall(function () {return null});
 
-
 //Want own copy of the update doc to for formdata to add thumbnail to
-  var formData = self.parseFormData(self.updateDoc,self.updateFields);
+//Note fields can be stored in array in config file or as array on fields key in config file
+  var updateFields = self.updateFields;
+  if (! Array.isArray(updateFields)) updateFields = self.updateFields.fields;
+
+  var formData = self.parseFormData(self.updateDoc,updateFields);
+
+  //If there are no fields in update Doc that are editable then return false (eg. maybe they are only passing extensions)
+  if (Object.keys(formData).length < 1) return self.handleUpdateResponse("");
 
 //run the custom function to get request Pars
   var requestPars = self.getRemoteUpdateRequest(formData);
 
-  //If there are no fields in update Doc that are editable then return false (eg. maybe they are only passing extensions)
-  if (Object.keys(requestPars.formData).length < 1) return self.handleUpdateResponse("");
+//Also requestPars to be returned as null if we don't want to update for some reason based on child
+  if (! requestPars) return self.handleUpdateResponse("");
 
   return this.hr.callAGOL(requestPars)
     .then(function (body) {return self.handleUpdateResponse(body)});
-
 };
 
 UpdateGPOgeneric.prototype.parseFormData = function (obj,slice) {
@@ -187,6 +192,11 @@ UpdateGPOgeneric.prototype.mergeFieldMaps = function(map1,map2) {
   if (map1.arrays) arrays = merge(arrays,map1.arrays);
   if (map2.arrays) arrays = merge(arrays,map2.arrays);
   if (arrays !== true) mergedMap.arrays = arrays;
+//then we can merge the map.sets object togehter
+  var sets = true;
+  if (map1.sets) sets = merge(sets,map1.sets);
+  if (map2.sets) sets = merge(sets,map2.sets);
+  if (sets !== true) mergedMap.sets = sets;
   return mergedMap;
 };
 
@@ -194,14 +204,18 @@ UpdateGPOgeneric.prototype.getUpdateCommand= function(updateDoc,fieldsMap) {
   var updateCommand = {};
 
   var arrayMap = null;
+  var setArrayMap = null;
   var fields = null;
 //can also just pass fields as array if we aren't passing array items to push to array
   if (Array.isArray(fields)) {
     fields = fieldsMap;
   }else {
-//in this case pass an object like {fields:[field1,field2],arrays:{item1:array1,item2:array2}}
+    console.log("fieldsMap " + JSON.stringify(fieldsMap));
+//in this case pass an object like {fields:[field1,field2],arrays:{item1:array1,item2:array2},sets:{item1:set1,item2:set2}}
     if ("fields" in fieldsMap) fields = fieldsMap.fields;
     if ("arrays" in fieldsMap) arrayMap = fieldsMap.arrays;
+//Note: a set is just an array that only allows unique values
+    if ("sets" in fieldsMap) setArrayMap = fieldsMap.sets;
   }
 //now slice out the fields
   var setCommand = {};
@@ -218,6 +232,17 @@ UpdateGPOgeneric.prototype.getUpdateCommand= function(updateDoc,fieldsMap) {
     });
     if (Object.keys(pushCommand).length>0) updateCommand["$push"] = pushCommand;
   }
+
+//now slice out the set arrays to addToSet
+  var addToSetCommand = {};
+  if (setArrayMap) {
+    Object.keys(setArrayMap).forEach(function (item) {
+      if (item in updateDoc) addToSetCommand[setArrayMap[item]] = updateDoc[item];
+    });
+    if (Object.keys(addToSetCommand).length>0) updateCommand["$addToSet"] = addToSetCommand;
+  }
+  console.log("setArrayMap " + setArrayMap);
+  console.log("uc " + updateCommand);
 
 //check if push and set have similar keys
   var arrayExtended = require('array-extended');
