@@ -32,9 +32,12 @@ module.exports = function (updateDocs,getUpdateClassInstance,updateName,updateID
   return Q.fcall(function () {return updateGPOfunction()})//note:  use fcall so that if exception in updateGPOfunction still returns promise
     .catch(function (err) {
       console.error('Error received running updateGPOfunction for ' + updateName + ' :' + err.stack);
-      resObjects.errors.push(err.stack);
+      resObjects.errors.push([err.stack]);
     })
-    .then(function () {return resObjects});
+    .then(function () {
+//if there are no errors for any of the update docs then just return null instead of a bunch of empty arrays
+      if (resObjects.errors.filter(function (x) {return x.length>0}).length==0) resObjects.errors=null;
+      return resObjects});
 
   function updateSingleGPO(updateDoc,updateRow,async) {
 //If in async mode need to create new updateGPOitem instance each time so each will have it's own data
@@ -43,12 +46,15 @@ module.exports = function (updateDocs,getUpdateClassInstance,updateName,updateID
     if (! updateGPOinstance || async===true) updateGPOinstance = getUpdateClassInstance(updateRow);
 
     if (! updateDoc) updateDoc=updateDocs[updateGPOrow-1];
+//This only needed for sync loop which goes in order
     updateGPOrow += 1;
 
     return updateGPOinstance.update(updateDoc)
       .then(function (){
 //update the resObjects and update the count
-        if (updateGPOinstance.resObject.error) resObjects.errors.push(updateGPOinstance.resObject.error);
+//        if (updateGPOinstance.resObject.errors.length>0) resObjects.errors.push(updateGPOinstance.resObject.errors);
+//even if no errors add to array. at end if there are no errors for any doc then return null.
+        resObjects.errors.push(updateGPOinstance.resObject.errors);
       })
       .catch(function (err) {resObjects.errors.push("Error updating " + updateDoc[updateID] + " : " + err.message);
         console.error("Error updating Single GPO " + updateName + ' ' + updateDoc[updateID] + " : " + err.stack)})
