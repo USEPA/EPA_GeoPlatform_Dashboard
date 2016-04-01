@@ -63,7 +63,11 @@ $(document).ready(function () {
 });
 
 
-egam.edginit = function(title='', modal=false) {
+egam.edginit = function(title, modal) {
+
+  // handle default values
+  title = typeof title !== 'undefined' ? title : '';
+  modal = typeof modal !== 'undefined' ? modal : false;
 
   //If first time ever binding to table, need to apply binding, but can only bind once so don't bind again if
   //reloading table
@@ -89,30 +93,41 @@ egam.edginit = function(title='', modal=false) {
     edgURL = "https://edg.epa.gov/metadata/rest/find/document?f=dcat&max=10&searchText=title:" + title + "&callback=?";
   }
 
-  // get data from edg
-  $.getJSON(edgURL, function (data) {
-    egam.edgItems.tableModel.add(data.dataset)
-        .then(function() {
-          console.log(/searchText=title:(.*)\&callback/.exec(data['@id'])[1]);
-          //If there are no rows then don't try to bind
-          if (data.dataset.length < 1) return;
-          if (needToApplyBindings) {
-            // bind the data
-            ko.applyBindings(egam.edgItems.tableModel, document.getElementById('edgViewViewTable'));
-            ko.applyBindings(egam.edgItems.tableModel, document.getElementById('edgModal'));
-          }
-          setTimeout(function () {
-            if (egam.edgItems.dataTable && "fnDestroy" in egam.edgItems.dataTable)
-              egam.edgItems.dataTable.fnDestroy();
-            egam.renderEDGitemsDataTable(modal)
-                .then(function (dt) {
-                  egam.edgItems.dataTable = dt;
-                });
-          }, 0);
-        })
+  $.ajax({
+    url: edgURL,
+    dataType: 'json',
+    success: function(data) {
+      egam.edgItems.tableModel.add(data.dataset)
+          .then(function() {
+            //If there are no rows then don't try to bind
+            if (data.dataset.length < 1) return;
+            if (needToApplyBindings) {
+              // bind the data
+              ko.applyBindings(egam.edgItems.tableModel, document.getElementById('edgViewViewTable'));
+              ko.applyBindings(egam.edgItems.tableModel, document.getElementById('edgModal'));
+            }
+            setTimeout(function () {
+              if (egam.edgItems.dataTable && "fnDestroy" in egam.edgItems.dataTable)
+                egam.edgItems.dataTable.fnDestroy();
+              egam.renderEDGitemsDataTable(modal)
+                  .then(function (dt) {
+                    egam.edgItems.dataTable = dt;
+                  });
+            }, 0);
+          });
+    },
+    //Note, this doesn't check for 404s - need to write server-side check of URL due to CORS
+    error: function(request, textStatus, errorThrown) {
+      if (modal) {
+        $('#edgModal').modal('hide');
+      }
+      alert('EDG JSON parse error: ' + request.statusText);
+      console.log('EDG JSON parse error: ' + request.statusText);
+      // perform tasks for error
+    }
   });
 
-}
+};
 
 //Populate table for GPO User's Items View
 //Projection in Mongo/Monk is what fields you want to return and sorting, offsetting, etc.
@@ -207,7 +222,10 @@ function calcItemsPassingAudit(dataResults) {
   $('#percPublicPassingAudit').text(percentPassing + "% Passing");
 }
 
-egam.renderEDGitemsDataTable = function (modal=false) {
+egam.renderEDGitemsDataTable = function () {
+  // handle default values
+  modal = typeof modal !== 'undefined' ? modal : false;
+
   //apply data table magic, ordered ascending by title
   //Use this so we know when table is rendered
   var defer = $.Deferred();
@@ -734,7 +752,7 @@ egam.edgItemTableModel = function (data) {
             processData: false, // Don't process the files
             contentType: false, // Set content type to false as jQuery will tell the server its a query string request
             success: function (data, textStatus, jqXHR) {
-              if (data.errors.length < 1) {
+              if (data.errors < 1) {
                 // Success so call function to process the form
                 console.log('success: ' + data);
                 //egam.gpoItems.tableModel.selected().doc().EDGdata = ko.observable(ko.mapping.fromJS({url:edgURL}));
@@ -757,7 +775,8 @@ egam.edgItemTableModel = function (data) {
               }
               else {
                 // Handle errors here
-                console.log('ERRORS: ' + data);
+                console.error('ERRORS: ');
+                console.error(data.errors);
               }
             },
             error: function (jqXHR, textStatus, errorThrown) {
@@ -768,10 +787,12 @@ egam.edgItemTableModel = function (data) {
           });
         },
         error: function(){
+          alert("EDG metadata record could not be loaded: " + edgURL);
           console.log( "EDG metadata record could not be loaded: " + edgURL );
         }
       });
     } else {
+        alert("No matching URL for this record: " + gpoID);
         console.log("No matching URL for this record: " + gpoID);
     }
   }
