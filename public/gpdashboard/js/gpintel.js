@@ -436,7 +436,7 @@ egam.gpoItemModel = function (i, loading) {
   //Subscribes Setup
   this.updateFields = ["title","snippet","description","licenseInfo","accessInformation","url"];
 //condensed this repetitive code
-  $.each(this.updateFields,function (field) {
+  $.each(this.updateFields,function (index,field) {
     self.doc()[field].subscribe(function (evt) {
       self.execAudit(field);
       self.addFieldChange(field, evt);
