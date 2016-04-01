@@ -285,8 +285,8 @@ egam.renderGPOitemsDataTable = function () {
   return defer;
 };
 
-egam.runAllClientSideFilters = function (dataTable) {
-  dataTable.api().columns().every(function () {
+egam.runAllClientSideFilters = function () {
+  egam.gpoItems.dataTable.api().columns().every(function () {
     var column = this;
     //Don't fire dropAccess handler because it will download again
     if (egam.communityUser.isSuperUser && $(column.header()).hasClass
@@ -326,7 +326,7 @@ egam.accessSelectEventHandler = function () {
       $('div#overviewTable').removeClass('hidden');
       $("#loadingMsgCountContainer").addClass('hidden');
       //Now run any client side filters that were selected
-      egam.runAllClientSideFilters(egam.gpoItems.dataTable);
+      egam.runAllClientSideFilters();
       return true;
     })
     .fail(function (err) {
@@ -436,13 +436,13 @@ egam.gpoItemModel = function (i, loading) {
   //Subscribes Setup
   this.updateFields = ["title","snippet","description","licenseInfo","accessInformation","url"];
 //condensed this repetitive code
-  $.each(this.updateFields,function (index,field) {
+  $.each(this.updateFields,function (field) {
     self.doc()[field].subscribe(function (evt) {
       self.execAudit(field);
       self.addFieldChange(field, evt);
     }.bind(self));
   });
-//could condense arrays later if needed
+//could condense arrays later if
   this.doc().tags.subscribe(function (evt) {
     this.execAudit("tags");
     this.addFieldChange("tags", this.doc().tags());
@@ -512,7 +512,7 @@ egam.gpoItemModel = function (i, loading) {
     if (updateDocsJSON=="{}" && ! thumbnailFile) return;
 //changeDoc should be cleared for next time
     self.changeDoc = {};
-    mydata.append("updateDocs", updateDocsJSON);
+    mydata.append("updateDocs", JSON.stringify(updateDocsJSON));
     mydata.append("thumbnail", thumbnailFile);
     $.ajax({
       url: 'gpoitems/update',
@@ -539,8 +539,6 @@ egam.gpoItemModel = function (i, loading) {
           egam.renderGPOitemsDataTable();
           //updating currrent doc
           egam.gpoItems.tableModel.selected().tableDoc = unmappedDoc;
-          //fire the filters again now that table redrawn
-          egam.runAllClientSideFilters(egam.gpoItems.dataTable);
         }
         else
         {
