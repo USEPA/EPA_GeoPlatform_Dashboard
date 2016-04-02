@@ -194,7 +194,7 @@ require([
         console.error(err);
       });
     //populate user management table
-    populateUserMngntTable();
+    populateUserMngntTable(portalUser.username);
   }
 
   function createGallery(items) {

@@ -12,6 +12,12 @@ egam.edgItems = {
   dataTable: null
 };
 
+egam.gpoUsers = {
+  resultSet: [],
+  tableModel: null,
+  dataTable: null
+};
+
 $(document).ready(function () {
 
   $(document).on('click', '.nav li', function (e) {
@@ -74,13 +80,162 @@ egam.edginit = function() {
 
 }
 
-function populateUserMngntTable(){
+function populateUserMngntTable(PortalUser){
   alert("Populate User Table");
   var queryUM = {}; //{isExternal:true};
   $.post('gpousers/list', {
     query: queryUM
   }, function(data){
     //alert(data);
+    egam.gpoUsers.resultSet = data;
+
+    var viewModel2 = function(u){
+      var self = this;
+      alert(JSON.stringify(u));
+      if(!u.sponsors){
+        u['sponsors'] = [];
+        alert(JSON.stringify(u));
+      }
+      this.uData = ko.mapping.fromJS(u);
+
+      this.latestSponsor = ko.computed(function(){
+        var sponsorsLen = self.uData.sponsors().length;
+        //alert(sponsorsLen);
+        if(sponsorsLen > 0){
+          //alert(self.uData.sponsors()[sponsorsLen-1].username() + self.uData.sponsors()[sponsorsLen-1].date());
+          var mSpnor = self.uData.sponsors()[sponsorsLen-1];
+          //alert(mSpnor);
+          return self.uData.sponsors()[sponsorsLen-1].username() + " (" + self.uData.sponsors()[sponsorsLen-1].date() + ")";
+        }else{
+          return; //self.uData.sponsors()[sponsorsLen].username() + " (" + self.uData.sponsors()[sponsorsLen].date() + ")";
+        }
+      });
+
+      //this.isSponsored = ko.computed(function () {
+      //  if(self.uData.sponsors){
+      //    return true;
+      //  }else{
+      //    return false;
+      //  }
+      //});
+      //format list for display in table
+      //this.sponsors2 = ko.computed(function(){
+      //  if(self.uData.sponsors){
+      //    var sponsorList = self.uData.sponsors();
+      //    sponsorDisplayList = [];
+      //    sponsorList.forEach(function(uSpon){
+      //      //alert(uSpon.username());
+      //      sponsorDisplayList.push(uSpon.username());
+      //    });
+      //    alert (sponsorDisplayList);
+      //    return sponsorDisplayList;
+      //  }else{
+      //    return [];
+      //  }
+      //},this);
+
+      this.modifiedDate = ko.computed(function(){
+        var monthNames = [
+          "Jan", "Feb", "Mar",
+          "Apr", "May", "Jun", "Jul",
+          "Aug", "Sep", "Oct",
+          "Nov", "Dec"
+        ];
+
+        var dDate = new Date(self.uData.modified());
+        var formattedDate = monthNames[dDate.getMonth()] + " " + dDate.getDate() +", " + dDate.getFullYear();
+
+        return formattedDate;
+      });
+
+      this.createdDate = ko.computed(function(){
+        var monthNames = [
+          "Jan", "Feb", "Mar",
+          "Apr", "May", "Jun", "Jul",
+          "Aug", "Sep", "Oct",
+          "Nov", "Dec"
+        ];
+
+        var dDate = new Date(self.uData.created());
+        var formattedDate = monthNames[dDate.getMonth()] + " " + dDate.getDate() +", " + dDate.getFullYear();
+
+        return formattedDate;
+      });
+
+      //Add sponsor
+      this.sponsorMe = function(){
+        //alert(this.uData.username());
+        self.isSponsored = true;
+
+        //get current data for sponsoring
+        var sD = new Date();
+        var sponsorDate = sD.getTime();
+
+        myUserData = {};
+        //Object to hold new sponsor info
+        updateUserData = {username:this.uData.username(),
+                          sponsor:{username :PortalUser,
+                                    date:sponsorDate}};
+        updatedSponsor = {username :PortalUser,
+            date:sponsorDate};
+        myUserData.updateDocs = JSON.stringify(updateUserData);
+        //alert(JSON.stringify(updateUserData));
+        var unmapped = ko.mapping.toJS(self.uData);
+
+        unmapped.sponsors.push(updatedSponsor);
+        ko.mapping.fromJS(unmapped, self.uData);
+        //self.uData.sponsors.push(JSON.parse(updateUserData));
+        //update user doc with spnosr
+        //this.uData.sponsors().push({sponsor:{username :PortalUser,
+        //    date:sponsorDate}});
+        //this.uData.sponsors.push(myUserData);
+        //sponsorDisplayList.push(PortalUser);
+        //this.sponsors2().push(PortalUser);
+
+        //alert(this.sponsors2());
+        //post to mongo
+        $.ajax({
+          url: 'gpousers/update',
+          type: 'POST',
+          data: myUserData,
+          cache: false,
+          dataType: 'json',
+          //processData: false, // Don't process the files
+          //contentType: false, // Set content type to false as jQuery will tell the server its a query string request
+          success: function (rdata, textStatus, jqXHR) {
+            alert(JSON.stringify(rdata));
+
+
+
+          },
+          error: function (jqXHR, textStatus, errorThrown) {
+            // Handle errors here
+            console.log('ERRORS: ' + textStatus);
+            // STOP LOADING SPINNER
+          }
+        });
+
+      };
+
+      this.renew = function(){
+        alert("renew");
+      };
+    };
+
+    var viewModel = function(usersDoc){
+      var self = this;
+
+      this.users = ko.observableArray(usersDoc.map(function (doc){
+        return new viewModel2(doc);
+      }));
+
+
+
+
+
+    };
+    // JSON.parse(data)
+    ko.applyBindings(new viewModel(JSON.parse(data)), document.getElementById("userMgmtView"));
 
     $.fn.dataTable.ext.buttons.alert = {
       className: 'buttons-alert',
@@ -96,41 +251,26 @@ function populateUserMngntTable(){
       }
     };
 
-    userManagementTable = $('#userMgmtTable').DataTable( {
+    $('#userMgmtTable').DataTable( {
       dom: 'Bfrtip',
-      buttons: [
-        {
-          extend:'alert',
-          text: 'All Users'
-        },
-        {
-          extend:'alert',
-          text: 'Sponsored'
-        },
-        {
-          extend:'alert',
-          text: 'Unsponsored'
-        }
-      ],
+        buttons: [
+          {
+            extend:'alert',
+            text: 'All Users'
+          },
+          {
+            extend:'alert',
+            text: 'Sponsored'
+          },
+          {
+            extend:'alert',
+            text: 'Unsponsored'
+          }
+        ],
       "order": [
-        [0, "desc"]
+        [0, "asc"]
       ]
     });
-
-    var viewModel2 = function(u){
-      this.uData = ko.mapping.fromJS(u);
-    };
-
-    var viewModel = function(usersDoc){
-      this.users = ko.observableArray(usersDoc.map(function (doc){
-        return new viewModel2(doc);
-      }));
-
-    };
-
-    //alert(data);
-
-    ko.applyBindings(new viewModel(JSON.parse(data)), document.getElementById("userMgmtView"));
   });
 }
 

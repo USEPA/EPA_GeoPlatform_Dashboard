@@ -597,29 +597,29 @@
                      <tbody data-bind="foreach: users">
                      <tr>
                          <td >
-                             <div >
-                             <button class="btn btn-primary" id="sponsorBtn">Sponsor Me!</button>
+                             <div>
+                                <button class="btn btn-primary btn-xs" id="sponsorBtn" data-bind="click: sponsorMe">Sponsor Me!</button>
                              </div>
-                             <!--<div data-bind="if: Sponsored">-->
-                             <!--<button class="btn btn-primary" id="renewBtn">Renew</button>-->
+                             <!--<div data-bind="if: isSponsored">-->
+                                <!--<button class="btn btn-primary btn-xs" id="renewBtn" data-bind="click: uData.renew">Renew</button>-->
                              <!--</div>-->
                          </td>
                          <td data-bind="text: uData.fullName"></td>
-                         <td ></td>
+                         <td data-bind="text: latestSponsor"></td>
                          <td data-bind="text: uData.authGroups"></td>
-                         <td data-bind="text: uData.created"></td>
-                         <td data-bind="text: uData.modified"></td>
+                         <td data-bind="text: createdDate"></td>
+                         <td data-bind="text: modifiedDate"></td>
                      </tr>
                      </tbody>
                      <tfoot>
-                     <tr>
-                         <th>Sponsored</th>
-                         <th>Name</th>
-                         <th>Sponsorship</th>
-                         <th>Auth Group</th>
-                         <th>DataAdded</th>
-                         <th>LastReview</th>
-                     </tr>
+                     <!--<tr>-->
+                         <!--<th>Sponsored</th>-->
+                         <!--<th>Name</th>-->
+                         <!--<th>Sponsorship</th>-->
+                         <!--<th>Auth Group</th>-->
+                         <!--<th>DataAdded</th>-->
+                         <!--<th>LastReview</th>-->
+                     <!--</tr>-->
                      </tfoot>
                  </table>
              </div>
