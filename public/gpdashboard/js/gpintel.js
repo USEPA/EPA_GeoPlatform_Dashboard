@@ -81,7 +81,7 @@ egam.edginit = function() {
 }
 
 function populateUserMngntTable(PortalUser){
-  alert("Populate User Table");
+
   var queryUM = {}; //{isExternal:true};
   $.post('gpousers/list', {
     query: queryUM
@@ -91,81 +91,49 @@ function populateUserMngntTable(PortalUser){
 
     var viewModel2 = function(u){
       var self = this;
-      alert(JSON.stringify(u));
+
       if(!u.sponsors){
         u['sponsors'] = [];
-        alert(JSON.stringify(u));
       }
       this.uData = ko.mapping.fromJS(u);
 
       this.latestSponsor = ko.computed(function(){
         var sponsorsLen = self.uData.sponsors().length;
-        //alert(sponsorsLen);
         if(sponsorsLen > 0){
-          //alert(self.uData.sponsors()[sponsorsLen-1].username() + self.uData.sponsors()[sponsorsLen-1].date());
           var mSpnor = self.uData.sponsors()[sponsorsLen-1];
-          //alert(mSpnor);
-          return self.uData.sponsors()[sponsorsLen-1].username() + " (" + self.uData.sponsors()[sponsorsLen-1].date() + ")";
+
+          var dDate = new Date(self.uData.sponsors()[sponsorsLen-1].date());
+          return self.uData.sponsors()[sponsorsLen-1].username() + " (" + formatDate(dDate) + ")";
         }else{
-          return; //self.uData.sponsors()[sponsorsLen].username() + " (" + self.uData.sponsors()[sponsorsLen].date() + ")";
+          return;
         }
       });
-
-      //this.isSponsored = ko.computed(function () {
-      //  if(self.uData.sponsors){
-      //    return true;
-      //  }else{
-      //    return false;
-      //  }
-      //});
-      //format list for display in table
-      //this.sponsors2 = ko.computed(function(){
-      //  if(self.uData.sponsors){
-      //    var sponsorList = self.uData.sponsors();
-      //    sponsorDisplayList = [];
-      //    sponsorList.forEach(function(uSpon){
-      //      //alert(uSpon.username());
-      //      sponsorDisplayList.push(uSpon.username());
-      //    });
-      //    alert (sponsorDisplayList);
-      //    return sponsorDisplayList;
-      //  }else{
-      //    return [];
-      //  }
-      //},this);
-
-      this.modifiedDate = ko.computed(function(){
+      //Format Date from millaseconds to something useful
+      function formatDate (uDate){
         var monthNames = [
           "Jan", "Feb", "Mar",
           "Apr", "May", "Jun", "Jul",
           "Aug", "Sep", "Oct",
           "Nov", "Dec"
         ];
+        var formattedDate = monthNames[uDate.getMonth()] + " " + uDate.getDate() +", " + uDate.getFullYear();
+        return formattedDate;
+      };
+
+      this.modifiedDate = ko.computed(function(){
 
         var dDate = new Date(self.uData.modified());
-        var formattedDate = monthNames[dDate.getMonth()] + " " + dDate.getDate() +", " + dDate.getFullYear();
-
-        return formattedDate;
+        return formatDate(dDate);
       });
 
       this.createdDate = ko.computed(function(){
-        var monthNames = [
-          "Jan", "Feb", "Mar",
-          "Apr", "May", "Jun", "Jul",
-          "Aug", "Sep", "Oct",
-          "Nov", "Dec"
-        ];
 
         var dDate = new Date(self.uData.created());
-        var formattedDate = monthNames[dDate.getMonth()] + " " + dDate.getDate() +", " + dDate.getFullYear();
-
-        return formattedDate;
+        return formatDate(dDate);
       });
 
       //Add sponsor
       this.sponsorMe = function(){
-        //alert(this.uData.username());
-        self.isSponsored = true;
 
         //get current data for sponsoring
         var sD = new Date();
@@ -181,18 +149,10 @@ function populateUserMngntTable(PortalUser){
         myUserData.updateDocs = JSON.stringify(updateUserData);
         //alert(JSON.stringify(updateUserData));
         var unmapped = ko.mapping.toJS(self.uData);
-
+        //update in UI doc
         unmapped.sponsors.push(updatedSponsor);
         ko.mapping.fromJS(unmapped, self.uData);
-        //self.uData.sponsors.push(JSON.parse(updateUserData));
-        //update user doc with spnosr
-        //this.uData.sponsors().push({sponsor:{username :PortalUser,
-        //    date:sponsorDate}});
-        //this.uData.sponsors.push(myUserData);
-        //sponsorDisplayList.push(PortalUser);
-        //this.sponsors2().push(PortalUser);
 
-        //alert(this.sponsors2());
         //post to mongo
         $.ajax({
           url: 'gpousers/update',
@@ -203,18 +163,14 @@ function populateUserMngntTable(PortalUser){
           //processData: false, // Don't process the files
           //contentType: false, // Set content type to false as jQuery will tell the server its a query string request
           success: function (rdata, textStatus, jqXHR) {
-            alert(JSON.stringify(rdata));
-
-
-
+            console.log("Success: Poated new sponsor to Mongo");
+            //alert(JSON.stringify(rdata));
           },
           error: function (jqXHR, textStatus, errorThrown) {
             // Handle errors here
             console.log('ERRORS: ' + textStatus);
-            // STOP LOADING SPINNER
           }
         });
-
       };
 
       this.renew = function(){
@@ -229,10 +185,6 @@ function populateUserMngntTable(PortalUser){
         return new viewModel2(doc);
       }));
 
-
-
-
-
     };
     // JSON.parse(data)
     ko.applyBindings(new viewModel(JSON.parse(data)), document.getElementById("userMgmtView"));
@@ -242,16 +194,18 @@ function populateUserMngntTable(PortalUser){
       action: function ( e, dt, node, config ) {
         alert( this.text() );
 
-        //var filteredData = userManagementTable
-        //    .column( 0 )
-        //    .data()
-        //    .filter( function ( value, index ) {
-        //      return value > 20 ? true : false;
-        //    } );
+        var filteredData = userManagementTable
+            .column( 2 )
+            .data()
+            .filter( function ( value, index ) {
+              //alert(value.length);
+              return value.length < 1 ? true : false;
+            }).draw();
+        
       }
     };
 
-    $('#userMgmtTable').DataTable( {
+    userManagementTable = $('#userMgmtTable').DataTable( {
       dom: 'Bfrtip',
         buttons: [
           {
