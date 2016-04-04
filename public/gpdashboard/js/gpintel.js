@@ -194,14 +194,14 @@ function populateUserMngntTable(PortalUser){
       action: function ( e, dt, node, config ) {
         alert( this.text() );
 
-        var filteredData = userManagementTable
-            .column( 2 )
-            .data()
-            .filter( function ( value, index ) {
-              //alert(value.length);
-              return value.length < 1 ? true : false;
-            }).draw();
-        
+        //var filteredData = userManagementTable
+        //    .column( 2 )
+        //    .data()
+        //    .filter( function ( value, index ) {
+        //      //alert(value.length);
+        //      return value.length < 1 ? true : false;
+        //    }).draw();
+
       }
     };
 
