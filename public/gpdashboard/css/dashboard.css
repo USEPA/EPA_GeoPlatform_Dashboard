@@ -182,4 +182,6 @@ a, span, tr, h4:hover {
 /*        background:green; */
     }
 
-
+  .reconcileLink {
+    text-align: center;
+  }

@@ -1,3 +1,41 @@
+var Q = require('q');
+
+
+
+var test = function () {
+  return Q.fcall(function () {console.log("foo")})
+    .then(function (value) {
+//      throw new Error("Can't bar.");
+    });
+};
+
+test()
+  .then(function () {console.log("the then")})
+  .catch(function (err) {console.error(err.stack)});
+
+return;
+
+return Q.fcall(function () {console.log("foo")})
+  .then(function (value) {
+    throw new Error("Can't bar.");
+  })
+  .then(function (value) {
+    console.log("after bar");
+  })
+  .catch(function (error) {
+    console.error(error);
+    // We get here with either foo's error or bar's error
+  })
+  .then(function (value) {
+    throw new Error("Can't bar22.");
+  })
+    .catch(function (error) {
+      console.error(error);
+      // We get here with either foo's error or bar's error
+    });
+
+return;
+
 var utilities=require('../shared/utilities');
 var MonkClass = require('monk');
 

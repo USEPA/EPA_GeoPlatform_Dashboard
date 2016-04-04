@@ -6,7 +6,7 @@ var getTokenOnly = false;
 var appRoot = require('app-root-path');
 var config = require(appRoot + '/config/env');
 
-var DownloadGPOdataClass = require(appRoot + '/shared/DownloadGPOdata')
+var DownloadGPOdataClass = require(appRoot + '/shared/DownloadGPOdata');
 var downloadGPOdata = new DownloadGPOdataClass();
 
 var downloadGPOdataConfig = {};

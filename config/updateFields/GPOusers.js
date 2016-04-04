@@ -2,10 +2,11 @@
 module.exports = {
   fields: [
     "fullName",
-    "email",
-    "tags"
+    "email"
   ],
   arrays:{
-    tag:"tags"
+  },
+  sets:{
+    authGroup:"authGroups"
   }
 };

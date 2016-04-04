@@ -56,11 +56,13 @@ utilities.streamify = function(text) {
 
 utilities.getHandleError = function (resObject,code) {
   return function(error) {
-//Pass an empty object else it will keep old fields in here
 //Have to keep the same reference so can't just reassign
-    resObject.error = {message: error.message, code: code};
+    if (! Array.isArray(resObject.errors)) resObject.errors = [];
+    var message = error.message || error;
+    resObject.errors.push({message: message, code: code});
     resObject.body = null;
-//    console.log("getHandleError  " + error.stack);
+    console.error("getHandleError  " + (error.stack || error));
+    return resObject;
   }
 };
 
@@ -114,8 +116,44 @@ utilities.constructFromArgsArray = function (constructor, argArray) {
     return new factoryFunction();
 };
 
-//Get array from DB from single field
+//This function allows new classes to inherit from existing class
+//pass the ParentClass or Object
+//If inheriting the Parent constructor then pass a string for childConstructor which will be name of ChildClass/Constructor
+//If Child Class will have it's own constructor then pass the Child Constructor function for childConstructor
+//Note: An object can be passed for ParentClass which is a virtual class which can not be instantiated but only inherited from
+utilities.inheritClass = function(parentClassOrObject,childConstructor){
+  var childClass;
+//if child constructor is passed and it is a function then use it as new child class otherwise create a new function
+  if (childConstructor && childConstructor.constructor == Function) {
+    childClass = childConstructor;
+  }else {
+//must create a new constructor that invokes parent constructor but is not set equal to parent. don't want to change parent prototyp
+//if constructor name is passed as string for childConstructor it will be used for constructor name so in debugger don't get "childClass"
+//Note: get the parent from the prototype of the object because this.parent could be assigned to something
+    if (! childConstructor) childConstructor="UnknownChild";
+    childClass = new Function("return function " + childConstructor + "() {this.__parent__.constructor.apply(this, arguments);};")();
+  }
+  if ( parentClassOrObject.constructor == Function )
+  {
+    //Normal Inheritance
+    childClass.prototype = new parentClassOrObject;
+//have to set the child constructor so that it is not parent (if we inherit parent constructor that will still be in child class variable)
+    childClass.prototype.constructor = childClass;
+//this is helpful in case the parent wants access to the parent methods/properties;
+    childClass.prototype.__parent__ = parentClassOrObject.prototype;
+  }
+  else
+  {
+    //Pure Virtual Inheritance
+    childClass.prototype = parentClassOrObject;
+//have to set the child constructor so that it is not parent (if we inherit parent constructor that will still be in child class variable)
+    childClass.prototype.constructor = childClass;
+    childClass.prototype.__parent__ = parentClassOrObject;
+  }
+  return childClass;
+};
 
+//Get array from DB from single field
 utilities.getArrayFromDBnoStream = function (collection,query,field) {
   console.log('remove getArrayFromDB');
   var Q = require('q');
