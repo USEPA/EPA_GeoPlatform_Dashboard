@@ -36,7 +36,8 @@ UpdateAuthGroupsAndOwnerIDs.prototype.getAvailableAuthGroups = function () {
     if (typeof self.authgroupsCollection==="string") {
 //Note have to use require-reload module so that available auth groups is not cached by require in case we change config file and don't want to restart express server
       var requireReload = require('require-reload')(require);
-      self.availableAuthGroups = requireReload(self.authgroupsCollection);
+//new: config file of authgroups now has object with names field and ids field. names field is array of auth group names. ids is obj keyed by name with id as value
+      self.availableAuthGroups = requireReload(self.authgroupsCollection).names;
       return Q(self.availableAuthGroups);
     }else {
       return Q(self.authgroupsCollection.find({}, {fields:{group:1}}))
@@ -110,11 +111,16 @@ UpdateAuthGroupsAndOwnerIDs.prototype.getGroupsFromUser = function(user) {
 UpdateAuthGroupsAndOwnerIDs.prototype.getOwnerIDs = function(user) {
   var self = this;
   var Q = require('q');
+  var appRoot = appRoot=require('app-root-path');
+  var utilities=require(appRoot + '/shared/utilities');
 
   console.log("getOwnerIDs user " + JSON.stringify(user));
 
 //Make sure this is actually an admin with authgroups otherwise OwnerIDs is only User
-  if (! user.isAdmin || ! user.authGroups || user.authGroups.length<1) return Q([user.username]);
+  if (! user.isAdmin || ! user.authGroups || user.authGroups.length<1) return Q.fcall(function () {return [user.username]});
+
+  //If user is super user then return all ownerIDs
+  if (user.isSuperUser) return utilities.getArrayFromDB(self.usersCollection, {}, "username");
 
 //Check if this Admins combination of authGroups is cached in ownerIDs DB
 //Note had to use $all AND $size other wise db.authGroups=[Region 7,Region 8] was matching user.authGroups=[Region 7]

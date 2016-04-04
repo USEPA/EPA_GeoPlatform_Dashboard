@@ -487,6 +487,15 @@
                                       <div class="form-group">
                                           <button class="btn btn-default" data-bind="click: selected().removeSelected, enable: selected().selectedItems().length > 0">Remove</button>
                                       </div>
+                                      <div class="id_holder" data-bind="attr: {id: selected().doc().id}"></div>
+                                      <div class="form-group">
+                                          <a id="edgModalView" href="#edgModalView">Search for matching EDG record.</a>
+                                      </div>
+                                      <div class="form-group">
+                                          <!-- ko if: selected().doc().EDGdata -->
+                                          <button type="button" id="reconcileBtn" class="btn btn-default" data-bind="click: function () { $('#reconciliationModal').modal('show'); }">Reconcile with EDG</button>
+                                          <!-- /ko -->
+                                      </div>
                                       <!--</form>-->
                                   </div>
                                   <div class="col-md-8" >
@@ -548,15 +557,182 @@
                       </div>
                       <div class="modal-footer">
                           <button type="button" id="closeBtn" class="btn btn-default" data-bind="click: selected().closeModal" data-dismiss="modal" >Close</button>
-                          <button type="button" class="btn btn-primary" data-bind="click: selected().postback" data-dismiss="modal">Save changes</button>
+                          <button type="button" class="btn btn-primary" data-bind="click: selected().update" data-dismiss="modal">Save changes</button>
                       </div>
                   </div>
               </div>
             </div>
             <!-- End Modal for Editing-->
+
+              <!-- Modal for Reconciliation -->
+              <div class="modal fade" id="reconciliationModal" tabindex="-1" role="dialog" data-keyboard="false" data-backdrop="static" aria-labelledby="myModalLabel">
+                  <div class="modal-dialog modal-lg" role="document">
+                      <div class="modal-content">
+                          <div class="modal-header">
+                              <button type="button" class="close" data-dismiss="modal" aria-label="Close" data-bind="click: selected().closeModal" ><span aria-hidden="true">&times;</span></button>
+                              <h4 class="modal-title" id="myModalLabel">Item Reconciliation
+                          </div>
+                          <div class="modal-body">
+                              <form id="modalForm" role="form" data-toggle="validator" data-disable="false" enctype="multipart/form-data" method="post">
+                                  <div class="row form-group">
+                                      <table>
+                                          <col class="col-md-5">
+                                          <col class="col-md-2" style="text-align:center">
+                                          <col class="col-md-5">
+                                          <tr>
+                                              <td>
+                                                  <div class="form-group has-success">
+                                                      <label for="GPOtitle">Title</label>
+                                                      <input class="form-control"  id="GPOtitle" data-bind="value: selected().doc().title, valueUpdate: 'afterkeydown'" type="text">
+                                                  </div>
+                                              </td>
+                                              <td>
+                                                  <div class="reconcileLink"><a href="#" onclick="$('#GPOtitle').val($('#EDGtitle').val())"><=</a></div>
+                                              </td>
+                                              <td>
+                                                  <div class="form-group has-success">
+                                                      <label for="EDGtitle">Title</label>
+                                                      <!-- ko if: selected().doc().EDGdata -->
+                                                      <input readonly class="form-control"  id="EDGtitle" data-bind="value: selected().doc().EDGdata.title" type="text">
+                                                      <!-- /ko -->
+                                                  </div>
+                                              </td>
+                                          </tr>
+                                          <tr>
+                                              <td>
+                                                  <div class="form-group has-success">
+                                                      <label for="GPOinputSnippet">Summary</label>
+                                                      <input class="form-control"  id="GPOinputSnippet" data-bind="value: selected().doc().snippet, valueUpdate: 'afterkeydown'" type="text">
+                                                  </div>
+                                              </td>
+                                              <td>
+                                                  <div class="reconcileLink"><a href="#" onclick="$('#GPOinputSnippet').val($('#EDGinputSnippet').val())"><=</div>
+                                              </td>
+                                              <td>
+                                                  <div class="form-group has-success">
+                                                      <label for="EDGinputSnippet">Summary</label>
+                                                      <!-- ko if: selected().doc().EDGdata -->
+                                                      <input readonly class="form-control"  id="EDGinputSnippet" data-bind="value: selected().doc().EDGdata.purpose" type="text">
+                                                      <!-- /ko -->
+                                                  </div>
+                                              </td>
+                                          </tr>
+                                          <tr>
+                                              <td>
+                                                  <div class="form-group has-success">
+                                                      <label>Description</label>
+                                        <textarea class="form-control" id="GPOinputDesc"
+                                                  data-bind="wysiwyg: selected().doc().description, valueUpdate:
+                                        'afterkeydown'" rows="6" placeholder="Description"></textarea>
+                                                  </div>
+                                              </td>
+                                              <td>
+                                                  <div class="reconcileLink"><a href="#" onclick="$('#GPOinputDesc').val($('#EDGinputDesc').val())"><=</div>
+                                              </td>
+                                              <td>
+                                                  <div class="form-group has-success">
+                                                      <label for="EDGinputDesc">Description</label>
+                                                      <!-- ko if: selected().doc().EDGdata -->
+                                                      <textarea readonly class="form-control" id="EDGinputDesc" data-bind="value: selected().doc().EDGdata.abstract" rows="7"></textarea>
+                                                      <!-- /ko -->
+                                                  </div>
+                                              </td>
+                                          </tr>
+                                          <tr>
+                                              <td>
+                                                  <div class="form-group has-success">
+                                                      <label>Access and Use Constraints</label>
+                                        <textarea class="form-control" id="GPOinputAccessUse"
+                                                  data-bind="wysiwyg: selected().doc().licenseInfo, valueUpdate:
+                                        'afterkeydown'" rows="6"
+                                                  placeholder="Access and Use Constraints"></textarea>
+                                                  </div>
+                                              </td>
+                                              <td>
+                                                  <div class="reconcileLink"><a href="#" onclick="$('#GPOinputAccessUse').val($('#EDGinputAccessUse').val())"><=</div>
+                                              </td>
+                                              <td>
+                                                  <div class="form-group has-success">
+                                                      <label for="EDGinputAccessUse">Access and Use Constraints</label>
+                                                      <!-- ko if: selected().doc().EDGdata -->
+                                                      <textarea readonly class="form-control" id="EDGinputAccessUse" data-bind="value: selected().doc().EDGdata.useconst" rows="7"></textarea>
+                                                      <!-- /ko -->
+                                                  </div>
+                                              </td>
+                                          </tr>
+                                          <tr>
+                                              <td>
+                                                  <div class="form-group has-success">
+                                                      <label for="GPOinputAccessInfo">Credits</label>
+                                                      <input class="form-control" id="GPOinputAccessInfo" data-bind="value: selected().doc().accessInformation, valueUpdate: 'afterkeydown'" type="text">
+                                                  </div>
+                                              </td>
+                                              <td>
+                                                  <div class="reconcileLink"><a href="#" onclick="$('#GPOinputAccessInfo').val($('#EDGinputAccessInfo').val())"><=</div>
+                                              </td>
+                                              <td>
+                                                  <div class="form-group has-success">
+                                                      <label for="EDGinputAccessInfo">Credits</label>
+                                                      <!-- ko if: selected().doc().EDGdata -->
+                                                      <input readonly class="form-control" id="EDGinputAccessInfo" data-bind="value: selected().doc().EDGdata.publisher" type="text">
+                                                      <!-- /ko -->
+                                                  </div>
+                                              </td>
+                                          </tr>
+                                      </table>
+                                  </div>
+
+                              </form>
+                          </div>
+                          <div class="modal-footer">
+                              <button type="button" id="closeReconcileBtn" class="btn btn-default" data-bind="click: selected().closeModal" data-dismiss="modal" >Close</button>
+                              <button type="button" class="btn btn-primary" data-bind="click: selected().loadReconciledFields" data-dismiss="modal">Load reconciled values</button>
+                          </div>
+                      </div>
+                  </div>
+              </div>
+              <!-- End Modal for Editing-->
          </div>
               <!-- End Overview -->
 
+             <!-- EDG Modal -->
+             <div class="modal fade" id="edgModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+                 <div class="modal-dialog modal-lg" role="document">
+                     <div class="modal-content">
+                         <div class="modal-header">
+                             <button type="button" class="close" data-dismiss="modal" aria-label="Close" ><span aria-hidden="true">&times;</span></button>
+                             <h4 class="modal-title" id="myEDGModalLabel">EDG Items
+                         </div>
+                         <div class="modal-body">
+
+                             <div id="edgModalViewTable">
+                                 <table id="edgitemmodaltable" class="table table-hover table-bordered table-responsive">
+                                     <thead>
+                                     <tr>
+                                         <th>Title</th>
+                                         <th>Owner</th>
+                                         <th>Link Record</th>
+                                     </tr>
+                                     </thead>
+                                     <tbody>
+                                     <!-- ko foreach: content -->
+                                     <tr>
+                                         <td><a data-bind="attr: { href: $data.references()[0] }, html: $data.title" target="_blank"></a></td>
+                                         <td><a data-bind="attr: { href: $data.contactPoint.hasEmail }, html: $data.contactPoint.fn" target="_blank"></a></td>
+                                         <td><a href="#" data-bind="click: function () {$root.linkRecord( $('.id_holder').attr('id'), $data.references()) }" target="_blank">Link</a></td>
+                                     </tr>
+                                     <!-- /ko -->
+                                     </tbody>
+                                 </table>
+                             </div>
+                         </div>
+                         <div class="modal-footer">
+                             <button type="button" class="btn btn-default" data-dismiss="modal" >Close</button>
+                         </div>
+                     </div>
+                 </div>
+             </div>
+             <!-- End EDG Modal -->
             <!-- Metrics View -->
             <div role="tabpanel" class="tab-pane" id="metricsView" >
                 <div id="metricsTable" class="table-responsive" >
@@ -679,7 +855,7 @@
                          </tr>
                          </thead>
                          <tbody>
-                         <!-- ko foreach: dataset() -->
+                         <!-- ko foreach: content -->
                          <tr>
                              <td><a data-bind="attr: { href: $data.references()[0] }, html: $data.title" target="_blank"></a></td>
                              <td><a data-bind="attr: { href: $data.contactPoint.hasEmail }, html: $data.contactPoint.fn" target="_blank"></a></td>
