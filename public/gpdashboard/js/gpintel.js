@@ -175,6 +175,18 @@ function populateUserMngntTable(PortalUser){
       //Add sponsor
       this.sponsorMe = function(){
 
+        //get auth groups for user
+        //alert(JSON.stringify(egam.communityUser.ownerIDsByAuthGroup));
+        var authGroups = Object.keys(egam.communityUser.ownerIDsByAuthGroup);
+        alert(authGroups);
+        var userAuthDrop = $('#UserAuthDrop');
+        $.each(authGroups, function (index, authGroup) {
+          userAuthDrop.append($("<option>", {value: authGroup}).text(authGroup));
+        });
+
+        //open modal
+        $('#userMgmtModal').modal('show');
+
         //get current data for sponsoring
         var sD = new Date();
         var sponsorDate = sD.getTime();
@@ -194,23 +206,23 @@ function populateUserMngntTable(PortalUser){
         ko.mapping.fromJS(unmapped, self.uData);
 
         //post to mongo
-        $.ajax({
-          url: 'gpousers/update',
-          type: 'POST',
-          data: myUserData,
-          cache: false,
-          dataType: 'json',
-          //processData: false, // Don't process the files
-          //contentType: false, // Set content type to false as jQuery will tell the server its a query string request
-          success: function (rdata, textStatus, jqXHR) {
-            console.log("Success: Poated new sponsor to Mongo");
-            //alert(JSON.stringify(rdata));
-          },
-          error: function (jqXHR, textStatus, errorThrown) {
-            // Handle errors here
-            console.log('ERRORS: ' + textStatus);
-          }
-        });
+        //$.ajax({
+        //  url: 'gpousers/update',
+        //  type: 'POST',
+        //  data: myUserData,
+        //  cache: false,
+        //  dataType: 'json',
+        //  //processData: false, // Don't process the files
+        //  //contentType: false, // Set content type to false as jQuery will tell the server its a query string request
+        //  success: function (rdata, textStatus, jqXHR) {
+        //    console.log("Success: Poated new sponsor to Mongo");
+        //    //alert(JSON.stringify(rdata));
+        //  },
+        //  error: function (jqXHR, textStatus, errorThrown) {
+        //    // Handle errors here
+        //    console.log('ERRORS: ' + textStatus);
+        //  }
+        //});
       };
 
       this.renew = function(){
