@@ -740,10 +740,45 @@ egam.edgItemTableModel = function (data) {
         dataType: "xml",
         success: function(xml) {
           var title = $(xml).find("citation").find("title").text();
+          if (!title) { // Need to capture different metadata styles
+            title = $(xml).find("title").text();
+            if (!title) {
+              title = $(xml).find("gmd\\:citation").find("gmd\\:CI_Citation").find("gmd\\:title").find("gco\\:CharacterString").text()
+            }
+          }
           var purpose = $(xml).find("purpose").text();
           var abstract = $(xml).find("abstract").text();
-          var useconst = "Access constraints: " + $(xml).find("accconst").text() + " Use constraints: " + $(xml).find("useconst").text();
+          if (!abstract) { // Need to capture different metadata styles
+            abstract = $(xml).find("description").text();
+            if (!abstract) {
+              abstract = $(xml).find("gmd\\:abstract").find("gco\\:CharacterString").text()
+            }
+          }
+          var acc = $(xml).find("accconst").text();
+          var usecon = $(xml).find("useconst").text();
+          if (!usecon) { // Need to capture different metadata styles
+              acc = $(xml).find("gmd\\:MD_SecurityConstraints").find("gmd\\:useLimitation").find("gco\\:CharacterString").text();
+              usecon = $(xml).find("gmd\\:MD_LegalConstraints").find("gmd\\:useLimitation").find("gco\\:CharacterString").text();
+          }
+          var useconst = "";
+          if (acc || usecon) {
+            useconst = "Access constraints: " + acc + " Use constraints: " + usecon;
+          }
+
           var publisher = $(xml).find("publish").text();
+          if (!publisher) { // Need to capture different metadata styles
+            var agency = $(xml).find("agencyName").text();
+            var subagency = $(xml).find("subAgencyName").text();
+            if (agency) {
+              if (subagency) {
+                publisher = agency + ", " + subagency;
+              } else {
+                publisher = agency;
+              }
+            } else {
+              publisher = $(xml).find("gmd\\:contact").find("gmd\\:organisationName").find("gco\\:CharacterString").text();
+            }
+          }
           var mydata = new FormData();
           mydata.append("updateDocs", JSON.stringify({
             id: gpoID, EDGdata: {
