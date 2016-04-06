@@ -26,19 +26,32 @@ UpdateGPOuser.prototype.checkPermission = function() {
 //If logged in user is not admin then can not modify external user
   if (! self.session.user.isAdmin) return Q.fcall(function () {return false});
 //If external user and logged in user is admin then they can modifiy it
-  return Q(self.userscollection.findOne({username:self.updateDoc.username}, {isExternal:1}))
+  return Q(self.collection.findOne({username:self.updateDoc.username}, {isExternal:1}))
     .then(function (doc) {
+//if username not found then return false (maybe have error later but should we expose this type of lookup?)
+      if (! doc) return false;
       return doc.isExternal;
     });
 };
 
-//This just here for the future for now
+//In the future we might want to update user info and add the authgroup and will probably have to just over ride entire parent updateRemote function
 UpdateGPOuser.prototype.getRemoteUpdateRequest = function(formData) {
-  var fs = require('fs');
   var self = this;
 
-//Need to find the API URL for updating user when we decided to do this
-  var url= self.config.portal + '/sharing/rest/content/users/' + formData.username ;
+//For now we are only adding the authGroup here
+  if (! self.updateDoc.authGroup) return null;
+
+//Need to find the auth group ID that we are adding user to . using require reload so we don't have to restart EGAM if authGroup added can change later when stable
+  var requireReload = require('require-reload')(require);
+  var authGroupIDs = requireReload(self.appRoot + '/config/authGroups.js').ids;
+  var authGroupID = authGroupIDs[self.updateDoc.authGroup];
+  if (! authGroupID) return null;
+
+  var url= self.config.portal + '/sharing/rest/community/groups/' + authGroupID + '/addUsers';
+
+//Just over ride the formData passed in here. All we will be updating is user to group
+  formData = {users:self.updateDoc.username};
+
 //      console.log(url);
   var qs = {token: self.session.token,f:'json'};
 //      console.log(req.session.token);
@@ -47,8 +60,6 @@ UpdateGPOuser.prototype.getRemoteUpdateRequest = function(formData) {
   var requestPars = {method:'post', url:url, formData:formData, qs:qs };
   return requestPars;
 };
-
-UpdateGPOuser.prototype.getRemoteUpdateRequest = null;
 
 
 module.exports = UpdateGPOuser;

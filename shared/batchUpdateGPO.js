@@ -36,7 +36,7 @@ module.exports = function (updateDocs,getUpdateClassInstance,updateName,updateID
     })
     .then(function () {
 //if there are no errors for any of the update docs then just return null instead of a bunch of empty arrays
-      if (resObjects.errors.filter(function (x) {return x.length>0}).length==0) resObjects.errors=null;
+      if (resObjects.errors.filter(function (x) {return x && x.length>0}).length==0) resObjects.errors=null;
       return resObjects});
 
   function updateSingleGPO(updateDoc,updateRow,async) {
