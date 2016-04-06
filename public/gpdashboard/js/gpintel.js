@@ -92,38 +92,50 @@ egam.edginit = function(title, modal) {
   if(modal) {
     edgURL = "https://edg.epa.gov/metadata/rest/find/document?f=dcat&max=10&searchText=title:" + title + "&callback=?";
   }
-
   $.ajax({
     url: edgURL,
-    dataType: 'json',
-    success: function(data) {
-      egam.edgItems.tableModel.add(data.dataset)
-          .then(function() {
-            //If there are no rows then don't try to bind
-            if (data.dataset.length < 1) return;
-            if (needToApplyBindings) {
-              // bind the data
-              ko.applyBindings(egam.edgItems.tableModel, document.getElementById('edgViewViewTable'));
-              ko.applyBindings(egam.edgItems.tableModel, document.getElementById('edgModal'));
-            }
-            setTimeout(function () {
-              if (egam.edgItems.dataTable && "fnDestroy" in egam.edgItems.dataTable)
-                egam.edgItems.dataTable.fnDestroy();
-              egam.renderEDGitemsDataTable(modal)
-                  .then(function (dt) {
-                    egam.edgItems.dataTable = dt;
-                  });
-            }, 0);
-          });
+    type: 'HEAD',  // Check for 404s
+    success: function() {
+      $.ajax({
+        url: edgURL,
+        dataType: 'json',
+        success: function (data) {
+          egam.edgItems.tableModel.add(data.dataset)
+              .then(function () {
+                //If there are no rows then don't try to bind
+                if (data.dataset.length < 1) return;
+                if (needToApplyBindings) {
+                  // bind the data
+                  ko.applyBindings(egam.edgItems.tableModel, document.getElementById('edgViewViewTable'));
+                  ko.applyBindings(egam.edgItems.tableModel, document.getElementById('edgModal'));
+                }
+                setTimeout(function () {
+                  if (egam.edgItems.dataTable && "fnDestroy" in egam.edgItems.dataTable)
+                    egam.edgItems.dataTable.fnDestroy();
+                  egam.renderEDGitemsDataTable(modal)
+                      .then(function (dt) {
+                        egam.edgItems.dataTable = dt;
+                      });
+                }, 0);
+              });
+        },
+        //Note, this doesn't check for 404s
+        error: function (request, textStatus, errorThrown) {
+          if (modal) {
+            $('#edgModal').modal('hide');
+          }
+          alert('EDG JSON parse error: ' + request.statusText);
+          console.log('EDG JSON parse error: ' + request.statusText);
+          // perform tasks for error
+        }
+      });
     },
-    //Note, this doesn't check for 404s - need to write server-side check of URL due to CORS
     error: function(request, textStatus, errorThrown) {
       if (modal) {
         $('#edgModal').modal('hide');
       }
-      alert('EDG JSON parse error: ' + request.statusText);
-      console.log('EDG JSON parse error: ' + request.statusText);
-      // perform tasks for error
+      alert('Invalid EDG URL: ' + request.statusText);
+      console.log('Invalid EDG URL: ' + request.statusText);
     }
   });
 
@@ -786,7 +798,7 @@ egam.edgItemTableModel = function (data) {
             }
           });
         },
-        error: function(){
+        error: function(jqXHR, textStatus, errorThrown){
           alert("EDG metadata record could not be loaded: " + edgURL);
           console.log( "EDG metadata record could not be loaded: " + edgURL );
         }
