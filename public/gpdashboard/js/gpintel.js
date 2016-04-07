@@ -184,9 +184,11 @@ function populateUserMngntTable(PortalUser){
         var userAuthDrop = $('#UserAuthDrop');
 
         if(authGroups.length > 1){
-          $.each(authGroups, function (index, authGroup) {
-            userAuthDrop.append($("<option>", {value: authGroup}).text(authGroup));
-          });
+          if(userAuthDrop[0].options.length < 1){
+            $.each(authGroups, function (index, authGroup) {
+              userAuthDrop.append($("<option>", {value: authGroup}).text(authGroup));
+            });
+          }
           $('#updateAuth').show();
         }else{
 
