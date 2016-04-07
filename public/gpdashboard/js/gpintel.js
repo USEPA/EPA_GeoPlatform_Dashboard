@@ -129,91 +129,105 @@ function populateUserMngntTable(PortalUser){
     //alert(data);
     egam.gpoUsers.resultSet = data;
 
-    var viewModel2 = function(u){
+    var viewModel2 = function(u) {
       var self = this;
 
-      if(!u.sponsors){
+      if (!u.sponsors) {
         u['sponsors'] = [];
       }
       this.uData = ko.mapping.fromJS(u);
 
-      this.latestSponsor = ko.computed(function(){
+      this.latestSponsor = ko.computed(function () {
         var sponsorsLen = self.uData.sponsors().length;
-        if(sponsorsLen > 0){
-          var mSpnor = self.uData.sponsors()[sponsorsLen-1];
+        if (sponsorsLen > 0) {
+          var mSpnor = self.uData.sponsors()[sponsorsLen - 1];
 
-          var dDate = new Date(self.uData.sponsors()[sponsorsLen-1].date());
-          return self.uData.sponsors()[sponsorsLen-1].username() + " (" + formatDate(dDate) + ")";
-        }else{
+          var dDate = new Date(self.uData.sponsors()[sponsorsLen - 1].date());
+          return self.uData.sponsors()[sponsorsLen - 1].username() + " (" + formatDate(dDate) + ")";
+        } else {
           return;
         }
       });
       //Format Date from millaseconds to something useful
-      function formatDate (uDate){
+      function formatDate(uDate) {
         var monthNames = [
           "Jan", "Feb", "Mar",
           "Apr", "May", "Jun", "Jul",
           "Aug", "Sep", "Oct",
           "Nov", "Dec"
         ];
-        var formattedDate = monthNames[uDate.getMonth()] + " " + uDate.getDate() +", " + uDate.getFullYear();
+        var formattedDate = monthNames[uDate.getMonth()] + " " + uDate.getDate() + ", " + uDate.getFullYear();
         return formattedDate;
       };
 
-      this.modifiedDate = ko.computed(function(){
+      this.modifiedDate = ko.computed(function () {
 
         var dDate = new Date(self.uData.modified());
         return formatDate(dDate);
       });
 
-      this.createdDate = ko.computed(function(){
+      this.createdDate = ko.computed(function () {
 
         var dDate = new Date(self.uData.created());
         return formatDate(dDate);
       });
 
       //Add sponsor
-      this.sponsorMe = function(){
+      this.sponsorMe = function () {
 
+        $('#updateAuth').hide();
         //open modal
         $('#userMgmtModal').modal('show');
 
         //get auth groups for user
-        //alert(JSON.stringify(egam.communityUser.ownerIDsByAuthGroup));
-        var authGroups = Object.keys(egam.communityUser.ownerIDsByAuthGroup);
-        //alert(authGroups);
+        var authGroups = egam.communityUser.authGroups;
         var userAuthDrop = $('#UserAuthDrop');
-        $.each(authGroups, function (index, authGroup) {
-          userAuthDrop.append($("<option>", {value: authGroup}).text(authGroup));
-        });
+
+        if(authGroups.length > 1){
+          $.each(authGroups, function (index, authGroup) {
+            userAuthDrop.append($("<option>", {value: authGroup}).text(authGroup));
+          });
+          $('#updateAuth').show();
+        }else{
+
+        }
 
       };
 
-      this.renew = function(){
+      this.renew = function () {
         //alert("renew");
         //get current data for sponsoring
         var sD = new Date();
         var sponsorDate = sD.getTime();
 
+        //get assigned authGroup from dropdown
+        var userAuthDrop = $('#UserAuthDrop');
+        var authGroup = userAuthDrop[0].options[userAuthDrop[0].selectedIndex].value;
+        //Create updateDoc to post back to mongo
         myUserData = {};
-        //Object to hold new sponsor info
-        updateUserData = {username:self.uData.username(),
-          sponsor:{username :PortalUser,
-            date:sponsorDate}};
-        updatedSponsor = {username :PortalUser,
-          date:sponsorDate};
+        updateUserData = {
+          username: self.uData.username(), //self.uData.username()
+          sponsor: {
+            username: PortalUser,
+            date: sponsorDate
+          },
+          authGroup: authGroup,
+        };
+        updatedSponsor = {
+          username: PortalUser,
+          date: sponsorDate
+        };
         myUserData.updateDocs = JSON.stringify(updateUserData);
 
         //alert(JSON.stringify(updateUserData));
         var unmapped = ko.mapping.toJS(self.uData);
         //update in UI doc
         unmapped.sponsors.push(updatedSponsor);
-        alert(JSON.stringify(unmapped));
-        //unmapped.authGroups.push(userAuthDrop.options(userAuthDrop.selectedIndex).value);
+        unmapped.authGroups.push(authGroup);
+        //console.log(JSON.stringify(unmapped));
         ko.mapping.fromJS(unmapped, self.uData);
 
-        //var userAuthDrop = $('#UserAuthDrop');
-        //alert(userAuthDrop);
+        //console.log(userAuthDrop);
 
         //post to mongo
         $.ajax({
@@ -226,7 +240,7 @@ function populateUserMngntTable(PortalUser){
           //contentType: false, // Set content type to false as jQuery will tell the server its a query string request
           success: function (rdata, textStatus, jqXHR) {
             console.log("Success: Poated new sponsor to Mongo");
-            alert(JSON.stringify(rdata));
+            //alert(JSON.stringify(rdata));
           },
           error: function (jqXHR, textStatus, errorThrown) {
             // Handle errors here
@@ -234,6 +248,7 @@ function populateUserMngntTable(PortalUser){
           }
         });
         $('#userMgmtModal').modal('hide');
+        $('#updateAuth').hide();
       };
     };
 
@@ -246,6 +261,12 @@ function populateUserMngntTable(PortalUser){
 
       self.select = function (item) {
         self.selected(item);
+      };
+
+      //allows you to select an item based on index, usually index will be coming from row number
+      self.selectIndex = function (index) {
+        var selectedItem = self.content()[index];
+        self.selected(selectedItem);
       };
 
       self.selected = ko.observable();
@@ -293,7 +314,7 @@ function populateUserMngntTable(PortalUser){
           }
         ],
       "order": [
-        [0, "asc"]
+        [1, "asc"]
       ]
     });
   });
