@@ -175,58 +175,65 @@ function populateUserMngntTable(PortalUser){
       //Add sponsor
       this.sponsorMe = function(){
 
+        //open modal
+        $('#userMgmtModal').modal('show');
+
         //get auth groups for user
         //alert(JSON.stringify(egam.communityUser.ownerIDsByAuthGroup));
         var authGroups = Object.keys(egam.communityUser.ownerIDsByAuthGroup);
-        alert(authGroups);
+        //alert(authGroups);
         var userAuthDrop = $('#UserAuthDrop');
         $.each(authGroups, function (index, authGroup) {
           userAuthDrop.append($("<option>", {value: authGroup}).text(authGroup));
         });
 
-        //open modal
-        $('#userMgmtModal').modal('show');
+      };
 
+      this.renew = function(){
+        //alert("renew");
         //get current data for sponsoring
         var sD = new Date();
         var sponsorDate = sD.getTime();
 
         myUserData = {};
         //Object to hold new sponsor info
-        updateUserData = {username:this.uData.username(),
-                          sponsor:{username :PortalUser,
-                                    date:sponsorDate}};
+        updateUserData = {username:self.uData.username(),
+          sponsor:{username :PortalUser,
+            date:sponsorDate}};
         updatedSponsor = {username :PortalUser,
-            date:sponsorDate};
+          date:sponsorDate};
         myUserData.updateDocs = JSON.stringify(updateUserData);
+
         //alert(JSON.stringify(updateUserData));
         var unmapped = ko.mapping.toJS(self.uData);
         //update in UI doc
         unmapped.sponsors.push(updatedSponsor);
+        alert(JSON.stringify(unmapped));
+        //unmapped.authGroups.push(userAuthDrop.options(userAuthDrop.selectedIndex).value);
         ko.mapping.fromJS(unmapped, self.uData);
 
-        //post to mongo
-        //$.ajax({
-        //  url: 'gpousers/update',
-        //  type: 'POST',
-        //  data: myUserData,
-        //  cache: false,
-        //  dataType: 'json',
-        //  //processData: false, // Don't process the files
-        //  //contentType: false, // Set content type to false as jQuery will tell the server its a query string request
-        //  success: function (rdata, textStatus, jqXHR) {
-        //    console.log("Success: Poated new sponsor to Mongo");
-        //    //alert(JSON.stringify(rdata));
-        //  },
-        //  error: function (jqXHR, textStatus, errorThrown) {
-        //    // Handle errors here
-        //    console.log('ERRORS: ' + textStatus);
-        //  }
-        //});
-      };
+        //var userAuthDrop = $('#UserAuthDrop');
+        //alert(userAuthDrop);
 
-      this.renew = function(){
-        alert("renew");
+        //post to mongo
+        $.ajax({
+          url: 'gpousers/update',
+          type: 'POST',
+          data: myUserData,
+          cache: false,
+          dataType: 'json',
+          //processData: false, // Don't process the files
+          //contentType: false, // Set content type to false as jQuery will tell the server its a query string request
+          success: function (rdata, textStatus, jqXHR) {
+            console.log("Success: Poated new sponsor to Mongo");
+            alert(JSON.stringify(rdata));
+          },
+          error: function (jqXHR, textStatus, errorThrown) {
+            // Handle errors here
+            console.log('ERRORS: ' + textStatus);
+          }
+        });
+        $('#userMgmtModal').modal('hide');
       };
     };
 
@@ -236,6 +243,18 @@ function populateUserMngntTable(PortalUser){
       this.users = ko.observableArray(usersDoc.map(function (doc){
         return new viewModel2(doc);
       }));
+
+      self.select = function (item) {
+        self.selected(item);
+      };
+
+      self.selected = ko.observable();
+
+      if (self.users().length > 0) {
+        //automatically select the 1st item in the table
+        //no idea why we are doing this?
+        self.selected = ko.observable(self.users()[0]);
+      }
 
     };
     // JSON.parse(data)
