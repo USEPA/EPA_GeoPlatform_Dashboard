@@ -32,7 +32,7 @@ var extensionsCollection = monk.get('GPOuserExtensions');
 //This is the name of the column in the item file with the list of url domains found for the item (we aren't including full urls just the url domains)
 var itemDomainsFieldName = 'urlDomainsWithValidHttps';
 
-var sponsorsFile = appRoot + '/tmp/ExternalUserSponsorships.tsv';
+var sponsorsFile = appRoot + '/scripts/ExternalUserSponsorships.tsv';
 
 //hr.save is where we store the output from REST calls like token and OrgID so it can be used by handlers
 var currentRow=1;
