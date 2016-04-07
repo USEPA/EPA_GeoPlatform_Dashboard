@@ -462,9 +462,6 @@ egam.edgItemModel = function (data) {
 
 egam.gpoItemModel = function (i, loading) {
   var self = this;
-  if (i.id == '7bab68d53b3c41caae8e949d5aa8e026') {
-    console.log("break here");
-  }
   this.loading = loading || false;
   //This is the doc
   var docTemp = ko.mapping.fromJS(i);
