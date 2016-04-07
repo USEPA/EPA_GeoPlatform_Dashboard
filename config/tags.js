@@ -1,5 +1,4 @@
-{
-  "epa_keywords": [
+var epa_keywords = [
     "Agriculture",
     "Air",
     "Biology",
@@ -58,8 +57,8 @@
     "Transportation",
     "Waste",
     "Water"
-  ],
-  "place_keywords": [
+  ];
+var place_keywords = [
     "United States",
     "Canada",
     "Mexico",
@@ -117,8 +116,8 @@
     "West Virginia",
     "Wisconsin",
     "Wyoming"
-  ],
-  "epa_organization_names": {
+  ];
+var epa_organization_names = {
     "OA": [
       "OA",
       "OA, EAB",
@@ -743,5 +742,10 @@
       "REG 10, ORC",
       "REG 10, OW"
     ]
-  }
-}
+  };
+
+module.exports = {
+  epa_keywords:epa_keywords,
+  place_keywords:place_keywords,
+  epa_organization_names:epa_organization_names
+};
