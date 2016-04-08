@@ -93,55 +93,39 @@ egam.edginit = function(title, modal) {
     needToApplyBindings = true;
   }
 
-  var edgURL = "https://edg.epa.gov/metadata/rest/find/document?f=dcat&max=100&callback=?";
+  var edgURL = "https://edg.epa.gov/metadata/rest/find/document?f=dcat&max=100";
   if(modal) {
-    edgURL = "https://edg.epa.gov/metadata/rest/find/document?f=dcat&max=10&searchText=title:" + title + "&callback=?";
+    edgURL = "https://edg.epa.gov/metadata/rest/find/document?f=dcat&max=10&searchText=title:" + title;
   }
   $.ajax({
     url: edgURL,
-    // Check for 404s
-    type: 'HEAD',
-    success: function() {
-      $.ajax({
-        url: edgURL,
-        dataType: 'json',
-        success: function (data) {
-          egam.edgItems.tableModel.add(data.dataset)
-              .then(function () {
-                //If there are no rows then don't try to bind
-                if (data.dataset.length < 1) return;
-                if (needToApplyBindings) {
-                  // bind the data
-                  ko.applyBindings(egam.edgItems.tableModel, document.getElementById('edgViewViewTable'));
-                  ko.applyBindings(egam.edgItems.tableModel, document.getElementById('edgModal'));
-                }
-                setTimeout(function () {
-                  if (egam.edgItems.dataTable && "fnDestroy" in egam.edgItems.dataTable)
-                    egam.edgItems.dataTable.fnDestroy();
-                  egam.renderEDGitemsDataTable(modal)
-                      .then(function (dt) {
-                        egam.edgItems.dataTable = dt;
-                      });
-                }, 0);
-              });
-        },
-        //Note, this doesn't check for 404s
-        error: function (request, textStatus, errorThrown) {
-          if (modal) {
-            $('#edgModal').modal('hide');
-          }
-          alert('EDG JSON parse error, ' + request.statusText + ": " + edgURL);
-          console.log('EDG JSON parse error, ' + request.statusText + ": " + edgURL);
-          // perform tasks for error
-        }
-      });
+    dataType: 'json',
+    success: function (data) {
+      egam.edgItems.tableModel.add(data.dataset)
+          .then(function () {
+            //If there are no rows then don't try to bind
+            if (data.dataset.length < 1) return;
+            if (needToApplyBindings) {
+              // bind the data
+              ko.applyBindings(egam.edgItems.tableModel, document.getElementById('edgViewViewTable'));
+              ko.applyBindings(egam.edgItems.tableModel, document.getElementById('edgModal'));
+            }
+            setTimeout(function () {
+              if (egam.edgItems.dataTable && "fnDestroy" in egam.edgItems.dataTable)
+                egam.edgItems.dataTable.fnDestroy();
+              egam.renderEDGitemsDataTable(modal)
+                  .then(function (dt) {
+                    egam.edgItems.dataTable = dt;
+                  });
+            }, 0);
+          });
     },
-    error: function(request, textStatus, errorThrown) {
+    error: function (request, textStatus, errorThrown) {
       if (modal) {
         $('#edgModal').modal('hide');
       }
-      alert('Invalid EDG URL, ' + request.statusText + ": " + edgURL);
-      console.log('Invalid EDG URL, ' + request.statusText + ": " + edgURL);
+      alert('EDG JSON parse error, ' + request.statusText + ": " + edgURL);
+      console.log('EDG JSON parse error, ' + request.statusText + ": " + edgURL);
     }
   });
 
