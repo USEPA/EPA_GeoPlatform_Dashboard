@@ -162,7 +162,8 @@ function populateUserMngntTable(PortalUser){
         if (sponsorsLen > 0) {
           var mSpnor = self.uData.sponsors()[sponsorsLen - 1];
 
-          var dDate = new Date(self.uData.sponsors()[sponsorsLen - 1].date());
+          var dDate = new Date(self.uData.sponsors()[sponsorsLen - 1].startDate());
+
           return self.uData.sponsors()[sponsorsLen - 1].username() + " (" + formatDate(dDate) + ")";
         } else {
           return;
@@ -231,7 +232,7 @@ function populateUserMngntTable(PortalUser){
           username: self.uData.username(), //self.uData.username()
           sponsor: {
             username: PortalUser,
-            date: sponsorDate
+            startDate: sponsorDate
           },
           authGroup: authGroup,
         };
@@ -252,23 +253,23 @@ function populateUserMngntTable(PortalUser){
         //console.log(userAuthDrop);
 
         //post to mongo
-        $.ajax({
-          url: 'gpousers/update',
-          type: 'POST',
-          data: myUserData,
-          cache: false,
-          dataType: 'json',
-          //processData: false, // Don't process the files
-          //contentType: false, // Set content type to false as jQuery will tell the server its a query string request
-          success: function (rdata, textStatus, jqXHR) {
-            console.log("Success: Poated new sponsor to Mongo");
-            //alert(JSON.stringify(rdata));
-          },
-          error: function (jqXHR, textStatus, errorThrown) {
-            // Handle errors here
-            console.log('ERRORS: ' + textStatus);
-          }
-        });
+        //$.ajax({
+        //  url: 'gpousers/update',
+        //  type: 'POST',
+        //  data: myUserData,
+        //  cache: false,
+        //  dataType: 'json',
+        //  //processData: false, // Don't process the files
+        //  //contentType: false, // Set content type to false as jQuery will tell the server its a query string request
+        //  success: function (rdata, textStatus, jqXHR) {
+        //    console.log("Success: Poated new sponsor to Mongo");
+        //    //alert(JSON.stringify(rdata));
+        //  },
+        //  error: function (jqXHR, textStatus, errorThrown) {
+        //    // Handle errors here
+        //    console.log('ERRORS: ' + textStatus);
+        //  }
+        //});
         $('#userMgmtModal').modal('hide');
         $('#updateAuth').hide();
       };
