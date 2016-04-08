@@ -79,6 +79,8 @@ module.exports = function (app) {
 //Note I going to get the available authGroups from config file now so pass path to file. Simpler to maintain
       var authgroupsCollection = appRoot + '/config/authGroups.js';
 
+      var tags = appRoot + '/config/tags.js';
+
       var monk = app.get('monk');
       var usersCollection = monk.get('GPOusers');
       var ownerIDsCollection = monk.get('GPOownerIDs');

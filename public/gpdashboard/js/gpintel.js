@@ -14,6 +14,7 @@ egam.edgItems = {
 
 $(document).ready(function () {
 
+
   $(document).on('click', '.nav li', function (e) {
     $(".nav-sidebar li").removeClass("active");
     $(this).addClass("active");
@@ -28,6 +29,8 @@ $(document).ready(function () {
 
   //Click event for Help Modal
   $('#egamHelp').on('click', function(e){
+    var appRoot = require('app-root-path');
+    var tags = require(appRoot + '/config/tags.js').epa_keywords;
     $('#helpModal').modal('show');
   });
   
@@ -495,6 +498,10 @@ egam.gpoItemModel = function (i, loading) {
 
     return formattedDate;
   }, this);
+  
+  this.epaKeywords = function() {
+  };
+  
   //Link to item in GPO
   this.gpoLink = ko.computed(function(){
     return "http://epa.maps.arcgis.com/home/item.html?id=" + self.doc().id();
