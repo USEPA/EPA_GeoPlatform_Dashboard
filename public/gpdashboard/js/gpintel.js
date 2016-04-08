@@ -157,18 +157,56 @@ function populateUserMngntTable(PortalUser){
       }
       this.uData = ko.mapping.fromJS(u);
 
+      //Sponsor fields
       this.latestSponsor = ko.computed(function () {
         var sponsorsLen = self.uData.sponsors().length;
         if (sponsorsLen > 0) {
-          var mSpnor = self.uData.sponsors()[sponsorsLen - 1];
-
-          var dDate = new Date(self.uData.sponsors()[sponsorsLen - 1].startDate());
-
-          return self.uData.sponsors()[sponsorsLen - 1].username() + " (" + formatDate(dDate) + ")";
+          return self.uData.sponsors()[sponsorsLen - 1].username();
         } else {
           return;
         }
       });
+
+      this.spStartDate = ko.computed(function(){
+        var spLen = self.uData.sponsors().length;
+        if(spLen >0){
+          var dDate = new Date(self.uData.sponsors()[spLen - 1].startDate());
+          var spStartDate = formatDate(dDate);
+          return spStartDate;
+        }else{
+          return;
+        }
+      });
+
+      this.spEndDate = ko.computed(function(){
+        var spLen = self.uData.sponsors().length;
+        if(spLen >0){
+          var dDate = new Date(self.uData.sponsors()[spLen - 1].endDate());
+          var spStartDate = formatDate(dDate);
+          return spStartDate;
+        }else{
+          return;
+        }
+      });
+
+      this.spOrg = ko.computed(function(){
+        var spLen = self.uData.sponsors().length;
+        if(spLen >0){
+          return self.uData.sponsors()[spLen - 1].organization();
+        }else{
+          return;
+        }
+      });
+
+      this.spAuthGroup = ko.computed(function(){
+        var spLen = self.uData.sponsors().length;
+        if(spLen >0){
+          return self.uData.sponsors()[spLen - 1].authGroup();
+        }else{
+          return;
+        }
+      });
+
       //Format Date from millaseconds to something useful
       function formatDate(uDate) {
         var monthNames = [
@@ -181,47 +219,46 @@ function populateUserMngntTable(PortalUser){
         return formattedDate;
       };
 
-      this.modifiedDate = ko.computed(function () {
+      //this.modifiedDate = ko.computed(function () {
+      //  var dDate = new Date(self.uData.modified());
+      //  return formatDate(dDate);
+      //});
 
-        var dDate = new Date(self.uData.modified());
-        return formatDate(dDate);
-      });
+      //this.createdDate = ko.computed(function () {
+      //  var dDate = new Date(self.uData.created());
+      //  return formatDate(dDate);
+      //});
 
-      this.createdDate = ko.computed(function () {
-
-        var dDate = new Date(self.uData.created());
-        return formatDate(dDate);
-      });
+      this.sponsoreeAuthGroups = ko.observableArray(egam.communityUser.authGroups);
 
       //Add sponsor
-      this.sponsorMe = function () {
-
-        $('#updateAuth').hide();
-        //open modal
-        $('#userMgmtModal').modal('show');
-
-        //get auth groups for user
-        var authGroups = egam.communityUser.authGroups;
-        var userAuthDrop = $('#UserAuthDrop');
-
-        if(authGroups.length > 1){
-          if(userAuthDrop[0].options.length < 1){
-            $.each(authGroups, function (index, authGroup) {
-              userAuthDrop.append($("<option>", {value: authGroup}).text(authGroup));
-            });
-          }
-          $('#updateAuth').show();
-        }else{
-
-        }
-
-      };
+      //this.sponsorMe = function () {
+      //  $('#updateAuth').hide();
+      //  //open modal
+      //  $('#userMgmtModal').modal('show');
+      //  //get auth groups for user
+      //  var authGroups = egam.communityUser.authGroups;
+      //  var userAuthDrop = $('#UserAuthDrop');
+      //
+      //  if(authGroups.length > 1){
+      //    if(userAuthDrop[0].options.length < 1){
+      //      $.each(authGroups, function (index, authGroup) {
+      //        userAuthDrop.append($("<option>", {value: authGroup}).text(authGroup));
+      //      });
+      //    }
+      //    $('#updateAuth').show();
+      //  }else{
+      //
+      //  }
+      //};
 
       this.renew = function () {
         //alert("renew");
         //get current data for sponsoring
+        var defaultDuration = 90;
         var sD = new Date();
         var sponsorDate = sD.getTime();
+        var endDate = sponsorDate + defaultDuration*24*3600*1000;
 
         //get assigned authGroup from dropdown
         var userAuthDrop = $('#UserAuthDrop');
@@ -232,13 +269,21 @@ function populateUserMngntTable(PortalUser){
           username: self.uData.username(), //self.uData.username()
           sponsor: {
             username: PortalUser,
-            startDate: sponsorDate
+            startDate: sponsorDate,
+            endDate: endDate,
+            authGroup: authGroup,
+
           },
           authGroup: authGroup,
         };
         updatedSponsor = {
           username: PortalUser,
-          date: sponsorDate
+          startDate: sponsorDate,
+          endDate: endDate,
+          authGroup: authGroup,
+          reason: "",
+          organization: "",
+          description: ""
         };
         myUserData.updateDocs = JSON.stringify(updateUserData);
 
@@ -278,7 +323,7 @@ function populateUserMngntTable(PortalUser){
     var viewModel = function(usersDoc){
       var self = this;
 
-      this.users = ko.observableArray(usersDoc.map(function (doc){
+      self.users = ko.observableArray(usersDoc.map(function (doc){
         return new viewModel2(doc);
       }));
 
@@ -288,7 +333,7 @@ function populateUserMngntTable(PortalUser){
 
       //allows you to select an item based on index, usually index will be coming from row number
       self.selectIndex = function (index) {
-        var selectedItem = self.content()[index];
+        var selectedItem = self.users()[index];
         self.selected(selectedItem);
       };
 
@@ -299,6 +344,10 @@ function populateUserMngntTable(PortalUser){
         //no idea why we are doing this?
         self.selected = ko.observable(self.users()[0]);
       }
+
+      self.clear = function () {
+        self.users().length = 0;
+      };
 
     };
     // JSON.parse(data)

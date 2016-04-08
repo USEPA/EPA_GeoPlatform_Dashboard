@@ -766,69 +766,70 @@
                          <th>Name</th>
                          <th>Sponsorship</th>
                          <th>Auth Group</th>
-                         <th>DataAdded</th>
-                         <th>LastReview</th>
+                         <th>Organization</th>
+                         <th>Start Date</th>
+                         <th>End Date</th>
                      </tr>
                      </thead>
                      <tbody data-bind="foreach: users">
-                     <tr>
+                     <tr >
                          <td >
                              <div>
-                                <button class="btn btn-primary btn-xs" id="sponsorBtn" data-bind="click: sponsorMe">Sponsor Me!</button>
-                                 <div class="modal fade" id="userMgmtModal" tabindex="-1" role="dialog" aria-labelledby="userMgmtModalLabel">
-                                     <div class="modal-dialog modal-sm" role="document">
-                                         <div class="modal-content">
-                                             <div class="modal-header">
-                                                 <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                                                 <h4 class="modal-title" id="userMgmtModalLabel">Confirm Sponsorship</h4>
-                                             </div>
-                                             <div class="modal-body" >
-                                                 <div class="form-group">
-                                                     <label for="spPurpose">Purpose:</label>
-                                                     <select class="form-control" id="spPurpose">
-                                                         <option value="Emergency Response">Emergency Response</option>
-                                                         <option value="Other Federal Agency">Other Federal Agency</option>
-                                                         <option value="State Agency">State Agency</option>
-                                                         <option value="University">University</option>
-                                                         <option value="Long Term GIS Support">Long Term GIS Support</option>
-                                                     </select>
-                                                 </div>
-                                                 <div class="form-group">
-                                                     <label for="SponsoredOrg">Organization:</label>
-                                                     <input class="form-control" id="SponsoredOrg" type="text" style="width: 100%">
-                                                 </div>
-                                                 <div class="form-group">
-                                                     <label for="spDescription">Description:</label>
-                                                     <textarea class="form-control" rows="5" id="spDescription" style="min-width: 100%"></textarea>
-                                                 </div>
-                                                 <div class="form-group" id="updateAuth">
-                                                     <label for="UserAuthDrop">Choose an Authoritative Group:</label>
-                                                     <select class="form-control" id="UserAuthDrop" data-bind="options: " style="width: 100%"></select>
-                                                 </div>
-                                             </div>
-                                             <div class="modal-footer">
-                                                 <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                                                 <button type="button" id="userSponorSave" class="btn btn-primary" data-bind="click: renew">Confirm</button>
-                                             </div>
-                                         </div>
-                                     </div>
-                                 </div>
+                                <button class="btn btn-primary btn-xs" id="sponsorBtn" data-bind="click: $parent.select" data-toggle="modal" data-target="#userMgmtModal">Sponsor Me!</button>
                              </div>
-                             <!--<div data-bind="if: isSponsored">-->
-                                <!--<button class="btn btn-primary btn-xs" id="renewBtn" data-bind="click: uData.renew">Renew</button>-->
-                             <!--</div>-->
                          </td>
                          <td data-bind="text: uData.fullName"></td>
                          <td data-bind="text: latestSponsor"></td>
-                         <td data-bind="text: uData.authGroups"></td>
-                         <td data-bind="text: createdDate"></td>
-                         <td data-bind="text: modifiedDate"></td>
+                         <td data-bind="text: spAuthGroup"></td>
+                         <td data-bind="text: spOrg"></td>
+                         <td data-bind="text: spStartDate"></td>
+                         <td data-bind="text: spEndDate"></td>
                      </tr>
                      </tbody>
                      <tfoot>
                      </tfoot>
                  </table>
-
+                 <div class="modal fade" id="userMgmtModal" tabindex="-1" role="dialog" aria-labelledby="userMgmtModalLabel">
+                     <div class="modal-dialog modal-sm" role="document">
+                         <div class="modal-content">
+                             <div class="modal-header">
+                                 <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                                 <h4 class="modal-title" id="userMgmtModalLabel">Confirm Sponsorship</h4>
+                             </div>
+                             <div class="modal-body" >
+                                 <div class="form-group">
+                                     <label for="SponsoredOrg" data-bind="text: selected().uData.username()">Organization:</label>
+                                 </div>
+                                 <div class="form-group">
+                                     <label for="spPurpose">Purpose:</label>
+                                     <select class="form-control" id="spPurpose">
+                                         <option value="Emergency Response">Emergency Response</option>
+                                         <option value="Other Federal Agency">Other Federal Agency</option>
+                                         <option value="State Agency">State Agency</option>
+                                         <option value="University">University</option>
+                                         <option value="Long Term GIS Support">Long Term GIS Support</option>
+                                     </select>
+                                 </div>
+                                 <div class="form-group">
+                                     <label for="SponsoredOrg">Organization:</label>
+                                     <input class="form-control" id="SponsoredOrg" type="text" style="width: 100%">
+                                 </div>
+                                 <div class="form-group">
+                                     <label for="spDescription">Description:</label>
+                                     <textarea class="form-control" rows="5" id="spDescription" style="min-width: 100%"></textarea>
+                                 </div>
+                                 <div class="form-group" id="updateAuth">
+                                     <label for="UserAuthDrop">Choose an Authoritative Group:</label>
+                                     <select class="form-control" id="UserAuthDrop" data-bind="options: selected().sponsoreeAuthGroups" style="width: 100%"></select>
+                                 </div>
+                             </div>
+                             <div class="modal-footer">
+                                 <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                                 <button type="button" id="userSponorSave" class="btn btn-primary" data-bind="click: selected().renew">Confirm</button>
+                             </div>
+                         </div>
+                     </div>
+                 </div>
              </div>
              <!-- End userMgmtView  modal -->
 
