@@ -99,7 +99,8 @@ egam.edginit = function(title, modal) {
   }
   $.ajax({
     url: edgURL,
-    type: 'HEAD',  // Check for 404s
+    // Check for 404s
+    type: 'HEAD',
     success: function() {
       $.ajax({
         url: edgURL,
@@ -837,8 +838,8 @@ egam.edgItemTableModel = function (data) {
           });
         },
         error: function(jqXHR, textStatus, errorThrown){
-          alert("EDG metadata record could not be loaded: " + edgURL);
-          console.log( "EDG metadata record could not be loaded: " + edgURL );
+          alert("EDG metadata record could not be loaded: " + edgURL + " (" + textStatus +")");
+          console.log( "EDG metadata record could not be loaded: " + edgURL + " (" + textStatus +")");
         }
       });
     } else {
