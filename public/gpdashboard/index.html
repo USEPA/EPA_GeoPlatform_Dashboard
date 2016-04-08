@@ -764,9 +764,9 @@
                      <tr>
                          <th>Sponsored</th>
                          <th>Name</th>
-                         <th>Sponsorship</th>
+                         <th>E-mail</th>
+                         <th>Sponsor</th>
                          <th>Auth Group</th>
-                         <th>Organization</th>
                          <th>Start Date</th>
                          <th>End Date</th>
                      </tr>
@@ -779,9 +779,9 @@
                              </div>
                          </td>
                          <td data-bind="text: uData.fullName"></td>
+                         <td data-bind="text: uData.email"></td>
                          <td data-bind="text: latestSponsor"></td>
                          <td data-bind="text: spAuthGroup"></td>
-                         <td data-bind="text: spOrg"></td>
                          <td data-bind="text: spStartDate"></td>
                          <td data-bind="text: spEndDate"></td>
                      </tr>
@@ -789,7 +789,7 @@
                      <tfoot>
                      </tfoot>
                  </table>
-                 <div class="modal fade" id="userMgmtModal" tabindex="-1" role="dialog" aria-labelledby="userMgmtModalLabel">
+                 <div class="modal fade" id="userMgmtModal" tabindex="-1" role="dialog" data-keyboard="false" data-backdrop="static" aria-labelledby="userMgmtModalLabel">
                      <div class="modal-dialog modal-sm" role="document">
                          <div class="modal-content">
                              <div class="modal-header">
