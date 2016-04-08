@@ -210,7 +210,7 @@ UpdateGPOgeneric.prototype.getUpdateCommand= function(updateDoc,fieldsMap) {
   if (Array.isArray(fields)) {
     fields = fieldsMap;
   }else {
-    console.log("fieldsMap " + JSON.stringify(fieldsMap));
+//    console.log("fieldsMap " + JSON.stringify(fieldsMap));
 //in this case pass an object like {fields:[field1,field2],arrays:{item1:array1,item2:array2},sets:{item1:set1,item2:set2}}
     if ("fields" in fieldsMap) fields = fieldsMap.fields;
     if ("arrays" in fieldsMap) arrayMap = fieldsMap.arrays;
@@ -241,8 +241,8 @@ UpdateGPOgeneric.prototype.getUpdateCommand= function(updateDoc,fieldsMap) {
     });
     if (Object.keys(addToSetCommand).length>0) updateCommand["$addToSet"] = addToSetCommand;
   }
-  console.log("setArrayMap " + setArrayMap);
-  console.log("uc " + updateCommand);
+//  console.log("setArrayMap " + setArrayMap);
+//  console.log("uc " + JSON.stringify(updateCommand));
 
 //check if push and set have similar keys
   var arrayExtended = require('array-extended');

@@ -96,17 +96,16 @@ egam.edginit = function(title, modal) {
     needToApplyBindings = true;
   }
 
-  var edgURL = "https://edg.epa.gov/metadata/rest/find/document?f=dcat&max=100&callback=?";
+  var edgURL = "https://edg.epa.gov/metadata/rest/find/document?f=dcat&max=100";
   if(modal) {
-    edgURL = "https://edg.epa.gov/metadata/rest/find/document?f=dcat&max=10&searchText=title:" + title + "&callback=?";
+    edgURL = "https://edg.epa.gov/metadata/rest/find/document?f=dcat&max=10&searchText=title:" + title;
   }
-
   $.ajax({
     url: edgURL,
     dataType: 'json',
-    success: function(data) {
+    success: function (data) {
       egam.edgItems.tableModel.add(data.dataset)
-          .then(function() {
+          .then(function () {
             //If there are no rows then don't try to bind
             if (data.dataset.length < 1) return;
             if (needToApplyBindings) {
@@ -124,14 +123,12 @@ egam.edginit = function(title, modal) {
             }, 0);
           });
     },
-    //Note, this doesn't check for 404s - need to write server-side check of URL due to CORS
-    error: function(request, textStatus, errorThrown) {
+    error: function (request, textStatus, errorThrown) {
       if (modal) {
         $('#edgModal').modal('hide');
       }
-      alert('EDG JSON parse error: ' + request.statusText);
-      console.log('EDG JSON parse error: ' + request.statusText);
-      // perform tasks for error
+      alert('EDG JSON parse error, ' + request.statusText + ": " + edgURL);
+      console.log('EDG JSON parse error, ' + request.statusText + ": " + edgURL);
     }
   });
 
@@ -735,10 +732,45 @@ egam.edgItemTableModel = function (data) {
         dataType: "xml",
         success: function(xml) {
           var title = $(xml).find("citation").find("title").text();
+          if (!title) { // Need to capture different metadata styles
+            title = $(xml).find("title").text();
+            if (!title) {
+              title = $(xml).find("gmd\\:citation").find("gmd\\:CI_Citation").find("gmd\\:title").find("gco\\:CharacterString").text()
+            }
+          }
           var purpose = $(xml).find("purpose").text();
           var abstract = $(xml).find("abstract").text();
-          var useconst = "Access constraints: " + $(xml).find("accconst").text() + " Use constraints: " + $(xml).find("useconst").text();
+          if (!abstract) { // Need to capture different metadata styles
+            abstract = $(xml).find("description").text();
+            if (!abstract) {
+              abstract = $(xml).find("gmd\\:abstract").find("gco\\:CharacterString").text()
+            }
+          }
+          var acc = $(xml).find("accconst").text();
+          var usecon = $(xml).find("useconst").text();
+          if (!usecon) { // Need to capture different metadata styles
+              acc = $(xml).find("gmd\\:MD_SecurityConstraints").find("gmd\\:useLimitation").find("gco\\:CharacterString").text();
+              usecon = $(xml).find("gmd\\:MD_LegalConstraints").find("gmd\\:useLimitation").find("gco\\:CharacterString").text();
+          }
+          var useconst = "";
+          if (acc || usecon) {
+            useconst = "Access constraints: " + acc + " Use constraints: " + usecon;
+          }
+
           var publisher = $(xml).find("publish").text();
+          if (!publisher) { // Need to capture different metadata styles
+            var agency = $(xml).find("agencyName").text();
+            var subagency = $(xml).find("subAgencyName").text();
+            if (agency) {
+              if (subagency) {
+                publisher = agency + ", " + subagency;
+              } else {
+                publisher = agency;
+              }
+            } else {
+              publisher = $(xml).find("gmd\\:contact").find("gmd\\:organisationName").find("gco\\:CharacterString").text();
+            }
+          }
           var mydata = new FormData();
           mydata.append("updateDocs", JSON.stringify({
             id: gpoID, EDGdata: {
@@ -793,9 +825,9 @@ egam.edgItemTableModel = function (data) {
             }
           });
         },
-        error: function(){
-          alert("EDG metadata record could not be loaded: " + edgURL);
-          console.log( "EDG metadata record could not be loaded: " + edgURL );
+        error: function(jqXHR, textStatus, errorThrown){
+          alert("EDG metadata record could not be loaded: " + edgURL + " (" + textStatus +")");
+          console.log( "EDG metadata record could not be loaded: " + edgURL + " (" + textStatus +")");
         }
       });
     } else {
