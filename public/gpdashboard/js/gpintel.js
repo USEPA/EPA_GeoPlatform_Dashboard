@@ -130,8 +130,8 @@ egam.edginit = function(title, modal) {
           if (modal) {
             $('#edgModal').modal('hide');
           }
-          alert('EDG JSON parse error: ' + request.statusText);
-          console.log('EDG JSON parse error: ' + request.statusText);
+          alert('EDG JSON parse error, ' + request.statusText + ": " + edgURL);
+          console.log('EDG JSON parse error, ' + request.statusText + ": " + edgURL);
           // perform tasks for error
         }
       });
@@ -140,8 +140,8 @@ egam.edginit = function(title, modal) {
       if (modal) {
         $('#edgModal').modal('hide');
       }
-      alert('Invalid EDG URL: ' + request.statusText);
-      console.log('Invalid EDG URL: ' + request.statusText);
+      alert('Invalid EDG URL, ' + request.statusText + ": " + edgURL);
+      console.log('Invalid EDG URL, ' + request.statusText + ": " + edgURL);
     }
   });
 
