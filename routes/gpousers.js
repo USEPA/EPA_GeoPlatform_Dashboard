@@ -108,7 +108,7 @@ module.exports = function (app) {
         })
         .then(function (csv) {
           var outFile = "gpoUsers";
-          //get rid of space and back slashes in file name because back slash will be confused as folder seperator in name
+          //get rid of space and back slashes in file name because back slash will be confused as folder separator in name
           //get rid of other special characters used in search
           if (req.params.filterType) outFile += "-" + req.params.filterValue.replace(/ /g, "_").replace(/[\^\$\\]/g, "");
 
@@ -139,7 +139,7 @@ module.exports = function (app) {
       var defer = Q.defer();
       userscollection.find(query, projection)
         .each(function (doc) {
-          res.write(syncJson2csv({data: doc, hasCSVColumnTitle: hasCSVColumnTitle}));
+          res.write(syncJson2csv({data: cleanupUserDocForOutputCSV(doc), hasCSVColumnTitle: hasCSVColumnTitle}));
           res.write("\r\n");
           if (hasCSVColumnTitle) hasCSVColumnTitle = false;
         })
@@ -151,6 +151,27 @@ module.exports = function (app) {
           defer.resolve();
         });
       return defer.promise;
+    }
+
+    function cleanupUserDocForOutputCSV(inputDoc) {
+      var cleanDoc = inputDoc;
+      //remove fields that we don't want to write out to CSV output file
+      delete cleanDoc._id;
+      delete cleanDoc.isAdmin;
+
+      //convert lists to string to clean up []'s in the output CSV
+      cleanDoc.groups = inputDoc.groups.toString();
+      cleanDoc.authGroups = inputDoc.authGroups.toString();
+
+      //convert unix timestamps to dates
+      var modDateRaw = new Date(inputDoc.modified);
+      var createDateRaw = new Date(inputDoc.created);
+
+      //create date in format YYYY-MM-DD
+      cleanDoc.modified = modDateRaw.toISOString().substring(0,10);
+      cleanDoc.created = createDateRaw.toISOString().substring(0,10);
+
+      return cleanDoc;
     }
 
     function streamGPOusers(beginning, end, isCSV) {
