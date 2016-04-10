@@ -17,7 +17,7 @@ var config = {};
     }
     catch (e) {
       localconfig = null;
-      console.log('Configuration File: ' + env + '.js does not exist:' + e);
+      //console.log('Configuration File: ' + env + '.js does not exist:' + e);
     }
     //set env to staging now to use that as a base for local before local overrides
     env = 'staging';
@@ -32,7 +32,7 @@ var config = {};
     }
     catch (e) {
       stgconfig = null;
-      console.log('Configuration File: ' + env + '.js does not exist');
+      //console.log('Configuration File: ' + env + '.js does not exist');
     }
     //set env to production now to use that as a base for local before local overrides
     env = 'production';
@@ -43,7 +43,7 @@ var config = {};
     config = require('./env/' + env);
   }
   catch (e) {
-    console.log('Configuration File: ' + env + '.js does not exist');
+    //console.log('Configuration File: ' + env + '.js does not exist');
   }
 
   //now merge in stgconfig if it exists

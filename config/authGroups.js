@@ -7,7 +7,7 @@ var ids = {
     "EPA Region 5":"ed61918064564766a5015e564f2ed68c",
     "EPA Region 6":"270d5591383040478ad2b7d71e032ec0",
     "EPA Region 7":"57f60cb6671a4161bddf195e0dc97a3b",
-    "U.S. EPA Region 8":"27496423f7af4477acbc968a9b8a5a29",
+    "EPA Region 8":"27496423f7af4477acbc968a9b8a5a29",
     "EPA Region 9":"f1e939185899418b95a1430356962959",
     "EPA Region 10":"23f3a56b40124b70b1e952f800e43bf4",
     "EPA Office of the Administrator (OA)":"6c73ad876a534034be72bbeb26244233",
@@ -23,7 +23,7 @@ var ids = {
     "EPA Office of Research and Development (ORD)":"8744f1d371604943b74ea88bcc3d9602",
     "EPA Office of Solid Waste and Emergency Response (OSWER)":"0119e92ad1a54e76a0451499676a7c73",
     "EPA Office of Water (OW)":"a3508d2ae77d48a4ae160233898512ec",
-    "GPO Meta-Inteligence":"d8c85eae60e942cb99ab641f49012814"
+    "GP Dashboard Superuser Group":"d8c85eae60e942cb99ab641f49012814"
   };
 var names = Object.keys(ids);
 module.exports = {ids:ids,names:names};

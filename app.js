@@ -19,7 +19,7 @@ var redirectRoute = require('./routes/redirect');
 
 var app = express();
 
-console.log('app.js was requested on:  ' + new Date());
+console.log('GP Dashboard app.js started on:  ' + new Date());
 
 //Get the app root
 var appRoot = require('app-root-path') + '/';
