@@ -15,13 +15,12 @@ egam.edgItems = {
 $(document).ready(function () {
 
   $(document).on('click', '.nav li', function (e) {
-    $(".nav-sidebar li").removeClass("active");
-    $(this).addClass("active");
-    var view = $(this).find(":first").attr("id");
+    $('.nav-sidebar li').removeClass('active');
+    $(this).addClass('active');
+    var view = $(this).find(':first').attr('id');
     $('#' + view + 'View').collapse('show');
     $('.view').not(document.getElementById(view)).collapse('hide');
-    //console.log("Sidebar click: " + e);
-    if (e.target.hash == "#edgView") {
+    if (e.target.hash == '#edgView') {
       egam.edginit();
     }
   });
@@ -38,7 +37,7 @@ $(document).ready(function () {
   });
 
   //Add tooltips
-  var options = {delay: { "show": 500, "hide": 100 }};
+  var options = {delay: { 'show': 500, 'hide': 100 }};
   $('[data-toggle="tooltip"]').tooltip(options);
 
   ko.bindingHandlers['wysiwyg'].defaults = {
@@ -53,26 +52,26 @@ $(document).ready(function () {
   
 	//load the GPHE table
 	$.getScript('js/gphedata.js')
-		.done(function(script, textStatus ) {
+		.done(function(script, textStatus) {
 			$('#environmentTable').DataTable( {
 				data: GPHEdata,
 				columns: [
-				  { title: "Folder" },
-				  { title: "Service Name" },
-				  { title: "Service Type" },
-				  { title: "Service Description" }
+				  { title: 'Folder'},
+				  { title: 'Service Name'},
+				  { title: 'Service Type'},
+				  { title: 'Service Description'}
 				]
 			});
 		});
 	
 });
 
+//TODO: all EDG code should go in its own module
+egam.edginit = function(itemTitle, edgModal) {
 
-egam.edginit = function(title, modal) {
-
-  // handle default values
-  title = typeof title !== 'undefined' ? title : '';
-  modal = typeof modal !== 'undefined' ? modal : false;
+  //Handle default values
+  itemTitle = typeof itemTitle !== 'undefined' ? itemTitle : '';
+  edgModal = typeof edgModal !== 'undefined' ? edgModal : false;
 
   //If first time ever binding to table, need to apply binding, but can only bind once so don't bind again if
   //reloading table
@@ -83,22 +82,35 @@ egam.edginit = function(title, modal) {
     //have to actually remove dataTable rows and destroy datatable in order to get knockout to rebind table
     if (egam.edgItems.dataTable) {
       egam.edgItems.dataTable.api().clear().draw();
-      if ("fnDestroy" in egam.edgItems.dataTable) egam.edgItems.dataTable.fnDestroy();
+      if ('fnDestroy' in egam.edgItems.dataTable) egam.edgItems.dataTable.fnDestroy();
     }
     egam.edgItems.tableModel.content.removeAll();
-    console.log("Wiped out table model and data table: " + egam.edgItems.tableModel.content().length);
+    console.log('Wiped out table model and data table: ' + egam.edgItems.tableModel.content().length);
   } else {
     //setting up the new tableModel instance with no rows yet
     egam.edgItems.tableModel = new egam.edgItemTableModel([]);
     needToApplyBindings = true;
   }
 
-  var edgURL = "https://edg.epa.gov/metadata/rest/find/document?f=dcat&max=100";
-  if(modal) {
-    edgURL = "https://edg.epa.gov/metadata/rest/find/document?f=dcat&max=10&searchText=title:" + title;
+  var edgURLRoot = 'https://edg.epa.gov/metadata/rest/find/document?'
+  var edgURLParams = {};
+
+  if(edgModal) {
+    edgURLParams = {
+      f: 'dcat',
+      max: '20',
+      searchText: itemTitle
+    };
   }
+  else {
+    edgURLParams = {
+      f: 'dcat',
+      max: '100'
+    };
+  }
+
   $.ajax({
-    url: edgURL,
+    url: edgURLRoot + $.param(edgURLParams),
     dataType: 'json',
     success: function (data) {
       egam.edgItems.tableModel.add(data.dataset)
@@ -113,7 +125,7 @@ egam.edginit = function(title, modal) {
             setTimeout(function () {
               if (egam.edgItems.dataTable && "fnDestroy" in egam.edgItems.dataTable)
                 egam.edgItems.dataTable.fnDestroy();
-              egam.renderEDGitemsDataTable(modal)
+              egam.renderEDGitemsDataTable(edgModal)
                   .then(function (dt) {
                     egam.edgItems.dataTable = dt;
                   });
@@ -121,11 +133,11 @@ egam.edginit = function(title, modal) {
           });
     },
     error: function (request, textStatus, errorThrown) {
-      if (modal) {
+      if (edgModal) {
         $('#edgModal').modal('hide');
       }
-      alert('EDG JSON parse error, ' + request.statusText + ": " + edgURL);
-      console.log('EDG JSON parse error, ' + request.statusText + ": " + edgURL);
+      alert('EDG Error, ' + request.statusText + ': ' + (edgURLRoot + $.param(edgURLParams)));
+      console.log('EDG JSON parse error, ' + request.statusText + ': ' + (edgURLRoot + $.param(edgURLParams)));
     }
   });
 
@@ -225,13 +237,16 @@ function calcItemsPassingAudit(dataResults) {
 }
 
 egam.renderEDGitemsDataTable = function () {
+
   // handle default values
+  //TODO: what is the scope of this var modal?
   modal = typeof modal !== 'undefined' ? modal : false;
 
   //apply data table magic, ordered ascending by title
   //Use this so we know when table is rendered
   var defer = $.Deferred();
   if (!modal) {
+    //TODO: what is the scope of this var div?
     div = '#edgitemtable';
   } else {
     div = '#edgitemmodaltable';
@@ -301,6 +316,7 @@ egam.renderGPOitemsDataTable = function () {
             });
 
             if (select.length > 0 && select[0].options.length > 1) return;
+
             //If first item has data-search then have to map out data-search data
             var att = column.nodes().to$()[0].attributes;
             if ("data-search" in att) {
@@ -356,8 +372,7 @@ egam.runAllClientSideFilters = function () {
   egam.gpoItems.dataTable.api().columns().every(function () {
     var column = this;
     //Don't fire dropAccess handler because it will download again
-    if (egam.communityUser.isSuperUser && $(column.header()).hasClass
-      ("accessColumn")) return true;
+    if (egam.communityUser.isSuperUser && $(column.header()).hasClass("accessColumn")) return true;
 
     var headerSelect = $(column.header()).find("select.search");
     if (headerSelect.length > 0) headerSelect.trigger("change");
@@ -405,7 +420,7 @@ egam.accessSelectEventHandler = function () {
 egam.setAuthGroupsDropdown = function (ownerIDsByAuthGroup) {
   var dropAuthGroups = $("#dropAuthGroups");
   dropAuthGroups.on("change", function () {
-    //If the only downloaded some authGroups then download again instead of client side filtering
+    //If we only downloaded some authGroups then download again instead of client side filtering
     if (egam.gpoItems.allAuthGroupsDownloaded === false) {
       // Call accessSelectEventHandler in proper context of dropAccess
       egam.accessSelectEventHandler.apply($("#dropAccess"), []);
@@ -428,6 +443,8 @@ egam.setAuthGroupsDropdown = function (ownerIDsByAuthGroup) {
       var href = $('#downloadAuthgroupsCSVregions').attr("href");
       //tack on authgroup to the end of the route to get csv. Note: use ^ and $ to get exact match because it matches regex(Region 1 and 10 would be same if not)
       //Also we are using authGroup by name so need to escape ( and ) which is offices like (OAR)
+      //TODO: Not sure about this code, I've had a few weird bugs with this in action where my dashboard is sent to
+      //TODO: a 404 error page upon clicking download users CSV in the GUI -- looked like an escaping issue to me
       var escapeAuthGroup = authgroup.replace(/\(/g, "%5C(").replace(/\)/g, "%5C)");
       href = href.substring(0, href.lastIndexOf("/") + 1) + "^" + escapeAuthGroup + "$";
       $('#downloadAuthgroupsCSVregions').attr("href", href);
@@ -444,9 +461,6 @@ egam.setAuthGroupsDropdown = function (ownerIDsByAuthGroup) {
   if (authGroups.length > 1) dropAuthGroups.append($("<option>", {value: ""}).text("All"));
 
   $.each(authGroups, function (index, authGroup) {
-//  $.each(ownerIDsByAuthGroup,function (authGroup,ownerIDs) {
-//    var reOwnerIDs = ownerIDs.join("|");
-//    dropAuthGroups.append($('<option>', { value : reOwnerIDs }).text(authGroup));
     dropAuthGroups.append($("<option>", {value: authGroup}).text(authGroup));
   });
 };
@@ -459,14 +473,11 @@ egam.edgItemModel = function (data) {
 
 egam.gpoItemModel = function (i, loading) {
   var self = this;
-  if (i.id == '7bab68d53b3c41caae8e949d5aa8e026') {
-    console.log("break here");
-  }
   this.loading = loading || false;
   //This is the doc
   var docTemp = ko.mapping.fromJS(i);
   this.doc = ko.observable(docTemp);
-//THis is just place to store current version of row before they hit save
+  //This is just a place to store current version of row before they hit save
   this.tableDoc =  i;
 
   this.complianceStatus = ko.computed(function () {
@@ -497,7 +508,7 @@ egam.gpoItemModel = function (i, loading) {
   }, this);
   //Link to item in GPO
   this.gpoLink = ko.computed(function(){
-    return "http://epa.maps.arcgis.com/home/item.html?id=" + self.doc().id();
+    return "https://epa.maps.arcgis.com/home/item.html?id=" + self.doc().id();
   }, this);
 
   //Doc of changed fields
@@ -590,12 +601,13 @@ egam.gpoItemModel = function (i, loading) {
 
     var mydata = new FormData();
     var updateDocsJSON = JSON.stringify(self.changeDoc);
-//don't try to update if there is nothing to update
+    //don't try to update if there is nothing to update
     if (updateDocsJSON=="{}" && ! thumbnailFile) return;
-//changeDoc should be cleared for next time
+    //changeDoc should be cleared for next time
     self.changeDoc = {};
     mydata.append("updateDocs", JSON.stringify(updateDocsJSON));
     mydata.append("thumbnail", thumbnailFile);
+
     $.ajax({
       url: 'gpoitems/update',
       type: 'POST',
