@@ -1,4 +1,3 @@
-//Aaron Evans Jr.
 var express = require('express');
 var fs = require('fs')
 var path = require('path');
@@ -20,7 +19,7 @@ var redirectRoute = require('./routes/redirect');
 
 var app = express();
 
-console.log('app.js requested:  ' + new Date());
+console.log('app.js was requested on:  ' + new Date());
 
 //Get the app root
 var appRoot = require('app-root-path') + '/';
@@ -30,7 +29,7 @@ app.set('appRoot',appRoot);
 var env = require(appRoot + '/shared/getNodeEnv')();
 app.set('env', env);
 
-console.log('app.get(env) = ' + app.get('env') + ' NODE_ENV = ' + process.env.NODE_ENV);
+//console.log('app.get(env) = ' + app.get('env') + ' NODE_ENV = ' + process.env.NODE_ENV);
 
 //get the configuration for this current environment from config file specific to current environment
 //Note, if for some reason appRoot is wrong try the hardcoded path
@@ -89,15 +88,9 @@ app.use(session(sessionOptions));
 
 //Now setup the email transporter
 var sendEmail = require(appRoot + '/shared/sendEmail');
-sendEmail.send(config.email.defaultFrom,config.email.admins,'EGAM Express Server Started','EGAM Express server was started on ' + new Date() + '. This could possibly be due to automatic restart after server crash due to uncaught exceptions. Check logs/errors.log for uncaught exceptions.')
+sendEmail.send(config.email.defaultFrom,config.email.admins,'GP Dashboard Express Server Started','GP Dashboard Express' +
+  ' server was started on ' + new Date() + '. This could possibly be due to automatic restart after server crash due to uncaught exceptions. Check logs/errors.log for uncaught exceptions.')
   .catch(function (error) {console.error(error)});
-
-
-//console.log(config);
-
-// All standard routes above here
-// endpoint for API calls to MongoDB via Monk
-//pp.post('/api', handler.POST.getPosts);
 
 // Static route for serving out our front-end Tool
 app.use(express.static(path.join(__dirname, 'public')));
