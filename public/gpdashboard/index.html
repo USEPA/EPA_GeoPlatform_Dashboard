@@ -767,6 +767,9 @@
                          <th>E-mail</th>
                          <th>Sponsor</th>
                          <th>Auth Group</th>
+                         <th>Organization</th>
+                         <th>Description</th>
+                         <th>Reason</th>
                          <th>Start Date</th>
                          <th>End Date</th>
                      </tr>
@@ -782,6 +785,9 @@
                          <td data-bind="text: uData.email"></td>
                          <td data-bind="text: latestSponsor"></td>
                          <td data-bind="text: spAuthGroup"></td>
+                         <td data-bind="text: spOrg"></td>
+                         <td data-bind="text: spDescript"></td>
+                         <td data-bind="text: spReason"></td>
                          <td data-bind="text: spStartDate"></td>
                          <td data-bind="text: spEndDate"></td>
                      </tr>
@@ -798,10 +804,10 @@
                              </div>
                              <div class="modal-body" >
                                  <div class="form-group">
-                                     <label for="SponsoredOrg" data-bind="text: selected().uData.username()">Organization:</label>
+                                     <label for="SponsoredOrg" data-bind="text: selected().uData.fullName()"></label>
                                  </div>
                                  <div class="form-group">
-                                     <label for="spPurpose">Purpose:</label>
+                                     <label for="spPurpose">Reason:</label>
                                      <select class="form-control" id="spPurpose">
                                          <option value="Emergency Response">Emergency Response</option>
                                          <option value="Other Federal Agency">Other Federal Agency</option>

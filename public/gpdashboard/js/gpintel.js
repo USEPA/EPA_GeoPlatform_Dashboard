@@ -207,6 +207,24 @@ function populateUserMngntTable(PortalUser){
         }
       });
 
+      this.spReason = ko.computed(function(){
+        var spLen = self.uData.sponsors().length;
+        if(spLen >0){
+          return self.uData.sponsors()[spLen - 1].reason();
+        }else{
+          return;
+        }
+      });
+
+      this.spDescript = ko.computed(function(){
+        var spLen = self.uData.sponsors().length;
+        if(spLen >0){
+          return self.uData.sponsors()[spLen - 1].description();
+        }else{
+          return;
+        }
+      });
+
       //Format Date from millaseconds to something useful
       function formatDate(uDate) {
         var monthNames = [
@@ -251,9 +269,14 @@ function populateUserMngntTable(PortalUser){
       //
       //  }
       //};
+      //$('#userMgmtModal').on('show.bs.modal', function (e) {
+      //  if(egam.communityUser.authGroups > 0){
+      //    $('#updateAuth').show();
+      //  }
+      //})
 
       this.renew = function () {
-        //alert("renew");
+
         //get current data for sponsoring
         var defaultDuration = 90;
         var sD = new Date();
@@ -263,6 +286,12 @@ function populateUserMngntTable(PortalUser){
         //get assigned authGroup from dropdown
         var userAuthDrop = $('#UserAuthDrop');
         var authGroup = userAuthDrop[0].options[userAuthDrop[0].selectedIndex].value;
+        //get other fields
+        var org = $('#SponsoredOrg').val();
+        var descript = $('#spDescription').val();
+        var reason = $('#spPurpose');
+        var reasonSelected = reason[0].options[reason[0].selectedIndex].value;
+
         //Create updateDoc to post back to mongo
         myUserData = {};
         updateUserData = {
@@ -272,7 +301,9 @@ function populateUserMngntTable(PortalUser){
             startDate: sponsorDate,
             endDate: endDate,
             authGroup: authGroup,
-
+            reason: reasonSelected,
+            organization: org,
+            description: descript
           },
           authGroup: authGroup,
         };
@@ -281,9 +312,9 @@ function populateUserMngntTable(PortalUser){
           startDate: sponsorDate,
           endDate: endDate,
           authGroup: authGroup,
-          reason: "",
-          organization: "",
-          description: ""
+          reason: reasonSelected,
+          organization: org,
+          description: descript
         };
         myUserData.updateDocs = JSON.stringify(updateUserData);
 
@@ -298,23 +329,23 @@ function populateUserMngntTable(PortalUser){
         //console.log(userAuthDrop);
 
         //post to mongo
-        //$.ajax({
-        //  url: 'gpousers/update',
-        //  type: 'POST',
-        //  data: myUserData,
-        //  cache: false,
-        //  dataType: 'json',
-        //  //processData: false, // Don't process the files
-        //  //contentType: false, // Set content type to false as jQuery will tell the server its a query string request
-        //  success: function (rdata, textStatus, jqXHR) {
-        //    console.log("Success: Poated new sponsor to Mongo");
-        //    //alert(JSON.stringify(rdata));
-        //  },
-        //  error: function (jqXHR, textStatus, errorThrown) {
-        //    // Handle errors here
-        //    console.log('ERRORS: ' + textStatus);
-        //  }
-        //});
+        $.ajax({
+          url: 'gpousers/update',
+          type: 'POST',
+          data: myUserData,
+          cache: false,
+          dataType: 'json',
+          //processData: false, // Don't process the files
+          //contentType: false, // Set content type to false as jQuery will tell the server its a query string request
+          success: function (rdata, textStatus, jqXHR) {
+            console.log("Success: Poated new sponsor to Mongo");
+            //alert(JSON.stringify(rdata));
+          },
+          error: function (jqXHR, textStatus, errorThrown) {
+            // Handle errors here
+            console.log('ERRORS: ' + textStatus);
+          }
+        });
         $('#userMgmtModal').modal('hide');
         $('#updateAuth').hide();
       };
