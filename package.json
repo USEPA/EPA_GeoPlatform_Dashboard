@@ -9,7 +9,7 @@
     "forever": "foreverStart.bat",
     "foreverStop": "forever stop egam",
     "debug": "node-debug ./bin/www",
-    "install-local": "npm install -g mocha && npm install",
+    "install-local": "npm install -g mocha & npm install",
     "test": "mocha"
   },
   "dependencies": {
