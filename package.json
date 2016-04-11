@@ -1,14 +1,16 @@
 {
-  "name": "gpintel",
-  "version": "0.0.1",
+  "name": "gpdashboard",
+  "version": "0.0.8",
   "private": true,
   "scripts": {
-    "start": "node ./bin/www"
-    ,"super": "supervisor -n exit ./bin/www"
-    ,"nodemon": "nodemon ./bin/www"
-    ,"forever": "foreverStart.bat"
-    ,"foreverStop": "forever stop egam"
-    ,"debug": "node-debug ./bin/www"
+    "start": "node ./bin/www",
+    "super": "supervisor -n exit ./bin/www",
+    "nodemon": "nodemon ./bin/www",
+    "forever": "foreverStart.bat",
+    "foreverStop": "forever stop egam",
+    "debug": "node-debug ./bin/www",
+    "install-local": "npm install -g mocha & npm install",
+    "test": "mocha"
   },
   "dependencies": {
     "body-parser": "~1.13.1",
@@ -41,17 +43,20 @@
   },
   "devDependencies": {
     "grunt": "~0.4.5",
-    "grunt-env": "~0.4.4",
-    "grunt-nodemon": "~0.4.0",
-    "grunt-node-inspector": "~0.2.0",
     "grunt-concurrent": "~2.0.1",
-    "grunt-open": "~0.2.3",
-    "grunt-run": "~0.3.0",
-    "grunt-contrib-watch": "~0.6.1",
     "grunt-contrib-jshint": "~0.11.2",
-    "grunt-rerun": "~0.0.4",
+    "grunt-contrib-watch": "~0.6.1",
+    "grunt-env": "~0.4.4",
+    "grunt-express": "~1.4.1",
     "grunt-forever": "~0.4.7",
+    "grunt-node-inspector": "~0.2.0",
+    "grunt-nodemon": "~0.4.0",
+    "grunt-open": "~0.2.3",
     "grunt-reload": "~0.2.0",
-    "grunt-express": "~1.4.1"
+    "grunt-rerun": "~0.0.4",
+    "grunt-run": "~0.3.0",
+    "should": "^8.3.0",
+    "superagent": "^1.8.3",
+    "supertest": "^1.2.0"
   }
 }
