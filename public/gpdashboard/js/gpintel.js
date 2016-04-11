@@ -384,38 +384,39 @@ function populateUserMngntTable(PortalUser){
     // JSON.parse(data)
     ko.applyBindings(new viewModel(JSON.parse(data)), document.getElementById("userMgmtView"));
 
-    $.fn.dataTable.ext.buttons.alert = {
-      className: 'buttons-alert',
-      action: function ( e, dt, node, config ) {
-        alert( this.text() );
-
-        //var filteredData = userManagementTable
-        //    .column( 2 )
-        //    .data()
-        //    .filter( function ( value, index ) {
-        //      //alert(value.length);
-        //      return value.length < 1 ? true : false;
-        //    }).draw();
-
-      }
-    };
+    //$.fn.dataTable.ext.buttons.alert = {
+    //  className: 'buttons-alert',
+    //  action: function ( e, dt, node, config ) {
+    //    alert( this.text() );
+    //
+    //    var userTable = $('#userMgmtTable').DataTable();
+    //    var filteredData = userTable
+    //        .column( 3 )
+    //        .data()
+    //        .filter( function ( value, index ) {
+    //          //alert(value.length);
+    //          return value.length > 1 ? true : false;
+    //        }).reload();
+    //
+    //  }
+    //};
 
     userManagementTable = $('#userMgmtTable').DataTable( {
-      dom: 'Bfrtip',
-        buttons: [
-          {
-            extend:'alert',
-            text: 'All Users'
-          },
-          {
-            extend:'alert',
-            text: 'Sponsored'
-          },
-          {
-            extend:'alert',
-            text: 'Unsponsored'
-          }
-        ],
+      //dom: 'Bfrtip',
+      //  buttons: [
+      //    {
+      //      extend:'alert',
+      //      text: 'All Users'
+      //    },
+      //    {
+      //      extend:'alert',
+      //      text: 'Sponsored'
+      //    },
+      //    {
+      //      extend:'alert',
+      //      text: 'Unsponsored'
+      //    }
+      //  ],
       "order": [
         [1, "asc"]
       ]
