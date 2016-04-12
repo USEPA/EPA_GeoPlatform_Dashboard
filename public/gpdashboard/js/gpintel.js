@@ -15,7 +15,8 @@ egam.edgItems = {
 egam.gpoUsers = {
   resultSet: [],
   tableModel: null,
-  dataTable: null
+  dataTable: null,
+  isLoaded: false
 };
 
 $(document).ready(function () {
@@ -29,6 +30,12 @@ $(document).ready(function () {
     //console.log("Sidebar click: " + e);
     if (e.target.hash == "#edgView") {
       egam.edginit();
+    }else if(e.target.hash == "#userMgmtView"){
+      //only load user table the first time user click on userMgmtView
+      if(!egam.gpoUsers.isLoaded){
+        populateUserMngntTable();
+        egam.gpoUsers.isLoaded = true;
+      }
     }
   });
 
@@ -140,16 +147,16 @@ egam.edginit = function(title, modal) {
 
 };
 
-function populateUserMngntTable(PortalUser){
+function populateUserMngntTable(){
 
-  var queryUM = {}; //{isExternal:true};
+  var queryUM = {isExternal:true}; //{isExternal:true};
   $.post('gpousers/list', {
     query: queryUM
   }, function(data){
     //alert(data);
     egam.gpoUsers.resultSet = data;
 
-    var viewModel2 = function(u) {
+    var gpoUserModel = function(u) {
       var self = this;
 
       if (!u.sponsors) {
@@ -237,43 +244,7 @@ function populateUserMngntTable(PortalUser){
         return formattedDate;
       };
 
-      //this.modifiedDate = ko.computed(function () {
-      //  var dDate = new Date(self.uData.modified());
-      //  return formatDate(dDate);
-      //});
-
-      //this.createdDate = ko.computed(function () {
-      //  var dDate = new Date(self.uData.created());
-      //  return formatDate(dDate);
-      //});
-
       this.sponsoreeAuthGroups = ko.observableArray(egam.communityUser.authGroups);
-
-      //Add sponsor
-      //this.sponsorMe = function () {
-      //  $('#updateAuth').hide();
-      //  //open modal
-      //  $('#userMgmtModal').modal('show');
-      //  //get auth groups for user
-      //  var authGroups = egam.communityUser.authGroups;
-      //  var userAuthDrop = $('#UserAuthDrop');
-      //
-      //  if(authGroups.length > 1){
-      //    if(userAuthDrop[0].options.length < 1){
-      //      $.each(authGroups, function (index, authGroup) {
-      //        userAuthDrop.append($("<option>", {value: authGroup}).text(authGroup));
-      //      });
-      //    }
-      //    $('#updateAuth').show();
-      //  }else{
-      //
-      //  }
-      //};
-      //$('#userMgmtModal').on('show.bs.modal', function (e) {
-      //  if(egam.communityUser.authGroups > 0){
-      //    $('#updateAuth').show();
-      //  }
-      //})
 
       this.renew = function () {
 
@@ -297,7 +268,7 @@ function populateUserMngntTable(PortalUser){
         updateUserData = {
           username: self.uData.username(), //self.uData.username()
           sponsor: {
-            username: PortalUser,
+            username: egam.communityUser.username,
             startDate: sponsorDate,
             endDate: endDate,
             authGroup: authGroup,
@@ -308,7 +279,7 @@ function populateUserMngntTable(PortalUser){
           authGroup: authGroup,
         };
         updatedSponsor = {
-          username: PortalUser,
+          username: egam.communityUser.username,
           startDate: sponsorDate,
           endDate: endDate,
           authGroup: authGroup,
@@ -338,7 +309,7 @@ function populateUserMngntTable(PortalUser){
           //processData: false, // Don't process the files
           //contentType: false, // Set content type to false as jQuery will tell the server its a query string request
           success: function (rdata, textStatus, jqXHR) {
-            console.log("Success: Poated new sponsor to Mongo");
+            console.log("Success: Posted new sponsor to Mongo");
             //alert(JSON.stringify(rdata));
           },
           error: function (jqXHR, textStatus, errorThrown) {
@@ -351,11 +322,11 @@ function populateUserMngntTable(PortalUser){
       };
     };
 
-    var viewModel = function(usersDoc){
+    var gpoUserTableModel = function(usersDoc){
       var self = this;
 
       self.users = ko.observableArray(usersDoc.map(function (doc){
-        return new viewModel2(doc);
+        return new gpoUserModel(doc);
       }));
 
       self.select = function (item) {
@@ -382,7 +353,7 @@ function populateUserMngntTable(PortalUser){
 
     };
     // JSON.parse(data)
-    ko.applyBindings(new viewModel(JSON.parse(data)), document.getElementById("userMgmtView"));
+    ko.applyBindings(new gpoUserTableModel(JSON.parse(data)), document.getElementById("userMgmtView"));
 
     //$.fn.dataTable.ext.buttons.alert = {
     //  className: 'buttons-alert',
