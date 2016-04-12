@@ -111,12 +111,15 @@ egam.edginit = function(itemTitle, edgModal) {
   var edgURLRoot = 'https://edg.epa.gov/metadata/rest/find/document?'
   var edgURLParams = {};
 
+  var edgDiv = '#edgitemtable';
+  
   if(edgModal) {
     edgURLParams = {
       f: 'dcat',
       max: '20',
       searchText: itemTitle
     };
+    edgDiv = '#edgitemmodaltable';
   }
   else {
     edgURLParams = {
@@ -141,7 +144,7 @@ egam.edginit = function(itemTitle, edgModal) {
             setTimeout(function () {
               if (egam.edgItems.dataTable && "fnDestroy" in egam.edgItems.dataTable)
                 egam.edgItems.dataTable.fnDestroy();
-              egam.renderEDGitemsDataTable(edgModal)
+              egam.renderEDGitemsDataTable(edgDiv)
                   .then(function (dt) {
                     egam.edgItems.dataTable = dt;
                   });
@@ -516,25 +519,15 @@ function calcItemsPassingAudit(dataResults) {
   $('#percPublicPassingAudit').text(percentPassing + "% Passing");
 }
 
-egam.renderEDGitemsDataTable = function (edgModal) {
-
-  // handle default values
-  edgModal = typeof edgModal !== 'undefined' ? edgModal : false;
-
+egam.renderEDGitemsDataTable = function (edgDiv) {
   //apply data table magic, ordered ascending by title
   //Use this so we know when table is rendered
   var defer = $.Deferred();
-  if (!edgModal) {
-    //TODO: what is the scope of this var div?
-    div = '#edgitemtable';
-  } else {
-    div = '#edgitemmodaltable';
-  }
-  $(div).DataTable({
+  $(edgDiv).DataTable({
     aaSorting: [],
     initComplete: function () {
       defer.resolve(this);
-      $(div).addClass("loaded");
+      $(edgDiv).addClass("loaded");
     }
   });
 
