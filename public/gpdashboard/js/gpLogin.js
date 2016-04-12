@@ -194,7 +194,6 @@ require([
       .fail(function(err) {
         console.error(err);
       });
-
   }
 
   function createGallery(items) {

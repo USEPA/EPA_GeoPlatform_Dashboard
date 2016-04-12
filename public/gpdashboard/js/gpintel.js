@@ -12,6 +12,13 @@ egam.edgItems = {
   dataTable: null
 };
 
+egam.gpoUsers = {
+  resultSet: [],
+  tableModel: null,
+  dataTable: null,
+  isLoaded: false
+};
+
 $(document).ready(function () {
 
   $(document).on('click', '.nav li', function (e) {
@@ -22,6 +29,12 @@ $(document).ready(function () {
     $('.view').not(document.getElementById(view)).collapse('hide');
     if (e.target.hash == '#edgView') {
       egam.edginit();
+    }else if(e.target.hash == "#userMgmtView"){
+      //only load user table the first time user click on userMgmtView
+      if(!egam.gpoUsers.isLoaded){
+        populateUserMngntTable();
+        egam.gpoUsers.isLoaded = true;
+      }
     }
   });
 
@@ -142,6 +155,270 @@ egam.edginit = function(itemTitle, edgModal) {
   });
 
 };
+
+function populateUserMngntTable(){
+
+  var queryUM = {isExternal:true}; //{isExternal:true};
+  $.post('gpousers/list', {
+    query: queryUM
+  }, function(data){
+    //alert(data);
+    egam.gpoUsers.resultSet = data;
+
+    var gpoUserModel = function(u) {
+      var self = this;
+
+      if (!u.sponsors) {
+        u['sponsors'] = [];
+      }
+      this.uData = ko.mapping.fromJS(u);
+
+      //Sponsor fields
+      this.latestSponsor = ko.computed(function () {
+        var sponsorsLen = self.uData.sponsors().length;
+        if (sponsorsLen > 0) {
+          return self.uData.sponsors()[sponsorsLen - 1].username();
+        } else {
+          return;
+        }
+      });
+
+      this.spStartDate = ko.computed(function(){
+        var spLen = self.uData.sponsors().length;
+        if(spLen >0){
+          var dDate = new Date(self.uData.sponsors()[spLen - 1].startDate());
+          var spStartDate = formatDate(dDate);
+          return spStartDate;
+        }else{
+          return;
+        }
+      });
+
+      this.spEndDate = ko.computed(function(){
+        var spLen = self.uData.sponsors().length;
+        if(spLen >0){
+          var dDate = new Date(self.uData.sponsors()[spLen - 1].endDate());
+          var spStartDate = formatDate(dDate);
+          return spStartDate;
+        }else{
+          return;
+        }
+      });
+
+      this.spOrg = ko.computed(function(){
+        var spLen = self.uData.sponsors().length;
+        if(spLen >0){
+          return self.uData.sponsors()[spLen - 1].organization();
+        }else{
+          return;
+        }
+      });
+
+      this.spAuthGroup = ko.computed(function(){
+        var spLen = self.uData.sponsors().length;
+        if(spLen >0){
+          return self.uData.sponsors()[spLen - 1].authGroup();
+        }else{
+          return;
+        }
+      });
+
+      this.spReason = ko.computed(function(){
+        var spLen = self.uData.sponsors().length;
+        if(spLen >0){
+          return self.uData.sponsors()[spLen - 1].reason();
+        }else{
+          return;
+        }
+      });
+
+      this.spDescript = ko.computed(function(){
+        var spLen = self.uData.sponsors().length;
+        if(spLen >0){
+          return self.uData.sponsors()[spLen - 1].description();
+        }else{
+          return;
+        }
+      });
+
+      //Format Date from millaseconds to something useful
+      function formatDate(uDate) {
+        var monthNames = [
+          "Jan", "Feb", "Mar",
+          "Apr", "May", "Jun", "Jul",
+          "Aug", "Sep", "Oct",
+          "Nov", "Dec"
+        ];
+        var formattedDate = monthNames[uDate.getMonth()] + " " + uDate.getDate() + ", " + uDate.getFullYear();
+        return formattedDate;
+      };
+
+      this.sponsoreeAuthGroups = ko.observableArray(egam.communityUser.authGroups);
+
+      this.renew = function () {
+
+        //get current data for sponsoring
+        var defaultDuration = 90;
+        var sD = new Date();
+        var sponsorDate = sD.getTime();
+        var endDate = sponsorDate + defaultDuration*24*3600*1000;
+
+        //get assigned authGroup from dropdown
+        var userAuthDrop = $('#UserAuthDrop');
+        var authGroup = userAuthDrop[0].options[userAuthDrop[0].selectedIndex].value;
+        //get other fields
+        var org = $('#SponsoredOrg').val();
+        var descript = $('#spDescription').val();
+        var reason = $('#spPurpose');
+        var reasonSelected = reason[0].options[reason[0].selectedIndex].value;
+
+        //Create updateDoc to post back to mongo
+        myUserData = {};
+        updateUserData = {
+          username: self.uData.username(), //self.uData.username()
+          sponsor: {
+            username: egam.communityUser.username,
+            startDate: sponsorDate,
+            endDate: endDate,
+            authGroup: authGroup,
+            reason: reasonSelected,
+            organization: org,
+            description: descript
+          },
+          authGroup: authGroup,
+        };
+        updatedSponsor = {
+          username: egam.communityUser.username,
+          startDate: sponsorDate,
+          endDate: endDate,
+          authGroup: authGroup,
+          reason: reasonSelected,
+          organization: org,
+          description: descript
+        };
+        myUserData.updateDocs = JSON.stringify(updateUserData);
+
+        //alert(JSON.stringify(updateUserData));
+        var unmapped = ko.mapping.toJS(self.uData);
+        //update in UI doc
+        unmapped.sponsors.push(updatedSponsor);
+        unmapped.authGroups.push(authGroup);
+        //console.log(JSON.stringify(unmapped));
+        ko.mapping.fromJS(unmapped, self.uData);
+
+        //console.log(userAuthDrop);
+
+        //post to mongo
+        $.ajax({
+          url: 'gpousers/update',
+          type: 'POST',
+          data: myUserData,
+          cache: false,
+          dataType: 'json',
+          //processData: false, // Don't process the files
+          //contentType: false, // Set content type to false as jQuery will tell the server its a query string request
+          success: function (rdata, textStatus, jqXHR) {
+            console.log("Success: Posted new sponsor to Mongo");
+            //alert(JSON.stringify(rdata));
+          },
+          error: function (jqXHR, textStatus, errorThrown) {
+            // Handle errors here
+            console.log('ERRORS: ' + textStatus);
+          }
+        });
+        $('#userMgmtModal').modal('hide');
+        $('#updateAuth').hide();
+      };
+    };
+
+    var gpoUserTableModel = function(usersDoc){
+      var self = this;
+
+      self.users = ko.observableArray(usersDoc.map(function (doc){
+        return new gpoUserModel(doc);
+      }));
+
+      self.select = function (item) {
+        self.selected(item);
+      };
+
+      //allows you to select an item based on index, usually index will be coming from row number
+      self.selectIndex = function (index) {
+        var selectedItem = self.users()[index];
+        self.selected(selectedItem);
+      };
+
+      self.selected = ko.observable();
+
+      if (self.users().length > 0) {
+        //automatically select the 1st item in the table
+        //no idea why we are doing this?
+        self.selected = ko.observable(self.users()[0]);
+      }
+
+      self.clear = function () {
+        self.users().length = 0;
+      };
+
+    };
+    // JSON.parse(data)
+    ko.applyBindings(new gpoUserTableModel(JSON.parse(data)), document.getElementById("userMgmtView"));
+
+    $.fn.dataTable.ext.buttons.alert = {
+      className: 'buttons-alert',
+      action: function ( e, dt, node, config ) {
+        //alert( this.text() );
+        var userTable = $('#userMgmtTable').DataTable();
+        //console.log(e);
+        var searchVal;
+        if(this.text() == "All External Users"){
+          searchVal = '.*';
+          this.active(true);
+          userTable.button(1).active(false);
+          userTable.button(2).active(false);
+        }else if(this.text() == "Sponsored"){
+          searchVal = '.+';
+          this.active(true);
+          userTable.button(0).active(false);
+          userTable.button(2).active(false);
+        }else if(this.text() == "Unsponsored") {
+          searchVal = '^'+'$';
+          this.active(true);
+          userTable.button(0).active(false);
+          userTable.button(1).active(false);
+        }
+
+        userTable
+            .column( 3 )
+            .search(searchVal, true, false)
+            .draw();
+      }
+    };
+
+    var userManagementTable = $('#userMgmtTable').DataTable( {
+      dom: 'Bfrtip',
+        buttons: [
+          {
+            extend:'alert',
+            text: 'All External Users',
+          },
+          {
+            extend:'alert',
+            text: 'Sponsored'
+          },
+          {
+            extend:'alert',
+            text: 'Unsponsored'
+          }
+        ],
+      "order": [
+        [1, "asc"]
+      ]
+    });
+    //make All External Users button active
+    userManagementTable.buttons(0).active(true);
+  });
+}
 
 //Populate table for GPO User's Items View
 //Projection in Mongo/Monk is what fields you want to return and sorting, offsetting, etc.
