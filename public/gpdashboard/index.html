@@ -12,6 +12,7 @@
     <link href="bootstrap/css/bootstrap.min.css" rel="stylesheet">
     <link href="bootstrap/css/jasny-bootstrap.min.css" rel="stylesheet">
     <link href="bootstrap/css/dataTables.bootstrap.min.css" rel="stylesheet">
+      <link href="bootstrap/css/buttons.dataTables.min.css" rel="stylesheet">
     <link href="css/dashboard.css" rel="stylesheet">
 
     <!--[if lt IE 9]>
@@ -306,11 +307,11 @@
                 </li>
                 <li role="presentation">
                     <a href="#userMgmtView" role="tab" aria-controls="userMgmtView"
-                                           data-toggle="tab">User Management (Future)</a>
+                                           data-toggle="tab">User Management</a>
                 </li>
                 <li role="presentation">
                     <a href="#edgView" role="tab" aria-controls="edgView"
-                                           data-toggle="tab">EDG Items (Future)</a>
+                                           data-toggle="tab">EDG Items</a>
                 </li>
             </ul>
         </div>
@@ -322,33 +323,10 @@
                 <p><a class="btn btn-lg btn-success" id='sign-in-biggreen'>Sign in to get started</a></p>
             </div>
         </div>
-        
+
         <div id="mainWindow" style="display: none; "
              class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
-          <div id="gpoContentHeader" class="row placeholders">
-          <div class="col-xs-6 col-sm-3">
-              <h4>Public Items Audit Result</h4>
-              <span id="percPublicPassingAudit" class="text-muted">75% Passing</span>
-            </div>
-            <div class="col-xs-6 col-sm-3">
-              <h4>My Items</h4>
-              <span id="agoItems" class="text-muted"></span>
-            </div>
-            <div class="col-xs-6 col-sm-3">
-              <h4>My Groups</h4>
-              <span id="agoGroups" class="text-muted"></span>
-            </div>
-              <div class="col-xs-6 col-sm-3">
-                  <h4 style="white-space:nowrap;">Auth Groups
-                  </h4>
-                  <a data-toggle="tooltip" data-placement="left" title="Show/Hide Auth Groups"><span id="authGroupsCount" class="text-muted" data-toggle="collapse" href="#collapseExample" aria-expanded="false" aria-controls="collapseExample"></span></a>
-                  <div class="collapse" id="collapseExample">
-                      <select id="dropAuthGroups" class="search form-control input-sm hidden"></select>
-                      <a id="downloadAuthgroupsCSVall" href="gpoUsers/list.csv" class="hidden">download users</a>
-                      <a id="downloadAuthgroupsCSVregions" href="gpoUsers/list.csv/authGroups/" class="hidden">download users</a>
-                  </div>
-              </div>
-          </div>
+
          <div class="tab-content">
               <!-- Begin overview class="view collapse in"-->
               <div role="tabpanel" class="tab-pane active" id="overviewView" >
@@ -359,6 +337,30 @@
             </div>
             <!--</div>-->
             <div id="overviewTable" >
+                <div id="gpoContentHeader" class="row placeholders">
+                    <div class="col-xs-6 col-sm-3">
+                        <h4>Public Items Audit Result</h4>
+                        <span id="percPublicPassingAudit" class="text-muted">75% Passing</span>
+                    </div>
+                    <div class="col-xs-6 col-sm-3">
+                        <h4>My Items</h4>
+                        <span id="agoItems" class="text-muted"></span>
+                    </div>
+                    <div class="col-xs-6 col-sm-3">
+                        <h4>My Groups</h4>
+                        <span id="agoGroups" class="text-muted"></span>
+                    </div>
+                    <div class="col-xs-6 col-sm-3">
+                        <h4 style="white-space:nowrap;">Auth Groups
+                        </h4>
+                        <a data-toggle="tooltip" data-placement="left" title="Show/Hide Auth Groups"><span id="authGroupsCount" class="text-muted" data-toggle="collapse" href="#collapseExample" aria-expanded="false" aria-controls="collapseExample"></span></a>
+                        <div class="collapse" id="collapseExample">
+                            <select id="dropAuthGroups" class="search form-control input-sm hidden"></select>
+                            <a id="downloadAuthgroupsCSVall" href="gpoUsers/list.csv" class="hidden">download users</a>
+                            <a id="downloadAuthgroupsCSVregions" href="gpoUsers/list.csv/authGroups/" class="hidden">download users</a>
+                        </div>
+                    </div>
+                </div>
              <h3 class="sub-header"></h3>
               <table id="gpoitemtable1" class="table table-hover table-bordered table-responsive">
                 <thead>
@@ -767,17 +769,87 @@
 
              <!-- userMgmtView  View -->
              <div role="tabpanel" class="tab-pane" id="userMgmtView" >
-                 <div id="userMgmtViewTable" class="table-responsive">
-                     <h2 class="sub-header">User Management</h2>
-                     <div class="jumbotron vertical-center">
-                         <div class="text-center">
-                             <h1 class="alert alert-warning">Site Under Construction</h1>
-                             <p>We are currently building something awesome that will be available soon!</p>
+                 <h2 class="sub-header">User Management</h2>
+                 <table id="userMgmtTable" class="table table-hover table-bordered table-responsive">
+                     <thead>
+                     <tr>
+                         <th>Sponsored</th>
+                         <th>Name</th>
+                         <th>E-mail</th>
+                         <th>Sponsor</th>
+                         <th>Auth Group</th>
+                         <th>Organization</th>
+                         <th>Description</th>
+                         <th>Reason</th>
+                         <th>Start Date</th>
+                         <th>End Date</th>
+                     </tr>
+                     </thead>
+                     <tbody data-bind="foreach: users">
+                     <tr >
+                         <td >
+                             <div>
+                                <button class="btn btn-primary btn-xs" id="sponsorBtn" data-bind="click: $parent.select" data-toggle="modal" data-target="#userMgmtModal">Sponsor Me!</button>
+                             </div>
+                         </td>
+                         <td data-bind="text: uData.fullName"></td>
+                         <td data-bind="text: uData.email"></td>
+                         <td data-bind="text: latestSponsor"></td>
+                         <td data-bind="text: spAuthGroup"></td>
+                         <td data-bind="text: spOrg"></td>
+                         <td data-bind="text: spDescript"></td>
+                         <td data-bind="text: spReason"></td>
+                         <td data-bind="text: spStartDate"></td>
+                         <td data-bind="text: spEndDate"></td>
+                     </tr>
+                     </tbody>
+                     <tfoot>
+                     </tfoot>
+                 </table>
+                 <div class="modal fade" id="userMgmtModal" tabindex="-1" role="dialog" data-keyboard="false" data-backdrop="static" aria-labelledby="userMgmtModalLabel">
+                     <div class="modal-dialog modal-sm" role="document">
+                         <div class="modal-content">
+                             <div class="modal-header">
+                                 <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                                 <h4 class="modal-title" id="userMgmtModalLabel">Confirm Sponsorship</h4>
+                             </div>
+                             <div class="modal-body" >
+                                 <div class="form-group">
+                                     <label for="SponsoredOrg" data-bind="text: selected().uData.fullName()"></label>
+                                 </div>
+                                 <div class="form-group">
+                                     <label for="spPurpose">Reason:</label>
+                                     <select class="form-control" id="spPurpose">
+                                         <option value="Emergency Response">Emergency Response</option>
+                                         <option value="Other Federal Agency">Other Federal Agency</option>
+                                         <option value="State Agency">State Agency</option>
+                                         <option value="University">University</option>
+                                         <option value="Long Term GIS Support">Long Term GIS Support</option>
+                                     </select>
+                                 </div>
+                                 <div class="form-group">
+                                     <label for="SponsoredOrg">Organization:</label>
+                                     <input class="form-control" id="SponsoredOrg" type="text" style="width: 100%">
+                                 </div>
+                                 <div class="form-group">
+                                     <label for="spDescription">Description:</label>
+                                     <textarea class="form-control" rows="5" id="spDescription" style="min-width: 100%"></textarea>
+                                 </div>
+                                 <div class="form-group" id="updateAuth">
+                                     <label for="UserAuthDrop">Choose an Authoritative Group:</label>
+                                     <select class="form-control" id="UserAuthDrop" data-bind="options: selected().sponsoreeAuthGroups" style="width: 100%"></select>
+                                 </div>
+                             </div>
+                             <div class="modal-footer">
+                                 <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                                 <button type="button" id="userSponorSave" class="btn btn-primary" data-bind="click: selected().renew">Confirm</button>
+                             </div>
                          </div>
-
                      </div>
                  </div>
              </div>
+             <!-- End userMgmtView  modal -->
+
              <!-- End userMgmtView  View -->
              <!-- userMgmtView  View -->
              <div role="tabpanel" class="tab-pane" id="edgView" >
@@ -815,6 +887,7 @@
 
     <script src="js/jquery1.11.3/jquery.min.js"></script>
     <script src="js/jquery1.11.3/jquery.dataTables.min.js"></script>
+    <script src="js/jquery1.11.3/dataTables.buttons.min.js"></script>
     <script src="js/jquery1.11.3/dataTables.bootstrap.min.js"></script>
     <script src="bootstrap/js/bootstrap.min.js"></script>
     <script src="bootstrap/js/jasny-bootstrap.min.js"></script>

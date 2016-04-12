@@ -2,16 +2,17 @@ module.exports = function(app) {
   var express = require('express');
   var router = express.Router();
   var Q = require('q');
-//To allow multipart/form-data ie. File uploads
+  //To allow multipart/form-data ie. File uploads
   var fs = require('fs');
 
   var multer = require('multer');
   var upload = multer({ dest: app.get('appRoot') + '/tmp/'});
 
+
   router.use('/list', function(req, res) {
     var username = "";
     if ('session' in req && req.session.username) username=req.session.username;
-//If they are not logged in (no username then
+    //If they are not logged in (no username then
     if (! username) return res.json(utilities.getHandleError({},"LoginRequired")("Must be logged in to make this request."));
 
     var ownerIDs = [username];
