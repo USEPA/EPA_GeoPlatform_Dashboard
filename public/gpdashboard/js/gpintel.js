@@ -43,12 +43,6 @@ $(document).ready(function () {
   $('#egamHelp').on('click', function(e){
     $('#helpModal').modal('show');
   });
-  
-  $('#edgModalView').on('click', function(e) {
-    $('#edgModal').modal('show');
-    var title = $('#title').val();
-    egam.edginit(title, true);
-  });
 
   //Add tooltips
   var options = {delay: { 'show': 500, 'hide': 100 }};
@@ -80,6 +74,14 @@ $(document).ready(function () {
 	
 });
 
+
+egam.searchEDG = function() {
+  $('#edgModal').modal('show');
+  var title = $('#title').val();
+  egam.edginit(title, true);
+}
+
+
 //TODO: all EDG code should go in its own module
 egam.edginit = function(itemTitle, edgModal) {
 
@@ -109,12 +111,15 @@ egam.edginit = function(itemTitle, edgModal) {
   var edgURLRoot = 'https://edg.epa.gov/metadata/rest/find/document?'
   var edgURLParams = {};
 
+  var edgDiv = '#edgitemtable';
+  
   if(edgModal) {
     edgURLParams = {
       f: 'dcat',
       max: '20',
       searchText: itemTitle
     };
+    edgDiv = '#edgitemmodaltable';
   }
   else {
     edgURLParams = {
@@ -139,7 +144,7 @@ egam.edginit = function(itemTitle, edgModal) {
             setTimeout(function () {
               if (egam.edgItems.dataTable && "fnDestroy" in egam.edgItems.dataTable)
                 egam.edgItems.dataTable.fnDestroy();
-              egam.renderEDGitemsDataTable(edgModal)
+              egam.renderEDGitemsDataTable(edgDiv)
                   .then(function (dt) {
                     egam.edgItems.dataTable = dt;
                   });
@@ -514,26 +519,15 @@ function calcItemsPassingAudit(dataResults) {
   $('#percPublicPassingAudit').text(percentPassing + "% Passing");
 }
 
-egam.renderEDGitemsDataTable = function () {
-
-  // handle default values
-  //TODO: what is the scope of this var modal?
-  modal = typeof modal !== 'undefined' ? modal : false;
-
+egam.renderEDGitemsDataTable = function (edgDiv) {
   //apply data table magic, ordered ascending by title
   //Use this so we know when table is rendered
   var defer = $.Deferred();
-  if (!modal) {
-    //TODO: what is the scope of this var div?
-    div = '#edgitemtable';
-  } else {
-    div = '#edgitemmodaltable';
-  }
-  $(div).DataTable({
+  $(edgDiv).DataTable({
     aaSorting: [],
     initComplete: function () {
       defer.resolve(this);
-      $(div).addClass("loaded");
+      $(edgDiv).addClass("loaded");
     }
   });
 
@@ -1114,7 +1108,8 @@ egam.edgItemTableModel = function (data) {
                 //              egam.gpoItems.dataTable.destroy();
                 egam.gpoItems.dataTable.fnDestroy();
                 egam.renderGPOitemsDataTable();
-                //updating currrent doc
+                // Show reconciliation modal
+                $('#reconciliationModal').modal('show');
               }
               else {
                 // Handle errors here

@@ -186,6 +186,10 @@ a, span, tr, h4:hover {
     text-align: center;
   }
 
+  #reconcileTable {
+    margin: 10px;
+  }
+
   #epaTagSelect {
     width: 225px;
   }

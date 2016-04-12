@@ -500,10 +500,12 @@
                                       </div>
                                       <div class="id_holder" data-bind="attr: {id: selected().doc().id}"></div>
                                       <div class="form-group">
-                                          <a id="edgModalView" href="#edgModalView">Search for matching EDG record.</a>
+                                          <label>EDG Link</label>
+                                          <button type="button" id="edgBtn" class="btn btn-default" data-bind="click: function () { egam.searchEDG(); }">Search for matching EDG record.</button>
                                       </div>
                                       <div class="form-group">
                                           <!-- ko if: selected().doc().EDGdata -->
+                                          <label>EDG Reconciliation</label><br />
                                           <button type="button" id="reconcileBtn" class="btn btn-default" data-bind="click: function () { $('#reconciliationModal').modal('show'); }">Reconcile with EDG</button>
                                           <!-- /ko -->
                                       </div>
@@ -586,10 +588,20 @@
                           <div class="modal-body">
                               <form id="modalForm" role="form" data-toggle="validator" data-disable="false" enctype="multipart/form-data" method="post">
                                   <div class="row form-group">
-                                      <table>
+                                      <table id="reconcileTable">
                                           <col class="col-md-5">
-                                          <col class="col-md-2" style="text-align:center">
+                                          <col class="col-md-1" style="text-align:center">
                                           <col class="col-md-5">
+                                          <tr>
+                                              <td>
+                                                  <div class="form-group"><label>Current GPO Item Metadata</label></div>
+                                              </td>
+                                              <td>
+                                              </td>
+                                              <td>
+                                                  <div class="form-group"><label>EDG Item Metadata</label></div>
+                                              </td>
+                                          </tr>
                                           <tr>
                                               <td>
                                                   <div class="form-group has-success">
@@ -598,7 +610,7 @@
                                                   </div>
                                               </td>
                                               <td>
-                                                  <div class="reconcileLink"><a href="#" onclick="$('#GPOtitle').val($('#EDGtitle').val())"><=</a></div>
+                                                  <div class="reconcileLink"><a class="glyphicon glyphicon-arrow-left" onclick="$('#GPOtitle').val($('#EDGtitle').val())"></a></div>
                                               </td>
                                               <td>
                                                   <div class="form-group has-success">
@@ -617,7 +629,7 @@
                                                   </div>
                                               </td>
                                               <td>
-                                                  <div class="reconcileLink"><a href="#" onclick="$('#GPOinputSnippet').val($('#EDGinputSnippet').val())"><=</div>
+                                                  <div class="reconcileLink"><a class="glyphicon glyphicon-arrow-left" onclick="$('#GPOinputSnippet').val($('#EDGinputSnippet').val())"></a></div>
                                               </td>
                                               <td>
                                                   <div class="form-group has-success">
@@ -638,7 +650,7 @@
                                                   </div>
                                               </td>
                                               <td>
-                                                  <div class="reconcileLink"><a href="#" onclick="$('#GPOinputDesc').val($('#EDGinputDesc').val())"><=</div>
+                                                  <div class="reconcileLink"><a class="glyphicon glyphicon-arrow-left" onclick="$('#GPOinputDesc').val($('#EDGinputDesc').val())"></a></div>
                                               </td>
                                               <td>
                                                   <div class="form-group has-success">
@@ -660,7 +672,7 @@
                                                   </div>
                                               </td>
                                               <td>
-                                                  <div class="reconcileLink"><a href="#" onclick="$('#GPOinputAccessUse').val($('#EDGinputAccessUse').val())"><=</div>
+                                                  <div class="reconcileLink"><a class="glyphicon glyphicon-arrow-left" onclick="$('#GPOinputAccessUse').val($('#EDGinputAccessUse').val())"></a></div>
                                               </td>
                                               <td>
                                                   <div class="form-group has-success">
@@ -679,7 +691,7 @@
                                                   </div>
                                               </td>
                                               <td>
-                                                  <div class="reconcileLink"><a href="#" onclick="$('#GPOinputAccessInfo').val($('#EDGinputAccessInfo').val())"><=</div>
+                                                  <div class="reconcileLink"><a class="glyphicon glyphicon-arrow-left" onclick="$('#GPOinputAccessInfo').val($('#EDGinputAccessInfo').val())"></a></div>
                                               </td>
                                               <td>
                                                   <div class="form-group has-success">
@@ -730,7 +742,7 @@
                                      <tr>
                                          <td><a data-bind="attr: { href: $data.references()[0] }, html: $data.title" target="_blank"></a></td>
                                          <td><a data-bind="attr: { href: $data.contactPoint.hasEmail }, html: $data.contactPoint.fn" target="_blank"></a></td>
-                                         <td><a href="#" data-bind="click: function () {$root.linkRecord( $('.id_holder').attr('id'), $data.references()) }" target="_blank">Link</a></td>
+                                         <td><button class="btn btn-primary btn-xs" id="edgLinkBtn" data-bind="click: function () {$root.linkRecord( $('.id_holder').attr('id'), $data.references()) }">Link EDG Record</button></td>
                                      </tr>
                                      <!-- /ko -->
                                      </tbody>
