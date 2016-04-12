@@ -189,3 +189,13 @@ a, span, tr, h4:hover {
   #reconcileTable {
     margin: 10px;
   }
+
+  #epaTagSelect {
+    width: 225px;
+  }
+  #placeTagSelect {
+    width: 225px;
+  }
+  #orgTagSelect {
+    width: 225px;
+  }
