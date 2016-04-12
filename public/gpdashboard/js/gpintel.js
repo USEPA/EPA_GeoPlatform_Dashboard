@@ -160,7 +160,7 @@ function populateUserMngntTable(){
 
   var queryUM = {isExternal:true}; //{isExternal:true};
   $.post('gpousers/list', {
-    query: queryUM
+    query: JSON.stringify(queryUM)
   }, function(data){
     //alert(data);
     egam.gpoUsers.resultSet = data;
