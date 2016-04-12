@@ -29,8 +29,6 @@ $(document).ready(function () {
 
   //Click event for Help Modal
   $('#egamHelp').on('click', function(e){
-    var appRoot = require('app-root-path');
-    var tags = require(appRoot + '/config/tags.js').epa_keywords;
     $('#helpModal').modal('show');
   });
   
@@ -537,14 +535,28 @@ egam.gpoItemModel = function (i, loading) {
   };
 
   //tags
-  this.tagItemToAdd = ko.observable("");
+  this.epaTagItemToAdd = ko.observable("");
+  this.placeTagItemToAdd = ko.observable("");
+  this.orgTagItemToAdd = ko.observable("");
   this.selectedItems = ko.observableArray([""]);
   //Add tag to tags array
-  this.addItem = function () {
-    if ((this.selected().tagItemToAdd() != "") && (this.selected
-      ().doc().tags.indexOf(this.selected().tagItemToAdd()) < 0)) // Prevent blanks and duplicates
-      this.selected().doc().tags.push(this.selected().tagItemToAdd());
-    this.selected().tagItemToAdd(""); // Clear the text box
+  this.addEPAItem = function () {
+    if ((this.selected().epaTagItemToAdd() != "") && (this.selected
+      ().doc().tags.indexOf(this.selected().epaTagItemToAdd()) < 0)) // Prevent blanks and duplicates
+      this.selected().doc().tags.push(this.selected().epaTagItemToAdd());
+    this.selected().epaTagItemToAdd(""); // Clear the text box
+  };
+  this.addPlaceItem = function () {
+    if ((this.selected().placeTagItemToAdd() != "") && (this.selected
+        ().doc().tags.indexOf(this.selected().placeTagItemToAdd()) < 0)) // Prevent blanks and duplicates
+      this.selected().doc().tags.push(this.selected().placeTagItemToAdd());
+    this.selected().placeTagItemToAdd(""); // Clear the text box
+  };
+  this.addOrgItem = function () {
+    if ((this.selected().orgTagItemToAdd() != "") && (this.selected
+        ().doc().tags.indexOf(this.selected().orgTagItemToAdd()) < 0)) // Prevent blanks and duplicates
+      this.selected().doc().tags.push(this.selected().orgTagItemToAdd());
+    this.selected().orgTagItemToAdd(""); // Clear the text box
   };
   //Remove tag from tags array
   this.removeSelected = function () {
@@ -845,9 +857,46 @@ egam.gpoItemTableModel = function (data) {
     return new egam.gpoItemModel(doc);
   }));
 
+  self.initializeTags = function() {
+    // Get official EPA tags from gpoItemsTags.js
+    $.ajax({
+      url: 'gpoitems/availableTags',
+      dataType: 'json',
+      success: function (data, textStatus, jqXHR) {
+        // EPA Keywords
+        $("#epaTagSelect").append("<option></option>");
+        $.each(data.epa_keywords, function(key, value) {
+          $('#epaTagSelect')
+              .append($("<option></option>")
+                  .attr("value",value)
+                  .text(value));
+        });
+        // Place Keywords
+        $("#placeTagSelect").append("<option></option>");
+        $.each(data.place_keywords, function(key, value) {
+          $('#placeTagSelect')
+              .append($("<option></option>")
+                  .attr("value",value)
+                  .text(value));
+        });
+        // EPA Organization Names
+        $("#orgTagSelect").append("<option></option>");
+        $.each(data.epa_organization_names, function(key, value) {
+          $.each(value, function(key, value) {
+            $('#orgTagSelect')
+                .append($("<option></option>")
+                    .attr("value",value)
+                    .text(value));
+          });
+        });
+      }
+    });
+  };
+
   //on the entire table, we need to know which item is selected to use later with modal, etc.
   self.select = function (item) {
     self.selected(item);
+    self.initializeTags();
   };
 
   //allows you to select an item based on index, usually index will be coming from row number

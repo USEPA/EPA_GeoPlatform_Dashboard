@@ -219,5 +219,17 @@ module.exports = function(app) {
 //end of update endpoint
   });
 
+  router.use('/availableTags/:category', function (req, res) {
+    var availableTags = require(app.get('appRoot') + 'config/gpoItemsTags');
+    var category=req.params.category;
+
+    res.json(availableTags[category]);
+  });
+  router.use('/availableTags', function(req, res) {
+    var availableTags = require(app.get('appRoot') + 'config/gpoItemsTags');
+    res.json(availableTags);
+  });
+
+
   return router;
 };

@@ -473,10 +473,20 @@
 
                                       </div>
                                       <div class="form-group">
-                                          <label for="inputTags">Tags</label>
+                                          <label for="dropEPATags">EPA Keywords</label>
                                           <div class="form-inline">
-                                              <button id="inputTags" class="btn btn-default"  type="submit" data-bind="click: selected().addItem, enable: selected().tagItemToAdd().length > 0">Add</button>
-                                              <input class="form-control" id="tagInput" type="text" data-bind='value: selected().tagItemToAdd, valueUpdate: "afterkeydown"'/>
+                                              <button id="dropEPATags" class="btn btn-default"  type="submit" data-bind="click: selected().addEPAItem">Add</button>
+                                              <select class="tag-select search form-control" id="epaTagSelect" data-bind='value: selected().epaTagItemToAdd, valueUpdate: "afterkeydown"'></select>
+                                          </div>
+                                          <label for="dropPlaceTags">Place Keywords</label>
+                                          <div class="form-inline">
+                                              <button id="dropPlaceTags" class="btn btn-default"  type="submit" data-bind="click: selected().addPlaceItem">Add</button>
+                                              <select class="tag-select search form-control" id="placeTagSelect" data-bind='value: selected().placeTagItemToAdd, valueUpdate: "afterkeydown"'></select>
+                                          </div>
+                                          <label for="dropOrgTags">EPA Organization Names</label>
+                                          <div class="form-inline">
+                                              <button id="dropOrgTags" class="btn btn-default"  type="submit" data-bind="click: selected().addOrgItem">Add</button>
+                                              <select class="tag-select search form-control" id="orgTagSelect" data-bind='value: selected().orgTagItemToAdd, valueUpdate: "afterkeydown"'></select>
                                           </div>
                                       </div>
                                       <div class="form-group has-success" data-bind="css: {'has-error': selected().doc().AuditData.errors.tags&&selected().doc().AuditData.errors.tags.compliant()===false}">
