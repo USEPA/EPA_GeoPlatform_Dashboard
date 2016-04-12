@@ -355,43 +355,59 @@ function populateUserMngntTable(){
     // JSON.parse(data)
     ko.applyBindings(new gpoUserTableModel(JSON.parse(data)), document.getElementById("userMgmtView"));
 
-    //$.fn.dataTable.ext.buttons.alert = {
-    //  className: 'buttons-alert',
-    //  action: function ( e, dt, node, config ) {
-    //    alert( this.text() );
-    //
-    //    var userTable = $('#userMgmtTable').DataTable();
-    //    var filteredData = userTable
-    //        .column( 3 )
-    //        .data()
-    //        .filter( function ( value, index ) {
-    //          //alert(value.length);
-    //          return value.length > 1 ? true : false;
-    //        }).reload();
-    //
-    //  }
-    //};
+    $.fn.dataTable.ext.buttons.alert = {
+      className: 'buttons-alert',
+      action: function ( e, dt, node, config ) {
+        //alert( this.text() );
+        var userTable = $('#userMgmtTable').DataTable();
+        //console.log(e);
+        var searchVal;
+        if(this.text() == "All External Users"){
+          searchVal = '.*';
+          this.active(true);
+          userTable.button(1).active(false);
+          userTable.button(2).active(false);
+        }else if(this.text() == "Sponsored"){
+          searchVal = '.+';
+          this.active(true);
+          userTable.button(0).active(false);
+          userTable.button(2).active(false);
+        }else if(this.text() == "Unsponsored") {
+          searchVal = '^'+'$';
+          this.active(true);
+          userTable.button(0).active(false);
+          userTable.button(1).active(false);
+        }
 
-    userManagementTable = $('#userMgmtTable').DataTable( {
-      //dom: 'Bfrtip',
-      //  buttons: [
-      //    {
-      //      extend:'alert',
-      //      text: 'All Users'
-      //    },
-      //    {
-      //      extend:'alert',
-      //      text: 'Sponsored'
-      //    },
-      //    {
-      //      extend:'alert',
-      //      text: 'Unsponsored'
-      //    }
-      //  ],
+        userTable
+            .column( 3 )
+            .search(searchVal, true, false)
+            .draw();
+      }
+    };
+
+    var userManagementTable = $('#userMgmtTable').DataTable( {
+      dom: 'Bfrtip',
+        buttons: [
+          {
+            extend:'alert',
+            text: 'All External Users',
+          },
+          {
+            extend:'alert',
+            text: 'Sponsored'
+          },
+          {
+            extend:'alert',
+            text: 'Unsponsored'
+          }
+        ],
       "order": [
         [1, "asc"]
       ]
     });
+    //make All External Users button active
+    userManagementTable.buttons(0).active(true);
   });
 }
 
