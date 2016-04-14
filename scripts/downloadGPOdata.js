@@ -40,6 +40,9 @@ downloadGPOdata.onlyGetMetaData = downloadGPOdataConfig.onlyGetMetaData | false;
 //Set this to false for the overnight download so that we don't keep the removed items locally
 //But don't do this if you are downloading the entire DB at first because querying on AGOL by Modified Date is actually slow over entire data set
 downloadGPOdata.dontRemoveGPOitems = false;
+//The 2 REST calls need to get owner Folder ID and name takes some time. Might not want to do this on log in?
+downloadGPOdata.dontGetOwnerFolders = true;
+
 //For testing saving json and text only set to true, usually set to false
 downloadGPOdata.dontSaveBinary = false;
 //For testing download of specific slash data, usually set to null

@@ -21,7 +21,7 @@ var DownloadGPOusers = function () {
 //This to account for the bug in which users added to groups does not change users modified date
 //Setting to false will clear out users DB and re download ALL user info
   this.updateOnlyModifiedUsers = false;
-//To only get metadata set to true, usually set to false
+//To only get users and not groups set to true, usually set to false
   this.onlyGetUsers = false;
 //This will make execution must faster since we don not have to download all remote items and only need to download modified
   this.dontRemoveGPOusers = false;
@@ -60,6 +60,7 @@ var DownloadGPOusers = function () {
   this.usersCollection = null;
   this.authgroupsCollection = null;
   this.ownerIDsCollection = null;
+  this.extensionsCollection = null;
 
 //Save logs and errors that accumulate for emailng out or saving to a file possibly
   this.ScriptLogsClass = require(this.appRoot + '/shared/ScriptLogs');
@@ -80,6 +81,9 @@ DownloadGPOusers.prototype.downloadInner = function () {
   if (!this.monk) this.monk = this.MonkClass(this.mongoDBurl);
   if (!this.usersCollection) this.usersCollection = this.monk.get('GPOusers');
   if (!this.ownerIDsCollection) this.ownerIDsCollection = this.monk.get('GPOownerIDs');
+  if (!this.extensionsCollection) this.extensionsCollection= this.monk.get('GPOuserExtensions');
+
+
 //  if (! this.authgroupsCollection) this.authgroupsCollection = this.monk.get('GPOauthGroups');
 //Note I going to get the available authGroups from config file now so pass path to file. Simpler to maintain
   if (!this.authgroupsCollection) this.authgroupsCollection = this.appRoot + '/config/authGroups.js';
@@ -174,7 +178,13 @@ DownloadGPOusers.prototype.removeAllUserInfo = function () {
   if (self.updateOnlyModifiedUsers) {
     return self.Q(true);
   } else {
-    return self.Q(self.usersCollection.remove({}));
+    return self.Q(self.usersCollection.remove({}))
+      .then(function () {
+        return self.Q.all([
+          self.Q(self.usersCollection.index({username:1})),
+          self.Q(self.extensionsCollection.index({username:1}))
+        ])
+      });
   }
 };
 
@@ -348,7 +358,7 @@ DownloadGPOusers.prototype.storeModifiedDocs = function (body) {
 
 //Don't have to keep all user fields I guess
   var modifiedGPOitems = body.results.map(function (doc) {
-    return self.utilities.sliceObject(doc, ['username', 'fullName','modified', 'created'])
+    return self.utilities.sliceObject(doc, ['username', 'fullName','email','modified', 'created'])
   });
 
   modifiedGPOitems = modifiedGPOitems.filter(function (doc) {
@@ -508,16 +518,22 @@ DownloadGPOusers.prototype.getSingleGPOgroup = function (modifiedGPOrow) {
     modifiedGPOrow = self.hr.saved.modifiedGPOrow;
   }
 
-  var currentGPOid = self.hr.saved.modifiedGPOids[modifiedGPOrow - 1];
+  var currentGPOusername = self.hr.saved.modifiedGPOids[modifiedGPOrow - 1];
 
-  var url = self.portal + '/sharing/rest/community/users/' + currentGPOid;
+  var url = self.portal + '/sharing/rest/community/users/' + currentGPOusername;
 
   var parameters = {token: self.hr.saved.token, f: 'json'};
 //Pass parameters via form attribute
 
   var requestPars = {method: 'get', url: url, qs: parameters};
 
-  return self.hr.callAGOL(requestPars).then(self.getSelfInvokedFunction(self.HandleGPOgroups));
+  return self.hr.callAGOL(requestPars)
+    .then(self.getSelfInvokedFunction(self.HandleGPOgroups))
+//Get the ownerFolder stuff
+    .then(function () {return self.getOwnerFolders(currentGPOusername);})
+//copy over the extensions that were wiped out but saved in another collection
+    .then(function () {return self.getGPOuserExtensions (currentGPOusername);});
+
 };
 
 DownloadGPOusers.prototype.HandleGPOgroups = function (body) {
@@ -532,6 +548,47 @@ DownloadGPOusers.prototype.HandleGPOgroups = function (body) {
   return self.updateAuthGroupsAndOwnerIDs.updateAuthGroups(user);
 };
 
+
+//Note have to get the folder name via another endpoint if we don't have the id->name map
+DownloadGPOusers.prototype.getOwnerFolders = function(username) {
+  var self = this;
+
+  var itemURL = self.portal + '/sharing/rest/content/users/' + username ;
+
+  //Note use num=1 so we only get 1 item. num=0 doesn't work. could use start=100000000000 but probably not necessary
+  var qs = {token: self.hr.saved.token,f:'json',num:1};
+
+//Pass parameters via form attribute
+  var requestPars = {method:'get', url:itemURL, qs:qs };
+
+  return this.hr.callAGOL(requestPars)
+    .then(function (body) {
+//      var body = JSON.parse(bodyJSON);
+      if (body.error) {
+        console.error(body.error);
+        throw(new Error("Error getting owner Folder Names : " + JSON.stringify(body.error)));
+      }
+      //loop through folders for this username and get rid of username on folder object
+      body.folders.forEach(function (folder) {
+        delete folder.username;
+      });
+      console.log('folder names ' );
+      console.log(body.folders);
+      return self.Q(self.usersCollection.update({username:username},{$set:{folders:body.folders}}));
+    })
+
+};
+
+//This will get the stuff saved in GPOuserExtensions collection and add to GPOusers
+DownloadGPOusers.prototype.getGPOuserExtensions = function(username) {
+  var self = this;
+
+  return self.Q(this.extensionsCollection.findOne({username: username}, {fields:{_id:0,username: 0}}))
+    .then(function (doc) {
+      if (!doc) return null;
+      return self.Q(self.usersCollection.update({username:username},{$set:doc}));
+    });
+};
 
 DownloadGPOusers.prototype.getGPOgroupsSync = function (GPOids) {
   var self = this;

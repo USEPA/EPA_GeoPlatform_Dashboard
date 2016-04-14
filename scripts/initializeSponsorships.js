@@ -88,6 +88,7 @@ function getToken() {
 function getExternalUser(inputFile) {
   var defer= Q.defer();
   var lineReader = readline.createInterface({
+    terminal: false,
     input: fs.createReadStream(inputFile)
   });
 
