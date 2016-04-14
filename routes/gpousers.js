@@ -145,7 +145,7 @@ module.exports = function (app) {
           if (hasCSVColumnTitle) GPOuserExtensions.fields.forEach(function (field) {
             if (!(field in doc)) doc[field]=undefined});
 
-          res.write(syncJson2csv({data: doc, hasCSVColumnTitle: hasCSVColumnTitle}));
+          res.write(syncJson2csv({data: cleanupUserDocForOutputCSV(doc), hasCSVColumnTitle: hasCSVColumnTitle}));
           res.write("\r\n");
           if (hasCSVColumnTitle) hasCSVColumnTitle = false;
         })
