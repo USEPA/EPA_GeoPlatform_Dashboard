@@ -263,17 +263,9 @@ utilities.batchUpdateDB = function (collection,docs,idField) {
       query[idField]= doc[idField];
       var update = {$set: doc};
 
-      if (doc[idField]==="de53261c0084406d9a6014430dc07a72") {
-        console.log("********************FOUND de53261c0084406d9a6014430dc07a72 ********");
-        console.log("**** query, update = " + JSON.stringify(query) +  JSON.stringify(update));
-      }
-
 //      console.log("**** query, update = " + JSON.stringify(query) +  JSON.stringify(update));
       Q(collection.update(query, update))
         .then(function () {
-          if (doc[idField]==="de53261c0084406d9a6014430dc07a72") {
-            console.log("********************DONE de53261c0084406d9a6014430dc07a72 ********");
-          }
           done();})
         .catch(function(err) {
           console.log(err.stack);

@@ -23,6 +23,7 @@ module.exports = function (app) {
   });
 
   function handleGPOitemsListRoute(req, res, isCSV) {
+    var utilities = require(app.get('appRoot') + '/shared/utilities');
     var username = "";
     console.log(req.params);
     if ('session' in req && req.session.username) username = req.session.username;
@@ -36,7 +37,6 @@ module.exports = function (app) {
     var isSuperUser = false;
     if ('session' in req && req.session.user.isSuperUser === true) isSuperUser = true;
 
-    var utilities = require(app.get('appRoot') + '/shared/utilities');
     var monk = app.get('monk');
     var config = app.get('config');
 
@@ -123,6 +123,8 @@ module.exports = function (app) {
 //deasync will make json2csv sync so we can stream in order
       var deasync = require('deasync');
       var syncJson2csv = deasync(json2csv);
+//need to get the extension field names for header in case the extension field doesn't exist in doc
+      var GPOuserExtensions = require(app.get("appRoot") + "/config/updateFields/GPOuserExtensions.js");
 
       var outFile = "gpoUsers";
 //get rid of space and back slashes in file name because back slash will be confused as folder seperator in name
@@ -139,6 +141,10 @@ module.exports = function (app) {
       var defer = Q.defer();
       userscollection.find(query, projection)
         .each(function (doc) {
+//add empty extension fields if they don't exist for firt doc to get the full header
+          if (hasCSVColumnTitle) GPOuserExtensions.fields.forEach(function (field) {
+            if (!(field in doc)) doc[field]=undefined});
+
           res.write(syncJson2csv({data: doc, hasCSVColumnTitle: hasCSVColumnTitle}));
           res.write("\r\n");
           if (hasCSVColumnTitle) hasCSVColumnTitle = false;

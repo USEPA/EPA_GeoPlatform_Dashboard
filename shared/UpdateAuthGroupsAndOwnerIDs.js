@@ -64,8 +64,9 @@ UpdateAuthGroupsAndOwnerIDs.prototype.updateAuthGroupsInner = function(user) {
   var isAdmin = false;
   if (user.role==='org_admin') isAdmin=true;
   var isExternal = false;
-  if (user.provider!=='enterprise') isExternal=true;
-
+//This would find SSO or ArcGIS login need to just look for epa.gov email
+//  if (user.provider!=='enterprise') isExternal=true;
+  if (/@epa\.gov$/.test(user.email)) isExternal=true;
 
 //Get groups from user object. Might need to transform groups from array of group objects to array of group names
   var groups = self.getGroupsFromUser(user);

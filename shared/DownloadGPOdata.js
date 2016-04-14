@@ -26,6 +26,8 @@ var DownloadGPOdata =  function(){
   this.onlyGetMetaData = false;
 //This will make execution must faster since we don not have to download all remote items and only need to download modified
   this.dontRemoveGPOitems= false;
+//The 2 REST calls need to get owner Folder ID and name takes some time. Might not want to do this on log in?
+  this.dontGetOwnerFolders = false;
 //To only save json and text and not binaries set to true, usually set to false
   this.dontSaveBinary = false;
 //This is just for testing if we don't want all docs, usually set to null
@@ -63,8 +65,9 @@ var DownloadGPOdata =  function(){
   this.monk = null;
   this.db = null;
 
-  this.itemscollection = null;
+  this.itemsCollection = null;
   this.historycollection = null;
+  this.extensionsCollection = null;
 
   this.url = require('url');
 
@@ -77,6 +80,8 @@ var DownloadGPOdata =  function(){
 //Save logs and errors that accumulate for emailng out or saving to a file possibly
   this.ScriptLogsClass=require(this.appRoot + '/shared/ScriptLogs');
   this.downloadLogs = new this.ScriptLogsClass();
+//Save the mapping of folder id to folder name
+  this.folderNames = {};
 };
 
 //Using this will return promise if there is exception in downloadInner
@@ -92,8 +97,9 @@ DownloadGPOdata.prototype.downloadInner = function () {
 
   var self = this;
   if (! this.monk) this.monk = this.MonkClass(this.mongoDBurl);
-  if (! this.itemscollection) this.itemscollection = this.monk.get('GPOitems');
+  if (! this.itemsCollection) this.itemsCollection = this.monk.get('GPOitems');
   if (! this.historycollection) this.historycollection = this.monk.get('GPOhistory');
+  if (! this.extensionsCollection) this.extensionsCollection = this.monk.get('GPOitemExtensions');
 
   if (! this.db) {
     var mongoURL = this.url.parse(this.mongoDBurl);
@@ -118,6 +124,8 @@ DownloadGPOdata.prototype.downloadInner = function () {
   this.hr.saved.remoteGPOids = [];
 //store only the modified/created gpo ids to know which SlashData to download
   this.hr.saved.modifiedGPOids = [];
+//This will store the modified item owner which is needed to get Folder Name from Folder ID
+  this.hr.saved.modifiedItemOwners = {};
 //This will store thumbnail names for gpoID's
   this.hr.saved.modifiedThumbnails = {};
 
@@ -188,6 +196,21 @@ DownloadGPOdata.prototype.getSelfInvokedFunction = function (f) {
     return f.call(self,x);
   }
 };
+
+DownloadGPOdata.prototype.createIndices = function () {
+  return self.Q.all([
+    self.Q(self.itemsCollection.index({id: 1})),
+    self.Q(self.itemsCollection.index({modified: -1})),
+    self.Q(self.itemsCollection.index({access: 1})),
+    self.Q(self.itemsCollection.index({owner: 1})),
+    self.Q(self.itemsCollection.index({owner: -1})),
+    self.Q(self.historycollection.index({id: -1})),
+    self.Q(self.historycollection.index({date: 1})),
+    self.Q(self.historycollection.index({date: -1})),
+    self.Q(self.extensionsCollection.index({id: -1}))
+  ])
+};
+
 
 DownloadGPOdata.prototype.connectDB = function () {
   this.gfs = this.GridFSstream(this.db, this.mongo);
@@ -471,14 +494,17 @@ DownloadGPOdata.prototype.storeModifiedDocs = function (body) {
   var modifiedGPOids = modifiedGPOitems.map(function(doc) {return doc.id});
 
   self.hr.saved.modifiedGPOids =self.hr.saved.modifiedGPOids.concat(modifiedGPOids);
+
+//Save the owner of each item for geting the folder names later. can't just map from item id to folder
 //Save the thumbnail names for downloading later
   modifiedGPOitems.forEach(function (item) {
+    self.hr.saved.modifiedItemOwners[item.id] = item.owner;
     self.hr.saved.modifiedThumbnails[item.id] = item.thumbnail;
   });
 
   //Begin hardcoded test of specific slash data downloads
   if (self.HardCodeSlashDataTestIDs) {
-    modifiedGPOitems=[]
+    modifiedGPOitems=[];
     modifiedGPOids=self.HardCodeSlashDataTestIDs;
     self.hr.saved.modifiedGPOids=modifiedGPOids;
   }
@@ -499,7 +525,7 @@ DownloadGPOdata.prototype.storeModifiedDocs = function (body) {
 };
 
 DownloadGPOdata.prototype.updateAccessFields = function (docs) {
-  return this.utilities.batchUpdateDB(this.itemscollection,docs,"id");
+  return this.utilities.batchUpdateDB(this.itemsCollection,docs,"id");
 };
 
 
@@ -518,21 +544,21 @@ DownloadGPOdata.prototype.saveModifiedGPOitems = function (modifiedGPOids,modifi
 //  console.log("!!!!!!! modifiedGPOids.length !!!!!!!!!" + modifiedGPOids.length);
 
   if (modifiedGPOitems.length > 0) {
-    return self.Q(self.itemscollection.remove( {id:{$in:modifiedGPOids}} ))
-//    return self.Q(self.itemscollection.find( {id:{$in:modifiedGPOids}} ))
+    return self.Q(self.itemsCollection.remove( {id:{$in:modifiedGPOids}} ))
+//    return self.Q(self.itemsCollection.find( {id:{$in:modifiedGPOids}} ))
 //      .then(function (docs) {console.log("!!!!!!! $in:modifiedGPOids !!!!!!!!!  " + JSON.stringify(docs))})
 //    return self.Q(true)
 //      .then(function () {
 //        var defer = self.Q.defer();
-//        self.Q(self.itemscollection.remove( {id:{$in:modifiedGPOids}} ,function (err,removed) {
+//        self.Q(self.itemsCollection.remove( {id:{$in:modifiedGPOids}} ,function (err,removed) {
 //          console.log("*#*#*#*# removed modifiedGPOids *#*#*#*#" + removed);
 //          defer.resolve();
 //        } ));
 //        return defer.promise;}
 //    )
-//      .then(function () {return self.Q(self.itemscollection.remove( {id:{$in:modifiedGPOids}})) })
-//      .then(function () {return self.itemscollection.remove( {id:{$in:modifiedGPOids}}) })
-      .then(function () {return self.Q(self.itemscollection.insert(modifiedGPOitems))})
+//      .then(function () {return self.Q(self.itemsCollection.remove( {id:{$in:modifiedGPOids}})) })
+//      .then(function () {return self.itemsCollection.remove( {id:{$in:modifiedGPOids}}) })
+      .then(function () {return self.Q(self.itemsCollection.insert(modifiedGPOitems))})
       .then(function () {return self.Q(self.historycollection.insert(historyGPOitems))})
       .then(function () {return self.getGPOaudit(modifiedGPOitems);});
 //      .then(function () {return self.getLocalGPOids()})
@@ -681,7 +707,9 @@ DownloadGPOdata.prototype.getSingleGPOdata = function (modifiedGPOrow) {
     })
     .then(function () {return self.getSingleGPOdataPart(requestParsSlash,self.getHandleGPOslashData,currentGPOid,historyID)})
     .then(function (slashData) {if (currentThumbnail) return self.getSingleGPOdataPart(requestParsThumb, self.getHandleGPOthumbnail, currentGPOid, historyID, slashData);})
-    .catch(function (error) {defer.reject("Error getting single GPO data: " + error)})
+    .catch(function (error) {
+//      defer.reject("Error getting single GPO data: " + error.stack)})
+        defer.reject(error)})
     .done(function () {
       defer.resolve();});
 
@@ -741,12 +769,17 @@ DownloadGPOdata.prototype.getHandleGPOslashData = function (defer,currentGPOid,h
 
       response.on('end', function () {
         //check if json then create an object, otherwise just save the text
-        try {
-          var json = JSON.parse(body);
-          if (json && typeof json === "object")  SlashData.json = json;
-        }catch (e) {
-          SlashData.text = body;
-        }
+
+        //No longer save as an object. Just save all as text because it was not transforming consistently
+        //ie. JSON.stringify(JSON.parse(body)) !== body
+//        try {
+//          var json = JSON.parse(body);
+//          if (json && typeof json === "object")  SlashData.json = json;
+//        }catch (e) {
+//          SlashData.text = body;
+//        }
+        SlashData.text = body;
+
 //Now update the DB. must pass defere so it can be resolved when done updating
         self.updateModifiedGPOdata(defer,currentGPOid,historyID,SlashData);
 
@@ -800,6 +833,25 @@ DownloadGPOdata.prototype.getHandleGPOthumbnail = function (defer,currentGPOid,h
   };
 };
 
+DownloadGPOdata.prototype.getHandleGPOfolders= function (defer,currentGPOid,historyID) {
+  var self=this;
+//Must have access to the defer created for calling request function that produced response so it can be resolved
+  return function HandleGPOthumbnail (response) {
+//NOte the response sent to here is the readable stream form of response not the object that contains the body
+
+//Try to get filename from response header
+    var filename = self.hr.saved.modifiedThumbnails[currentGPOid];
+
+    self.saveStreamToGridFS(response, currentGPOid, historyID, slashData,filename,"thumbnail").catch(function (err) {
+      defer.reject("Error updating Thumbnail to Grid FS : " + err);
+    }).done(function () {
+      defer.resolve(slashData);
+    });
+
+    return true;
+  };
+};
+
 DownloadGPOdata.prototype.saveStreamToGridFS = function (readableStream,id,historyID,SlashData,filename,binaryType) {
   var self = this;
 //this function returns a promise so we can know when it is done with everything
@@ -809,7 +861,7 @@ DownloadGPOdata.prototype.saveStreamToGridFS = function (readableStream,id,histo
   if (! filename) filename = id;
 
   //by default save binaryID of slashData as "binaryID" but binaryID of say thumbnail should be like thumbnailID
-  if (! binaryType) binaryType="binary"
+  if (! binaryType) binaryType="binary";
 
 //if gfs object hasn't been created yet then get now
   if (! self.gfs) self.gfs = GridFSstream(self.db, self.mongo);
@@ -843,7 +895,7 @@ DownloadGPOdata.prototype.updateModifiedGPOdataBinaryID = function (gridDefer,id
 //Note this.Q.all takes multiple promises and is done when all are done
 //It accepts a defer from calling function that it can reject or resolve when done
   this.Q.all([
-    this.Q(this.itemscollection.update({id:id},{$set:{SlashData:SlashData}})),
+    this.Q(this.itemsCollection.update({id:id},{$set:{SlashData:SlashData}})),
     this.Q(this.historycollection.update({_id:historyID},{$set:{"doc.SlashData":SlashData}}))
   ])
     .catch(function(err) {
@@ -857,11 +909,11 @@ DownloadGPOdata.prototype.updateModifiedGPOdataBinaryID = function (gridDefer,id
 };
 
 
-DownloadGPOdata.prototype.updateModifiedGPOdata = function (defer,id,historyID,SlashData) {
+DownloadGPOdata.prototype.updateModifiedGPOdataObjectLiteral = function (defer,id,historyID,SlashData) {
   var self = this;
 //Note this.Q.all takes multiple promises and is done when all are done
   self.Q.all([
-    self.Q(self.itemscollection.update({id:id},{$set:{SlashData:SlashData}})),
+    self.Q(self.itemsCollection.update({id:id},{$set:{SlashData:SlashData}})),
     self.Q(self.historycollection.update({_id:historyID},{$set:{"doc.SlashData":SlashData}}))
   ])
     .catch(function(err) {
@@ -880,15 +932,31 @@ DownloadGPOdata.prototype.updateModifiedGPOdata = function (defer,id,historyID,S
     });
 };
 
+DownloadGPOdata.prototype.updateModifiedGPOdata = function (defer,id,historyID,SlashData) {
+//THis no longer save object literal as first choice anymore. Saves text as first choice
+  var self = this;
+
+  return self.UpdateModifieGPOdataAsText(id,historyID,SlashData)
+    .catch(function (err) {
+      defer.reject("Error updating slash data forced to Grid FS : " + err);
+      })
+    .done(function () {
+//      self.downloadLogs.log('Done updating Modified Slash Data for ' + id);
+      defer.resolve(SlashData)
+    });
+};
+
 //This is called after update crahsed probably because of dot in field name
 DownloadGPOdata.prototype.UpdateModifieGPOdataAsText = function (id,historyID,SlashData) {
   var self = this;
 //This has to return a promise so calling function will wait til everything in here is done
   var textDefer = self.Q.defer();
-  SlashData.text=JSON.stringify(SlashData.json);
-  SlashData.json = null;
+
+//Don't need to do this anymore aren't using .json which was actually json literal object
+//  SlashData.text=JSON.stringify(SlashData.json);
+//  SlashData.json = null;
   self.Q.all([
-    self.Q(this.itemscollection.update({id:id},{$set:{SlashData:SlashData}})),
+    self.Q(this.itemsCollection.update({id:id},{$set:{SlashData:SlashData}})),
     self.Q(this.historycollection.update({_id:historyID},{$set:{"doc.SlashData":SlashData}}))
   ])
     .catch(function (err) {
@@ -943,7 +1011,7 @@ DownloadGPOdata.prototype.getGPOdataAsync = function () {
 //      self.downloadLogs.log(key+this.hr.saved.modifiedGPOrow)
       self.getSingleGPOdata(key+asyncStartModifiedGPOrow)
         .catch(function(err) {
-          self.downloadLogs.error('Error in async.forEachOf while calling getSingleGPOdata in DownloadGPOdata.getGPOdataAsync:', err.stack);
+          self.downloadLogs.error('Error in async.forEachOf while calling getSingleGPOdata in DownloadGPOdata.getGPOdataAsync:' + err.stack);
         })
         .done(function() {
           done();
@@ -951,7 +1019,7 @@ DownloadGPOdata.prototype.getGPOdataAsync = function () {
         });
     }
     , function (err) {
-      if (err) self.downloadLogs.error('Error in async.forEachOf while looping over GPO data items in DownloadGPOdata.getGPOdataAsync:', err.stack);
+      if (err) self.downloadLogs.error('Error in async.forEachOf while looping over GPO data items in DownloadGPOdata.getGPOdataAsync:' + err.stack);
 //resolve this promise
 //      self.downloadLogs.log('resolve')
       defer.resolve();
@@ -993,9 +1061,9 @@ DownloadGPOdata.prototype.removeLocalGPOitemsFromLocalGPOids = function () {
     var backupDate = new Date();
     var historyRemoveGPOitems = removeIDs.map(function(id) {return {id:id,date:backupDate,doc:null}});
 
-    return self.Q(this.itemscollection.remove({id:{$in:removeIDs}}))
+    return self.Q(this.itemsCollection.remove({id:{$in:removeIDs}}))
       .then(function () {return self.Q(self.historycollection.insert(historyRemoveGPOitems))});
-//  return self.Q(itemscollection.remove({id:{$in:removeIDs}}));
+//  return self.Q(itemsCollection.remove({id:{$in:removeIDs}}));
   }else {
     return self.Q(true);
   }
@@ -1015,7 +1083,7 @@ DownloadGPOdata.prototype.getLocalMaxModifiedDates = function () {
   self.hr.saved.localMaxModifiedDates = {};
   self.hr.saved.localMinMaxModifiedDate = 0;
 
-  return self.Q.ninvoke(self.itemscollection.col,"aggregate",
+  return self.Q.ninvoke(self.itemsCollection.col,"aggregate",
     [
       {"$match": query },
       {"$group" : {
@@ -1035,13 +1103,13 @@ DownloadGPOdata.prototype.getLocalMaxModifiedDates = function () {
 
 DownloadGPOdata.prototype.getLocalGPOids = function () {
   var self = this;
-//  return self.Q(this.itemscollection.find({}, {fields:{id:1,modified:1},sort:{modified:-1}}));
+//  return self.Q(this.itemsCollection.find({}, {fields:{id:1,modified:1},sort:{modified:-1}}));
 
   var query = {};
 //Only check to remove items for ownersIDs that were provided. (if not provided then check to remove all owner IDs)
   if (Array.isArray(self.ownerIDs) && self.ownerIDs.length>0) query = {owner:{$in:self.ownerIDs}};
 
-  return self.utilities.getArrayFromDB(self.itemscollection, query, "id")
+  return self.utilities.getArrayFromDB(self.itemsCollection, query, "id")
     .then(this.getSelfInvokedFunction(this.handleLocalGPOidsPromise));
 };
 
@@ -1107,10 +1175,25 @@ DownloadGPOdata.prototype.getSingleGPOaudit = function (itemsContext,auditGPOite
 
   audit.validate(auditGPOitem);
 
-  return this.Q(this.itemscollection.update({id:auditGPOitem.id},{$set:{AuditData:auditGPOitem.AuditData}}))
+  return self.Q(this.itemsCollection.update({id:auditGPOitem.id},{$set:{AuditData:auditGPOitem.AuditData}}))
+//This is convenient place to put this
+//copy over the extensions that were wiped out but saved in another collection
+    .then(function () {return self.getGPOitemExtensions (auditGPOitem.id);})
 //    .then(function () {delete audit;return true})
+    .then(function () {
+//Sometimes might not want to get owner folders since the 2 REST calls take some time. Maybe want to just get Folder IDs in future
+      if (self.dontGetOwnerFolders) return;
+      return self.getLatestHistoryID(auditGPOitem.id)
+      .then(function (historyID) {
+          if (! historyID) {
+            throw "History ID not found for GPO ID = " + auditGPOitem.id;
+          }
+          return historyID;
+        })
+        .then(function (historyID) {return self.getOwnerFolder(auditGPOitem.id, historyID);})
+    })
     .catch(function(err) {
-      self.downloadLogs.error("Error updating Audit Data for " + id + " : " + err);
+      self.downloadLogs.error("Error updating Audit Data, Extensions Data, or Folder Data for " + auditGPOitem.id + " : " + err.stack);
     })
 };
 
@@ -1146,7 +1229,7 @@ DownloadGPOdata.prototype.getGPOauditAsync = function (itemsContext) {
   async.forEachOf(GPOitems, function (gpoItem, index, done) {
       self.getSingleGPOaudit(itemsContext,gpoItem)
         .catch(function(err) {
-          self.downloadLogs.error('For Each Single GPO Audit Error :', err);
+          self.downloadLogs.error('For Each Single GPO Audit Error :' + err.stack);
         })
         .done(function() {
           done();
@@ -1165,5 +1248,88 @@ DownloadGPOdata.prototype.getGPOauditAsync = function (itemsContext) {
   return defer.promise
 };
 //***End of audit stuff ***//
+
+DownloadGPOdata.prototype.getOwnerFolder = function(id,historyID) {
+  var self = this;
+
+  return self.Q.all([
+    self.getOwnerFolderID(id),
+    self.getOwnerFolderNames(self.hr.saved.modifiedItemOwners[id])
+  ])
+  .spread(function (folderID,folderNames) {
+    var ownerFolder = {id:folderID,title:folderNames[folderID]};
+    return self.Q.all([
+      self.Q(self.itemsCollection.update({id:id},{$set:{ownerFolder:ownerFolder}})),
+      self.Q(self.historycollection.update({_id:historyID},{$set:{"doc.ownerFolder":ownerFolder}}))
+    ]);
+  });
+};
+
+DownloadGPOdata.prototype.getOwnerFolderID = function(id) {
+//  return "";
+  var self = this;
+  var itemURL = this.portal + '/sharing/rest/content/items/' + id ;
+
+  var qs = {token: self.hr.saved.token,f:'json'};
+
+//Pass parameters via form attribute
+  var requestPars = {method:'get', url:itemURL, qs:qs };
+
+  return this.hr.callAGOL(requestPars)
+    .then(function (body) {
+//      var body = JSON.parse(bodyJSON);
+      if (body.error) {
+        console.error(body.error);
+        throw(new Error("Error getting owner Folder ID: " + JSON.stringify(body.error)));
+      }
+//      console.log(body.ownerFolder);
+      return body.ownerFolder;
+    })
+};
+
+//Note have to get the folder name via another endpoint if we don't have the id->name map
+DownloadGPOdata.prototype.getOwnerFolderNames = function(owner) {
+//  return {};
+  var self = this;
+//Don't have to hit API to get folder names for this owner if it was already done before
+  if (self.folderNames[owner]) return self.folderNames[owner];
+
+  var itemURL = this.portal + '/sharing/rest/content/users/' + owner ;
+
+  //Note use num=1 so we only get 1 item. num=0 doesn't work. could use start=100000000000 but probably not necessary
+  var qs = {token: self.hr.saved.token,f:'json',num:1};
+
+//Pass parameters via form attribute
+  var requestPars = {method:'get', url:itemURL, qs:qs };
+
+  return this.hr.callAGOL(requestPars)
+    .then(function (body) {
+//      var body = JSON.parse(bodyJSON);
+      if (body.error) {
+        console.error(body.error);
+        throw(new Error("Error getting owner Folder Names : " + JSON.stringify(body.error)));
+      }
+      //loop through folders for this owner and add to map
+      self.folderNames[owner]={};
+      body.folders.forEach(function (folder) {
+        self.folderNames[owner][folder.id] = folder.title;
+      });
+//      console.log('folder names ' );
+//      console.log( self.folderNames[owner]);
+      return self.folderNames[owner];
+    })
+
+};
+
+//This will get the stuff saved in GPOuserExtensions collection and add to GPOusers
+DownloadGPOdata.prototype.getGPOitemExtensions = function(id) {
+  var self = this;
+
+  return self.Q(self.extensionsCollection.findOne({id: id}, {fields:{_id:0,id: 0}}))
+    .then(function (doc) {
+      if (!doc) return null;
+      return self.Q(self.itemsCollection.update({id:id},{$set:doc}));
+    });
+};
 
 module.exports = DownloadGPOdata;
