@@ -12,6 +12,7 @@
     <link href="bootstrap/css/bootstrap.min.css" rel="stylesheet">
     <link href="bootstrap/css/jasny-bootstrap.min.css" rel="stylesheet">
     <link href="bootstrap/css/dataTables.bootstrap.min.css" rel="stylesheet">
+      <link href="bootstrap/css/buttons.dataTables.min.css" rel="stylesheet">
     <link href="css/dashboard.css" rel="stylesheet">
 
     <!--[if lt IE 9]>
@@ -306,11 +307,11 @@
                 </li>
                 <li role="presentation">
                     <a href="#userMgmtView" role="tab" aria-controls="userMgmtView"
-                                           data-toggle="tab">User Management (Future)</a>
+                                           data-toggle="tab">User Management</a>
                 </li>
                 <li role="presentation">
                     <a href="#edgView" role="tab" aria-controls="edgView"
-                                           data-toggle="tab">EDG Items (Future)</a>
+                                           data-toggle="tab">EDG Items</a>
                 </li>
             </ul>
         </div>
@@ -322,33 +323,10 @@
                 <p><a class="btn btn-lg btn-success" id='sign-in-biggreen'>Sign in to get started</a></p>
             </div>
         </div>
-        
+
         <div id="mainWindow" style="display: none; "
              class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
-          <div id="gpoContentHeader" class="row placeholders">
-          <div class="col-xs-6 col-sm-3">
-              <h4>Public Items Audit Result</h4>
-              <span id="percPublicPassingAudit" class="text-muted">75% Passing</span>
-            </div>
-            <div class="col-xs-6 col-sm-3">
-              <h4>My Items</h4>
-              <span id="agoItems" class="text-muted"></span>
-            </div>
-            <div class="col-xs-6 col-sm-3">
-              <h4>My Groups</h4>
-              <span id="agoGroups" class="text-muted"></span>
-            </div>
-              <div class="col-xs-6 col-sm-3">
-                  <h4 style="white-space:nowrap;">Auth Groups
-                  </h4>
-                  <a data-toggle="tooltip" data-placement="left" title="Show/Hide Auth Groups"><span id="authGroupsCount" class="text-muted" data-toggle="collapse" href="#collapseExample" aria-expanded="false" aria-controls="collapseExample"></span></a>
-                  <div class="collapse" id="collapseExample">
-                      <select id="dropAuthGroups" class="search form-control input-sm hidden"></select>
-                      <a id="downloadAuthgroupsCSVall" href="gpoUsers/list.csv" class="hidden">download users</a>
-                      <a id="downloadAuthgroupsCSVregions" href="gpoUsers/list.csv/authGroups/" class="hidden">download users</a>
-                  </div>
-              </div>
-          </div>
+
          <div class="tab-content">
               <!-- Begin overview class="view collapse in"-->
               <div role="tabpanel" class="tab-pane active" id="overviewView" >
@@ -359,6 +337,30 @@
             </div>
             <!--</div>-->
             <div id="overviewTable" >
+                <div id="gpoContentHeader" class="row placeholders">
+                    <div class="col-xs-6 col-sm-3">
+                        <h4>Public Items Audit Result</h4>
+                        <span id="percPublicPassingAudit" class="text-muted">75% Passing</span>
+                    </div>
+                    <div class="col-xs-6 col-sm-3">
+                        <h4>My Items</h4>
+                        <span id="agoItems" class="text-muted"></span>
+                    </div>
+                    <div class="col-xs-6 col-sm-3">
+                        <h4>My Groups</h4>
+                        <span id="agoGroups" class="text-muted"></span>
+                    </div>
+                    <div class="col-xs-6 col-sm-3">
+                        <h4 style="white-space:nowrap;">Auth Groups
+                        </h4>
+                        <a data-toggle="tooltip" data-placement="left" title="Show/Hide Auth Groups"><span id="authGroupsCount" class="text-muted" data-toggle="collapse" href="#collapseExample" aria-expanded="false" aria-controls="collapseExample"></span></a>
+                        <div class="collapse" id="collapseExample">
+                            <select id="dropAuthGroups" class="search form-control input-sm hidden"></select>
+                            <a id="downloadAuthgroupsCSVall" href="gpoUsers/list.csv" class="hidden">download users</a>
+                            <a id="downloadAuthgroupsCSVregions" href="gpoUsers/list.csv/authGroups/" class="hidden">download users</a>
+                        </div>
+                    </div>
+                </div>
              <h3 class="sub-header"></h3>
               <table id="gpoitemtable1" class="table table-hover table-bordered table-responsive">
                 <thead>
@@ -473,10 +475,20 @@
 
                                       </div>
                                       <div class="form-group">
-                                          <label for="inputTags">Tags</label>
+                                          <label for="dropEPATags">EPA Keywords</label>
                                           <div class="form-inline">
-                                              <button id="inputTags" class="btn btn-default"  type="submit" data-bind="click: selected().addItem, enable: selected().tagItemToAdd().length > 0">Add</button>
-                                              <input class="form-control" id="tagInput" type="text" data-bind='value: selected().tagItemToAdd, valueUpdate: "afterkeydown"'/>
+                                              <button id="dropEPATags" class="btn btn-default"  type="submit" data-bind="click: selected().addEPAItem">Add</button>
+                                              <select class="tag-select search form-control" id="epaTagSelect" data-bind='value: selected().epaTagItemToAdd, valueUpdate: "afterkeydown"'></select>
+                                          </div>
+                                          <label for="dropPlaceTags">Place Keywords</label>
+                                          <div class="form-inline">
+                                              <button id="dropPlaceTags" class="btn btn-default"  type="submit" data-bind="click: selected().addPlaceItem">Add</button>
+                                              <select class="tag-select search form-control" id="placeTagSelect" data-bind='value: selected().placeTagItemToAdd, valueUpdate: "afterkeydown"'></select>
+                                          </div>
+                                          <label for="dropOrgTags">EPA Organization Names</label>
+                                          <div class="form-inline">
+                                              <button id="dropOrgTags" class="btn btn-default"  type="submit" data-bind="click: selected().addOrgItem">Add</button>
+                                              <select class="tag-select search form-control" id="orgTagSelect" data-bind='value: selected().orgTagItemToAdd, valueUpdate: "afterkeydown"'></select>
                                           </div>
                                       </div>
                                       <div class="form-group has-success" data-bind="css: {'has-error': selected().doc().AuditData.errors.tags&&selected().doc().AuditData.errors.tags.compliant()===false}">
@@ -488,10 +500,12 @@
                                       </div>
                                       <div class="id_holder" data-bind="attr: {id: selected().doc().id}"></div>
                                       <div class="form-group">
-                                          <a id="edgModalView" href="#edgModalView">Search for matching EDG record.</a>
+                                          <label>EDG Link</label>
+                                          <button type="button" id="edgBtn" class="btn btn-default" data-bind="click: function () { egam.searchEDG(); }">Search for matching EDG record.</button>
                                       </div>
                                       <div class="form-group">
                                           <!-- ko if: selected().doc().EDGdata -->
+                                          <label>EDG Reconciliation</label><br />
                                           <button type="button" id="reconcileBtn" class="btn btn-default" data-bind="click: function () { $('#reconciliationModal').modal('show'); }">Reconcile with EDG</button>
                                           <!-- /ko -->
                                       </div>
@@ -574,10 +588,20 @@
                           <div class="modal-body">
                               <form id="modalForm" role="form" data-toggle="validator" data-disable="false" enctype="multipart/form-data" method="post">
                                   <div class="row form-group">
-                                      <table>
+                                      <table id="reconcileTable">
                                           <col class="col-md-5">
-                                          <col class="col-md-2" style="text-align:center">
+                                          <col class="col-md-1" style="text-align:center">
                                           <col class="col-md-5">
+                                          <tr>
+                                              <td>
+                                                  <div class="form-group"><label>Current GPO Item Metadata</label></div>
+                                              </td>
+                                              <td>
+                                              </td>
+                                              <td>
+                                                  <div class="form-group"><label>EDG Item Metadata</label></div>
+                                              </td>
+                                          </tr>
                                           <tr>
                                               <td>
                                                   <div class="form-group has-success">
@@ -586,7 +610,7 @@
                                                   </div>
                                               </td>
                                               <td>
-                                                  <div class="reconcileLink"><a href="#" onclick="$('#GPOtitle').val($('#EDGtitle').val())"><=</a></div>
+                                                  <div class="reconcileLink"><a class="glyphicon glyphicon-arrow-left" onclick="$('#GPOtitle').val($('#EDGtitle').val())"></a></div>
                                               </td>
                                               <td>
                                                   <div class="form-group has-success">
@@ -605,7 +629,7 @@
                                                   </div>
                                               </td>
                                               <td>
-                                                  <div class="reconcileLink"><a href="#" onclick="$('#GPOinputSnippet').val($('#EDGinputSnippet').val())"><=</div>
+                                                  <div class="reconcileLink"><a class="glyphicon glyphicon-arrow-left" onclick="$('#GPOinputSnippet').val($('#EDGinputSnippet').val())"></a></div>
                                               </td>
                                               <td>
                                                   <div class="form-group has-success">
@@ -626,7 +650,7 @@
                                                   </div>
                                               </td>
                                               <td>
-                                                  <div class="reconcileLink"><a href="#" onclick="$('#GPOinputDesc').val($('#EDGinputDesc').val())"><=</div>
+                                                  <div class="reconcileLink"><a class="glyphicon glyphicon-arrow-left" onclick="$('#GPOinputDesc').val($('#EDGinputDesc').val())"></a></div>
                                               </td>
                                               <td>
                                                   <div class="form-group has-success">
@@ -648,7 +672,7 @@
                                                   </div>
                                               </td>
                                               <td>
-                                                  <div class="reconcileLink"><a href="#" onclick="$('#GPOinputAccessUse').val($('#EDGinputAccessUse').val())"><=</div>
+                                                  <div class="reconcileLink"><a class="glyphicon glyphicon-arrow-left" onclick="$('#GPOinputAccessUse').val($('#EDGinputAccessUse').val())"></a></div>
                                               </td>
                                               <td>
                                                   <div class="form-group has-success">
@@ -667,7 +691,7 @@
                                                   </div>
                                               </td>
                                               <td>
-                                                  <div class="reconcileLink"><a href="#" onclick="$('#GPOinputAccessInfo').val($('#EDGinputAccessInfo').val())"><=</div>
+                                                  <div class="reconcileLink"><a class="glyphicon glyphicon-arrow-left" onclick="$('#GPOinputAccessInfo').val($('#EDGinputAccessInfo').val())"></a></div>
                                               </td>
                                               <td>
                                                   <div class="form-group has-success">
@@ -718,7 +742,7 @@
                                      <tr>
                                          <td><a data-bind="attr: { href: $data.references()[0] }, html: $data.title" target="_blank"></a></td>
                                          <td><a data-bind="attr: { href: $data.contactPoint.hasEmail }, html: $data.contactPoint.fn" target="_blank"></a></td>
-                                         <td><a href="#" data-bind="click: function () {$root.linkRecord( $('.id_holder').attr('id'), $data.references()) }" target="_blank">Link</a></td>
+                                         <td><button class="btn btn-primary btn-xs" id="edgLinkBtn" data-bind="click: function () {$root.linkRecord( $('.id_holder').attr('id'), $data.references()) }">Link EDG Record</button></td>
                                      </tr>
                                      <!-- /ko -->
                                      </tbody>
@@ -757,17 +781,87 @@
 
              <!-- userMgmtView  View -->
              <div role="tabpanel" class="tab-pane" id="userMgmtView" >
-                 <div id="userMgmtViewTable" class="table-responsive">
-                     <h2 class="sub-header">User Management</h2>
-                     <div class="jumbotron vertical-center">
-                         <div class="text-center">
-                             <h1 class="alert alert-warning">Site Under Construction</h1>
-                             <p>We are currently building something awesome that will be available soon!</p>
+                 <h2 class="sub-header">User Management</h2>
+                 <table id="userMgmtTable" class="table table-hover table-bordered table-responsive">
+                     <thead>
+                     <tr>
+                         <th>Sponsored</th>
+                         <th>Name</th>
+                         <th>E-mail</th>
+                         <th>Sponsor</th>
+                         <th>Auth Group</th>
+                         <th>Organization</th>
+                         <th>Description</th>
+                         <th>Reason</th>
+                         <th>Start Date</th>
+                         <th>End Date</th>
+                     </tr>
+                     </thead>
+                     <tbody data-bind="foreach: users">
+                     <tr >
+                         <td >
+                             <div>
+                                <button class="btn btn-primary btn-xs" id="sponsorBtn" data-bind="click: $parent.select" data-toggle="modal" data-target="#userMgmtModal">Sponsor Me!</button>
+                             </div>
+                         </td>
+                         <td data-bind="text: uData.fullName"></td>
+                         <td data-bind="text: uData.email"></td>
+                         <td data-bind="text: latestSponsor"></td>
+                         <td data-bind="text: spAuthGroup"></td>
+                         <td data-bind="text: spOrg"></td>
+                         <td data-bind="text: spDescript"></td>
+                         <td data-bind="text: spReason"></td>
+                         <td data-bind="text: spStartDate"></td>
+                         <td data-bind="text: spEndDate"></td>
+                     </tr>
+                     </tbody>
+                     <tfoot>
+                     </tfoot>
+                 </table>
+                 <div class="modal fade" id="userMgmtModal" tabindex="-1" role="dialog" data-keyboard="false" data-backdrop="static" aria-labelledby="userMgmtModalLabel">
+                     <div class="modal-dialog modal-sm" role="document">
+                         <div class="modal-content">
+                             <div class="modal-header">
+                                 <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                                 <h4 class="modal-title" id="userMgmtModalLabel">Confirm Sponsorship</h4>
+                             </div>
+                             <div class="modal-body" >
+                                 <div class="form-group">
+                                     <label for="SponsoredOrg" data-bind="text: selected().uData.fullName()"></label>
+                                 </div>
+                                 <div class="form-group">
+                                     <label for="spPurpose">Reason:</label>
+                                     <select class="form-control" id="spPurpose">
+                                         <option value="Emergency Response">Emergency Response</option>
+                                         <option value="Other Federal Agency">Other Federal Agency</option>
+                                         <option value="State Agency">State Agency</option>
+                                         <option value="University">University</option>
+                                         <option value="Long Term GIS Support">Long Term GIS Support</option>
+                                     </select>
+                                 </div>
+                                 <div class="form-group">
+                                     <label for="SponsoredOrg">Organization:</label>
+                                     <input class="form-control" id="SponsoredOrg" type="text" style="width: 100%">
+                                 </div>
+                                 <div class="form-group">
+                                     <label for="spDescription">Description:</label>
+                                     <textarea class="form-control" rows="5" id="spDescription" style="min-width: 100%"></textarea>
+                                 </div>
+                                 <div class="form-group" id="updateAuth">
+                                     <label for="UserAuthDrop">Choose an Authoritative Group:</label>
+                                     <select class="form-control" id="UserAuthDrop" data-bind="options: selected().sponsoreeAuthGroups" style="width: 100%"></select>
+                                 </div>
+                             </div>
+                             <div class="modal-footer">
+                                 <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                                 <button type="button" id="userSponorSave" class="btn btn-primary" data-bind="click: selected().renew">Confirm</button>
+                             </div>
                          </div>
-
                      </div>
                  </div>
              </div>
+             <!-- End userMgmtView  modal -->
+
              <!-- End userMgmtView  View -->
              <!-- userMgmtView  View -->
              <div role="tabpanel" class="tab-pane" id="edgView" >
@@ -805,6 +899,7 @@
 
     <script src="js/jquery1.11.3/jquery.min.js"></script>
     <script src="js/jquery1.11.3/jquery.dataTables.min.js"></script>
+    <script src="js/jquery1.11.3/dataTables.buttons.min.js"></script>
     <script src="js/jquery1.11.3/dataTables.bootstrap.min.js"></script>
     <script src="bootstrap/js/bootstrap.min.js"></script>
     <script src="bootstrap/js/jasny-bootstrap.min.js"></script>

@@ -12,17 +12,30 @@ egam.edgItems = {
   dataTable: null
 };
 
+egam.gpoUsers = {
+  resultSet: [],
+  tableModel: null,
+  dataTable: null,
+  isLoaded: false
+};
+
 $(document).ready(function () {
 
+
   $(document).on('click', '.nav li', function (e) {
-    $(".nav-sidebar li").removeClass("active");
-    $(this).addClass("active");
-    var view = $(this).find(":first").attr("id");
+    $('.nav-sidebar li').removeClass('active');
+    $(this).addClass('active');
+    var view = $(this).find(':first').attr('id');
     $('#' + view + 'View').collapse('show');
     $('.view').not(document.getElementById(view)).collapse('hide');
-    //console.log("Sidebar click: " + e);
-    if (e.target.hash == "#edgView") {
+    if (e.target.hash == '#edgView') {
       egam.edginit();
+    }else if(e.target.hash == "#userMgmtView"){
+      //only load user table the first time user click on userMgmtView
+      if(!egam.gpoUsers.isLoaded){
+        populateUserMngntTable();
+        egam.gpoUsers.isLoaded = true;
+      }
     }
   });
 
@@ -30,15 +43,9 @@ $(document).ready(function () {
   $('#egamHelp').on('click', function(e){
     $('#helpModal').modal('show');
   });
-  
-  $('#edgModalView').on('click', function(e) {
-    $('#edgModal').modal('show');
-    var title = $('#title').val();
-    egam.edginit(title, true);
-  });
 
   //Add tooltips
-  var options = {delay: { "show": 500, "hide": 100 }};
+  var options = {delay: { 'show': 500, 'hide': 100 }};
   $('[data-toggle="tooltip"]').tooltip(options);
 
   ko.bindingHandlers['wysiwyg'].defaults = {
@@ -53,14 +60,14 @@ $(document).ready(function () {
   
 	//load the GPHE table
 	$.getScript('js/gphedata.js')
-		.done(function(script, textStatus ) {
+		.done(function(script, textStatus) {
 			$('#environmentTable').DataTable( {
 				data: GPHEdata,
 				columns: [
-				  { title: "Folder" },
-				  { title: "Service Name" },
-				  { title: "Service Type" },
-				  { title: "Service Description" }
+				  { title: 'Folder'},
+				  { title: 'Service Name'},
+				  { title: 'Service Type'},
+				  { title: 'Service Description'}
 				]
 			});
 		});
@@ -68,11 +75,19 @@ $(document).ready(function () {
 });
 
 
-egam.edginit = function(title, modal) {
+egam.searchEDG = function() {
+  $('#edgModal').modal('show');
+  var title = $('#title').val();
+  egam.edginit(title, true);
+}
 
-  // handle default values
-  title = typeof title !== 'undefined' ? title : '';
-  modal = typeof modal !== 'undefined' ? modal : false;
+
+//TODO: all EDG code should go in its own module
+egam.edginit = function(itemTitle, edgModal) {
+
+  //Handle default values
+  itemTitle = typeof itemTitle !== 'undefined' ? itemTitle : '';
+  edgModal = typeof edgModal !== 'undefined' ? edgModal : false;
 
   //If first time ever binding to table, need to apply binding, but can only bind once so don't bind again if
   //reloading table
@@ -83,27 +98,42 @@ egam.edginit = function(title, modal) {
     //have to actually remove dataTable rows and destroy datatable in order to get knockout to rebind table
     if (egam.edgItems.dataTable) {
       egam.edgItems.dataTable.api().clear().draw();
-      if ("fnDestroy" in egam.edgItems.dataTable) egam.edgItems.dataTable.fnDestroy();
+      if ('fnDestroy' in egam.edgItems.dataTable) egam.edgItems.dataTable.fnDestroy();
     }
     egam.edgItems.tableModel.content.removeAll();
-    console.log("Wiped out table model and data table: " + egam.edgItems.tableModel.content().length);
+    console.log('Wiped out table model and data table: ' + egam.edgItems.tableModel.content().length);
   } else {
     //setting up the new tableModel instance with no rows yet
     egam.edgItems.tableModel = new egam.edgItemTableModel([]);
     needToApplyBindings = true;
   }
 
-  var edgURL = "https://edg.epa.gov/metadata/rest/find/document?f=dcat&max=100&callback=?";
-  if(modal) {
-    edgURL = "https://edg.epa.gov/metadata/rest/find/document?f=dcat&max=10&searchText=title:" + title + "&callback=?";
+  var edgURLRoot = 'https://edg.epa.gov/metadata/rest/find/document?'
+  var edgURLParams = {};
+
+  var edgDiv = '#edgitemtable';
+  
+  if(edgModal) {
+    edgURLParams = {
+      f: 'dcat',
+      max: '20',
+      searchText: itemTitle
+    };
+    edgDiv = '#edgitemmodaltable';
+  }
+  else {
+    edgURLParams = {
+      f: 'dcat',
+      max: '100'
+    };
   }
 
   $.ajax({
-    url: edgURL,
+    url: edgURLRoot + $.param(edgURLParams),
     dataType: 'json',
-    success: function(data) {
+    success: function (data) {
       egam.edgItems.tableModel.add(data.dataset)
-          .then(function() {
+          .then(function () {
             //If there are no rows then don't try to bind
             if (data.dataset.length < 1) return;
             if (needToApplyBindings) {
@@ -114,25 +144,287 @@ egam.edginit = function(title, modal) {
             setTimeout(function () {
               if (egam.edgItems.dataTable && "fnDestroy" in egam.edgItems.dataTable)
                 egam.edgItems.dataTable.fnDestroy();
-              egam.renderEDGitemsDataTable(modal)
+              egam.renderEDGitemsDataTable(edgDiv)
                   .then(function (dt) {
                     egam.edgItems.dataTable = dt;
                   });
             }, 0);
           });
     },
-    //Note, this doesn't check for 404s - need to write server-side check of URL due to CORS
-    error: function(request, textStatus, errorThrown) {
-      if (modal) {
+    error: function (request, textStatus, errorThrown) {
+      if (edgModal) {
         $('#edgModal').modal('hide');
       }
-      alert('EDG JSON parse error: ' + request.statusText);
-      console.log('EDG JSON parse error: ' + request.statusText);
-      // perform tasks for error
+      alert('EDG Error, ' + request.statusText + ': ' + (edgURLRoot + $.param(edgURLParams)));
+      console.log('EDG JSON parse error, ' + request.statusText + ': ' + (edgURLRoot + $.param(edgURLParams)));
     }
   });
 
 };
+
+function populateUserMngntTable(){
+
+  var queryUM = {isExternal:true}; //{isExternal:true};
+  $.post('gpousers/list', {
+    query: JSON.stringify(queryUM)
+  }, function(data){
+    //alert(data);
+    egam.gpoUsers.resultSet = data;
+
+    var gpoUserModel = function(u) {
+      var self = this;
+
+      if (!u.sponsors) {
+        u['sponsors'] = [];
+      }
+      this.uData = ko.mapping.fromJS(u);
+
+      //Sponsor fields
+      this.latestSponsor = ko.computed(function () {
+        var sponsorsLen = self.uData.sponsors().length;
+        if (sponsorsLen > 0) {
+          return self.uData.sponsors()[sponsorsLen - 1].username();
+        } else {
+          return;
+        }
+      });
+
+      this.spStartDate = ko.computed(function(){
+        var spLen = self.uData.sponsors().length;
+        if(spLen >0){
+          var dDate = new Date(self.uData.sponsors()[spLen - 1].startDate());
+          var spStartDate = formatDate(dDate);
+          return spStartDate;
+        }else{
+          return;
+        }
+      });
+
+      this.spEndDate = ko.computed(function(){
+        var spLen = self.uData.sponsors().length;
+        if(spLen >0){
+          var dDate = new Date(self.uData.sponsors()[spLen - 1].endDate());
+          var spStartDate = formatDate(dDate);
+          return spStartDate;
+        }else{
+          return;
+        }
+      });
+
+      this.spOrg = ko.computed(function(){
+        var spLen = self.uData.sponsors().length;
+        if(spLen >0){
+          return self.uData.sponsors()[spLen - 1].organization();
+        }else{
+          return;
+        }
+      });
+
+      this.spAuthGroup = ko.computed(function(){
+        var spLen = self.uData.sponsors().length;
+        if(spLen >0){
+          return self.uData.sponsors()[spLen - 1].authGroup();
+        }else{
+          return;
+        }
+      });
+
+      this.spReason = ko.computed(function(){
+        var spLen = self.uData.sponsors().length;
+        if(spLen >0){
+          return self.uData.sponsors()[spLen - 1].reason();
+        }else{
+          return;
+        }
+      });
+
+      this.spDescript = ko.computed(function(){
+        var spLen = self.uData.sponsors().length;
+        if(spLen >0){
+          return self.uData.sponsors()[spLen - 1].description();
+        }else{
+          return;
+        }
+      });
+
+      //Format Date from millaseconds to something useful
+      function formatDate(uDate) {
+        var monthNames = [
+          "Jan", "Feb", "Mar",
+          "Apr", "May", "Jun", "Jul",
+          "Aug", "Sep", "Oct",
+          "Nov", "Dec"
+        ];
+        var formattedDate = monthNames[uDate.getMonth()] + " " + uDate.getDate() + ", " + uDate.getFullYear();
+        return formattedDate;
+      };
+
+      this.sponsoreeAuthGroups = ko.observableArray(egam.communityUser.authGroups);
+
+      this.renew = function () {
+
+        //get current data for sponsoring
+        var defaultDuration = 90;
+        var sD = new Date();
+        var sponsorDate = sD.getTime();
+        var endDate = sponsorDate + defaultDuration*24*3600*1000;
+
+        //get assigned authGroup from dropdown
+        var userAuthDrop = $('#UserAuthDrop');
+        var authGroup = userAuthDrop[0].options[userAuthDrop[0].selectedIndex].value;
+        //get other fields
+        var org = $('#SponsoredOrg').val();
+        var descript = $('#spDescription').val();
+        var reason = $('#spPurpose');
+        var reasonSelected = reason[0].options[reason[0].selectedIndex].value;
+
+        //Create updateDoc to post back to mongo
+        myUserData = {};
+        updateUserData = {
+          username: self.uData.username(), //self.uData.username()
+          sponsor: {
+            username: egam.communityUser.username,
+            startDate: sponsorDate,
+            endDate: endDate,
+            authGroup: authGroup,
+            reason: reasonSelected,
+            organization: org,
+            description: descript
+          },
+          authGroup: authGroup,
+        };
+        updatedSponsor = {
+          username: egam.communityUser.username,
+          startDate: sponsorDate,
+          endDate: endDate,
+          authGroup: authGroup,
+          reason: reasonSelected,
+          organization: org,
+          description: descript
+        };
+        myUserData.updateDocs = JSON.stringify(updateUserData);
+
+        //alert(JSON.stringify(updateUserData));
+        var unmapped = ko.mapping.toJS(self.uData);
+        //update in UI doc
+        unmapped.sponsors.push(updatedSponsor);
+        unmapped.authGroups.push(authGroup);
+        //console.log(JSON.stringify(unmapped));
+        ko.mapping.fromJS(unmapped, self.uData);
+
+        //console.log(userAuthDrop);
+
+        //post to mongo
+        $.ajax({
+          url: 'gpousers/update',
+          type: 'POST',
+          data: myUserData,
+          cache: false,
+          dataType: 'json',
+          //processData: false, // Don't process the files
+          //contentType: false, // Set content type to false as jQuery will tell the server its a query string request
+          success: function (rdata, textStatus, jqXHR) {
+            console.log("Success: Posted new sponsor to Mongo");
+            //alert(JSON.stringify(rdata));
+          },
+          error: function (jqXHR, textStatus, errorThrown) {
+            // Handle errors here
+            console.log('ERRORS: ' + textStatus);
+          }
+        });
+        $('#userMgmtModal').modal('hide');
+        $('#updateAuth').hide();
+      };
+    };
+
+    var gpoUserTableModel = function(usersDoc){
+      var self = this;
+
+      self.users = ko.observableArray(usersDoc.map(function (doc){
+        return new gpoUserModel(doc);
+      }));
+
+      self.select = function (item) {
+        self.selected(item);
+      };
+
+      //allows you to select an item based on index, usually index will be coming from row number
+      self.selectIndex = function (index) {
+        var selectedItem = self.users()[index];
+        self.selected(selectedItem);
+      };
+
+      self.selected = ko.observable();
+
+      if (self.users().length > 0) {
+        //automatically select the 1st item in the table
+        //no idea why we are doing this?
+        self.selected = ko.observable(self.users()[0]);
+      }
+
+      self.clear = function () {
+        self.users().length = 0;
+      };
+
+    };
+    // JSON.parse(data)
+    ko.applyBindings(new gpoUserTableModel(JSON.parse(data)), document.getElementById("userMgmtView"));
+
+    $.fn.dataTable.ext.buttons.alert = {
+      className: 'buttons-alert',
+      action: function ( e, dt, node, config ) {
+        //alert( this.text() );
+        var userTable = $('#userMgmtTable').DataTable();
+        //console.log(e);
+        var searchVal;
+        if(this.text() == "All External Users"){
+          searchVal = '.*';
+          this.active(true);
+          userTable.button(1).active(false);
+          userTable.button(2).active(false);
+        }else if(this.text() == "Sponsored"){
+          searchVal = '.+';
+          this.active(true);
+          userTable.button(0).active(false);
+          userTable.button(2).active(false);
+        }else if(this.text() == "Unsponsored") {
+          searchVal = '^'+'$';
+          this.active(true);
+          userTable.button(0).active(false);
+          userTable.button(1).active(false);
+        }
+
+        userTable
+            .column( 3 )
+            .search(searchVal, true, false)
+            .draw();
+      }
+    };
+
+    var userManagementTable = $('#userMgmtTable').DataTable( {
+      dom: 'Bfrtip',
+        buttons: [
+          {
+            extend:'alert',
+            text: 'All External Users',
+          },
+          {
+            extend:'alert',
+            text: 'Sponsored'
+          },
+          {
+            extend:'alert',
+            text: 'Unsponsored'
+          }
+        ],
+      "order": [
+        [1, "asc"]
+      ]
+    });
+    //make All External Users button active
+    userManagementTable.buttons(0).active(true);
+  });
+}
 
 //Populate table for GPO User's Items View
 //Projection in Mongo/Monk is what fields you want to return and sorting, offsetting, etc.
@@ -227,23 +519,15 @@ function calcItemsPassingAudit(dataResults) {
   $('#percPublicPassingAudit').text(percentPassing + "% Passing");
 }
 
-egam.renderEDGitemsDataTable = function () {
-  // handle default values
-  modal = typeof modal !== 'undefined' ? modal : false;
-
+egam.renderEDGitemsDataTable = function (edgDiv) {
   //apply data table magic, ordered ascending by title
   //Use this so we know when table is rendered
   var defer = $.Deferred();
-  if (!modal) {
-    div = '#edgitemtable';
-  } else {
-    div = '#edgitemmodaltable';
-  }
-  $(div).DataTable({
+  $(edgDiv).DataTable({
     aaSorting: [],
     initComplete: function () {
       defer.resolve(this);
-      $(div).addClass("loaded");
+      $(edgDiv).addClass("loaded");
     }
   });
 
@@ -304,6 +588,7 @@ egam.renderGPOitemsDataTable = function () {
             });
 
             if (select.length > 0 && select[0].options.length > 1) return;
+
             //If first item has data-search then have to map out data-search data
             var att = column.nodes().to$()[0].attributes;
             if ("data-search" in att) {
@@ -359,8 +644,7 @@ egam.runAllClientSideFilters = function () {
   egam.gpoItems.dataTable.api().columns().every(function () {
     var column = this;
     //Don't fire dropAccess handler because it will download again
-    if (egam.communityUser.isSuperUser && $(column.header()).hasClass
-      ("accessColumn")) return true;
+    if (egam.communityUser.isSuperUser && $(column.header()).hasClass("accessColumn")) return true;
 
     var headerSelect = $(column.header()).find("select.search");
     if (headerSelect.length > 0) headerSelect.trigger("change");
@@ -408,7 +692,7 @@ egam.accessSelectEventHandler = function () {
 egam.setAuthGroupsDropdown = function (ownerIDsByAuthGroup) {
   var dropAuthGroups = $("#dropAuthGroups");
   dropAuthGroups.on("change", function () {
-    //If the only downloaded some authGroups then download again instead of client side filtering
+    //If we only downloaded some authGroups then download again instead of client side filtering
     if (egam.gpoItems.allAuthGroupsDownloaded === false) {
       // Call accessSelectEventHandler in proper context of dropAccess
       egam.accessSelectEventHandler.apply($("#dropAccess"), []);
@@ -431,6 +715,8 @@ egam.setAuthGroupsDropdown = function (ownerIDsByAuthGroup) {
       var href = $('#downloadAuthgroupsCSVregions').attr("href");
       //tack on authgroup to the end of the route to get csv. Note: use ^ and $ to get exact match because it matches regex(Region 1 and 10 would be same if not)
       //Also we are using authGroup by name so need to escape ( and ) which is offices like (OAR)
+      //TODO: Not sure about this code, I've had a few weird bugs with this in action where my dashboard is sent to
+      //TODO: a 404 error page upon clicking download users CSV in the GUI -- looked like an escaping issue to me
       var escapeAuthGroup = authgroup.replace(/\(/g, "%5C(").replace(/\)/g, "%5C)");
       href = href.substring(0, href.lastIndexOf("/") + 1) + "^" + escapeAuthGroup + "$";
       $('#downloadAuthgroupsCSVregions').attr("href", href);
@@ -447,9 +733,6 @@ egam.setAuthGroupsDropdown = function (ownerIDsByAuthGroup) {
   if (authGroups.length > 1) dropAuthGroups.append($("<option>", {value: ""}).text("All"));
 
   $.each(authGroups, function (index, authGroup) {
-//  $.each(ownerIDsByAuthGroup,function (authGroup,ownerIDs) {
-//    var reOwnerIDs = ownerIDs.join("|");
-//    dropAuthGroups.append($('<option>', { value : reOwnerIDs }).text(authGroup));
     dropAuthGroups.append($("<option>", {value: authGroup}).text(authGroup));
   });
 };
@@ -462,14 +745,11 @@ egam.edgItemModel = function (data) {
 
 egam.gpoItemModel = function (i, loading) {
   var self = this;
-  if (i.id == '7bab68d53b3c41caae8e949d5aa8e026') {
-    console.log("break here");
-  }
   this.loading = loading || false;
   //This is the doc
   var docTemp = ko.mapping.fromJS(i);
   this.doc = ko.observable(docTemp);
-//THis is just place to store current version of row before they hit save
+  //This is just a place to store current version of row before they hit save
   this.tableDoc =  i;
 
   this.complianceStatus = ko.computed(function () {
@@ -498,9 +778,13 @@ egam.gpoItemModel = function (i, loading) {
 
     return formattedDate;
   }, this);
+  
+  this.epaKeywords = function() {
+  };
+  
   //Link to item in GPO
   this.gpoLink = ko.computed(function(){
-    return "http://epa.maps.arcgis.com/home/item.html?id=" + self.doc().id();
+    return "https://epa.maps.arcgis.com/home/item.html?id=" + self.doc().id();
   }, this);
 
   //Doc of changed fields
@@ -536,14 +820,28 @@ egam.gpoItemModel = function (i, loading) {
   };
 
   //tags
-  this.tagItemToAdd = ko.observable("");
+  this.epaTagItemToAdd = ko.observable("");
+  this.placeTagItemToAdd = ko.observable("");
+  this.orgTagItemToAdd = ko.observable("");
   this.selectedItems = ko.observableArray([""]);
   //Add tag to tags array
-  this.addItem = function () {
-    if ((this.selected().tagItemToAdd() != "") && (this.selected
-      ().doc().tags.indexOf(this.selected().tagItemToAdd()) < 0)) // Prevent blanks and duplicates
-      this.selected().doc().tags.push(this.selected().tagItemToAdd());
-    this.selected().tagItemToAdd(""); // Clear the text box
+  this.addEPAItem = function () {
+    if ((this.selected().epaTagItemToAdd() != "") && (this.selected
+      ().doc().tags.indexOf(this.selected().epaTagItemToAdd()) < 0)) // Prevent blanks and duplicates
+      this.selected().doc().tags.push(this.selected().epaTagItemToAdd());
+    this.selected().epaTagItemToAdd(""); // Clear the text box
+  };
+  this.addPlaceItem = function () {
+    if ((this.selected().placeTagItemToAdd() != "") && (this.selected
+        ().doc().tags.indexOf(this.selected().placeTagItemToAdd()) < 0)) // Prevent blanks and duplicates
+      this.selected().doc().tags.push(this.selected().placeTagItemToAdd());
+    this.selected().placeTagItemToAdd(""); // Clear the text box
+  };
+  this.addOrgItem = function () {
+    if ((this.selected().orgTagItemToAdd() != "") && (this.selected
+        ().doc().tags.indexOf(this.selected().orgTagItemToAdd()) < 0)) // Prevent blanks and duplicates
+      this.selected().doc().tags.push(this.selected().orgTagItemToAdd());
+    this.selected().orgTagItemToAdd(""); // Clear the text box
   };
   //Remove tag from tags array
   this.removeSelected = function () {
@@ -593,12 +891,13 @@ egam.gpoItemModel = function (i, loading) {
 
     var mydata = new FormData();
     var updateDocsJSON = JSON.stringify(self.changeDoc);
-//don't try to update if there is nothing to update
+    //don't try to update if there is nothing to update
     if (updateDocsJSON=="{}" && ! thumbnailFile) return;
-//changeDoc should be cleared for next time
+    //changeDoc should be cleared for next time
     self.changeDoc = {};
     mydata.append("updateDocs", JSON.stringify(updateDocsJSON));
     mydata.append("thumbnail", thumbnailFile);
+
     $.ajax({
       url: 'gpoitems/update',
       type: 'POST',
@@ -731,10 +1030,45 @@ egam.edgItemTableModel = function (data) {
         dataType: "xml",
         success: function(xml) {
           var title = $(xml).find("citation").find("title").text();
+          if (!title) { // Need to capture different metadata styles
+            title = $(xml).find("title").text();
+            if (!title) {
+              title = $(xml).find("gmd\\:citation").find("gmd\\:CI_Citation").find("gmd\\:title").find("gco\\:CharacterString").text()
+            }
+          }
           var purpose = $(xml).find("purpose").text();
           var abstract = $(xml).find("abstract").text();
-          var useconst = "Access constraints: " + $(xml).find("accconst").text() + " Use constraints: " + $(xml).find("useconst").text();
+          if (!abstract) { // Need to capture different metadata styles
+            abstract = $(xml).find("description").text();
+            if (!abstract) {
+              abstract = $(xml).find("gmd\\:abstract").find("gco\\:CharacterString").text()
+            }
+          }
+          var acc = $(xml).find("accconst").text();
+          var usecon = $(xml).find("useconst").text();
+          if (!usecon) { // Need to capture different metadata styles
+              acc = $(xml).find("gmd\\:MD_SecurityConstraints").find("gmd\\:useLimitation").find("gco\\:CharacterString").text();
+              usecon = $(xml).find("gmd\\:MD_LegalConstraints").find("gmd\\:useLimitation").find("gco\\:CharacterString").text();
+          }
+          var useconst = "";
+          if (acc || usecon) {
+            useconst = "Access constraints: " + acc + " Use constraints: " + usecon;
+          }
+
           var publisher = $(xml).find("publish").text();
+          if (!publisher) { // Need to capture different metadata styles
+            var agency = $(xml).find("agencyName").text();
+            var subagency = $(xml).find("subAgencyName").text();
+            if (agency) {
+              if (subagency) {
+                publisher = agency + ", " + subagency;
+              } else {
+                publisher = agency;
+              }
+            } else {
+              publisher = $(xml).find("gmd\\:contact").find("gmd\\:organisationName").find("gco\\:CharacterString").text();
+            }
+          }
           var mydata = new FormData();
           mydata.append("updateDocs", JSON.stringify({
             id: gpoID, EDGdata: {
@@ -774,7 +1108,8 @@ egam.edgItemTableModel = function (data) {
                 //              egam.gpoItems.dataTable.destroy();
                 egam.gpoItems.dataTable.fnDestroy();
                 egam.renderGPOitemsDataTable();
-                //updating currrent doc
+                // Show reconciliation modal
+                $('#reconciliationModal').modal('show');
               }
               else {
                 // Handle errors here
@@ -789,9 +1124,9 @@ egam.edgItemTableModel = function (data) {
             }
           });
         },
-        error: function(){
-          alert("EDG metadata record could not be loaded: " + edgURL);
-          console.log( "EDG metadata record could not be loaded: " + edgURL );
+        error: function(jqXHR, textStatus, errorThrown){
+          alert("EDG metadata record could not be loaded: " + edgURL + " (" + textStatus +")");
+          console.log( "EDG metadata record could not be loaded: " + edgURL + " (" + textStatus +")");
         }
       });
     } else {
@@ -809,9 +1144,46 @@ egam.gpoItemTableModel = function (data) {
     return new egam.gpoItemModel(doc);
   }));
 
+  self.initializeTags = function() {
+    // Get official EPA tags from gpoItemsTags.js
+    $.ajax({
+      url: 'gpoitems/availableTags',
+      dataType: 'json',
+      success: function (data, textStatus, jqXHR) {
+        // EPA Keywords
+        $("#epaTagSelect").append("<option></option>");
+        $.each(data.epa_keywords, function(key, value) {
+          $('#epaTagSelect')
+              .append($("<option></option>")
+                  .attr("value",value)
+                  .text(value));
+        });
+        // Place Keywords
+        $("#placeTagSelect").append("<option></option>");
+        $.each(data.place_keywords, function(key, value) {
+          $('#placeTagSelect')
+              .append($("<option></option>")
+                  .attr("value",value)
+                  .text(value));
+        });
+        // EPA Organization Names
+        $("#orgTagSelect").append("<option></option>");
+        $.each(data.epa_organization_names, function(key, value) {
+          $.each(value, function(key, value) {
+            $('#orgTagSelect')
+                .append($("<option></option>")
+                    .attr("value",value)
+                    .text(value));
+          });
+        });
+      }
+    });
+  };
+
   //on the entire table, we need to know which item is selected to use later with modal, etc.
   self.select = function (item) {
     self.selected(item);
+    self.initializeTags();
   };
 
   //allows you to select an item based on index, usually index will be coming from row number
