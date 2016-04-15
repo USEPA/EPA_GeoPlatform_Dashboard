@@ -859,6 +859,7 @@ egam.gpoItemModel = function (i, loading) {
     doctemp.accessInformation = $('#GPOinputAccessInfo').val();
   
     egam.gpoItems.tableModel.selected().doc(ko.mapping.fromJS(doctemp));
+    $('#myModal').modal('show');
   }
 
 
