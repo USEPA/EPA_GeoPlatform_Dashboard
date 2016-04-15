@@ -501,6 +501,8 @@ function populateUserTables(query, projection) {
     }
 
     calcItemsPassingAudit(dataResults);
+    // Initialize tags once the table has loaded
+    egam.gpoItems.tableModel.initializeTags();
 
   },'json');
   return defer;
@@ -1183,7 +1185,6 @@ egam.gpoItemTableModel = function (data) {
   //on the entire table, we need to know which item is selected to use later with modal, etc.
   self.select = function (item) {
     self.selected(item);
-    self.initializeTags();
   };
 
   //allows you to select an item based on index, usually index will be coming from row number
