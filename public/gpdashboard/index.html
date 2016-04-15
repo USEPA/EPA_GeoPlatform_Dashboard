@@ -506,7 +506,7 @@
                                       <div class="form-group">
                                           <!-- ko if: selected().doc().EDGdata -->
                                           <label>EDG Reconciliation</label><br />
-                                          <button type="button" id="reconcileBtn" class="btn btn-default" data-bind="click: function () { $('#reconciliationModal').modal('show'); }">Reconcile with EDG</button>
+                                          <button type="button" id="reconcileBtn" class="btn btn-default" data-bind="click: function () { $('#reconciliationModal').modal('show'); $('#myModal').modal('hide'); }">Reconcile with EDG</button>
                                           <!-- /ko -->
                                       </div>
                                       <!--</form>-->
@@ -708,7 +708,7 @@
                               </form>
                           </div>
                           <div class="modal-footer">
-                              <button type="button" id="closeReconcileBtn" class="btn btn-default" data-bind="click: selected().closeModal" data-dismiss="modal" >Close</button>
+                              <button type="button" id="closeReconcileBtn" class="btn btn-default" data-bind="click: function() { selected().closeModal; $('#myModal').modal('show'); }" data-dismiss="modal" >Close</button>
                               <button type="button" class="btn btn-primary" data-bind="click: selected().loadReconciledFields" data-dismiss="modal">Load reconciled values</button>
                           </div>
                       </div>
@@ -750,7 +750,7 @@
                              </div>
                          </div>
                          <div class="modal-footer">
-                             <button type="button" class="btn btn-default" data-dismiss="modal" >Close</button>
+                             <button id="closeEDGSearchBtn" type="button" class="btn btn-default" onclick="$('#myModal').modal('show');" data-dismiss="modal">Close</button>
                          </div>
                      </div>
                  </div>
