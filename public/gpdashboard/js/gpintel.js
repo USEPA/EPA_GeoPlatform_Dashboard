@@ -79,6 +79,7 @@ egam.searchEDG = function() {
   $('#edgModal').modal('show');
   var title = $('#title').val();
   egam.edginit(title, true);
+  $('#myModal').modal('hide');
 }
 
 
