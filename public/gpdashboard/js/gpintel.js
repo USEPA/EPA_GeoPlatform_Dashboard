@@ -1210,6 +1210,10 @@ egam.gpoItemTableModel = function (data) {
             if (office = 'REG' && userAuthGroup && userAuthGroup[2]) {
               $orgTagSelect.find('option[value="REG 0' + userAuthGroup[2] + '"]').prop('selected', true).change();
             }
+          },
+          error: function (request) {
+            alert('Error loading EPA Organizational Tags: ' + request.statusText);
+            console.log('Error loading EPA Organizational Tags: ' + request.statusText);
           }
         });
       } else {
