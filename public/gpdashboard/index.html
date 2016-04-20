@@ -487,7 +487,8 @@
                                           </div>
                                           <label for="dropOrgTags">EPA Organization Names</label>
                                           <div class="form-inline">
-                                              <button id="dropOrgTags" class="btn btn-default"  type="submit" data-bind="click: selected().addOrgItem">Add</button>
+                                              <button id="dropOrgTags" class="btn btn-default"  type="submit" data-bind="click: selected().addOrgItem" disabled>Add</button>
+                                              <select class="tag-select search form-control" id="officeTagSelect" data-bind='value: selected().officeTagItemToAdd, valueUpdate: "afterkeydown"'></select>
                                               <select class="tag-select search form-control" id="orgTagSelect" data-bind='value: selected().orgTagItemToAdd, valueUpdate: "afterkeydown"'></select>
                                           </div>
                                       </div>

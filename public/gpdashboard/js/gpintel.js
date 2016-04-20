@@ -1170,16 +1170,69 @@ egam.gpoItemTableModel = function (data) {
                   .attr("value",value)
                   .text(value));
         });
-        // EPA Organization Names
-        $("#orgTagSelect").append("<option></option>");
+        // EPA Office Names (for filtering all organizations)
+        $("#officeTagSelect").append("<option></option>");
         $.each(data.epa_organization_names, function(key, value) {
-          $.each(value, function(key, value) {
-            $('#orgTagSelect')
-                .append($("<option></option>")
-                    .attr("value",value)
-                    .text(value));
-          });
+          $('#officeTagSelect')
+              .append($("<option></option>")
+                  .attr("value",key)
+                  .text(key));
         });
+      }
+    });
+
+
+
+    // Once EPA Office is selected, add sub-offices
+    $('#officeTagSelect').change(function() {
+      var $orgTagSelect = $('#orgTagSelect');
+      // Match either national office acronym or regional office number
+      var userAuthGroup = /\((.*)\)|EPA Region ([1-9]0?)/.exec(egam.communityUser.authGroups[0]);
+      // Current dropdown value
+      var office = $(this).val();
+      if (office) {
+        // Get official EPA tags from gpoItemsTags.js
+        $.ajax({
+          url: 'gpoitems/availableTags/epa_organization_names',
+          dataType: 'json',
+          success: function (data) {
+            // Enable dropdown & button and empty
+            $('#dropOrgTags').prop('disabled', false);
+            $orgTagSelect.empty().append('<option></option>').prop('disabled', false);
+            // EPA Organization Names for the selected office
+            $.each(data[office], function (key, value) {
+              $orgTagSelect.append($('<option></option>')
+                .attr('value', value)
+                .text(value));
+            });
+
+            // If it's a regional office and the user has it as their primary authoritative group, set the organization
+            if (office = 'REG' && userAuthGroup && userAuthGroup[2]) {
+              $orgTagSelect.find('option[value="REG 0' + userAuthGroup[2] + '"]').prop('selected', true).change();
+            }
+          },
+          error: function (request) {
+            alert('Error loading EPA Organizational Tags: ' + request.statusText);
+            console.log('Error loading EPA Organizational Tags: ' + request.statusText);
+          }
+        });
+      } else {
+        // If no office selected, check user's first auth group to see if it is an EPA office
+        if (userAuthGroup && userAuthGroup.length > 1) {
+          var group;
+          if (userAuthGroup[1]) {
+            // For the national offices, just set the top-level office
+            group = userAuthGroup[1];
+          } else {
+            // For the regional offices, can actually set the full name
+            group = "REG";
+          }
+          $(this).find('option[value="' + group + '"]').prop('selected', true).change();
+        } else {
+          // If no matching office to auth group, disable dropdown & button
+          $('#dropOrgTags').prop('disabled', true);
+          $orgTagSelect.empty().prop('disabled', true);
+        }
       }
     });
   };
