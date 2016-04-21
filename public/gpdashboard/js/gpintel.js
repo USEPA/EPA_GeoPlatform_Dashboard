@@ -78,6 +78,11 @@ $(document).ready(function () {
 egam.searchEDG = function() {
   $('#edgModal').modal('show');
   var title = $('#title').val();
+  $('#edgTitleSearch').val(title);
+  // If the Search button on the EDG modal is clicked, re-search EDG
+  $('#edgBtnModal').click(function() {
+    egam.edginit($('#edgTitleSearch').val(), true);
+  });
   egam.edginit(title, true);
   $('#myModal').modal('hide');
 }
@@ -117,7 +122,7 @@ egam.edginit = function(itemTitle, edgModal) {
   if(edgModal) {
     edgURLParams = {
       f: 'dcat',
-      max: '20',
+      max: '30',
       searchText: itemTitle
     };
     edgDiv = '#edgitemmodaltable';
@@ -528,6 +533,10 @@ egam.renderEDGitemsDataTable = function (edgDiv) {
   var defer = $.Deferred();
   $(edgDiv).DataTable({
     aaSorting: [],
+    oLanguage: {
+      // Changing DataTables search label to Filter to not confuse with EDG Search
+      "sSearch": "Filter: "
+    },
     initComplete: function () {
       defer.resolve(this);
       $(edgDiv).addClass("loaded");
