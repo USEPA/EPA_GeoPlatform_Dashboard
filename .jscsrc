@@ -1,4 +1,8 @@
 {
 	"fileExtensions": [".js", ".jscs"],
-	"maxErrors": null
+	"maxErrors": null,
+
+  	"validateCommentPosition": { position: "above"},
+  	"requirePaddingNewLinesBeforeLineComments": { "allExcept": "firstAfterCurly" }
+
 }
