@@ -1006,7 +1006,7 @@ egam.gpoItemModel = function(i, loading) {
 
     // ChangeDoc should be cleared for next time
     self.changeDoc = {};
-    mydata.append('updateDocs', JSON.stringify(updateDocsJSON));
+    mydata.append('updateDocs', updateDocsJSON);
     mydata.append('thumbnail', thumbnailFile);
 
     $.ajax({
