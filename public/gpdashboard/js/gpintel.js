@@ -81,6 +81,7 @@ egam.searchEDG = function() {
   $('#edgModal').modal('show');
   var title = $('#title').val();
   $('#edgTitleSearch').val(title);
+
   // If the Search button on the EDG modal is clicked, re-search EDG
   $('#edgBtnModal').click(function() {
     egam.edginit($('#edgTitleSearch').val(), true);
@@ -183,7 +184,7 @@ egam.edginit = function(itemTitle, edgModal) {
 
 function populateUserMngntTable() {
 
-  var queryUM = {isExternal: true}; // {isExternal:true};
+  var queryUM = {isExternal: true};
   $.post('gpousers/list', {
     query: JSON.stringify(queryUM),
   }, function(data) {
@@ -277,6 +278,7 @@ function populateUserMngntTable() {
         var userAuthDrop = $('#UserAuthDrop');
         var authGroup = userAuthDrop[0]
             .options[userAuthDrop[0].selectedIndex].value;
+
         // Get other fields
         var org = $('#SponsoredOrg').val();
         var descript = $('#spDescription').val();
@@ -286,7 +288,7 @@ function populateUserMngntTable() {
         // Create updateDoc to post back to mongo
         myUserData = {};
         updateUserData = {
-          username: self.uData.username(), // Self.uData.username()
+          username: self.uData.username(),
           sponsor: {
             username: egam.communityUser.username,
             startDate: sponsorDate,
@@ -311,9 +313,11 @@ function populateUserMngntTable() {
 
         // Alert(JSON.stringify(updateUserData));
         var unmapped = ko.mapping.toJS(self.uData);
+
         // Update in UI doc
         unmapped.sponsors.push(updatedSponsor);
         unmapped.authGroups.push(authGroup);
+
         // Console.log(JSON.stringify(unmapped));
         ko.mapping.fromJS(unmapped, self.uData);
 
@@ -328,6 +332,7 @@ function populateUserMngntTable() {
           dataType: 'json',
           success: function(rdata, textStatus, jqXHR) {
             console.log('Success: Posted new sponsor to Mongo');
+
             // Alert(JSON.stringify(rdata));
           },
           error: function(jqXHR, textStatus, errorThrown) {
@@ -371,6 +376,7 @@ function populateUserMngntTable() {
       };
 
     };
+
     // JSON.parse(data)
     ko.applyBindings(new gpoUserTableModel(JSON.parse(data)),
         document.getElementById('userMgmtView'));
@@ -378,8 +384,10 @@ function populateUserMngntTable() {
     $.fn.dataTable.ext.buttons.alert = {
       className: 'buttons-alert',
       action: function(e, dt, node, config) {
+
         // Alert( this.text() );
         var userTable = $('#userMgmtTable').DataTable();
+
         // Console.log(e);
         var searchVal;
         if (this.text() == 'All External Users') {
@@ -426,6 +434,7 @@ function populateUserMngntTable() {
         [1, 'asc'],
       ],
     });
+
     // Make All External Users button active
     userManagementTable.buttons(0).active(true);
   });
@@ -448,6 +457,7 @@ function populateUserTables(query, projection) {
     projection: projection,
   }, function(data) {
     egam.gpoItems.resultSet = data;
+
     // If paging then data.results is array of data
     var dataResults = data;
     if ('results' in data) {
@@ -493,6 +503,7 @@ function populateUserTables(query, projection) {
         if (dataResults.length < 1) {
           return defer.resolve();
         }
+
         // Cluge to make row model work because it is trying to bind
         // rowmodel.selected()
         egam.gpoItems.tableModel.selectIndex(0);
@@ -523,6 +534,7 @@ function populateUserTables(query, projection) {
     }
 
     calcItemsPassingAudit(dataResults);
+
     // Initialize tags once the table has loaded
     egam.gpoItems.tableModel.initializeTags();
 
@@ -550,10 +562,11 @@ egam.renderEDGitemsDataTable = function(edgDiv) {
   $(edgDiv).DataTable({
     aaSorting: [],
     oLanguage: {
-      // Changing DataTables search label to Filter to not confuse with EDG Search
-      "sSearch": "Filter: "
+      // Changing DataTables search label to Filter to not confuse with EDG
+      // Search
+      sSearch: 'Filter: ',
     },
-    initComplete: function () {
+    initComplete: function() {
       defer.resolve(this);
       $(edgDiv).addClass('loaded');
     },
@@ -678,6 +691,7 @@ egam.renderGPOitemsDataTable = function() {
 egam.runAllClientSideFilters = function() {
   egam.gpoItems.dataTable.api().columns().every(function() {
     var column = this;
+
     // Don't fire dropAccess handler because it will download again
     if (egam.communityUser.isSuperUser &&
         $(column.header()).hasClass('accessColumn')) {
@@ -704,6 +718,7 @@ egam.accessSelectEventHandler = function() {
     query.access = val;
   }
   var authGroupValue = $('#dropAuthGroups').val();
+
   // So we know not all authgroups were downloaded and need to retrieve
   egam.gpoItems.allAuthGroupsDownloaded = true;
   if (authGroupValue) {
@@ -723,6 +738,7 @@ egam.accessSelectEventHandler = function() {
       $('div#loadingMsg').addClass('hidden');
       $('div#overviewTable').removeClass('hidden');
       $('#loadingMsgCountContainer').addClass('hidden');
+
       // Now run any client side filters that were selected
       egam.runAllClientSideFilters();
       return true;
@@ -749,15 +765,18 @@ egam.setAuthGroupsDropdown = function(ownerIDsByAuthGroup) {
       }
       egam.gpoItems.dataTable.api().column('.ownerColumn')
         .search(reOwnerIDs, true, false)
+
         //      .search(this.value,true,false)
         .draw();
     }
+
     // Also set the download link
     var authgroup = this.value;
     if (authgroup) {
       $('#downloadAuthgroupsCSVall').addClass('hidden');
       $('#downloadAuthgroupsCSVregions').removeClass('hidden');
       var href = $('#downloadAuthgroupsCSVregions').attr('href');
+
       // Tack on authgroup to the end of the route to get csv. Note: use ^ and $
       // to get exact match because it matches regex(Region 1 and 10 would be
       // same if not). Also we are using authGroup by name so need to escape
@@ -792,6 +811,7 @@ egam.setAuthGroupsDropdown = function(ownerIDsByAuthGroup) {
 
 egam.edgItemModel = function(data) {
   var self = this;
+
   // Knockout mapping JSON data to view model
   ko.mapping.fromJS(data, {}, self);
 };
@@ -799,9 +819,11 @@ egam.edgItemModel = function(data) {
 egam.gpoItemModel = function(i, loading) {
   var self = this;
   this.loading = loading || false;
+
   // This is the doc
   var docTemp = ko.mapping.fromJS(i);
   this.doc = ko.observable(docTemp);
+
   // This is just a place to store current version of row before they hit save
   this.tableDoc =  i;
 
@@ -813,12 +835,14 @@ egam.gpoItemModel = function(i, loading) {
   this.tnURLs = ko.computed(function() {
     if (self.doc().thumbnail() == null) {
       return 'img/noImage.png';
-    } else {
-      return 'https://epa.maps.arcgis.com/sharing/rest/content/items/' +
-          self.doc().id() + '/info/' + self.doc().thumbnail() +
-          '?token=' + egam.portalUser.credential.token;
     }
+
+    // Else
+    return 'https://epa.maps.arcgis.com/sharing/rest/content/items/' +
+        self.doc().id() + '/info/' + self.doc().thumbnail() +
+        '?token=' + egam.portalUser.credential.token;
   }, this);
+
   // Format Modified Date
   this.modDate = ko.computed(function() {
     var monthNames = [
@@ -853,6 +877,7 @@ egam.gpoItemModel = function(i, loading) {
     'accessInformation',
     'url',
   ];
+
   // Condensed this repetitive code
   $.each(this.updateFields,function(index,field) {
     self.doc()[field].subscribe(function(evt) {
@@ -860,6 +885,7 @@ egam.gpoItemModel = function(i, loading) {
       self.addFieldChange(field, evt);
     }.bind(self));
   });
+
   // Could condense arrays later if
   this.doc().tags.subscribe(function(evt) {
     this.execAudit('tags');
@@ -885,6 +911,7 @@ egam.gpoItemModel = function(i, loading) {
   this.placeTagItemToAdd = ko.observable('');
   this.orgTagItemToAdd = ko.observable('');
   this.selectedItems = ko.observableArray(['']);
+
   // Add tag to tags array
   this.addEPAItem = function() {
     // Prevent blanks and duplicates
@@ -892,7 +919,9 @@ egam.gpoItemModel = function(i, loading) {
       ().doc().tags.indexOf(this.selected().epaTagItemToAdd()) < 0)) {
       this.selected().doc().tags.push(this.selected().epaTagItemToAdd());
     }
-    this.selected().epaTagItemToAdd(''); // Clear the text box
+
+    // Clear the text box
+    this.selected().epaTagItemToAdd('');
   };
   this.addPlaceItem = function() {
     // Prevent blanks and duplicates
@@ -900,7 +929,9 @@ egam.gpoItemModel = function(i, loading) {
         ().doc().tags.indexOf(this.selected().placeTagItemToAdd()) < 0)) {
       this.selected().doc().tags.push(this.selected().placeTagItemToAdd());
     }
-    this.selected().placeTagItemToAdd(''); // Clear the text box
+
+    // Clear the text box
+    this.selected().placeTagItemToAdd('');
   };
   this.addOrgItem = function() {
     // Prevent blanks and duplicates
@@ -908,12 +939,17 @@ egam.gpoItemModel = function(i, loading) {
         ().doc().tags.indexOf(this.selected().orgTagItemToAdd()) < 0)) {
       this.selected().doc().tags.push(this.selected().orgTagItemToAdd());
     }
-    this.selected().orgTagItemToAdd(''); // Clear the text box
+
+    // Clear the text box
+    this.selected().orgTagItemToAdd('');
   };
+
   // Remove tag from tags array
   this.removeSelected = function() {
     this.selected().doc().tags.removeAll(this.selected().selectedItems());
-    this.selected().selectedItems([]); // Clear selection
+
+    // Clear selection
+    this.selected().selectedItems([]);
   };
 
   this.loadReconciledFields = function() {
@@ -944,9 +980,11 @@ egam.gpoItemModel = function(i, loading) {
       // Add to to change doc
       i.thumbnail = 'thumbnail/' + thumbnailFile.name;
       self.addFieldChange('thumbnail', i.thumbnail);
+
       // Self.doc.thumbnail(i.thumbnail);
       // self.doc.thumbnail.valueHasMutated();
     }
+
     // Var thumbnail = $('#thumbnail')[0].files[0];
     // if (thumbnail && thumbnail.name)
     // unmappedDoc.thumbnail = "thumbnail/" + thumbnail.name;
@@ -960,10 +998,12 @@ egam.gpoItemModel = function(i, loading) {
 
     var mydata = new FormData();
     var updateDocsJSON = JSON.stringify(self.changeDoc);
+
     // Don't try to update if there is nothing to update
     if (updateDocsJSON == '{}' && !thumbnailFile) {
       return;
     }
+
     // ChangeDoc should be cleared for next time
     self.changeDoc = {};
     mydata.append('updateDocs', JSON.stringify(updateDocsJSON));
@@ -975,8 +1015,10 @@ egam.gpoItemModel = function(i, loading) {
       data: mydata,
       cache: false,
       dataType: 'json',
+
       // Don't process the files
       processData: false,
+
       // Set content type to false as jQuery will tell the server its a query
       // string request
       contentType: false,
@@ -994,6 +1036,7 @@ egam.gpoItemModel = function(i, loading) {
           // egam.gpoItems.dataTable.destroy();
           egam.gpoItems.dataTable.fnDestroy();
           egam.renderGPOitemsDataTable();
+
           // Updating currrent doc
           egam.gpoItems.tableModel.selected().tableDoc = unmappedDoc;
         } else {
@@ -1005,6 +1048,7 @@ egam.gpoItemModel = function(i, loading) {
       error: function(jqXHR, textStatus, errorThrown) {
         // Handle errors here
         console.log('ERRORS: ' + errorThrown);
+
         // STOP LOADING SPINNER
       },
     });
@@ -1019,6 +1063,7 @@ egam.gpoItemModel = function(i, loading) {
     this.selected().doc(tableDocObservable);
 
     self.changeDoc = {};
+
     // Alert(JSON.stringify(self.changeDoc));
     // alert(JSON.stringify(this.selected().tableDoc));
   };
@@ -1104,11 +1149,15 @@ egam.edgItemTableModel = function(data) {
     if (edgURL) {
       $.ajax({
         type: 'GET',
-        url: edgURL, // Name of file you want to parse
+
+        // Name of file you want to parse
+        url: edgURL,
         dataType: 'xml',
         success: function(xml) {
           var title = $(xml).find('citation').find('title').text();
-          if (!title) { // Need to capture different metadata styles
+
+          // Need to capture different metadata styles
+          if (!title) {
             title = $(xml).find('title').text();
             if (!title) {
               title = $(xml).find('gmd\\:citation')
@@ -1119,7 +1168,9 @@ egam.edgItemTableModel = function(data) {
           }
           var purpose = $(xml).find('purpose').text();
           var abstract = $(xml).find('abstract').text();
-          if (!abstract) { // Need to capture different metadata styles
+
+          // Need to capture different metadata styles
+          if (!abstract) {
             abstract = $(xml).find('description').text();
             if (!abstract) {
               abstract = $(xml).find('gmd\\:abstract')
@@ -1128,7 +1179,9 @@ egam.edgItemTableModel = function(data) {
           }
           var acc = $(xml).find('accconst').text();
           var usecon = $(xml).find('useconst').text();
-          if (!usecon) { // Need to capture different metadata styles
+
+          // Need to capture different metadata styles
+          if (!usecon) {
             acc = $(xml).find('gmd\\:MD_SecurityConstraints')
                 .find('gmd\\:useLimitation')
                 .find('gco\\:CharacterString').text();
@@ -1143,7 +1196,9 @@ egam.edgItemTableModel = function(data) {
           }
 
           var publisher = $(xml).find('publish').text();
-          if (!publisher) { // Need to capture different metadata styles
+
+          // Need to capture different metadata styles
+          if (!publisher) {
             var agency = $(xml).find('agencyName').text();
             var subagency = $(xml).find('subAgencyName').text();
             if (agency) {
@@ -1175,8 +1230,10 @@ egam.edgItemTableModel = function(data) {
             data: mydata,
             cache: false,
             dataType: 'json',
+
             // Don't process the files
             processData: false,
+
             // Set content type to false as jQuery will tell the server its a
             // query string request
             contentType: false,
@@ -1196,10 +1253,12 @@ egam.edgItemTableModel = function(data) {
                 egam.gpoItems.tableModel.selected().doc(
                     ko.mapping.fromJS(doctemp));
                 $('#edgModal').modal('hide');
+
                 // Refresh the data table so it can search updated info
                 // egam.gpoItems.dataTable.destroy();
                 egam.gpoItems.dataTable.fnDestroy();
                 egam.renderGPOitemsDataTable();
+
                 // Show reconciliation modal
                 $('#reconciliationModal').modal('show');
               } else {
@@ -1211,6 +1270,7 @@ egam.edgItemTableModel = function(data) {
             error: function(jqXHR, textStatus, errorThrown) {
               // Handle errors here
               console.log('ERRORS: ' + textStatus);
+
               // STOP LOADING SPINNER
             },
           });
@@ -1252,6 +1312,7 @@ egam.gpoItemTableModel = function(data) {
                   .attr('value',value)
                   .text(value));
         });
+
         // Place Keywords
         $('#placeTagSelect').append('<option></option>');
         $.each(data.placeKeywords, function(key, value) {
@@ -1260,6 +1321,7 @@ egam.gpoItemTableModel = function(data) {
                   .attr('value',value)
                   .text(value));
         });
+
         // EPA Office Names (for filtering all organizations)
         $('#officeTagSelect').append('<option></option>');
         $.each(data.epaOrganizationNames, function(key, value) {
@@ -1274,9 +1336,11 @@ egam.gpoItemTableModel = function(data) {
     // Once EPA Office is selected, add sub-offices
     $('#officeTagSelect').change(function() {
       var $orgTagSelect = $('#orgTagSelect');
+
       // Match either national office acronym or regional office number
       var userAuthGroup = /\((.*)\)|EPA Region ([1-9]0?)/
           .exec(egam.communityUser.authGroups[0]);
+
       // Current dropdown value
       var office = $(this).val();
       if (office) {
@@ -1289,6 +1353,7 @@ egam.gpoItemTableModel = function(data) {
             $('#dropOrgTags').prop('disabled', false);
             $orgTagSelect.empty().append('<option></option>')
                 .prop('disabled', false);
+
             // EPA Organization Names for the selected office
             $.each(data[office], function(key, value) {
               $orgTagSelect.append($('<option></option>')
@@ -1391,6 +1456,7 @@ egam.gpoItemTableModel = function(data) {
     $('#agoThumb').toggle();
     $('#imageUpload').toggle();
   });
+
   // On modal close with out saving change thumbnail view clear thumbnail form
   $('#myModal').on('hidden.bs.modal', function(e) {
     var thumbnailFile = $('#thumbnail')[0].files[0];
