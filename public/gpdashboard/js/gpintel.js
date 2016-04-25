@@ -1,3 +1,4 @@
+
 // Expose dashboard especially helpful for debugging
 var egam = {};
 egam.gpoItems = {
@@ -177,8 +178,8 @@ egam.edginit = function(itemTitle, edgModal) {
 };
 
 function populateUserMngntTable() {
-
-  var queryUM = {isExternal: true}; // {isExternal:true};
+  // {isExternal:true};
+  var queryUM = {isExternal: true};
   $.post('gpousers/list', {
     query: JSON.stringify(queryUM),
   }, function(data) {
@@ -281,7 +282,7 @@ function populateUserMngntTable() {
         // Create updateDoc to post back to mongo
         myUserData = {};
         updateUserData = {
-          username: self.uData.username(), // Self.uData.username()
+          username: self.uData.username(),
           sponsor: {
             username: egam.communityUser.username,
             startDate: sponsorDate,
@@ -323,7 +324,6 @@ function populateUserMngntTable() {
           dataType: 'json',
           success: function(rdata, textStatus, jqXHR) {
             console.log('Success: Posted new sponsor to Mongo');
-            // Alert(JSON.stringify(rdata));
           },
           error: function(jqXHR, textStatus, errorThrown) {
             // Handle errors here
@@ -344,6 +344,7 @@ function populateUserMngntTable() {
 
       self.select = function(item) {
         self.selected(item);
+
       };
 
       // Allows you to select an item based on index, usually index will be
@@ -443,6 +444,7 @@ function populateUserTables(query, projection) {
     projection: projection,
   }, function(data) {
     egam.gpoItems.resultSet = data;
+
     // If paging then data.results is array of data
     var dataResults = data;
     if ('results' in data) {
@@ -488,7 +490,8 @@ function populateUserTables(query, projection) {
         if (dataResults.length < 1) {
           return defer.resolve();
         }
-        // Cluge to make row model work because it is trying to bind
+
+        // Change to make row model work because it is trying to bind
         // rowmodel.selected()
         egam.gpoItems.tableModel.selectIndex(0);
         if (needToApplyBindings) {
@@ -518,6 +521,7 @@ function populateUserTables(query, projection) {
     }
 
     calcItemsPassingAudit(dataResults);
+
     // Initialize tags once the table has loaded
     egam.gpoItems.tableModel.initializeTags();
 
@@ -669,6 +673,7 @@ egam.renderGPOitemsDataTable = function() {
 egam.runAllClientSideFilters = function() {
   egam.gpoItems.dataTable.api().columns().every(function() {
     var column = this;
+
     // Don't fire dropAccess handler because it will download again
     if (egam.communityUser.isSuperUser &&
         $(column.header()).hasClass('accessColumn')) {
@@ -695,6 +700,7 @@ egam.accessSelectEventHandler = function() {
     query.access = val;
   }
   var authGroupValue = $('#dropAuthGroups').val();
+
   // So we know not all authgroups were downloaded and need to retrieve
   egam.gpoItems.allAuthGroupsDownloaded = true;
   if (authGroupValue) {
@@ -743,12 +749,14 @@ egam.setAuthGroupsDropdown = function(ownerIDsByAuthGroup) {
         //      .search(this.value,true,false)
         .draw();
     }
+
     // Also set the download link
     var authgroup = this.value;
     if (authgroup) {
       $('#downloadAuthgroupsCSVall').addClass('hidden');
       $('#downloadAuthgroupsCSVregions').removeClass('hidden');
       var href = $('#downloadAuthgroupsCSVregions').attr('href');
+
       // Tack on authgroup to the end of the route to get csv. Note: use ^ and $
       // to get exact match because it matches regex(Region 1 and 10 would be
       // same if not). Also we are using authGroup by name so need to escape
@@ -883,7 +891,8 @@ egam.gpoItemModel = function(i, loading) {
       ().doc().tags.indexOf(this.selected().epaTagItemToAdd()) < 0)) {
       this.selected().doc().tags.push(this.selected().epaTagItemToAdd());
     }
-    this.selected().epaTagItemToAdd(''); // Clear the text box
+    // Clear the text box
+    this.selected().epaTagItemToAdd('');
   };
   this.addPlaceItem = function() {
     // Prevent blanks and duplicates
@@ -891,7 +900,8 @@ egam.gpoItemModel = function(i, loading) {
         ().doc().tags.indexOf(this.selected().placeTagItemToAdd()) < 0)) {
       this.selected().doc().tags.push(this.selected().placeTagItemToAdd());
     }
-    this.selected().placeTagItemToAdd(''); // Clear the text box
+    // Clear the text box
+    this.selected().placeTagItemToAdd('');
   };
   this.addOrgItem = function() {
     // Prevent blanks and duplicates
@@ -899,12 +909,14 @@ egam.gpoItemModel = function(i, loading) {
         ().doc().tags.indexOf(this.selected().orgTagItemToAdd()) < 0)) {
       this.selected().doc().tags.push(this.selected().orgTagItemToAdd());
     }
-    this.selected().orgTagItemToAdd(''); // Clear the text box
+    // Clear the text box
+    this.selected().orgTagItemToAdd('');
   };
   // Remove tag from tags array
   this.removeSelected = function() {
     this.selected().doc().tags.removeAll(this.selected().selectedItems());
-    this.selected().selectedItems([]); // Clear selection
+    // Clear selection
+    this.selected().selectedItems([]);
   };
 
   this.loadReconciledFields = function() {
@@ -1095,11 +1107,13 @@ egam.edgItemTableModel = function(data) {
     if (edgURL) {
       $.ajax({
         type: 'GET',
-        url: edgURL, // Name of file you want to parse
+        // Name of file you want to parse
+        url: edgURL,
         dataType: 'xml',
         success: function(xml) {
           var title = $(xml).find('citation').find('title').text();
-          if (!title) { // Need to capture different metadata styles
+          // Need to capture different metadata styles
+          if (!title) {
             title = $(xml).find('title').text();
             if (!title) {
               title = $(xml).find('gmd\\:citation')
@@ -1110,7 +1124,8 @@ egam.edgItemTableModel = function(data) {
           }
           var purpose = $(xml).find('purpose').text();
           var abstract = $(xml).find('abstract').text();
-          if (!abstract) { // Need to capture different metadata styles
+          // Need to capture different metadata styles
+          if (!abstract) {
             abstract = $(xml).find('description').text();
             if (!abstract) {
               abstract = $(xml).find('gmd\\:abstract')
@@ -1119,7 +1134,8 @@ egam.edgItemTableModel = function(data) {
           }
           var acc = $(xml).find('accconst').text();
           var usecon = $(xml).find('useconst').text();
-          if (!usecon) { // Need to capture different metadata styles
+          // Need to capture different metadata styles
+          if (!usecon) {
             acc = $(xml).find('gmd\\:MD_SecurityConstraints')
                 .find('gmd\\:useLimitation')
                 .find('gco\\:CharacterString').text();
@@ -1134,7 +1150,8 @@ egam.edgItemTableModel = function(data) {
           }
 
           var publisher = $(xml).find('publish').text();
-          if (!publisher) { // Need to capture different metadata styles
+          // Need to capture different metadata styles
+          if (!publisher) {
             var agency = $(xml).find('agencyName').text();
             var subagency = $(xml).find('subAgencyName').text();
             if (agency) {
