@@ -204,3 +204,16 @@ a, span, tr, h4:hover {
     width: 225px;
     margin-left: 55px;
   }
+
+  #edgTitleSearchLabel {
+    font-size: 18px;
+  }
+
+  #edgTitleSearch {
+    width: 225px;
+    display: inline;
+  }
+
+  .edgTitleSearchBlock {
+    display: block;
+  }
