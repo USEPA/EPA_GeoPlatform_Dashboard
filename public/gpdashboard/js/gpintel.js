@@ -62,17 +62,17 @@ $(document).ready(function() {
 
   // Load the GPHE table
   $.getScript('js/gphedata.js')
-		.done(function(script, textStatus) {
-  $('#environmentTable').DataTable({
-    data: GPHEdata,
-    columns: [
-    { title: 'Folder'},
-    { title: 'Service Name'},
-    { title: 'Service Type'},
-    { title: 'Service Description'},
-    ],
-  });
-		});
+      .done(function(script, textStatus) {
+        $('#environmentTable').DataTable({
+          data: GPHEdata,
+          columns: [
+          { title: 'Folder'},
+          { title: 'Service Name'},
+          { title: 'Service Type'},
+          { title: 'Service Description'},
+          ],
+        });
+      });
 
 });
 
