@@ -230,6 +230,10 @@ module.exports = function(app) {
     var availableTags = require(app.get('appRoot') + 'config/gpoItemsTags');
     res.json(availableTags);
   });
+  router.use('/authGroups', function(req, res) {
+    var ids = require(app.get('appRoot') + 'config/authGroups');
+    res.json(ids);
+  });
 
 
   return router;
