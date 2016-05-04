@@ -508,6 +508,7 @@
                                           <label for="dropOrgTags">EPA Organization Names</label>
                                           <div class="form-inline">
                                               <button id="dropOrgTags" class="btn btn-default"  type="submit" data-bind="click: selected().addTag['Org']">Add</button>
+                                              <select class="tag-select search form-control" id="officeTagSelect" data-bind="value: selected().tagToAdd['Office'], valueUpdate: 'afterkeydown'"></select>
                                               <select class="tag-select search form-control" id="orgTagSelect" data-bind="value: selected().tagToAdd['Org'], valueUpdate: 'afterkeydown'"></select>
                                           </div>
                                       </div>
@@ -526,7 +527,7 @@
                                       <div class="form-group">
                                           <!-- ko if: selected().doc().EDGdata -->
                                           <label>EDG Reconciliation</label><br />
-                                          <button type="button" id="reconcileBtn" class="btn btn-default" data-bind="click: function () { $('#reconciliationModal').modal('show'); }">Reconcile with EDG</button>
+                                          <button type="button" id="reconcileBtn" class="btn btn-default" data-bind="click: function () { $('#reconciliationModal').modal('show'); $('#myModal').modal('hide'); }">Reconcile with EDG</button>
                                           <!-- /ko -->
                                       </div>
                                       <!--</form>-->
@@ -728,7 +729,7 @@
                               </form>
                           </div>
                           <div class="modal-footer">
-                              <button type="button" id="closeReconcileBtn" class="btn btn-default" data-bind="click: selected().closeModal" data-dismiss="modal" >Close</button>
+                              <button type="button" id="closeReconcileBtn" class="btn btn-default" data-bind="click: function() { selected().closeModal; $('#myModal').modal('show'); }" data-dismiss="modal" >Close</button>
                               <button type="button" class="btn btn-primary" data-bind="click: selected().loadReconciledFields" data-dismiss="modal">Load reconciled values</button>
                           </div>
                       </div>
@@ -744,7 +745,13 @@
                      <div class="modal-content">
                          <div class="modal-header">
                              <button type="button" class="close" data-dismiss="modal" aria-label="Close" ><span aria-hidden="true">&times;</span></button>
-                             <h4 class="modal-title" id="myEDGModalLabel">EDG Items
+                             <div class="form-group">
+                                 <label id="edgTitleSearchLabel" for="edgTitleSearch">Search EDG by Title:</label>
+                                 <span class="edgTitleSearchBlock">
+                                    <input class="form-control" id="edgTitleSearch" >
+                                    <button type="button" id="edgBtnModal" class="btn btn-primary">Search</button>
+                                 </span>
+                             </div>
                          </div>
                          <div class="modal-body">
 
@@ -770,7 +777,7 @@
                              </div>
                          </div>
                          <div class="modal-footer">
-                             <button type="button" class="btn btn-default" data-dismiss="modal" >Close</button>
+                             <button id="closeEDGSearchBtn" type="button" class="btn btn-default" onclick="$('#myModal').modal('show');" data-dismiss="modal">Close</button>
                          </div>
                      </div>
                  </div>

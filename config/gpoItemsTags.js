@@ -1,4 +1,4 @@
-var epa_keywords = [
+var epaKeywords = [
     "Agriculture",
     "Air",
     "Biology",
@@ -58,7 +58,7 @@ var epa_keywords = [
     "Waste",
     "Water"
   ];
-var place_keywords = [
+var placeKeywords = [
     "United States",
     "Canada",
     "Mexico",
@@ -117,7 +117,7 @@ var place_keywords = [
     "Wisconsin",
     "Wyoming"
   ];
-var epa_organization_names = {
+var epaOrganizationNames = {
     "OA": [
       "OA",
       "OA, EAB",
@@ -745,7 +745,7 @@ var epa_organization_names = {
   };
 
 module.exports = {
-  epa_keywords:epa_keywords,
-  place_keywords:place_keywords,
-  epa_organization_names:epa_organization_names
+  epaKeywords:epaKeywords,
+  placeKeywords:placeKeywords,
+  epaOrganizationNames:epaOrganizationNames
 };

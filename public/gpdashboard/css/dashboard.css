@@ -196,6 +196,24 @@ a, span, tr, h4:hover {
   #placeTagSelect {
     width: 225px;
   }
+
+  #officeTagSelect {
+    width: 225px;
+  }
   #orgTagSelect {
     width: 225px;
+    margin-left: 55px;
+  }
+
+  #edgTitleSearchLabel {
+    font-size: 18px;
+  }
+
+  #edgTitleSearch {
+    width: 225px;
+    display: inline;
+  }
+
+  .edgTitleSearchBlock {
+    display: block;
   }
