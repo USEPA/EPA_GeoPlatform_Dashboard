@@ -144,25 +144,9 @@ require([
     //Update in sprint4 to be dynamically changed via UI
 
     var reducePayload = true;
+    var fields;
     if (reducePayload) {
-      egam.gpoItems.resultFields = {
-        id: 1,
-        title: 1,
-        description: 1,
-        tags: 1,
-        thumbnail: 1,
-        snippet: 1,
-        licenseInfo: 1,
-        accessInformation: 1,
-        url: 1,
-        AuditData: 1,
-        numViews: 1,
-        modified: 1,
-        type: 1,
-        owner: 1,
-        access: 1,
-        EDGdata: 1
-      };
+      fields = egam.gpoItems.resultFields;
     } else {
       fields = {};
     }
@@ -170,14 +154,13 @@ require([
     //If super user only get public items initially
     var query={};
     if (egam.communityUser.isSuperUser) {
-      query={access:"public"};
-      $("#dropAccess option[value='']").remove();
     }
-    populateUserTables(query, {
+
+    egam.gpoItems.init(query, {
       sort: {
         modified: -1
       },
-      fields: egam.gpoItems.resultFields
+      fields: fields
     })
       .then(function() {
         // Hide the loading panel now after first page is loaded
@@ -188,7 +171,11 @@ require([
         //show the authgroups drop down not that items have been loaded
         $('#dropAuthGroups').removeClass('hidden');
         $('#downloadAuthgroupsCSVall').removeClass('hidden');
-
+        //Select only public items if admin
+        if (egam.communityUser.isAdmin) {
+          $("#dropAccess").val("public");
+          $("#dropAccess").change();
+        }
         return true;
       })
       .fail(function(err) {
