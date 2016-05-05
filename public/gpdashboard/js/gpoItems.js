@@ -1,4 +1,4 @@
-if (! egam) egam = {};
+if (!egam) egam = {};
 egam.gpoItems = {
   data: null,
   model: null,
@@ -50,8 +50,8 @@ egam.gpoItems.init = function (query, projection) {
     //if only data returned for no paging just save data in same structure
     if ("results" in data) {
       self.data = data;
-    }else {
-      self.data = {results:data};
+    } else {
+      self.data = {results: data};
     }
 
     $("#loadingMsgCountContainer").removeClass("hidden");
@@ -62,9 +62,9 @@ egam.gpoItems.init = function (query, projection) {
     $('div#loadingMsg').removeClass('hidden');
     $('div#overviewTable').addClass('hidden');
 
-      //setting up the new PageModel instance with no rows yet
-      self.model = new egam.gpoItems.PageModelClass([]);
-      console.log("Knockout Model created: " + new Date());
+    //setting up the new PageModel instance with no rows yet
+    self.model = new egam.gpoItems.PageModelClass([]);
+    console.log("Knockout Model created: " + new Date());
 
     //If there are no rows in results then don't try to bind
     if (self.data.results.length < 1) return defer.resolve();
@@ -72,7 +72,7 @@ egam.gpoItems.init = function (query, projection) {
     //Add these using .add to push to array
     //data.results is just the array of objects returned by server
     self.model.add(self.data.results);
-      //    egam.gpoItems.model.add(data.results,updateLoadingCountMessage)
+    //    egam.gpoItems.model.add(data.results,updateLoadingCountMessage)
     console.log("Knockout Model data added: " + new Date());
     ko.applyBindings(egam.gpoItems.model, document.getElementById('overviewTable'));
     console.log("Bindings Applied: " + new Date());
@@ -91,7 +91,7 @@ egam.gpoItems.init = function (query, projection) {
       if (index % 10 === 0) $("#loadingMsgCount").text(index + 1);
     }
 
-  },'json');
+  }, 'json');
 
   //switch view for image upload
   $('.fileinput').on('change.bs.fileinput', function (e) {
@@ -130,15 +130,15 @@ egam.gpoItems.customizeDataTable = function () {
     var headerSelect = $(column.header()).find("select.search");
 
     //This is the special case for access column that we only want one access at a time
-    addSelectEventHandler(headerSelect,column);
+    addSelectEventHandler(headerSelect, column);
 
     var input = $(column.header()).find("input.search");
-    addInputEventHandler(input,column);
+    addInputEventHandler(input, column);
 
   });
   console.log("DataTable customized: " + new Date());
 
-  function addSelectEventHandler(select,column) {
+  function addSelectEventHandler(select, column) {
     if (select.length > 0) {
       select.off('change');
       select.on('change', function () {
@@ -178,7 +178,7 @@ egam.gpoItems.customizeDataTable = function () {
     }
   }
 
-  function addInputEventHandler(input,column) {
+  function addInputEventHandler(input, column) {
     if (input.length > 0) {
       input.off('keyup change');
       input.on('keyup change', function () {
@@ -222,7 +222,7 @@ egam.gpoItems.RowModelClass = function (doc, index, loading) {
   }, this);
 
   //Format Modified Date
-  this.modifiedDate = ko.computed(function(){
+  this.modifiedDate = ko.computed(function () {
     var monthNames = [
       "Jan", "Feb", "Mar",
       "Apr", "May", "Jun", "Jul",
@@ -237,7 +237,7 @@ egam.gpoItems.RowModelClass = function (doc, index, loading) {
 };
 
 //This is the FULL model which binds to the modal allowing 2 way data binding and updating etc
-egam.gpoItems.FullModelClass= function (doc,parent,index) {
+egam.gpoItems.FullModelClass = function (doc, parent, index) {
   var self = this;
 //The pageModel this belows to
   this.parent = parent;
@@ -249,18 +249,18 @@ egam.gpoItems.FullModelClass= function (doc,parent,index) {
 
   //computed thumbnail url
   this.thumbnailURL = ko.computed(function () {
-    if(self.doc().thumbnail() == null){
+    if (self.doc().thumbnail() == null) {
       return "img/noImage.png";
-    }else{
+    } else {
       return "https://epa.maps.arcgis.com/sharing/rest/content/items/" + self.doc().id() + "/info/" + self.doc().thumbnail() + "?token=" + egam.portalUser.credential.token;
     }
   }, this);
 
-  this.epaKeywords = function() {
+  this.epaKeywords = function () {
   };
-  
+
   //Link to item in GPO
-  this.gpoLink = ko.computed(function(){
+  this.gpoLink = ko.computed(function () {
     return "https://epa.maps.arcgis.com/home/item.html?id=" + self.doc().id();
   }, this);
 
@@ -268,20 +268,10 @@ egam.gpoItems.FullModelClass= function (doc,parent,index) {
   this.changeDoc = {};
 
   //Subscribes Setup
-  this.updateFields = ["title","snippet","description","licenseInfo","accessInformation","url"];
+  this.updateFields = ["title", "snippet", "description", "licenseInfo", "accessInformation", "url"];
 
 //condensed this repetitive code
-  if (1==1) {
-    this.doc().title.subscribe(function (evt) {
-      console.log("test");
-      this.execAudit("title");
-      this.addFieldChange("title", evt);
-    }.bind(this));
-  }
-
-  if (1==1) {
-
-  $.each(this.updateFields,function (index,field) {
+  $.each(this.updateFields, function (index, field) {
     self.doc()[field].subscribe(function (evt) {
       self.execAudit(field);
       self.addFieldChange(field, evt);
@@ -292,8 +282,6 @@ egam.gpoItems.FullModelClass= function (doc,parent,index) {
     self.execAudit("tags");
     self.addFieldChange("tags", self.doc().tags());
   }.bind(this), null, 'arrayChange');
-
-  }
 
   //Add and field that has changed to the changeDoc
   this.addFieldChange = function (changeField, changeValue) {
@@ -307,7 +295,7 @@ egam.gpoItems.FullModelClass= function (doc,parent,index) {
     var auditRes = new Audit();
     auditRes.validate(unmappedDoc, auditField);
     //Note if you are trying to remap observable doc then have to make doc second parameter do NOT do doc(ko.mapping.fromJS(unmappedDoc)). that will lose subscribers on original doc
-    ko.mapping.fromJS(unmappedDoc,self.doc());
+    ko.mapping.fromJS(unmappedDoc, self.doc());
   };
 
   //this are the selected Tags that we save so they can be removed
@@ -319,7 +307,7 @@ egam.gpoItems.FullModelClass= function (doc,parent,index) {
   this.addTag = {};
   this.addTagByCat = function (cat) {
     //Make sure a tag category exists
-    if (! self.tagToAdd[cat]) return false;
+    if (!self.tagToAdd[cat]) return false;
     var tagToAdd = self.tagToAdd[cat]();
     // Prevent blanks and duplicates
     if ((tagToAdd != "") && (self.doc().tags().indexOf(tagToAdd) < 0)) {
@@ -331,13 +319,15 @@ egam.gpoItems.FullModelClass= function (doc,parent,index) {
   };
 
   //I generate the observable for tags to add and the add tag function for each tag category
-  this.tagCategories = ['EPA','Place','Org'];
+  this.tagCategories = ['EPA', 'Place', 'Org'];
 
-  $.each(this.tagCategories,function (i,cat) {
+  $.each(this.tagCategories, function (i, cat) {
     //this is just observable for tag that is being added
     self.tagToAdd[cat] = ko.observable("");
     //This just calls the more generic addTag function which is just convenience for knockout binding
-    self.addTag[cat] = function () {return self.addTagByCat(cat)};
+    self.addTag[cat] = function () {
+      return self.addTagByCat(cat)
+    };
   });
 
   //Remove tag from tags array
@@ -357,9 +347,9 @@ egam.gpoItems.FullModelClass= function (doc,parent,index) {
     var thumbnailFile = null;
     try {
       thumbnailFile = $('#thumbnail')[0].files[0];
-    }catch (ex) {
+    } catch (ex) {
     }
-    if (! thumbnailFile) {
+    if (!thumbnailFile) {
       console.log('No thumbnail to post');
     } else {
       //Add to to change doc
@@ -371,7 +361,7 @@ egam.gpoItems.FullModelClass= function (doc,parent,index) {
 
     var updateDocsJSON = JSON.stringify(self.changeDoc);
     //don't try to update if there is nothing to update
-    if (updateDocsJSON=="{}" && ! thumbnailFile) return;
+    if (updateDocsJSON == "{}" && !thumbnailFile) return;
     //changeDoc should be cleared for next time
     self.changeDoc = {};
 
@@ -422,7 +412,7 @@ egam.gpoItems.PageModelClass = function (data) {
 
   self.items = data;
 
-  self.initializeTags = function() {
+  self.initializeTags = function () {
     // Get official EPA tags from gpoItemsTags.js
     $.ajax({
       url: 'gpoitems/availableTags',
@@ -430,28 +420,28 @@ egam.gpoItems.PageModelClass = function (data) {
       success: function (data, textStatus, jqXHR) {
         // EPA Keywords
         $("#epaTagSelect").append("<option></option>");
-        $.each(data.epa_keywords, function(key, value) {
+        $.each(data.epa_keywords, function (key, value) {
           $('#epaTagSelect')
-              .append($("<option></option>")
-                  .attr("value",value)
-                  .text(value));
+            .append($("<option></option>")
+              .attr("value", value)
+              .text(value));
         });
         // Place Keywords
         $("#placeTagSelect").append("<option></option>");
-        $.each(data.place_keywords, function(key, value) {
+        $.each(data.place_keywords, function (key, value) {
           $('#placeTagSelect')
-              .append($("<option></option>")
-                  .attr("value",value)
-                  .text(value));
+            .append($("<option></option>")
+              .attr("value", value)
+              .text(value));
         });
         // EPA Organization Names
         $("#orgTagSelect").append("<option></option>");
-        $.each(data.epa_organization_names, function(key, value) {
-          $.each(value, function(key, value) {
+        $.each(data.epa_organization_names, function (key, value) {
+          $.each(value, function (key, value) {
             $('#orgTagSelect')
-                .append($("<option></option>")
-                    .attr("value",value)
-                    .text(value));
+              .append($("<option></option>")
+                .attr("value", value)
+                .text(value));
           });
         });
       }
@@ -465,7 +455,7 @@ egam.gpoItems.PageModelClass = function (data) {
   self.select = function (item) {
     var needToApplyBindings = self.selected() ? false : true;
 //    var fullRowModel = self.selectedCache[item.index] || new egam.gpoItems.FullModelClass(item.doc,self,item.index) ;
-    var fullRowModel = new egam.gpoItems.FullModelClass(item.doc,self,item.index);
+    var fullRowModel = new egam.gpoItems.FullModelClass(item.doc, self, item.index);
     self.selected(fullRowModel);
     if (needToApplyBindings) ko.applyBindings(self, document.getElementById('gpoItemsModal'));
     self.initializeTags();
@@ -493,7 +483,7 @@ egam.gpoItems.PageModelClass = function (data) {
     //This lets things work async style so that page is not locked up when ko is mapping
     //Maybe use an async library later
     var i = 0;
-    if (1==1) {
+    if (1 == 1) {
       for (i == 0; i < data.length; i++) {
 //        self.content.push({compliant:ko.observable(data[i].AuditData.compliant),doc:data[i],loading:false,complianceStatus:true,modDate:new Date(data[i].modified)});
 //this took 20 seconds vs less than 1 second above
@@ -501,25 +491,28 @@ egam.gpoItems.PageModelClass = function (data) {
         if (callback) callback(i);
       }
       defer.resolve();
-    }else if (1==0){
-      var asyncLoop = function(o){
-        var i=-1;
+    } else if (1 == 0) {
+      var asyncLoop = function (o) {
+        var i = -1;
 
-        var loop = function(){
+        var loop = function () {
           i++;
-          if(i==o.length){o.callback(); return;}
+          if (i == o.length) {
+            o.callback();
+            return;
+          }
           o.functionToLoop(loop, i);
         };
         loop();//init
       };
       asyncLoop({
-        length : data.length,
-        functionToLoop : function(loop, i){
+        length: data.length,
+        functionToLoop: function (loop, i) {
           self.items.push(new egam.gpoItems.RowModelClass(data[i], i, false));
           if (callback) callback(i);
           loop();
         },
-        callback : function(){
+        callback: function () {
           console.log('All done!');
           defer.resolve();
         }
@@ -528,7 +521,6 @@ egam.gpoItems.PageModelClass = function (data) {
 
     return defer;
   };
-
 
 
 };
