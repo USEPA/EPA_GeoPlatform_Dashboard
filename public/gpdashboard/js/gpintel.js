@@ -373,7 +373,7 @@ function populateUserMngntTable() {
     };
 
     // JSON.parse(data)
-    egam.gpoUsers.tableModel = ko.applyBindings(new gpoUserTableModel(JSON.parse(data)), document.getElementById("userMgmtView"));
+    egam.gpoUsers.tableModel = ko.applyBindings(new gpoUserTableModel(JSON.parse(data)), document.getElementById('userMgmtView'));
 
     $.fn.dataTable.ext.buttons.alert = {
       className: 'buttons-alert',
@@ -408,7 +408,7 @@ function populateUserMngntTable() {
       },
     };
 
-    egam.gpoUsers.tableModel = $('#userMgmtTable').DataTable( {
+    egam.gpoUsers.tableModel = $('#userMgmtTable').DataTable({
       dom: 'Bfrtip',
       buttons: [
           {
@@ -428,7 +428,7 @@ function populateUserMngntTable() {
         [1, 'asc'],
       ],
     });
-    //make All External Users button active
+    //Make All External Users button active
     egam.gpoUsers.tableModel.buttons(0).active(true);
   });
 }
@@ -467,10 +467,10 @@ egam.setAuthGroupsDropdown = function(ownerIDsByAuthGroup) {
         var ownerIDs = ownerIDsByAuthGroup[this.value];
         reOwnerIDs = ownerIDs.join('|');
       }
-      egam.gpoItems.dataTable.column(".ownerColumn")
+      //Make sure the dataTable has been created in case this event is fired before that (it is being fired when dropdown created)
+      if (egam.gpoItems.dataTable)
+        egam.gpoItems.dataTable.column('.ownerColumn')
         .search(reOwnerIDs, true, false)
-
-        //      .search(this.value,true,false)
         .draw();
     }
 

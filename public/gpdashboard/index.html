@@ -357,7 +357,8 @@
                         </h4>
                         <a data-toggle="tooltip" data-placement="left" title="Show/Hide Auth Groups"><span id="authGroupsCount" class="text-muted" data-toggle="collapse" href="#collapseExample" aria-expanded="false" aria-controls="collapseExample"></span></a>
                         <div class="collapse" id="collapseExample">
-                            <select id="dropAuthGroups" class="search form-control input-sm hidden"></select>
+                            <select id="dropAuthGroups" class="search form-control input-sm hidden" >
+                            </select>
                             <a id="downloadAuthgroupsCSVall" href="gpoUsers/list.csv" class="hidden">download users</a>
                             <a id="downloadAuthgroupsCSVregions" href="gpoUsers/list.csv/authGroups/" class="hidden">download users</a>
                         </div>
@@ -495,21 +496,21 @@
 
                                       </div>
                                       <div class="form-group">
-                                          <label for="dropEPATags">EPA Keywords</label>
+                                          <label for="addEPATag">EPA Keywords</label>
                                           <div class="form-inline">
-                                              <button id="dropEPATags" class="btn btn-default"  type="submit" data-bind="click: selected().addTag['EPA']">Add</button>
-                                              <select class="tag-select search form-control" id="epaTagSelect" data-bind="value: selected().tagToAdd['EPA'], valueUpdate: 'afterkeydown'"></select>
+                                              <button id="addEPATag" class="btn btn-default"  type="submit" data-bind="click: selected().addTag['EPA']">Add</button>
+                                              <select class="tag-select search form-control" id="epaTagSelect" data-bind="options:dataSets.availableTags.epaKeywords,optionsCaption:'Please Select', value: selected().tagToAdd['EPA'], valueUpdate: 'afterkeydown'"></select>
                                           </div>
-                                          <label for="dropPlaceTags">Place Keywords</label>
+                                          <label for="addPlaceTag">Place Keywords</label>
                                           <div class="form-inline">
-                                              <button id="dropPlaceTags" class="btn btn-default"  type="submit" data-bind="click: selected().addTag['Place']">Add</button>
-                                              <select class="tag-select search form-control" id="placeTagSelect" data-bind="value: selected().tagToAdd['Place'], valueUpdate: 'afterkeydown'"></select>
+                                              <button id="addPlaceTag" class="btn btn-default"  type="submit" data-bind="click: selected().addTag['Place']">Add</button>
+                                              <select class="tag-select search form-control" id="placeTagSelect" data-bind="options:dataSets.availableTags.placeKeywords,optionsCaption:'Please Select',value: selected().tagToAdd['Place'], valueUpdate: 'afterkeydown'"></select>
                                           </div>
-                                          <label for="dropOrgTags">EPA Organization Names</label>
+                                          <label for="addOrgTag">EPA Organization Names</label>
                                           <div class="form-inline">
-                                              <button id="dropOrgTags" class="btn btn-default"  type="submit" data-bind="click: selected().addTag['Org']">Add</button>
-                                              <select class="tag-select search form-control" id="officeTagSelect" data-bind="value: selected().tagToAdd['Office'], valueUpdate: 'afterkeydown'"></select>
-                                              <select class="tag-select search form-control" id="orgTagSelect" data-bind="value: selected().tagToAdd['Org'], valueUpdate: 'afterkeydown'"></select>
+                                              <button id="addOrgTag" class="btn btn-default"  type="submit" data-bind="click: selected().addTag['Org']">Add</button>
+                                              <select class="tag-select search form-control" id="officeTagSelect" data-bind="options:dataSets.availableTags.epaOffices,optionsCaption:'Please Select', value: selected().tagToAdd['Office'], valueUpdate: 'afterkeydown'"></select>
+                                              <select class="tag-select search form-control" id="orgTagSelect" data-bind="options:selectedOfficeOrganizations,optionsCaption:'Please Select',, value: selected().tagToAdd['Org'], valueUpdate: 'afterkeydown'"></select>
                                           </div>
                                       </div>
                                       <div class="form-group has-success" data-bind="css: {'has-error': selected().doc().AuditData.errors.tags&&selected().doc().AuditData.errors.tags.compliant()===false}">

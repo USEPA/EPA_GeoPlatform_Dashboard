@@ -309,8 +309,8 @@ egam.gpoItems.FullModelClass = function (doc, parent, index) {
     //Make sure a tag category exists
     if (!self.tagToAdd[cat]) return false;
     var tagToAdd = self.tagToAdd[cat]();
-    // Prevent blanks and duplicates
-    if ((tagToAdd != "") && (self.doc().tags().indexOf(tagToAdd) < 0)) {
+    // Prevent blanks and duplicates (I guess let a tag=0 since its falsey)
+    if ((tagToAdd || tagToAdd==0) && (self.doc().tags().indexOf(tagToAdd) < 0)) {
       //push the tag to the tags array
       self.doc().tags.push(tagToAdd);
     }
@@ -412,40 +412,100 @@ egam.gpoItems.PageModelClass = function (data) {
 
   self.items = data;
 
-  self.initializeTags = function () {
-    // Get official EPA tags from gpoItemsTags.js
+  //Have to set authGroups in this context so knockout has access to it from PageModel
+  self.authGroups = egam.communityUser.authGroups;
+
+  //This is basically generic way to hit endopint get dataset and store it
+  //Example datasets are available authgroups and available tags
+  self.dataSets = {};
+  self.getDataset = function (name,endpoint) {
+    var defer = $.Deferred();
+
+    //If already got avail tags just return don't ajax them again
+    if (self.dataSets[name]) {
+      defer.resolve(self.dataSets[name]);
+      return defer;
+    }
+
     $.ajax({
-      url: 'gpoitems/availableTags',
-      dataType: 'json',
-      success: function (data, textStatus, jqXHR) {
-        // EPA Keywords
-        $("#epaTagSelect").append("<option></option>");
-        $.each(data.epa_keywords, function (key, value) {
-          $('#epaTagSelect')
-            .append($("<option></option>")
-              .attr("value", value)
-              .text(value));
+        url: endpoint,
+        dataType: 'json',
+        success: function(data, textStatus, jqXHR) {
+          self.dataSets[name] = data;
+          defer.resolve(self.dataSets[name]);
+        },
+      });
+
+    return defer;
+  };
+
+  self.selectedOfficeOrganizations = ko.observableArray([]);
+
+  self.initializeTags = function() {
+    return self.getDataset('availableTags','gpoitems/availableTags')
+      .then(function () {
+        return self.getDataset('availableAuthgroups','gpoitems/authGroups');
+      })
+      .then(function () {
+        //run the change function to fire handler to initialize if it exists
+        if ($._data($('#officeTagSelect')[0]).events && $._data($('#officeTagSelect')[0]).events.change) {
+          $('#officeTagSelect').change();
+        }else {
+        //Only set the change handler once if it doesn't exist otherwise there will be multiple handlers fired on change
+        //This also fires right after binding are applied
+        $('#officeTagSelect').change(function() {
+          var $orgTagSelect = $('#orgTagSelect');
+          var $officeTagSelect = $('#officeTagSelect');
+          //Get the first auth groups for user
+          var userAuthGroup = self.dataSets.availableAuthgroups.ids[
+            egam.communityUser.authGroups[0]].edgName;
+
+          // Current office selected
+          var office = $officeTagSelect.val();
+          if (office) {
+                $('#addOrgTag').prop('disabled', false);
+                $orgTagSelect.prop('disabled', false);
+
+                //Get just the orgs for this one office from all the available tags and set the ko obs array
+                self.selectedOfficeOrganizations(self.dataSets.availableTags.epaOrganizationNames[office]);
+
+                // If it's a regional office and the user has it as their
+                // primary authoritative group, set the organization
+                if (office = 'REG' && /REG /.exec(userAuthGroup)) {
+                  $orgTagSelect
+                    .find('option[value="' + userAuthGroup + '"]')
+                    .prop('selected', true).change();
+                }
+          } else {
+            // If no office selected, check user's first auth group to see if it
+            // is an EPA office
+            if (userAuthGroup) {
+              var group;
+              if (/REG /.exec(userAuthGroup)) {
+                // For the regional offices, can actually set the full name
+                group = 'REG';
+              } else {
+                // For the national offices, just set the top-level office
+                group = userAuthGroup;
+              }
+              $officeTagSelect.find('option[value="' + group + '"]')
+                .prop('selected', true).change();
+            } else {
+              // If no matching office to auth group, disable dropdown & button
+              $('#addOrgTag').prop('disabled', true);
+              self.selectedOfficeOrganizations([]);
+              $orgTagSelect.prop('disabled', true);
+            }
+          }
+
         });
-        // Place Keywords
-        $("#placeTagSelect").append("<option></option>");
-        $.each(data.place_keywords, function (key, value) {
-          $('#placeTagSelect')
-            .append($("<option></option>")
-              .attr("value", value)
-              .text(value));
-        });
-        // EPA Organization Names
-        $("#orgTagSelect").append("<option></option>");
-        $.each(data.epa_organization_names, function (key, value) {
-          $.each(value, function (key, value) {
-            $('#orgTagSelect')
-              .append($("<option></option>")
-                .attr("value", value)
-                .text(value));
-          });
-        });
-      }
-    });
+
+        }
+
+
+      });
+
+
   };
 
   //a new observable for the selected row storing the FULL gpoItem model
@@ -457,8 +517,12 @@ egam.gpoItems.PageModelClass = function (data) {
 //    var fullRowModel = self.selectedCache[item.index] || new egam.gpoItems.FullModelClass(item.doc,self,item.index) ;
     var fullRowModel = new egam.gpoItems.FullModelClass(item.doc, self, item.index);
     self.selected(fullRowModel);
-    if (needToApplyBindings) ko.applyBindings(self, document.getElementById('gpoItemsModal'));
-    self.initializeTags();
+    //get the availableTags so they can be bound
+    self.initializeTags()
+      .then(function () {
+        if (needToApplyBindings) ko.applyBindings(self, document.getElementById('gpoItemsModal'));
+      });
+
   };
 
   //allows you to select an item based on index, usually index will be coming from row number
