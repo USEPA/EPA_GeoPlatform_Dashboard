@@ -319,7 +319,8 @@ egam.gpoItems.FullModelClass = function (doc, parent, index) {
   };
 
   //I generate the observable for tags to add and the add tag function for each tag category
-  this.tagCategories = ['EPA', 'Place', 'Org'];
+  //Also storing the Office dropdown value even though it doesn't get acted as a tag but need this to set value of drop. Otherwise Please Select kept getting reset
+  this.tagCategories = ['EPA', 'Place', 'Office','Org'];
 
   $.each(this.tagCategories, function (i, cat) {
     //this is just observable for tag that is being added
@@ -447,68 +448,47 @@ egam.gpoItems.PageModelClass = function (data) {
         return self.getDataset('availableAuthgroups','gpoitems/authGroups');
       })
       .then(function () {
-        //run the change function to fire handler to initialize if it exists
-        if ($._data($('#officeTagSelect')[0]).events && $._data($('#officeTagSelect')[0]).events.change) {
-          $('#officeTagSelect').change();
+        var $officeTagSelect = $('#officeTagSelect');
+        //Only add change handler if it doesn't already have one
+        if ($._data($officeTagSelect[0]).events && $._data($officeTagSelect[0]).events.change) {
         }else {
         //Only set the change handler once if it doesn't exist otherwise there will be multiple handlers fired on change
         //This also fires right after binding are applied
-        $('#officeTagSelect').change(function() {
-          var $orgTagSelect = $('#orgTagSelect');
-          var $officeTagSelect = $('#officeTagSelect');
-          //Get the first auth groups for user
-          var userAuthGroup = self.dataSets.availableAuthgroups.ids[
-            egam.communityUser.authGroups[0]].edgName;
+          $officeTagSelect.change(function() {
+            var $orgTagSelect = $('#orgTagSelect');
+            var $officeTagSelect = $('#officeTagSelect');
 
-          // Current office selected
-          var office = $officeTagSelect.val();
-          if (office) {
-                $('#addOrgTag').prop('disabled', false);
-                $orgTagSelect.prop('disabled', false);
+            // Current office selected
+            var office = $officeTagSelect.val();
+            if (office) {
+                  $('#addOrgTag').prop('disabled', false);
+                  $orgTagSelect.prop('disabled', false);
 
-                //Get just the orgs for this one office from all the available tags and set the ko obs array
-                self.selectedOfficeOrganizations(self.dataSets.availableTags.epaOrganizationNames[office]);
-
-                // If it's a regional office and the user has it as their
-                // primary authoritative group, set the organization
-                if (office = 'REG' && /REG /.exec(userAuthGroup)) {
-                  $orgTagSelect
-                    .find('option[value="' + userAuthGroup + '"]')
-                    .prop('selected', true).change();
-                }
-          } else {
-            // If no office selected, check user's first auth group to see if it
-            // is an EPA office
-            if (userAuthGroup) {
-              var group;
-              if (/REG /.exec(userAuthGroup)) {
-                // For the regional offices, can actually set the full name
-                group = 'REG';
-              } else {
-                // For the national offices, just set the top-level office
-                group = userAuthGroup;
-              }
-              $officeTagSelect.find('option[value="' + group + '"]')
-                .prop('selected', true).change();
+                  //Get just the orgs for this one office from all the available tags and set the ko obs array
+                  self.selectedOfficeOrganizations(self.dataSets.availableTags.epaOrganizationNames[office]);
             } else {
-              // If no matching office to auth group, disable dropdown & button
-              $('#addOrgTag').prop('disabled', true);
-              self.selectedOfficeOrganizations([]);
-              $orgTagSelect.prop('disabled', true);
+                // If no office selected then disable the org sub drop and button
+                $('#addOrgTag').prop('disabled', true);
+                $orgTagSelect.prop('disabled', true);
+                self.selectedOfficeOrganizations([]);
             }
-          }
-
-        });
-
+          });
         }
-
-
       });
-
-
   };
 
-  //a new observable for the selected row storing the FULL gpoItem model
+  self.selectOrgTags = function() {
+    //Find office or region from users first authgroup then select it
+    var userAuthGroup = self.dataSets.availableAuthgroups.ids[
+      egam.communityUser.authGroups[0]].edgName;
+    var office = userAuthGroup;
+    if (/REG /.exec(userAuthGroup)) office = 'REG';
+    $('#officeTagSelect').val(office).change();
+    //If there authGroup is a region then select the region number
+    if (office = 'REG' && /REG /.exec(userAuthGroup)) $('#orgTagSelect').val(userAuthGroup);
+  };
+
+    //a new observable for the selected row storing the FULL gpoItem model
   self.selected = ko.observable();
 
   //on the entire table, we need to know which item is selected to use later with modal, etc.
@@ -517,12 +497,16 @@ egam.gpoItems.PageModelClass = function (data) {
 //    var fullRowModel = self.selectedCache[item.index] || new egam.gpoItems.FullModelClass(item.doc,self,item.index) ;
     var fullRowModel = new egam.gpoItems.FullModelClass(item.doc, self, item.index);
     self.selected(fullRowModel);
-    //get the availableTags so they can be bound
+
+    //Now apply binding but first must initialize the tag information
+
     self.initializeTags()
       .then(function () {
         if (needToApplyBindings) ko.applyBindings(self, document.getElementById('gpoItemsModal'));
+      })
+      .then(function () {
+        return self.selectOrgTags();
       });
-
   };
 
   //allows you to select an item based on index, usually index will be coming from row number
