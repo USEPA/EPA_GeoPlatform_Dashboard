@@ -2,6 +2,7 @@
 	"fileExtensions": [".js", ".jscs"],
 	"maxErrors": null,
 
-  	"validateCommentPosition": { "position": "above"}
-
+  	"validateCommentPosition": { "position": "above"},
+    "requireCurlyBraces": false,
+    "requireSpaceAfterLineComment": false
 }
