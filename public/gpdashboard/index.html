@@ -21,6 +21,8 @@
     <![endif]-->
     <script src="bootstrap/js/knockout3.3.0-min.js"></script>
     <script src="bootstrap/js/knockout.mapping-latest.js"></script>
+
+
 	<script>
 	  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
 	  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
@@ -355,15 +357,31 @@
                         </h4>
                         <a data-toggle="tooltip" data-placement="left" title="Show/Hide Auth Groups"><span id="authGroupsCount" class="text-muted" data-toggle="collapse" href="#collapseExample" aria-expanded="false" aria-controls="collapseExample"></span></a>
                         <div class="collapse" id="collapseExample">
-                            <select id="dropAuthGroups" class="search form-control input-sm hidden"></select>
+                            <select id="dropAuthGroups" class="search form-control input-sm hidden" >
+                            </select>
                             <a id="downloadAuthgroupsCSVall" href="gpoUsers/list.csv" class="hidden">download users</a>
                             <a id="downloadAuthgroupsCSVregions" href="gpoUsers/list.csv/authGroups/" class="hidden">download users</a>
                         </div>
                     </div>
                 </div>
              <h3 class="sub-header"></h3>
-              <table id="gpoitemtable1" class="table table-hover table-bordered table-responsive">
-                <thead>
+                <table id="gpoItemsTable" class="table table-hover table-bordered table-responsive" data-bind="dataTable:
+                {
+                    deferRender: true,
+                    dataSource: egam.gpoItems.model.items,
+                    rowTemplate: 'GPOitemsRowTemplate',
+                    columns: [
+                    {data:null},
+                    {data:'doc.title'},
+                    {data:'doc.access'},
+                    {data:'doc.type'},
+                    {data:'doc.numViews'},
+                    {data:'doc.owner'},
+                    {data:{_:'modifiedDate',sort:'doc.modified'},type:'num'},
+                    {data:'complianceStatus'}
+                    ]
+                    }">
+                    <thead>
                   <tr>
                       <th style="display:none"></th>
                     <th>Title<br>
@@ -408,43 +426,46 @@
                 <tfoot>
 
                 </tfoot>
-                  <tbody data-bind="foreach: content">
-                    <tr data-bind="css: {danger: !doc().AuditData.compliant(),loading: loading}, click: $parent.select" data-toggle="modal" data-target="#myModal" >
-                      <!-- <td data-bind="text: id"></td> -->
-                      <td data-bind="attr: { 'data-order': doc().modified}" style="display:none">
-                          <!-- ko if:doc.type=='Web Map' -->
-                          <img src="img/item_type_icons/maps16.png">
-                          <!-- /ko -->
-                          <!-- ko if:doc.type=='Web Mapping Application' -->
-                           <img src="img/item_type_icons/apps16.png">
-                          <!-- /ko -->
-                          <!-- ko if:doc.type=='Feature Layer' -->
-                          <img src="img/item_type_icons/featureshosted16.png">
-                          <!-- /ko -->
-                          <!-- ko if:doc.type=='Service Definition' -->
-                          <img src="img/item_type_icons/datafiles16.png">
-                          <!-- /ko -->
-                          <!-- ko if:doc.type=='Map Image layer' -->
-                          <img src="img/item_type_icons/mapimages16.png">
-                          <!-- /ko -->
-                      </td>
-                      <td data-bind="text: doc().title" ></td>
-                      <td data-bind="text: doc().access"></td>
-                      <td data-bind="text: doc().type"></td>
-                      <td data-bind="text: doc().numViews"></td>
-                      <td data-bind="text: doc().owner"></td>
-                        <td data-bind="text: modDate"></td>
-                      <td data-bind="css: {auditRowPass: doc().AuditData.compliant(),auditRowFail: !doc().AuditData.compliant()},attr: { 'data-search': complianceStatus,'data-order': complianceStatus}">
-                          <img class="pass" src="img/greenOK.jpg" alt="Pass" style="width:25px">
-                          <img class="fail" src="img/warning.png" alt="Fail" style="width:25px">
-                      </td >
-                    </tr>
-                  </tbody>
+
               </table>
+
+                <script id="GPOitemsRowTemplate" type="text/html">
+                    <tr data-bind="css: {danger: !doc.AuditData.compliant,loading: loading}, click: $root.select" data-toggle="modal" data-target="#gpoItemsModal" >
+                        <td data-bind="attr: { 'data-order2': doc.type}" style="display:none">
+                            <!-- ko if:doc.type=='Web Map' -->
+                            <img src="img/item_type_icons/maps16.png">
+                            <!-- /ko -->
+                            <!-- ko if:doc.type=='Web Mapping Application' -->
+                            <img src="img/item_type_icons/apps16.png">
+                            <!-- /ko -->
+                            <!-- ko if:doc.type=='Feature Layer' -->
+                            <img src="img/item_type_icons/featureshosted16.png">
+                            <!-- /ko -->
+                            <!-- ko if:doc.type=='Service Definition' -->
+                            <img src="img/item_type_icons/datafiles16.png">
+                            <!-- /ko -->
+                            <!-- ko if:doc.type=='Map Image layer' -->
+                            <img src="img/item_type_icons/mapimages16.png">
+                            <!-- /ko -->
+                        </td>
+                        <td data-bind="text: doc.title" ></td>
+                        <td data-bind="text: doc.access"></td>
+                        <td data-bind="text: doc.type"></td>
+                        <td data-bind="text: doc.numViews"></td>
+                        <td data-bind="text: doc.owner"></td>
+                        <td data-bind="text: modifiedDate"></td>
+                        <td data-bind="css: {auditRowPass: doc.AuditData.compliant,auditRowFail: !doc.AuditData.compliant}">
+                            <img class="pass" src="img/greenOK.jpg" alt="Pass" style="width:25px">
+                            <img class="fail" src="img/warning.png" alt="Fail" style="width:25px">
+                        </td >
+                    </tr>
+
+                </script>
+
             </div>
 
             <!-- Modal for Editing -->
-            <div class="modal fade" id="myModal" tabindex="-1" role="dialog" data-keyboard="false" data-backdrop="static" aria-labelledby="myModalLabel">
+            <div class="modal fade" id="gpoItemsModal" tabindex="-1" role="dialog" data-keyboard="false" data-backdrop="static" aria-labelledby="myModalLabel">
               <div class="modal-dialog modal-lg" role="document">
                   <div class="modal-content">
                       <div class="modal-header">
@@ -460,7 +481,7 @@
                                           <label>For best results, the image should be 200 pixels wide by 133 pixels high. Other sizes will be adjusted to fit. Acceptable image formats are: PNG, GIF and JPEG.</label>
                                           <div class="fileinput fileinput-new" data-provides="fileinput">
                                               <div id="agoThumb" class="thumbnail" style="width: 200px; height: 135px;">
-                                                  <img id="agoThumbImg" data-bind="attr: {src: selected().tnURLs}">
+                                                  <img id="agoThumbImg" data-bind="attr: {src: selected().thumbnailURL}">
                                               </div>
                                               <div id="imageUpload" class="fileinput-preview thumbnail" data-trigger="fileinput" style="width: 200px; height: 135px; Display: none">
                                               </div>
@@ -475,29 +496,29 @@
 
                                       </div>
                                       <div class="form-group">
-                                          <label for="dropEPATags">EPA Keywords</label>
+                                          <label for="addEPATag">EPA Keywords</label>
                                           <div class="form-inline">
-                                              <button id="dropEPATags" class="btn btn-default"  type="submit" data-bind="click: selected().addEPAItem">Add</button>
-                                              <select class="tag-select search form-control" id="epaTagSelect" data-bind='value: selected().epaTagItemToAdd, valueUpdate: "afterkeydown"'></select>
+                                              <button id="addEPATag" class="btn btn-default"  type="submit" data-bind="click: selected().addTag['EPA']">Add</button>
+                                              <select class="tag-select search form-control" id="epaTagSelect" data-bind="options:dataSets.availableTags.epaKeywords,optionsCaption:'Please Select', value: selected().tagToAdd['EPA'], valueUpdate: 'afterkeydown'"></select>
                                           </div>
-                                          <label for="dropPlaceTags">Place Keywords</label>
+                                          <label for="addPlaceTag">Place Keywords</label>
                                           <div class="form-inline">
-                                              <button id="dropPlaceTags" class="btn btn-default"  type="submit" data-bind="click: selected().addPlaceItem">Add</button>
-                                              <select class="tag-select search form-control" id="placeTagSelect" data-bind='value: selected().placeTagItemToAdd, valueUpdate: "afterkeydown"'></select>
+                                              <button id="addPlaceTag" class="btn btn-default"  type="submit" data-bind="click: selected().addTag['Place']">Add</button>
+                                              <select class="tag-select search form-control" id="placeTagSelect" data-bind="options:dataSets.availableTags.placeKeywords,optionsCaption:'Please Select',value: selected().tagToAdd['Place'], valueUpdate: 'afterkeydown'"></select>
                                           </div>
-                                          <label for="dropOrgTags">EPA Organization Names</label>
+                                          <label for="addOrgTag">EPA Organization Names</label>
                                           <div class="form-inline">
-                                              <button id="dropOrgTags" class="btn btn-default"  type="submit" data-bind="click: selected().addOrgItem" disabled>Add</button>
-                                              <select class="tag-select search form-control" id="officeTagSelect" data-bind='value: selected().officeTagItemToAdd, valueUpdate: "afterkeydown"'></select>
-                                              <select class="tag-select search form-control" id="orgTagSelect" data-bind='value: selected().orgTagItemToAdd, valueUpdate: "afterkeydown"'></select>
+                                              <button id="addOrgTag" class="btn btn-default"  type="submit" data-bind="click: selected().addTag['Org']">Add</button>
+                                              <select class="tag-select search form-control" id="officeTagSelect" data-bind="options:dataSets.availableTags.epaOffices,optionsCaption:'Please Select', value: selected().tagToAdd['Office'], valueUpdate: 'afterkeydown'"></select>
+                                              <select class="tag-select search form-control" id="orgTagSelect" data-bind="options:selectedOfficeOrganizations,optionsCaption:'Please Select',, value: selected().tagToAdd['Org'], valueUpdate: 'afterkeydown'"></select>
                                           </div>
                                       </div>
                                       <div class="form-group has-success" data-bind="css: {'has-error': selected().doc().AuditData.errors.tags&&selected().doc().AuditData.errors.tags.compliant()===false}">
-                                          <select id="tagsList" class="form-control" multiple="multiple" height="5" data-bind="options: selected().doc().tags, selectedOptions: selected().selectedItems"> </select>
+                                          <select id="tagsList" class="form-control" multiple="multiple" height="5" data-bind="options: selected().doc().tags, selectedOptions: selected().selectedTags"> </select>
                                           <span class="help-block" data-bind="style: {display: !selected().doc().AuditData.errors.tags.compliant() ? 'block' : 'none'}, text: selected().doc().AuditData.errors.tags.messages"></span>
                                       </div>
                                       <div class="form-group">
-                                          <button class="btn btn-default" data-bind="click: selected().removeSelected, enable: selected().selectedItems().length > 0">Remove</button>
+                                          <button class="btn btn-default" data-bind="click: selected().removeSelectedTags, enable: selected().selectedTags().length > 0">Remove</button>
                                       </div>
                                       <div class="id_holder" data-bind="attr: {id: selected().doc().id}"></div>
                                       <div class="form-group">
@@ -915,7 +936,9 @@
     <script src="js/tinymce/tinymce.jquery.min.js"></script>
     <script src="js/wysiwyg.js"></script>
 
+    <script src="js/knockout.bindings.dataTables.cog.js"></script>
     <script src="js/gpintel.js"></script>
+    <script src="js/gpoItems.js"></script>
     <script src="js/Audit.js"></script>
     <!-- Due to some weird timing issues, this order needs to be followed -->
     <script src="js/esrijsapi/dojo/dojo.js" data-dojo-config="async: true"></script>

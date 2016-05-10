@@ -63,10 +63,10 @@ UpdateAuthGroupsAndOwnerIDs.prototype.updateAuthGroupsInner = function(user) {
 //Also have to fing user.role and user.provider and user.email in here on the full community/portal user object because these fields are not in search results
   var isAdmin = false;
   if (user.role==='org_admin') isAdmin=true;
-  var isExternal = false;
+  var isExternal = true;
 //This would find SSO or ArcGIS login need to just look for epa.gov email
 //  if (user.provider!=='enterprise') isExternal=true;
-  if (/@epa\.gov$/.test(user.email)) isExternal=true;
+  if (/@epa\.gov$/.test(user.email)) isExternal=false;
 
 //Get groups from user object. Might need to transform groups from array of group objects to array of group names
   var groups = self.getGroupsFromUser(user);

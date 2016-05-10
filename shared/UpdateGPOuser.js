@@ -44,6 +44,7 @@ UpdateGPOuser.prototype.getRemoteUpdateRequest = function(formData) {
 //Need to find the auth group ID that we are adding user to . using require reload so we don't have to restart EGAM if authGroup added can change later when stable
   var requireReload = require('require-reload')(require);
   var authGroupIDs = requireReload(self.appRoot + '/config/authGroups.js').ids;
+  if (! authGroupIDs[self.updateDoc.authGroup]) console.log("self.updateDoc.authGroup does not exist: " + JSON.stringify(self.updateDoc));
   var authGroupID = authGroupIDs[self.updateDoc.authGroup].id;
   if (! authGroupID) return null;
 

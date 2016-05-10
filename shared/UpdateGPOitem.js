@@ -167,7 +167,14 @@ UpdateGPOitem.prototype.saveThumbnailToGridFS = function() {
 //now update thumbnailID in DB
 //    self.updateSlashData.thumbnailID = file._id;
 
-    Q(self.collection.update({id: self.updateDoc.id}, {$set: {"SlashData.thumbnailID": file._id}}))
+    Q(self.collection.findOne({id:self.updateDoc.id,SlashData:null}, {id:1}))//Note: Make sure there is a SlashData object to store thumbnailID
+      .then(function (doc) {
+        if (doc) return Q(self.collection.update({id: doc.id}, {$set: {SlashData: {}}}));
+        return null;
+      })
+      .then(function () {
+        return Q(self.collection.update({id: self.updateDoc.id}, {$set: {"SlashData.thumbnailID": file._id}}))
+      })
       .catch(function(err) {
         defer.reject("Error updating Thumbnail Binary ID for " + self.updateDoc.id + " : " + err);
       })
