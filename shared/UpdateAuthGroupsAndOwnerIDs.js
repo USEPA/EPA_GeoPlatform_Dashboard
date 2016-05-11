@@ -36,7 +36,8 @@ UpdateAuthGroupsAndOwnerIDs.prototype.getAvailableAuthGroups = function () {
     if (typeof self.authgroupsCollection==="string") {
 //Note have to use require-reload module so that available auth groups is not cached by require in case we change config file and don't want to restart express server
       var requireReload = require('require-reload')(require);
-      self.availableAuthGroups = requireReload(self.authgroupsCollection);
+//new: config file of authgroups now has object with names field and ids field. names field is array of auth group names. ids is obj keyed by name with id as value
+      self.availableAuthGroups = requireReload(self.authgroupsCollection).names;
       return Q(self.availableAuthGroups);
     }else {
       return Q(self.authgroupsCollection.find({}, {fields:{group:1}}))
@@ -58,10 +59,14 @@ UpdateAuthGroupsAndOwnerIDs.prototype.updateAuthGroupsInner = function(user) {
   var arrayExtended = require('array-extended');
   var merge = require('merge');
 
-//Check if this is admin and save that to DB also just for convenience
+//Check if this is admin and save isAdmin field to DB just for convenience
+//Also have to fing user.role and user.provider and user.email in here on the full community/portal user object because these fields are not in search results
   var isAdmin = false;
   if (user.role==='org_admin') isAdmin=true;
-
+  var isExternal = true;
+//This would find SSO or ArcGIS login need to just look for epa.gov email
+//  if (user.provider!=='enterprise') isExternal=true;
+  if (/@epa\.gov$/.test(user.email)) isExternal=false;
 
 //Get groups from user object. Might need to transform groups from array of group objects to array of group names
   var groups = self.getGroupsFromUser(user);
@@ -75,7 +80,8 @@ UpdateAuthGroupsAndOwnerIDs.prototype.updateAuthGroupsInner = function(user) {
   }
 
 //Now update the authGroup Info and return the updated Info so it can be used later to find OwnerIDs
-  var updateUser = {username:user.username,role:user.role,authGroups: authGroups,isAdmin: isAdmin,groups:groups};
+//Note have to save a bunch of extra stuff here that is on the full community/portal user object but not on the user search result object
+  var updateUser = {username:user.username,email:user.email,role:user.role,authGroups: authGroups,isAdmin: isAdmin,isExternal:isExternal, groups:groups, provider: user.provider};
   if (isAdmin) console.log("Updated Info:" + JSON.stringify(updateUser));
   return Q(self.usersCollection.update({username: user.username}, {$set: updateUser}))
     .then(function () {
@@ -106,11 +112,16 @@ UpdateAuthGroupsAndOwnerIDs.prototype.getGroupsFromUser = function(user) {
 UpdateAuthGroupsAndOwnerIDs.prototype.getOwnerIDs = function(user) {
   var self = this;
   var Q = require('q');
+  var appRoot = appRoot=require('app-root-path');
+  var utilities=require(appRoot + '/shared/utilities');
 
   console.log("getOwnerIDs user " + JSON.stringify(user));
 
 //Make sure this is actually an admin with authgroups otherwise OwnerIDs is only User
-  if (! user.isAdmin || ! user.authGroups || user.authGroups.length<1) return Q([user.username]);
+  if (! user.isAdmin || ! user.authGroups || user.authGroups.length<1) return Q.fcall(function () {return [user.username]});
+
+  //If user is super user then return all ownerIDs
+  if (user.isSuperUser) return utilities.getArrayFromDB(self.usersCollection, {}, "username");
 
 //Check if this Admins combination of authGroups is cached in ownerIDs DB
 //Note had to use $all AND $size other wise db.authGroups=[Region 7,Region 8] was matching user.authGroups=[Region 7]

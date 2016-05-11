@@ -2,17 +2,18 @@ module.exports = function(app) {
   var express = require('express');
   var router = express.Router();
   var Q = require('q');
-//To allow multipart/form-data ie. File uploads
+  //To allow multipart/form-data ie. File uploads
   var fs = require('fs');
 
   var multer = require('multer');
   var upload = multer({ dest: app.get('appRoot') + '/tmp/'});
 
+
   router.use('/list', function(req, res) {
     var username = "";
     if ('session' in req && req.session.username) username=req.session.username;
-//If they are not logged in (no username then
-    if (! username) return res.json({error: {message: "Must be logged in to make this request.", code: "LoginRequired"}, body: null});
+    //If they are not logged in (no username then
+    if (! username) return res.json(utilities.getHandleError({},"LoginRequired")("Must be logged in to make this request."));
 
     var ownerIDs = [username];
     if ('session' in req && req.session.ownerIDs) ownerIDs=req.session.ownerIDs;
@@ -153,17 +154,16 @@ module.exports = function(app) {
     var username = "";
     if ('session' in req && req.session.username) username=req.session.username;
 //If they are not logged in (no username then
-    if (! username) return res.json({error: {message: "Must be logged in to make this request.", code: "LoginRequired"}, body: null});
+    if (! username) return res.json(utilities.getHandleError({},"LoginRequired")("Must be logged in to make this request."));
+
 
     var utilities = require(app.get('appRoot') + '/shared/utilities');
 //    var db = req.db;
     var monk = app.get('monk');
     var config = app.get('config');
 
-    var hrClass = require(app.get('appRoot') + '/shared/HandleGPOresponses');
-    var hr = new hrClass(config);
-
-    var itemscollection = monk.get('GPOitems');
+    var itemsCollection = monk.get('GPOitems');
+    var extensionsCollection = monk.get('GPOitemExtensions');
     var gfs = app.get('gfs');
 
     var error=null;
@@ -172,7 +172,7 @@ module.exports = function(app) {
     try {
       updateDocs = JSON.parse(updateDocs);
     }catch (ex){
-      return res.json({error: {message: "Update Doc is not valid JSON", code: "InvalidJSON"}, body: null})
+      return res.json(utilities.getHandleError({},"InvalidJSON")("Update Doc is not valid JSON."));
     }
 
 //Now get the thumbnail file from request
@@ -194,110 +194,47 @@ module.exports = function(app) {
       delete doc.SlashData;
     });
 
-    //This is global result object that will be passed back to user
-    var resObjects = {errors:[]};
-//Class that will do all the updating for each document
-    var UpdateGPOitemClass = require(app.get('appRoot') + '/shared/UpdateGPOitem');
-    var updateGPOitem = null;
-//To keep count when looping over promises
-    var updateGPOitemRow = 1;
-    var updateGPOitemCount = updateDocs.length;
-//Set up the method to run the updates with
+    //Set up the method to run the updates with
     var useSync=false;
-    var AsyncRowLimit=5;
-//function we will use to update set with this variable
-    var updateGPOitemsFunction=null;
+    var asyncRowLimit=5;
 
-    if (useSync) {
-      console.log('Updating using Sync');
-      updateGPOitemsFunction=updateGPOitemsSync;
-    } else {
-      if(AsyncRowLimit===null){
-        console.log('Updating using Full Async ');
-        updateGPOitemsFunction=updateGPOitemsAsync;
-      }else {
-        console.log('Updating using Hybrid ');
-        updateGPOitemsFunction=updateGPOitemsHybrid;
-      }
-    }
+    var UpdateGPOclass = require(app.get('appRoot') + 'shared/UpdateGPOitem');
 
-//Now update gpo items using method (sync, async, hybrid) chosen
-    updateGPOitemsFunction()
-      .catch(function (err) {
-        console.error('Error received running updateGPOitemsFunction :' + err.stack);
-        resObjects.errors.push(err.message);
-      })
-      .done(function () {
+    //This function will get the Update Class Instance needed to run .update
+    var getUpdateClassInstance = function (row) {
+//id is the key used for updating and "item" is just text for display on errors, logging, etc because
+      var updateInstance = new UpdateGPOclass(itemsCollection,extensionsCollection,req.session,config,gfs);
+//don't need to add anything else like thumbnail to the instance, just return the instance
+      updateInstance.thumbnail = thumbnail;
+      return updateInstance;
+    };
+
+//This function handles the batch update process and is reusable
+    var batchUpdateGPO = require(app.get('appRoot') + '/shared/batchUpdateGPO');
+    batchUpdateGPO(updateDocs,getUpdateClassInstance,"Item","id",useSync,asyncRowLimit)
+      .done(function (resObjects) {
         res.json(resObjects);
       });
-
-    function updateSingleGPOitem(updateDoc,async) {
-//If in async mode need to create new updateGPOitem instance each time so each will have it's own data
-      if (! updateGPOitem || async===true) updateGPOitem=new UpdateGPOitemClass(itemscollection,req.session,config,gfs);
-//Pass thumbnail file upload object if exists
-      if (thumbnail) updateGPOitem.thumbnail = thumbnail;
-
-      if (! updateDoc) updateDoc=updateDocs[updateGPOitemRow-1];
-
-      updateGPOitemRow += 1;
-
-      return updateGPOitem.update(updateDoc)
-      .then(function (){
-//update the resObjects and update the count
-          if (updateGPOitem.resObject.error) resObjects.errors.push(updateGPOitem.resObject.error);
-        })
-        .catch(function (err) {resObjects.errors.push("Error updating " + updateDoc.id + " : " + err.message);
-                                console.error("Error updating Single GPO item " + updateDoc.id + " : " + err.stack)})
-    }
-    function updateGPOitemsSync() {
-      return hr.promiseWhile(function() {return updateGPOitemRow<=updateGPOitemCount;}, updateSingleGPOitem);
-    }
-
-    function updateGPOitemsHybrid() {
-      return hr.promiseWhile(function() {return updateGPOitemRow<=updateGPOitemCount;}, updateGPOitemsAsync);
-    }
-
-    function updateGPOitemsAsync () {
-      var Q = require('q');
-      var defer = Q.defer();
-
-      var async = require('async');
-      var updateDocsAsync;
-      if (AsyncRowLimit) {
-//take slice form current row to async row limit
-        updateDocsAsync= updateDocs.slice(updateGPOitemRow-1,updateGPOitemRow-1+AsyncRowLimit);
-      }else {
-        updateDocsAsync= updateDocs;
-      }
-
-      console.log("Updating from row " + updateGPOitemRow + " to " + (updateGPOitemRow + updateDocsAsync.length -1));
-
-      async.forEachOf(updateDocsAsync, function (value, key, done) {
-          updateSingleGPOitem(value,true)
-            .catch(function(err) {
-              resObjects.errors.push("Error updating " + value.id + " : " + err.message);
-              console.error('Async For Each Single Update GPO item Error :', err.stack);
-            })
-            .done(function() {
-              done();
-//          console.log('for loop success')
-            });
-        }
-        , function (err) {
-          if (err) console.error('Async For Each Update GPO items Error :' + err.stack);
-//resolve this promise
-//      console.log('resolve')
-          defer.resolve();
-        });
-
-//I have to return a promise here for so that chain waits until everything is done until it runs process.exit in done.
-//chain was NOT waiting before and process exit was executing and data data not being retrieved
-      return defer.promise
-    }
 
 
 //end of update endpoint
   });
+
+  router.use('/availableTags/:category', function (req, res) {
+    var availableTags = require(app.get('appRoot') + 'config/gpoItemsTags');
+    var category=req.params.category;
+
+    res.json(availableTags[category]);
+  });
+  router.use('/availableTags', function(req, res) {
+    var availableTags = require(app.get('appRoot') + 'config/gpoItemsTags');
+    res.json(availableTags);
+  });
+  router.use('/authGroups', function(req, res) {
+    var ids = require(app.get('appRoot') + 'config/authGroups');
+    res.json(ids);
+  });
+
 
   return router;
 };

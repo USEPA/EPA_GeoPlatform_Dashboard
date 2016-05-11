@@ -12,6 +12,7 @@
     <link href="bootstrap/css/bootstrap.min.css" rel="stylesheet">
     <link href="bootstrap/css/jasny-bootstrap.min.css" rel="stylesheet">
     <link href="bootstrap/css/dataTables.bootstrap.min.css" rel="stylesheet">
+      <link href="bootstrap/css/buttons.dataTables.min.css" rel="stylesheet">
     <link href="css/dashboard.css" rel="stylesheet">
 
     <!--[if lt IE 9]>
@@ -20,6 +21,8 @@
     <![endif]-->
     <script src="bootstrap/js/knockout3.3.0-min.js"></script>
     <script src="bootstrap/js/knockout.mapping-latest.js"></script>
+
+
 	<script>
 	  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
 	  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
@@ -306,11 +309,11 @@
                 </li>
                 <li role="presentation">
                     <a href="#userMgmtView" role="tab" aria-controls="userMgmtView"
-                                           data-toggle="tab">User Management (Future)</a>
+                                           data-toggle="tab">User Management</a>
                 </li>
                 <li role="presentation">
                     <a href="#edgView" role="tab" aria-controls="edgView"
-                                           data-toggle="tab">EDG Items (Future)</a>
+                                           data-toggle="tab">EDG Items</a>
                 </li>
             </ul>
         </div>
@@ -322,33 +325,10 @@
                 <p><a class="btn btn-lg btn-success" id='sign-in-biggreen'>Sign in to get started</a></p>
             </div>
         </div>
-        
+
         <div id="mainWindow" style="display: none; "
              class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
-          <div id="gpoContentHeader" class="row placeholders">
-          <div class="col-xs-6 col-sm-3">
-              <h4>Public Items Audit Result</h4>
-              <span id="percPublicPassingAudit" class="text-muted">75% Passing</span>
-            </div>
-            <div class="col-xs-6 col-sm-3">
-              <h4>My Items</h4>
-              <span id="agoItems" class="text-muted"></span>
-            </div>
-            <div class="col-xs-6 col-sm-3">
-              <h4>My Groups</h4>
-              <span id="agoGroups" class="text-muted"></span>
-            </div>
-              <div class="col-xs-6 col-sm-3">
-                  <h4 style="white-space:nowrap;">Auth Groups
-                  </h4>
-                  <a data-toggle="tooltip" data-placement="left" title="Show/Hide Auth Groups"><span id="authGroupsCount" class="text-muted" data-toggle="collapse" href="#collapseExample" aria-expanded="false" aria-controls="collapseExample"></span></a>
-                  <div class="collapse" id="collapseExample">
-                      <select id="dropAuthGroups" class="search form-control input-sm hidden"></select>
-                      <a id="downloadAuthgroupsCSVall" href="gpoUsers/list.csv" class="hidden">download users</a>
-                      <a id="downloadAuthgroupsCSVregions" href="gpoUsers/list.csv/authGroups/" class="hidden">download users</a>
-                  </div>
-              </div>
-          </div>
+
          <div class="tab-content">
               <!-- Begin overview class="view collapse in"-->
               <div role="tabpanel" class="tab-pane active" id="overviewView" >
@@ -359,9 +339,49 @@
             </div>
             <!--</div>-->
             <div id="overviewTable" >
+                <div id="gpoContentHeader" class="row placeholders">
+                    <div class="col-xs-6 col-sm-3">
+                        <h4>Public Items Audit Result</h4>
+                        <span id="percPublicPassingAudit" class="text-muted">75% Passing</span>
+                    </div>
+                    <div class="col-xs-6 col-sm-3">
+                        <h4>My Items</h4>
+                        <span id="agoItems" class="text-muted"></span>
+                    </div>
+                    <div class="col-xs-6 col-sm-3">
+                        <h4>My Groups</h4>
+                        <span id="agoGroups" class="text-muted"></span>
+                    </div>
+                    <div class="col-xs-6 col-sm-3">
+                        <h4 style="white-space:nowrap;">Auth Groups
+                        </h4>
+                        <a data-toggle="tooltip" data-placement="left" title="Show/Hide Auth Groups"><span id="authGroupsCount" class="text-muted" data-toggle="collapse" href="#collapseExample" aria-expanded="false" aria-controls="collapseExample"></span></a>
+                        <div class="collapse" id="collapseExample">
+                            <select id="dropAuthGroups" class="search form-control input-sm hidden" >
+                            </select>
+                            <a id="downloadAuthgroupsCSVall" href="gpoUsers/list.csv" class="hidden">download users</a>
+                            <a id="downloadAuthgroupsCSVregions" href="gpoUsers/list.csv/authGroups/" class="hidden">download users</a>
+                        </div>
+                    </div>
+                </div>
              <h3 class="sub-header"></h3>
-              <table id="gpoitemtable1" class="table table-hover table-bordered table-responsive">
-                <thead>
+                <table id="gpoItemsTable" class="table table-hover table-bordered table-responsive" data-bind="dataTable:
+                {
+                    deferRender: true,
+                    dataSource: egam.gpoItems.model.items,
+                    rowTemplate: 'GPOitemsRowTemplate',
+                    columns: [
+                    {data:null},
+                    {data:'doc.title'},
+                    {data:'doc.access'},
+                    {data:'doc.type'},
+                    {data:'doc.numViews'},
+                    {data:'doc.owner'},
+                    {data:{_:'modifiedDate',sort:'doc.modified'},type:'num'},
+                    {data:'complianceStatus'}
+                    ]
+                    }">
+                    <thead>
                   <tr>
                       <th style="display:none"></th>
                     <th>Title<br>
@@ -406,47 +426,50 @@
                 <tfoot>
 
                 </tfoot>
-                  <tbody data-bind="foreach: content">
-                    <tr data-bind="css: {danger: !doc.AuditData.compliant(),loading: loading}, click: $parent.select" data-toggle="modal" data-target="#myModal" >
-                      <!-- <td data-bind="text: id"></td> -->
-                      <td data-bind="attr: { 'data-order': doc.modified}" style="display:none">
-                          <!-- ko if:doc.type=='Web Map' -->
-                          <img src="img/item_type_icons/maps16.png">
-                          <!-- /ko -->
-                          <!-- ko if:doc.type=='Web Mapping Application' -->
-                           <img src="img/item_type_icons/apps16.png">
-                          <!-- /ko -->
-                          <!-- ko if:doc.type=='Feature Layer' -->
-                          <img src="img/item_type_icons/featureshosted16.png">
-                          <!-- /ko -->
-                          <!-- ko if:doc.type=='Service Definition' -->
-                          <img src="img/item_type_icons/datafiles16.png">
-                          <!-- /ko -->
-                          <!-- ko if:doc.type=='Map Image layer' -->
-                          <img src="img/item_type_icons/mapimages16.png">
-                          <!-- /ko -->
-                      </td>
-                      <td data-bind="text: doc.title" ></td>
-                      <td data-bind="text: doc.access"></td>
-                      <td data-bind="text: doc.type"></td>
-                      <td data-bind="text: doc.numViews"></td>
-                      <td data-bind="text: doc.owner"></td>
-                        <td data-bind="text: modDate"></td>
-                      <td data-bind="css: {auditRowPass: doc.AuditData.compliant(),auditRowFail: !doc.AuditData.compliant()},attr: { 'data-search': complianceStatus,'data-order': complianceStatus}">
-                          <img class="pass" src="img/greenOK.jpg" alt="Pass" style="width:25px">
-                          <img class="fail" src="img/warning.png" alt="Fail" style="width:25px">
-                      </td >
-                    </tr>
-                  </tbody>
+
               </table>
+
+                <script id="GPOitemsRowTemplate" type="text/html">
+                    <tr data-bind="css: {danger: !doc.AuditData.compliant,loading: loading}, click: $root.select" data-toggle="modal" data-target="#gpoItemsModal" >
+                        <td data-bind="attr: { 'data-order2': doc.type}" style="display:none">
+                            <!-- ko if:doc.type=='Web Map' -->
+                            <img src="img/item_type_icons/maps16.png">
+                            <!-- /ko -->
+                            <!-- ko if:doc.type=='Web Mapping Application' -->
+                            <img src="img/item_type_icons/apps16.png">
+                            <!-- /ko -->
+                            <!-- ko if:doc.type=='Feature Layer' -->
+                            <img src="img/item_type_icons/featureshosted16.png">
+                            <!-- /ko -->
+                            <!-- ko if:doc.type=='Service Definition' -->
+                            <img src="img/item_type_icons/datafiles16.png">
+                            <!-- /ko -->
+                            <!-- ko if:doc.type=='Map Image layer' -->
+                            <img src="img/item_type_icons/mapimages16.png">
+                            <!-- /ko -->
+                        </td>
+                        <td data-bind="text: doc.title" ></td>
+                        <td data-bind="text: doc.access"></td>
+                        <td data-bind="text: doc.type"></td>
+                        <td data-bind="text: doc.numViews"></td>
+                        <td data-bind="text: doc.owner"></td>
+                        <td data-bind="text: modifiedDate"></td>
+                        <td data-bind="css: {auditRowPass: doc.AuditData.compliant,auditRowFail: !doc.AuditData.compliant}">
+                            <img class="pass" src="img/greenOK.jpg" alt="Pass" style="width:25px">
+                            <img class="fail" src="img/warning.png" alt="Fail" style="width:25px">
+                        </td >
+                    </tr>
+
+                </script>
+
             </div>
 
             <!-- Modal for Editing -->
-            <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+            <div class="modal fade" id="gpoItemsModal" tabindex="-1" role="dialog" data-keyboard="false" data-backdrop="static" aria-labelledby="myModalLabel">
               <div class="modal-dialog modal-lg" role="document">
                   <div class="modal-content">
                       <div class="modal-header">
-                          <button type="button" class="close" data-dismiss="modal" aria-label="Close" ><span aria-hidden="true">&times;</span></button>
+                          <button type="button" class="close" data-dismiss="modal" aria-label="Close" data-bind="click: selected().closeModal" ><span aria-hidden="true">&times;</span></button>
                           <h4 class="modal-title" id="myModalLabel">Item Details
                               <span><a class="glyphicon glyphicon-link" data-bind="attr: {href: selected().gpoLink}" target="_blank" aria-hidden="true" data-toggle="tooltip" data-placement="right" title="Go to Item in GPO"></a></span></h4>
                       </div>
@@ -454,15 +477,15 @@
                           <form id="modalForm" role="form" data-toggle="validator" data-disable="false" enctype="multipart/form-data" method="post">
                               <div class="row form-group">
                                   <div class="col-md-4">
-                                      <div class="form-group has-success" data-bind="css: {'has-error': (selected()) ? selected().doc.AuditData.errors.thumbnail&&selected().doc.AuditData.errors.thumbnail.compliant()===false : false}">
+                                      <div class="form-group has-success" data-bind="css: {'has-error': (selected()) ? selected().doc().AuditData.errors.thumbnail&&selected().doc().AuditData.errors.thumbnail.compliant()===false : false}">
                                           <label>For best results, the image should be 200 pixels wide by 133 pixels high. Other sizes will be adjusted to fit. Acceptable image formats are: PNG, GIF and JPEG.</label>
                                           <div class="fileinput fileinput-new" data-provides="fileinput">
                                               <div id="agoThumb" class="thumbnail" style="width: 200px; height: 135px;">
-                                                  <img id="agoThumbImg" data-bind="attr: {src: selected().tnURLs}">
+                                                  <img id="agoThumbImg" data-bind="attr: {src: selected().thumbnailURL}">
                                               </div>
                                               <div id="imageUpload" class="fileinput-preview thumbnail" data-trigger="fileinput" style="width: 200px; height: 135px; Display: none">
                                               </div>
-                                              <span class="help-block" data-bind="text: selected().doc.AuditData.errors.thumbnail.messages">Requried</span>
+                                              <span class="help-block" data-bind="text: selected().doc().AuditData.errors.thumbnail.messages">Requried</span>
                                               <div>
                                                   <span class="btn btn-default btn-file"><span class="fileinput-new">change</span><span class="fileinput-exists">Change</span><input id="thumbnail" type="file" name="..."></span>
                                               </div>
@@ -473,70 +496,92 @@
 
                                       </div>
                                       <div class="form-group">
-                                          <label for="inputTags">Tags</label>
+                                          <label for="addEPATag">EPA Keywords</label>
                                           <div class="form-inline">
-                                              <button id="inputTags" class="btn btn-default"  type="submit" data-bind="click: selected().addItem, enable: selected().tagItemToAdd().length > 0">Add</button>
-                                              <input class="form-control" id="tagInput" type="text" data-bind='value: selected().tagItemToAdd, valueUpdate: "afterkeydown"'/>
+                                              <button id="addEPATag" class="btn btn-default"  type="submit" data-bind="click: selected().addTag['EPA']">Add</button>
+                                              <select class="tag-select search form-control" id="epaTagSelect" data-bind="options:dataSets.availableTags.epaKeywords,optionsCaption:'Please Select', value: selected().tagToAdd['EPA'], valueUpdate: 'afterkeydown'"></select>
+                                          </div>
+                                          <label for="addPlaceTag">Place Keywords</label>
+                                          <div class="form-inline">
+                                              <button id="addPlaceTag" class="btn btn-default"  type="submit" data-bind="click: selected().addTag['Place']">Add</button>
+                                              <select class="tag-select search form-control" id="placeTagSelect" data-bind="options:dataSets.availableTags.placeKeywords,optionsCaption:'Please Select',value: selected().tagToAdd['Place'], valueUpdate: 'afterkeydown'"></select>
+                                          </div>
+                                          <label for="addOrgTag">EPA Organization Names</label>
+                                          <div class="form-inline">
+                                              <button id="addOrgTag" class="btn btn-default"  type="submit" data-bind="click: selected().addTag['Org']">Add</button>
+                                              <select class="tag-select search form-control" id="officeTagSelect" data-bind="options:dataSets.availableTags.epaOffices,optionsCaption:'Please Select', value: selected().tagToAdd['Office'], valueUpdate: 'afterkeydown'"></select>
+                                              <select class="tag-select search form-control" id="orgTagSelect" data-bind="options:selectedOfficeOrganizations,optionsCaption:'Please Select',, value: selected().tagToAdd['Org'], valueUpdate: 'afterkeydown'"></select>
                                           </div>
                                       </div>
-                                      <div class="form-group has-success" data-bind="css: {'has-error': selected().doc.AuditData.errors.tags&&selected().doc.AuditData.errors.tags.compliant()===false}">
-                                          <select id="tagsList" class="form-control" multiple="multiple" height="5" data-bind="options: selected().doc.tags, selectedOptions: selected().selectedItems"> </select>
-                                          <span class="help-block" data-bind="style: {display: !selected().doc.AuditData.errors.tags.compliant() ? 'block' : 'none'}, text: selected().doc.AuditData.errors.tags.messages"></span>
+                                      <div class="form-group has-success" data-bind="css: {'has-error': selected().doc().AuditData.errors.tags&&selected().doc().AuditData.errors.tags.compliant()===false}">
+                                          <select id="tagsList" class="form-control" multiple="multiple" height="5" data-bind="options: selected().doc().tags, selectedOptions: selected().selectedTags"> </select>
+                                          <span class="help-block" data-bind="style: {display: !selected().doc().AuditData.errors.tags.compliant() ? 'block' : 'none'}, text: selected().doc().AuditData.errors.tags.messages"></span>
                                       </div>
                                       <div class="form-group">
-                                          <button class="btn btn-default" data-bind="click: selected().removeSelected, enable: selected().selectedItems().length > 0">Remove</button>
+                                          <button class="btn btn-default" data-bind="click: selected().removeSelectedTags, enable: selected().selectedTags().length > 0">Remove</button>
+                                      </div>
+                                      <div class="id_holder" data-bind="attr: {id: selected().doc().id}"></div>
+                                      <div class="form-group">
+                                          <label>EDG Link</label>
+                                          <button type="button" id="edgBtn" class="btn btn-default" data-bind="click: function () { egam.searchEDG(); }">Search for matching EDG record.</button>
+                                      </div>
+                                      <div class="form-group">
+                                          <!-- ko if: selected().doc().EDGdata -->
+                                          <label>EDG Reconciliation</label><br />
+                                          <button type="button" id="reconcileBtn" class="btn btn-default" data-bind="click: function () { $('#reconciliationModal').modal('show'); $('#myModal').modal('hide'); }">Reconcile with EDG</button>
+                                          <!-- /ko -->
                                       </div>
                                       <!--</form>-->
                                   </div>
                                   <div class="col-md-8" >
-                                      <div class="form-group has-success" data-bind="css: {'has-error': selected().doc.AuditData.errors.title&&selected().doc.AuditData.errors.title.compliant()===false}">
+                                      <div class="form-group has-success" data-bind="css: {'has-error': selected().doc().AuditData.errors.title&&selected().doc().AuditData.errors.title.compliant()===false}">
                                           <label for="title">Title</label>
-                                          <input class="form-control"  id="title" data-bind="value: selected().doc.title, valueUpdate: 'afterkeydown'" type="text">
-                                          <!-- ko if: selected().doc.AuditData.errors.title -->
-                                          <span class="help-block" data-bind="text: selected().doc.AuditData.errors.title.messages"></span>
+                                          <input class="form-control"  id="title" data-bind="value: selected().doc().title, valueUpdate: 'afterkeydown'" type="text">
+                                          <!-- ko if: selected().doc().AuditData.errors.title -->
+                                          <span class="help-block" data-bind="text: selected().doc().AuditData.errors.title.messages"></span>
                                           <!-- /ko -->
                                       </div>
-                                      <div class="form-group has-success" data-bind="css: {'has-error': selected().doc.AuditData.errors.snippet&&selected().doc.AuditData.errors.snippet.compliant()===false}">
+                                      <div class="form-group has-success" data-bind="css: {'has-error': selected().doc().AuditData.errors.snippet&&selected().doc().AuditData.errors.snippet.compliant()===false}">
                                           <label for="inputSnippet">Summary</label>
-                                          <input class="form-control"  id="inputSnippet" data-bind="value: selected().doc.snippet, valueUpdate: 'afterkeydown'" type="text">
-                                          <!-- ko if: selected().doc.AuditData.errors.snippet -->
-                                          <span class="help-block" data-bind="text: selected().doc.AuditData.errors.snippet.messages"></span>
+                                          <input class="form-control"  id="inputSnippet" data-bind="value: selected().doc().snippet, valueUpdate: 'afterkeydown'" type="text">
+                                          <!-- ko if: selected().doc().AuditData.errors.snippet -->
+                                          <span class="help-block" data-bind="text: selected().doc().AuditData.errors.snippet.messages"></span>
                                           <!-- /ko -->
                                       </div>
-                                      <div class="form-group has-success" data-bind="css: {'has-error': selected().doc.AuditData.errors.description&&selected().doc.AuditData.errors.description.compliant()===false}">
+                                      <div class="form-group has-success" data-bind="css: {'has-error': selected().doc().AuditData.errors.description&&selected().doc().AuditData.errors.description.compliant()===false}">
                                           <label>Description</label>
                                         <textarea class="form-control" id="inputDesc"
-                                                  data-bind="wysiwyg: selected().doc.description, valueUpdate:
+                                                  data-bind="wysiwyg: selected().doc().description, valueUpdate:
                                         'afterkeydown'" rows="6" placeholder="Description"></textarea>
-                                          <!-- ko if: selected().doc.AuditData.errors.description -->
-                                          <span class="help-block" data-bind="text: selected().doc.AuditData.errors.description.messages"></span>
+                                          <!-- ko if: selected().doc().AuditData.errors.description -->
+                                          <span class="help-block" data-bind="text: selected().doc().AuditData.errors.description.messages"></span>
                                           <!-- /ko -->
                                       </div>
 
-                                      <div class="form-group has-success" data-bind="css: {'has-error': selected().doc.AuditData.errors.licenseInfo && selected().doc.AuditData.errors.licenseInfo.compliant()===false}">
+                                      <div class="form-group has-success" data-bind="css: {'has-error': selected().doc().AuditData.errors.licenseInfo && selected().doc().AuditData.errors.licenseInfo.compliant()===false}">
                                           <label>Access and Use Constraints</label>
                                         <textarea class="form-control" id="inputAccessUse"
-                                                  data-bind="wysiwyg: selected().doc.licenseInfo, valueUpdate:
+                                                  data-bind="wysiwyg: selected().doc().licenseInfo, valueUpdate:
                                         'afterkeydown'" rows="6"
                                                   placeholder="Access and Use Constraints"></textarea>
-                                          <!-- ko if: selected().doc.AuditData.errors.licenseInfo -->
-                                          <span class="help-block" data-bind="text: selected().doc.AuditData.errors.licenseInfo.messages"></span>
+                                          <!-- ko if: selected().doc().AuditData.errors.licenseInfo -->
+                                          <span class="help-block" data-bind="text: selected().doc().AuditData.errors.licenseInfo.messages"></span>
                                           <!-- /ko -->
                                       </div>
-                                      <div class="form-group has-success" data-bind="css: {'has-error': selected().doc.AuditData.errors.accessInformation&&selected().doc.AuditData.errors.accessInformation.compliant()===false}">
+                                      <div class="form-group has-success" data-bind="css: {'has-error': selected().doc().AuditData.errors.accessInformation&&selected().doc().AuditData.errors.accessInformation.compliant()===false}">
                                           <label for="inputAccessInfo">Credits</label>
-                                          <input class="form-control" id="inputAccessInfo" data-bind="value: selected().doc.accessInformation, valueUpdate: 'afterkeydown'" type="text">
-                                          <!-- ko if: selected().doc.AuditData.errors.accessInformation -->
-                                          <span class="help-block" data-bind="text: selected().doc.AuditData.errors.accessInformation.messages"></span>
+                                          <input class="form-control" id="inputAccessInfo" data-bind="value: selected().doc().accessInformation, valueUpdate: 'afterkeydown'" type="text">
+                                          <!-- ko if: selected().doc().AuditData.errors.accessInformation -->
+                                          <span class="help-block" data-bind="text: selected().doc().AuditData.errors.accessInformation.messages"></span>
                                           <!-- /ko -->
                                       </div>
-                                      <!-- ko ifnot: selected().doc.type() === 'Web Map' -->
+                                      <!-- ko ifnot: selected().doc().type() === 'Web Map' -->
                                       <div class="form-group has-success"
-                                           data-bind="css: {'has-error': selected().doc.AuditData.errors.url&&selected().doc.AuditData.errors.url.compliant()===false}">
+                                           data-bind="css: {'has-error': selected().doc().AuditData.errors.url&&selected().doc().AuditData.errors.url.compliant()===false}">
                                           <label for="inputUrl">Url</label>
-                                          <input class="form-control" id="inputUrl" data-bind="value: selected().doc.url, valueUpdate: 'afterkeydown'" type="url">
-                                          <!-- ko if: selected().doc.AuditData.errors.url -->
-                                          <span class="help-block" data-bind="text: selected().doc.AuditData.errors.url.messages"></span>
+                                          <input class="form-control" id="inputUrl" data-bind="value: selected().doc().url, valueUpdate: 'afterkeydown'" type="url">
+                                          <!-- ko if: selected().doc().AuditData.errors.url -->
+                                          <span class="help-block" data-bind="text: selected().doc().AuditData.errors.url.messages"></span>
                                           <!-- /ko -->
                                       </div>
                                       <!-- /ko -->
@@ -546,16 +591,199 @@
                           </form>
                       </div>
                       <div class="modal-footer">
-                          <button type="button" class="btn btn-default" data-dismiss="modal" >Close</button>
-                          <button type="button" class="btn btn-primary" data-bind="click: selected().postback" data-dismiss="modal">Save changes</button>
+                          <button type="button" id="closeBtn" class="btn btn-default" data-bind="click: selected().closeModal" data-dismiss="modal" >Close</button>
+                          <button type="button" class="btn btn-primary" data-bind="click: selected().update" data-dismiss="modal">Save changes</button>
                       </div>
                   </div>
               </div>
             </div>
             <!-- End Modal for Editing-->
+
+              <!-- Modal for Reconciliation -->
+              <div class="modal fade" id="reconciliationModal" tabindex="-1" role="dialog" data-keyboard="false" data-backdrop="static" aria-labelledby="myModalLabel">
+                  <div class="modal-dialog modal-lg" role="document">
+                      <div class="modal-content">
+                          <div class="modal-header">
+                              <button type="button" class="close" data-dismiss="modal" aria-label="Close" data-bind="click: selected().closeModal" ><span aria-hidden="true">&times;</span></button>
+                              <h4 class="modal-title" id="myModalLabel">Item Reconciliation
+                          </div>
+                          <div class="modal-body">
+                              <form id="modalForm" role="form" data-toggle="validator" data-disable="false" enctype="multipart/form-data" method="post">
+                                  <div class="row form-group">
+                                      <table id="reconcileTable">
+                                          <col class="col-md-5">
+                                          <col class="col-md-1" style="text-align:center">
+                                          <col class="col-md-5">
+                                          <tr>
+                                              <td>
+                                                  <div class="form-group"><label>Current GPO Item Metadata</label></div>
+                                              </td>
+                                              <td>
+                                              </td>
+                                              <td>
+                                                  <div class="form-group"><label>EDG Item Metadata</label></div>
+                                              </td>
+                                          </tr>
+                                          <tr>
+                                              <td>
+                                                  <div class="form-group has-success">
+                                                      <label for="GPOtitle">Title</label>
+                                                      <input class="form-control"  id="GPOtitle" data-bind="value: selected().doc().title, valueUpdate: 'afterkeydown'" type="text">
+                                                  </div>
+                                              </td>
+                                              <td>
+                                                  <div class="reconcileLink"><a class="glyphicon glyphicon-arrow-left" onclick="$('#GPOtitle').val($('#EDGtitle').val())"></a></div>
+                                              </td>
+                                              <td>
+                                                  <div class="form-group has-success">
+                                                      <label for="EDGtitle">Title</label>
+                                                      <!-- ko if: selected().doc().EDGdata -->
+                                                      <input readonly class="form-control"  id="EDGtitle" data-bind="value: selected().doc().EDGdata.title" type="text">
+                                                      <!-- /ko -->
+                                                  </div>
+                                              </td>
+                                          </tr>
+                                          <tr>
+                                              <td>
+                                                  <div class="form-group has-success">
+                                                      <label for="GPOinputSnippet">Summary</label>
+                                                      <input class="form-control"  id="GPOinputSnippet" data-bind="value: selected().doc().snippet, valueUpdate: 'afterkeydown'" type="text">
+                                                  </div>
+                                              </td>
+                                              <td>
+                                                  <div class="reconcileLink"><a class="glyphicon glyphicon-arrow-left" onclick="$('#GPOinputSnippet').val($('#EDGinputSnippet').val())"></a></div>
+                                              </td>
+                                              <td>
+                                                  <div class="form-group has-success">
+                                                      <label for="EDGinputSnippet">Summary</label>
+                                                      <!-- ko if: selected().doc().EDGdata -->
+                                                      <input readonly class="form-control"  id="EDGinputSnippet" data-bind="value: selected().doc().EDGdata.purpose" type="text">
+                                                      <!-- /ko -->
+                                                  </div>
+                                              </td>
+                                          </tr>
+                                          <tr>
+                                              <td>
+                                                  <div class="form-group has-success">
+                                                      <label>Description</label>
+                                        <textarea class="form-control" id="GPOinputDesc"
+                                                  data-bind="wysiwyg: selected().doc().description, valueUpdate:
+                                        'afterkeydown'" rows="6" placeholder="Description"></textarea>
+                                                  </div>
+                                              </td>
+                                              <td>
+                                                  <div class="reconcileLink"><a class="glyphicon glyphicon-arrow-left" onclick="$('#GPOinputDesc').val($('#EDGinputDesc').val())"></a></div>
+                                              </td>
+                                              <td>
+                                                  <div class="form-group has-success">
+                                                      <label for="EDGinputDesc">Description</label>
+                                                      <!-- ko if: selected().doc().EDGdata -->
+                                                      <textarea readonly class="form-control" id="EDGinputDesc" data-bind="value: selected().doc().EDGdata.abstract" rows="7"></textarea>
+                                                      <!-- /ko -->
+                                                  </div>
+                                              </td>
+                                          </tr>
+                                          <tr>
+                                              <td>
+                                                  <div class="form-group has-success">
+                                                      <label>Access and Use Constraints</label>
+                                        <textarea class="form-control" id="GPOinputAccessUse"
+                                                  data-bind="wysiwyg: selected().doc().licenseInfo, valueUpdate:
+                                        'afterkeydown'" rows="6"
+                                                  placeholder="Access and Use Constraints"></textarea>
+                                                  </div>
+                                              </td>
+                                              <td>
+                                                  <div class="reconcileLink"><a class="glyphicon glyphicon-arrow-left" onclick="$('#GPOinputAccessUse').val($('#EDGinputAccessUse').val())"></a></div>
+                                              </td>
+                                              <td>
+                                                  <div class="form-group has-success">
+                                                      <label for="EDGinputAccessUse">Access and Use Constraints</label>
+                                                      <!-- ko if: selected().doc().EDGdata -->
+                                                      <textarea readonly class="form-control" id="EDGinputAccessUse" data-bind="value: selected().doc().EDGdata.useconst" rows="7"></textarea>
+                                                      <!-- /ko -->
+                                                  </div>
+                                              </td>
+                                          </tr>
+                                          <tr>
+                                              <td>
+                                                  <div class="form-group has-success">
+                                                      <label for="GPOinputAccessInfo">Credits</label>
+                                                      <input class="form-control" id="GPOinputAccessInfo" data-bind="value: selected().doc().accessInformation, valueUpdate: 'afterkeydown'" type="text">
+                                                  </div>
+                                              </td>
+                                              <td>
+                                                  <div class="reconcileLink"><a class="glyphicon glyphicon-arrow-left" onclick="$('#GPOinputAccessInfo').val($('#EDGinputAccessInfo').val())"></a></div>
+                                              </td>
+                                              <td>
+                                                  <div class="form-group has-success">
+                                                      <label for="EDGinputAccessInfo">Credits</label>
+                                                      <!-- ko if: selected().doc().EDGdata -->
+                                                      <input readonly class="form-control" id="EDGinputAccessInfo" data-bind="value: selected().doc().EDGdata.publisher" type="text">
+                                                      <!-- /ko -->
+                                                  </div>
+                                              </td>
+                                          </tr>
+                                      </table>
+                                  </div>
+
+                              </form>
+                          </div>
+                          <div class="modal-footer">
+                              <button type="button" id="closeReconcileBtn" class="btn btn-default" data-bind="click: function() { selected().closeModal; $('#myModal').modal('show'); }" data-dismiss="modal" >Close</button>
+                              <button type="button" class="btn btn-primary" data-bind="click: selected().loadReconciledFields" data-dismiss="modal">Load reconciled values</button>
+                          </div>
+                      </div>
+                  </div>
+              </div>
+              <!-- End Modal for Editing-->
          </div>
               <!-- End Overview -->
 
+             <!-- EDG Modal -->
+             <div class="modal fade" id="edgModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+                 <div class="modal-dialog modal-lg" role="document">
+                     <div class="modal-content">
+                         <div class="modal-header">
+                             <button type="button" class="close" data-dismiss="modal" aria-label="Close" ><span aria-hidden="true">&times;</span></button>
+                             <div class="form-group">
+                                 <label id="edgTitleSearchLabel" for="edgTitleSearch">Search EDG by Title:</label>
+                                 <span class="edgTitleSearchBlock">
+                                    <input class="form-control" id="edgTitleSearch" >
+                                    <button type="button" id="edgBtnModal" class="btn btn-primary">Search</button>
+                                 </span>
+                             </div>
+                         </div>
+                         <div class="modal-body">
+
+                             <div id="edgModalViewTable">
+                                 <table id="edgitemmodaltable" class="table table-hover table-bordered table-responsive">
+                                     <thead>
+                                     <tr>
+                                         <th>Title</th>
+                                         <th>Owner</th>
+                                         <th>Link Record</th>
+                                     </tr>
+                                     </thead>
+                                     <tbody>
+                                     <!-- ko foreach: content -->
+                                     <tr>
+                                         <td><a data-bind="attr: { href: $data.references()[0] }, html: $data.title" target="_blank"></a></td>
+                                         <td><a data-bind="attr: { href: $data.contactPoint.hasEmail }, html: $data.contactPoint.fn" target="_blank"></a></td>
+                                         <td><button class="btn btn-primary btn-xs" id="edgLinkBtn" data-bind="click: function () {$root.linkRecord( $('.id_holder').attr('id'), $data.references()) }">Link EDG Record</button></td>
+                                     </tr>
+                                     <!-- /ko -->
+                                     </tbody>
+                                 </table>
+                             </div>
+                         </div>
+                         <div class="modal-footer">
+                             <button id="closeEDGSearchBtn" type="button" class="btn btn-default" onclick="$('#myModal').modal('show');" data-dismiss="modal">Close</button>
+                         </div>
+                     </div>
+                 </div>
+             </div>
+             <!-- End EDG Modal -->
             <!-- Metrics View -->
             <div role="tabpanel" class="tab-pane" id="metricsView" >
                 <div id="metricsTable" class="table-responsive" >
@@ -581,23 +809,93 @@
 
              <!-- userMgmtView  View -->
              <div role="tabpanel" class="tab-pane" id="userMgmtView" >
-                 <div id="userMgmtViewTable" class="table-responsive">
-                     <h2 class="sub-header">User Management</h2>
-                     <div class="jumbotron vertical-center">
-                         <div class="text-center">
-                             <h1 class="alert alert-warning">Site Under Construction</h1>
-                             <p>We are currently building something awesome that will be available soon!</p>
+                 <h2 class="sub-header">User Management</h2>
+                 <table id="userMgmtTable" class="table table-hover table-bordered table-responsive">
+                     <thead>
+                     <tr>
+                         <th>Sponsored</th>
+                         <th>Name</th>
+                         <th>E-mail</th>
+                         <th>Sponsor</th>
+                         <th>Auth Group</th>
+                         <th>Organization</th>
+                         <th>Description</th>
+                         <th>Reason</th>
+                         <th>Start Date</th>
+                         <th>End Date</th>
+                     </tr>
+                     </thead>
+                     <tbody data-bind="foreach: users">
+                     <tr >
+                         <td >
+                             <div>
+                                <button class="btn btn-primary btn-xs" id="sponsorBtn" data-bind="click: $parent.select" data-toggle="modal" data-target="#userMgmtModal">Sponsor Me!</button>
+                             </div>
+                         </td>
+                         <td data-bind="text: uData.fullName"></td>
+                         <td data-bind="text: uData.email"></td>
+                         <td data-bind="text: latestSponsor"></td>
+                         <td data-bind="text: spAuthGroup"></td>
+                         <td data-bind="text: spOrg"></td>
+                         <td data-bind="text: spDescript"></td>
+                         <td data-bind="text: spReason"></td>
+                         <td data-bind="text: spStartDate"></td>
+                         <td data-bind="text: spEndDate"></td>
+                     </tr>
+                     </tbody>
+                     <tfoot>
+                     </tfoot>
+                 </table>
+                 <div class="modal fade" id="userMgmtModal" tabindex="-1" role="dialog" data-keyboard="false" data-backdrop="static" aria-labelledby="userMgmtModalLabel">
+                     <div class="modal-dialog modal-sm" role="document">
+                         <div class="modal-content">
+                             <div class="modal-header">
+                                 <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                                 <h4 class="modal-title" id="userMgmtModalLabel">Confirm Sponsorship</h4>
+                             </div>
+                             <div class="modal-body" >
+                                 <div class="form-group">
+                                     <label for="SponsoredOrg" data-bind="text: selected().uData.fullName()"></label>
+                                 </div>
+                                 <div class="form-group">
+                                     <label for="spPurpose">Reason:</label>
+                                     <select class="form-control" id="spPurpose">
+                                         <option value="Emergency Response">Emergency Response</option>
+                                         <option value="Other Federal Agency">Other Federal Agency</option>
+                                         <option value="State Agency">State Agency</option>
+                                         <option value="University">University</option>
+                                         <option value="Long Term GIS Support">Long Term GIS Support</option>
+                                     </select>
+                                 </div>
+                                 <div class="form-group">
+                                     <label for="SponsoredOrg">Organization:</label>
+                                     <input class="form-control" id="SponsoredOrg" type="text" style="width: 100%">
+                                 </div>
+                                 <div class="form-group">
+                                     <label for="spDescription">Description:</label>
+                                     <textarea class="form-control" rows="5" id="spDescription" style="min-width: 100%"></textarea>
+                                 </div>
+                                 <div class="form-group" id="updateAuth">
+                                     <label for="UserAuthDrop">Choose an Authoritative Group:</label>
+                                     <select class="form-control" id="UserAuthDrop" data-bind="options: selected().sponsoreeAuthGroups" style="width: 100%"></select>
+                                 </div>
+                             </div>
+                             <div class="modal-footer">
+                                 <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                                 <button type="button" id="userSponorSave" class="btn btn-primary" data-bind="click: selected().renew">Confirm</button>
+                             </div>
                          </div>
-
                      </div>
                  </div>
              </div>
+             <!-- End userMgmtView  modal -->
+
              <!-- End userMgmtView  View -->
              <!-- userMgmtView  View -->
              <div role="tabpanel" class="tab-pane" id="edgView" >
-                 <div id="edgViewViewTable" class="table-responsive">
+                 <div id="edgViewViewTable">
                      <h2 class="sub-header">EDG Items</h2>
-                     <table id="edgitemtable" class="table table-striped table-bordered">
+                     <table id="edgitemtable" class="table table-striped table-bordered table-responsive">
                          <thead>
                          <tr>
                              <th>Title</th>
@@ -605,7 +903,7 @@
                          </tr>
                          </thead>
                          <tbody>
-                         <!-- ko foreach: dataset() -->
+                         <!-- ko foreach: content -->
                          <tr>
                              <td><a data-bind="attr: { href: $data.references()[0] }, html: $data.title" target="_blank"></a></td>
                              <td><a data-bind="attr: { href: $data.contactPoint.hasEmail }, html: $data.contactPoint.fn" target="_blank"></a></td>
@@ -629,6 +927,7 @@
 
     <script src="js/jquery1.11.3/jquery.min.js"></script>
     <script src="js/jquery1.11.3/jquery.dataTables.min.js"></script>
+    <script src="js/jquery1.11.3/dataTables.buttons.min.js"></script>
     <script src="js/jquery1.11.3/dataTables.bootstrap.min.js"></script>
     <script src="bootstrap/js/bootstrap.min.js"></script>
     <script src="bootstrap/js/jasny-bootstrap.min.js"></script>
@@ -637,7 +936,9 @@
     <script src="js/tinymce/tinymce.jquery.min.js"></script>
     <script src="js/wysiwyg.js"></script>
 
+    <script src="js/knockout.bindings.dataTables.cog.js"></script>
     <script src="js/gpintel.js"></script>
+    <script src="js/gpoItems.js"></script>
     <script src="js/Audit.js"></script>
     <!-- Due to some weird timing issues, this order needs to be followed -->
     <script src="js/esrijsapi/dojo/dojo.js" data-dojo-config="async: true"></script>

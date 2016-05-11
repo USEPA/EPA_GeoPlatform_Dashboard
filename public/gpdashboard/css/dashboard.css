@@ -181,3 +181,39 @@ a, span, tr, h4:hover {
         display: table-row;
 /*        background:green; */
     }
+
+  .reconcileLink {
+    text-align: center;
+  }
+
+  #reconcileTable {
+    margin: 10px;
+  }
+
+  #epaTagSelect {
+    width: 225px;
+  }
+  #placeTagSelect {
+    width: 225px;
+  }
+
+  #officeTagSelect {
+    width: 225px;
+  }
+  #orgTagSelect {
+    width: 225px;
+    margin-left: 55px;
+  }
+
+  #edgTitleSearchLabel {
+    font-size: 18px;
+  }
+
+  #edgTitleSearch {
+    width: 225px;
+    display: inline;
+  }
+
+  .edgTitleSearchBlock {
+    display: block;
+  }
