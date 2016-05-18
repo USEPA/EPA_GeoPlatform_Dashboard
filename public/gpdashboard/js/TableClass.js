@@ -1,6 +1,10 @@
-if (typeof egam == 'undefined') var egam = {};
+if (typeof egam == 'undefined') {
+  var egam = {};
+}
 //Controls are reusable controls on a page where models are really not as reusable. just organizational
-if (typeof egam.controls == 'undefined') egam.controls = {};
+if (typeof egam.controls == 'undefined') {
+  egam.controls = {};
+}
 
 egam.controls.Table = function(items,elementSelector,RowModelClass) {
   this.items = items;
@@ -16,12 +20,14 @@ egam.controls.Table.prototype.init = function(endpoint, query, projection) {
   //Just for testing to speed some things up
   //  query.access = 'public';
   query = JSON.stringify(query);
-  //Projection in Mongo/Monk is what fields you want to return and sorting, offsetting, etc.
+  //Projection in Mongo/Monk is what fields you want to return and sorting,
+  //offsetting, etc.
   projection = JSON.stringify(projection);
   //Use this so we know when everything is loaded
   var defer = $.Deferred();
 
-  //Do a post because some long query strings were breaking staging server reverse proxy
+  //Do a post because some long query strings were breaking staging server
+  //reverse proxy
   //hit our Express endpoint to get the list of items for this logged in user
   console.log('Call Endpoint Start: ' + new Date());
   $.post(endpoint, {
@@ -29,8 +35,9 @@ egam.controls.Table.prototype.init = function(endpoint, query, projection) {
     projection: projection,
   }, function(data) {
     console.log('Endpoint Data Received : ' + new Date());
-    //If "limit" passed to the endpoint then return paging info where data is in data.results
-    //if only data returned for no paging just save data in same structure
+    //If "limit" passed to the endpoint then return paging info where data is
+    //in data.results
+    //If only data returned for no paging just save data in same structure
     if ('results' in data) {
       self.data = data;
     } else {
@@ -58,7 +65,9 @@ egam.controls.Table.prototype.init = function(endpoint, query, projection) {
 
     function updateLoadingCountMessage(index) {
       //Only show every 10
-      if (index % 10 === 0) $('#loadingMsgCount').text(index + 1);
+      if (index % 10 === 0) {
+        $('#loadingMsgCount').text(index + 1);
+      }
     }
 
   }, 'json');
@@ -66,7 +75,8 @@ egam.controls.Table.prototype.init = function(endpoint, query, projection) {
   return defer;
 };
 
-//This adds array of docs (data) to the table after creating ko RowModelClass. Also adds to the jquery DataTable and redraws
+//This adds array of docs (data) to the table after creating ko RowModelClass.
+//Also adds to the jquery DataTable and redraws
 //also can take a callback which fires for each item in array
 egam.controls.Table.prototype.add = function(data, callback) {
   var self = this;
@@ -75,13 +85,17 @@ egam.controls.Table.prototype.add = function(data, callback) {
 
   var i;
   for (i = 0; i < data.length; i++) {
-    //Now that Row Model is being used in table instead of Full Model it takes less than 1 second to load 14,000 vs 20 seconds before
+    //Now that Row Model is being used in table instead of Full Model it takes
+    //less than 1 second to load 14,000 vs 20 seconds before
     var item = new self.RowModelClass(data[i], i);
     self.items.push(item);
-    if (callback) callback(i);
+    if (callback) {
+      callback(i);
+    }
   }
   //Actually add the rows to the dataTable also and then redraw dataTable
-  //It just as fast (or maybe a bit faster) to add to dataTable after the ko applyBindings command was run
+  //It just as fast (or maybe a bit faster) to add to dataTable after the ko
+  //applyBindings command was run
   //Passing false to .draw() will not page or sort when redrawing
 
   self.dataTable.rows.add(self.items).draw(false);
@@ -98,15 +112,17 @@ egam.controls.Table.prototype.update = function(index, value, field) {
 
   console.log('DataTable row being update' + new Date());
 
-  //Update the row model items in items array of at least just a field in the row model item in array
+  //Update the row model items in items array of at least just a field in the
+  //row model item in array
   if (field) {
     self.items[index][field] = value;
   }else {
     self.items[index] = value;
   }
 
-  //Have to update the data AND redraw the table/row also. passing false will not page/sort
-  //Updating data will allow data to be refreshed in regards to search and sort. draw just changes html
+  //Have to update the data AND redraw the table/row also. passing false will
+  //not page/sort. Updating data will allow data to be refreshed in regards to
+  //search and sort. draw just changes html
   self.dataTable.row([index]).data(self.items[index]).draw(false);
 
   console.log('DataTable row end update' + new Date());
@@ -119,7 +135,8 @@ egam.controls.Table.prototype.customizeDataTable = function() {
     var column = this;
     var headerSelect = $(column.header()).find('select.search');
 
-    //This is the special case for access column that we only want one access at a time
+    //This is the special case for access column that we only want one access at
+    //a time
     addSelectEventHandler(headerSelect, column);
 
     var input = $(column.header()).find('input.search');
@@ -139,7 +156,9 @@ egam.controls.Table.prototype.customizeDataTable = function() {
           .draw();
       });
 
-      if (select.length > 0 && select[0].options.length > 1) return;
+      if (select.length > 0 && select[0].options.length > 1) {
+        return;
+      }
 
       //If first item has data-search then have to map out data-search data
       var att = column.nodes().to$()[0].attributes;
@@ -187,9 +206,13 @@ egam.controls.Table.prototype.runAllClientSideFilters = function() {
     var column = this;
 
     var headerSelect = $(column.header()).find('select.search');
-    if (headerSelect.length > 0) headerSelect.trigger('change');
+    if (headerSelect.length > 0) {
+      headerSelect.trigger('change');
+    }
     var headerInput = $(column.header()).find('input.search');
-    if (headerInput.length > 0) headerInput.trigger('change');
+    if (headerInput.length > 0) {
+      headerInput.trigger('change');
+    }
   });
 };
 

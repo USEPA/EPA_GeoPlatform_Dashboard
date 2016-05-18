@@ -1,9 +1,25 @@
-if (typeof egam == 'undefined') var egam = {};
+if (typeof egam == 'undefined') {
+  var egam = {};
+}
 require([
-  'esri/arcgis/Portal', 'esri/arcgis/OAuthInfo', 'esri/IdentityManager',
-  'dojo/dom-style', 'dojo/dom-attr', 'dojo/dom', 'dojo/on', 'dojo/_base/array',
+  'esri/arcgis/Portal',
+  'esri/arcgis/OAuthInfo',
+  'esri/IdentityManager',
+  'dojo/dom-style',
+  'dojo/dom-attr',
+  'dojo/dom',
+  'dojo/on',
+  'dojo/_base/array',
   'dojo/domReady!',
-], function(arcgisPortal, OAuthInfo, esriId, domStyle, domAttr, dom, on, arrayUtils) {
+], function(
+    arcgisPortal,
+    OAuthInfo,
+    esriId,
+    domStyle,
+    domAttr,
+    dom,
+    on,
+    arrayUtils) {
   var info = new OAuthInfo({
     appId: 'CXkB0iPulNZP9xQo',
     portalUrl: 'https://epa.maps.arcgis.com',
@@ -70,7 +86,8 @@ require([
             return;
           }
 
-          //Show the menus and main window and sign off and hide sign on now that logged in
+          //Show the menus and main window and sign off and hide sign on now
+          //that logged in
           $('#anonymousPanel').hide();
           $('#splashContainer').hide();
           $('#personalizedPanel').show();
@@ -82,16 +99,19 @@ require([
           //Save portalUser on application object so it can be used throughout
           egam.portalUser = portalUser;
 
-          //Save communityUser on application object so it can be used throughout
-          //communityUser has group and authGroup info
-          if (egam && response.body.user) egam.communityUser = response.body.user;
+          //Save communityUser on application object so it can be used
+          //throughout. communityUser has group and authGroup info
+          if (egam && response.body.user) {
+            egam.communityUser = response.body.user;
+          }
 
           ko.applyBindings(egam, $('#globalNavigationBar')[0]);
 
           //Show the user name now that loggged in
           $('#userId').show();
 
-          //Now that all the user stuff is set up load the first page which is the GPO items page for now
+          //Now that all the user stuff is set up load the first page which is
+          //the GPO items page for now
           loadGPOitemsPage();
 
         });
@@ -108,7 +128,8 @@ require([
     egam.pages.gpoItems = new egam.models.gpoItems.PageModelClass();
     console.log('GPOitems Page Model created: ' + new Date());
 
-    //Basically initialize the gpoItems page because that is the first page we want to see on login
+    //Basically initialize the gpoItems page because that is the first page we
+    //want to see on login
 
     egam.pages.gpoItems.init()
       .then(function() {
