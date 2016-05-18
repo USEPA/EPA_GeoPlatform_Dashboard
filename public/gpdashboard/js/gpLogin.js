@@ -1,3 +1,4 @@
+if (typeof egam == 'undefined') var egam = {};
 require([
   'esri/arcgis/Portal', 'esri/arcgis/OAuthInfo', 'esri/IdentityManager',
   'dojo/dom-style', 'dojo/dom-attr', 'dojo/dom', 'dojo/on', 'dojo/_base/array',
@@ -15,13 +16,13 @@ require([
 
   esriId.checkSignInStatus(info.portalUrl + '/sharing').then(
     function() {
-      displayItems();
+      handleSignInSuccess();
     }
   ).otherwise(
     function() {
       // Anonymous view
-      domStyle.set('anonymousPanel', 'display', 'block');
-      domStyle.set('personalizedPanel', 'display', 'none');
+      $('#anonymousPanel').show();
+      $('#personalizedPanel').hide();
     }
   );
 
@@ -35,7 +36,7 @@ require([
       oAuthPopupConfirmation: false,
     }).then(function() {
       console.log('Signed In');
-      displayItems();
+      handleSignInSuccess();
     }).otherwise(function(error) {
         console.log('Error occurred while signing in: ', error);
       })
@@ -53,16 +54,7 @@ require([
     );
   });
 
-  function displayItems() {
-    // Show the loading panel
-    $('div#loadingMsg').removeClass('hidden');
-    $('div#overviewTable').addClass('hidden');
-    //Todo: Move to CSS
-    domStyle.set('anonymousPanel', 'display', 'none');
-    domStyle.set('splashContainer', 'display', 'none');
-    domStyle.set('personalizedPanel', 'display', 'block');
-    domStyle.set('sideNav', 'display', 'block');
-    domStyle.set('mainWindow', 'display', 'block');
+  function handleSignInSuccess() {
 
     //Now sign into AGOL/GPO and then sign into Express app
     new arcgisPortal.Portal(info.portalUrl).signIn().then(
@@ -78,35 +70,29 @@ require([
             return;
           }
 
+          //Show the menus and main window and sign off and hide sign on now that logged in
+          $('#anonymousPanel').hide();
+          $('#splashContainer').hide();
+          $('#personalizedPanel').show();
+          $('#sideNav').show();
+          $('#mainWindow').show();
+
           console.log('Signed in to the portal: ', portalUser);
 
           //Save portalUser on application object so it can be used throughout
-          if (egam) egam.portalUser = portalUser;
+          egam.portalUser = portalUser;
 
           //Save communityUser on application object so it can be used throughout
           //communityUser has group and authGroup info
           if (egam && response.body.user) egam.communityUser = response.body.user;
 
-          //Set up the authGroups dropdown
-          egam.setAuthGroupsDropdown(egam.communityUser.ownerIDsByAuthGroup);
-          //Set authGroups count
-          $('#authGroupsCount').html('<a>' + Object.keys(egam.communityUser.ownerIDsByAuthGroup).length + '</a>');
+          ko.applyBindings(egam, $('#globalNavigationBar')[0]);
 
-          //Is User Admin or lower
-          if (portalUser.role == 'org_admin') {
-            domAttr.set('userId', 'innerHTML', '<a>Welcome ' + portalUser.fullName + ' (GPO Administrator)</a>');
-            //Todo: Move to CSS
-            domStyle.set('userId', 'display', 'block');
-            //$("#userId").append("(GPO Administrator)" + "</a>");
-            //for now site is the same for both but in furture
-            //call function to set up page for Admin
-            queryPortal(portalUser);
-          } else {
-            domAttr.set('userId', 'innerHTML', '<a>Welcome ' + portalUser.fullName + ' (Non-Administrator)</a>');
-            //Todo: Move to CSS
-            domStyle.set('userId', 'display', 'block');
-            queryPortal(portalUser);
-          }
+          //Show the user name now that loggged in
+          $('#userId').show();
+
+          //Now that all the user stuff is set up load the first page which is the GPO items page for now
+          loadGPOitemsPage();
 
         });
       }
@@ -117,62 +103,18 @@ require([
     );
   }
 
-  function queryPortal(portalUser) {
-    var portal = portalUser.portal;
+  function loadGPOitemsPage() {
+    //Create the new PageModel instance
+    egam.pages.gpoItems = new egam.models.gpoItems.PageModelClass();
+    console.log('GPOitems Page Model created: ' + new Date());
 
-    //See list of valid item types here:  http://www.arcgis.com/apidocs/rest/index.html?itemtypes.html
-    //See search reference here:  http://www.arcgis.com/apidocs/rest/index.html?searchreference.html
-    var queryParams = {
-      q: 'owner:' + portalUser.username,
-      sortField: 'numViews',
-      sortOrder: 'desc',
-      num: 100,
-    };
+    //Basically initialize the gpoItems page because that is the first page we want to see on login
 
-    portal.queryItems(queryParams).then(createGallery);
-
-    //Display number of groups User has access to
-    portalUser.getGroups().then(function(groups) {
-      var numGroupsText = '';
-      numGroupsText = '' + groups.length + '';
-      dom.byId('agoGroups').innerHTML = numGroupsText;
-
-    });
-
-    //Query Mongo db
-    //and populate user table in the user view
-    //Update in sprint4 to be dynamically changed via UI
-
-    var reducePayload = true;
-    var fields;
-    if (reducePayload) {
-      fields = egam.gpoItems.resultFields;
-    } else {
-      fields = {};
-    }
-
-    //If super user only get public items initially
-    var query = {};
-    if (egam.communityUser.isSuperUser) {
-    }
-
-    egam.gpoItems.init(query, {
-      sort: {
-        modified: -1,
-      },
-      fields: fields,
-    })
+    egam.pages.gpoItems.init()
       .then(function() {
-        // Hide the loading panel now after first page is loaded
-        $('div#loadingMsg').addClass('hidden');
-        $('div#overviewTable').removeClass('hidden');
-        $('#loadingMsgCountContainer').addClass('hidden');
-
-        //Show the authgroups drop down not that items have been loaded
-        $('#dropAuthGroups').removeClass('hidden');
-        $('#downloadAuthgroupsCSVall').removeClass('hidden');
         //Select only public items if admin
         if (egam.communityUser.isAdmin) {
+          //Uncomment this when done testing
           $('#dropAccess').val('public');
           $('#dropAccess').change();
         }
@@ -181,12 +123,6 @@ require([
       .fail(function(err) {
         console.error(err);
       });
-  }
-
-  function createGallery(items) {
-    var numItemsText = '';
-    numItemsText = '' + items.results.length + '';
-    dom.byId('agoItems').innerHTML = numItemsText;
   }
 
 });

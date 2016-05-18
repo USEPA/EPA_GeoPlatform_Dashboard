@@ -572,8 +572,8 @@ DownloadGPOusers.prototype.getOwnerFolders = function(username) {
       body.folders.forEach(function (folder) {
         delete folder.username;
       });
-      console.log('folder names ' );
-      console.log(body.folders);
+//      console.log('folder names ' );
+//      console.log(body.folders);
       return self.Q(self.usersCollection.update({username:username},{$set:{folders:body.folders}}));
     })
 
