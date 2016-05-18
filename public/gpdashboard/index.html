@@ -376,6 +376,7 @@
                     </div>
                 </div>
              <h3 class="sub-header"></h3>
+                <!-- Note: needed to use type:'num' below so that doc.modified was treated like a number -->
                 <table id="gpoItemsTable" class="table table-hover table-bordered table-responsive" data-bind="dataTable:
                 {
                     deferRender: true,
@@ -425,12 +426,16 @@
                     </th>
                       <th>Modified<br>
                         <span onclick="event.stopPropagation();" >
-                            <!--<select class="search form-control input-sm"><option value="">All</option></select>-->
+                            <input class="search form-control input-sm" placeholder="Search By Modified Date">
                         </span>
                       </th>
-                    <th>Audit<br>
+                    <th>Audit Status<br>
                         <span onclick="event.stopPropagation();" >
-                            <select class="search form-control input-sm"><option value="">All</option></select>
+                            <select id="dropAuditStatus" class="search form-control input-sm">
+                                <option value="">All</option>
+                                <option value="Fail">Fail</option>
+                                <option value="Pass">Pass</option>
+                            </select>
                         </span>
                     </th>
                   </tr>
