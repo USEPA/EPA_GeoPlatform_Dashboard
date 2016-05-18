@@ -1,10 +1,26 @@
 // Expose dashboard especially helpful for debugging
-var egam = {};
+if (typeof egam == 'undefined') var egam = {};
+if (typeof egam.models == 'undefined') egam.models = {};
+//Place to stash utility functions
+if (typeof egam.utilities == 'undefined') egam.utilities = {};
+
+//For now i'm using .(dot) namespacing categorized by model, utility and control classes. Most classes are models but reusable ones like Table class are controls
+//When AMD is implemented we won't need so much .(dot) namespacing. Different categories will be in directories and each class in own file.
+
+//Note the acutal instance of the page models are in egam.pages so edgItems page instance will be in egam.pages.edgItems when Bryan does it
+//Also the code for edgItems models and gpoUsers models will be in their own files
+
+//Place to stash the edgItems models for now
+egam.models.edgItems = {};
+
+//Place to store and save general data retrieved from REST endpoints
+egam.dataStash = {};
 
 egam.edgItems = {
   resultSet: [],
   tableModel: null,
   dataTable: null,
+  reconcillation: null,
 };
 
 egam.gpoUsers = {
@@ -82,9 +98,21 @@ egam.searchEDG = function() {
     egam.edginit($('#edgTitleSearch').val(), true);
   });
   egam.edginit(title, true);
-  $('#myModal').modal('hide');
-}
+  $('#gpoItemsModal').modal('hide');
+};
 
+egam.reconcileEDG = function() {
+  $('#reconciliationModal').modal('show');
+//  $('#gpoItemsModal').modal('hide');
+  //This just temp to know that reconcillation modal was binded
+  var applyBindings = false;
+  if (!egam.edgItems.reconcillation) {
+    egam.edgItems.reconcillation = new egam.models.edgItems.ReconcilliationModel();
+    applyBindings = true;
+  }
+  egam.edgItems.reconcillation.loadCurrentFields(egam.pages.gpoItems.details.selected().doc);
+  if (applyBindings) ko.applyBindings(egam.edgItems.reconcillation,$('#reconciliationModal')[0]);
+};
 
 // TODO: all EDG code should go in its own module
 egam.edginit = function(itemTitle, edgModal) {
@@ -453,65 +481,6 @@ egam.renderEDGitemsDataTable = function(edgDiv) {
   return defer;
 };
 
-egam.setAuthGroupsDropdown = function(ownerIDsByAuthGroup) {
-  var dropAuthGroups = $('#dropAuthGroups');
-  dropAuthGroups.on('change', function() {
-    // If we only downloaded some authGroups then download again instead of
-    // client side filtering
-    if (egam.gpoItems.allAuthGroupsDownloaded === false) {
-      // Call accessSelectEventHandler in proper context of dropAccess
-      egam.accessSelectEventHandler.apply($('#dropAccess'), []);
-    } else {
-      var reOwnerIDs = '';
-      if (this.value) {
-        var ownerIDs = ownerIDsByAuthGroup[this.value];
-        reOwnerIDs = ownerIDs.join('|');
-      }
-      //Make sure the dataTable has been created in case this event is fired before that (it is being fired when dropdown created)
-      if (egam.gpoItems.dataTable)
-        egam.gpoItems.dataTable.column('.ownerColumn')
-        .search(reOwnerIDs, true, false)
-        .draw();
-    }
-
-    // Also set the download link
-    var authgroup = this.value;
-    if (authgroup) {
-      $('#downloadAuthgroupsCSVall').addClass('hidden');
-      $('#downloadAuthgroupsCSVregions').removeClass('hidden');
-      var href = $('#downloadAuthgroupsCSVregions').attr('href');
-
-      // Tack on authgroup to the end of the route to get csv. Note: use ^ and $
-      // to get exact match because it matches regex(Region 1 and 10 would be
-      // same if not). Also we are using authGroup by name so need to escape
-      // ( and ) which is offices like (OAR)
-      // TODO: Not sure about this code, I've had a few weird bugs with this in
-      // TODO: action where my dashboard is sent to a 404 error page upon
-      // TODO: clicking download users CSV in the GUI -- looked like an escaping
-      // TODO: issue to me
-      var escapeAuthGroup = authgroup.replace(/\(/g, '%5C(')
-          .replace(/\)/g, '%5C)');
-      href = href.substring(0, href.lastIndexOf('/') + 1) + '^' +
-          escapeAuthGroup + '$';
-      $('#downloadAuthgroupsCSVregions').attr('href', href);
-    } else {
-      $('#downloadAuthgroupsCSVall').removeClass('hidden');
-      $('#downloadAuthgroupsCSVregions').addClass('hidden');
-    }
-  });
-  var authGroups = Object.keys(ownerIDsByAuthGroup);
-  authGroups.sort();
-
-  dropAuthGroups[0].options.length = 0;
-
-  if (authGroups.length > 1) {
-    dropAuthGroups.append($('<option>', {value: ''}).text('All'));
-  }
-
-  $.each(authGroups, function(index, authGroup) {
-    dropAuthGroups.append($('<option>', {value: authGroup}).text(authGroup));
-  });
-};
 
 egam.edgItemModel = function(data) {
   var self = this;
@@ -691,7 +660,7 @@ egam.edgItemTableModel = function(data) {
                 // Success so call function to process the form
                 console.log('success: ' + data);
                 var doctemp = ko.mapping.toJS(
-                    egam.gpoItems.tableModel.selected().doc());
+                    egam.gpoItems.model.selected().doc());
                 doctemp.EDGdata = {
                   title: title,
                   purpose: purpose,
@@ -699,17 +668,12 @@ egam.edgItemTableModel = function(data) {
                   useconst: useconst,
                   publisher: publisher,
                   url: edgURL,};
-                egam.gpoItems.tableModel.selected().doc(
+                egam.gpoItems.model.selected().doc(
                     ko.mapping.fromJS(doctemp));
                 $('#edgModal').modal('hide');
 
-                // Refresh the data table so it can search updated info
-                // egam.gpoItems.dataTable.destroy();
-                egam.gpoItems.dataTable.fnDestroy();
-                egam.renderGPOitemsDataTable();
-
                 // Show reconciliation modal
-                $('#reconciliationModal').modal('show');
+                egam.reconcileEDG();
               } else {
                 // Handle errors here
                 console.error('ERRORS: ');
@@ -736,5 +700,84 @@ egam.edgItemTableModel = function(data) {
       console.log('No matching URL for this record: ' + gpoID);
     }
   }
+};
+
+egam.models.edgItems.ReconcilliationModel = function() {
+  var self = this;
+
+  this.fields = ['title','snippet','description','licenseInfo','accessInformation'];
+
+  this.doc = ko.observable();
+  this.fullDoc = null;
+
+  //This loads the current fields for item into reconcilliation model
+  this.loadCurrentFields = function(fullDoc) {
+    var self = this;
+    this.fullDoc = fullDoc;
+    //FullDoc passed in might not be observable
+    fullDoc = ko.utils.unwrapObservable(fullDoc);
+    var docSlice = {};
+    $.each(this.fields,function(index,field) {
+      //UnwrapObservable in case the doc passed does not have observables for fields
+      docSlice[field] = ko.utils.unwrapObservable(fullDoc[field]);
+    });
+    this.doc(ko.mapping.fromJS(docSlice));
+  };
+
+  //This loads the reconciled fields into the current item for possible saving
+  this.loadReconciledFields = function() {
+    var self = this;
+    var fullDoc = ko.utils.unwrapObservable(this.fullDoc);
+
+    $.each(this.fields,function(index,field) {
+      //If FullDoc is observable need to pass the reconcilled field vs setting it
+      if (ko.isObservable(fullDoc[field])) {
+        fullDoc[field](self.doc()[field]());
+      }else {
+        fullDoc[field] = self.doc()[field]();
+      }
+    });
+  };
+
+  this.copyEDGtoGPO = function(source,destination) {
+    var self = this;
+    //if no destination then it is same name as source
+    destination = destination || source;
+
+    var fullDoc = ko.utils.unwrapObservable(this.fullDoc);
+    var edgValue = ko.utils.unwrapObservable(fullDoc.EDGdata[source]);
+    this.doc()[destination]($.trim(edgValue));
+  };
+
+};
+
+//This is basically generic way to hit endopint get dataset and store it
+//Example datasets are available authgroups and available tags
+egam.utilities.getDataStash = function(name,endpoint) {
+  var self = this;
+  var defer = $.Deferred();
+
+  //If already got avail tags just return don't ajax them again
+  if (egam.dataStash[name]) {
+    defer.resolve(egam.dataStash[name]);
+    return defer;
+  }
+
+  $.ajax({
+    url: endpoint,
+    dataType: 'json',
+    success: function(data, textStatus, jqXHR) {
+      if (data.errors > 0) defer.reject(data.errors);
+
+      egam.dataStash[name] = data;
+      defer.resolve(data);
+    },
+    error: function(jqXHR, textStatus, errorThrown) {
+      defer.reject('Error getting Data Stash with status ' + textStatus + ': ' + errorThrown);
+      console.error('ERRORS: ' + errorThrown);
+    },
+  });
+
+  return defer;
 };
 

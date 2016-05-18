@@ -1,7 +1,6 @@
 {
 	"fileExtensions": [".js", ".jscs"],
 	"maxErrors": null,
-
   	"validateCommentPosition": { "position": "above"},
 	"requireSpaceAfterLineComment": false
 
