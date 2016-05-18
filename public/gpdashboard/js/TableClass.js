@@ -13,7 +13,8 @@ egam.controls.Table = function(items,elementSelector,RowModelClass) {
 egam.controls.Table.prototype.init = function(endpoint, query, projection) {
   var self = this;
   //First get the data for GPOitems table
-//  query.access = 'public';
+  //Just for testing to speed some things up
+  //  query.access = 'public';
   query = JSON.stringify(query);
   //Projection in Mongo/Monk is what fields you want to return and sorting, offsetting, etc.
   projection = JSON.stringify(projection);

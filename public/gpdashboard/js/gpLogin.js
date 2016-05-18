@@ -114,9 +114,9 @@ require([
       .then(function() {
         //Select only public items if admin
         if (egam.communityUser.isAdmin) {
-          //uncomment this when done testing
-          //          $('#dropAccess').val('public');
-          //          $('#dropAccess').change();
+          //Uncomment this when done testing
+          $('#dropAccess').val('public');
+          $('#dropAccess').change();
         }
         return true;
       })
