@@ -113,14 +113,15 @@ egam.controls.Table.prototype.update = function(index, value, field) {
 };
 
 //This customizes the dataTable such as adding the filter add header of table
-egam.controls.Table.prototype.customizeDataTable = function() {
+egam.controls.Table.prototype.customizeDataTable = function(refresh,selectColumn) {
   var self = this;
-  self.dataTable.columns().every(function() {
-    var column = this;
+  self.dataTable.columns().every(function(i) {
+    //Have to use .column() with index i so that we can get column with just search data()
+    var column = self.dataTable.column(i,{search: 'applied'});
     var headerSelect = $(column.header()).find('select.search');
 
     //This is the special case for access column that we only want one access at a time
-    addSelectEventHandler(headerSelect, column);
+    addSelectEventHandler(headerSelect, column, i);
 
     var input = $(column.header()).find('input.search');
     addInputEventHandler(input, column);
@@ -128,7 +129,7 @@ egam.controls.Table.prototype.customizeDataTable = function() {
   });
   console.log('DataTable customized: ' + new Date());
 
-  function addSelectEventHandler(select, column) {
+  function addSelectEventHandler(select, column, columnIndex) {
     if (select.length > 0) {
       select.off('change');
       select.on('change', function() {
@@ -137,33 +138,36 @@ egam.controls.Table.prototype.customizeDataTable = function() {
         );
         column.search(val ? '^' + val + '$' : '', true, false)
           .draw();
+        //After search refresh the dropdowns to reflect search results
+        //pass columnIndex so selected column doesn't get refreshed (unless they select all)
+        self.customizeDataTable(true,val ? columnIndex : null);
       });
 
-      if (select.length > 0 && select[0].options.length > 1) return;
+      if (select[0].options.length <= 1) {
+        //If this select originally had no options then mark that it can be refreshed
+        select.attr('refreshable',true);
+      }
+      //Don't create the options if they are already in there. (Unless a refresh is being forced)
+      if (!(refresh && select.attr('refreshable')) && select[0].options.length > 1) return;
+      //Don't redraw the select on column that was just selected
+      if (selectColumn === columnIndex) return;
 
-      //If first item has data-search then have to map out data-search data
-      var att = column.nodes().to$()[0].attributes;
-      if ('data-search' in att) {
-        var selectData = {};
-        column.nodes().each(function(node, index) {
-          var data = node.attributes['data-search'].value;
-          selectData[data] = data;
-        });
-        selectData = Object.keys(selectData);
-        selectData.sort();
-        selectData.forEach(function(data, index) {
-          //Only add unique items to select in case already in there
-          if (!select.find('option[value=\'' + data + '\']').length > 0) {
-            select.append('<option value="' + data + '">' + data + '</option>')
-          }
-        });
-      } else {
-        //Simply just use data which is contents of cell
-        column.data().unique().sort().each(function(data, index) {
-          if (!select.find('option[value=\'' + data + '\']').length > 0) {
-            select.append('<option value="' + data + '">' + data + '</option>')
-          }
-        });
+      //Empty out all but first option which is "All"
+      var selectedValue = select.val();
+      select.find('option:gt(0)').remove();
+
+      //Simply just use data (don't need to use data-search attribute anymore possibly because dataTables binding sets data() different than ko cell contents)
+      column.data().unique().sort().each(function(data, index) {
+        if (!select.find('option[value=\'' + data + '\']').length > 0) {
+          select.append('<option value="' + data + '">' + data + '</option>');
+        }
+      });
+      //Reset the selected value
+      select.val(selectedValue);
+      //If the selectedValue doesn't exist then I guess add it and select 8t
+      if (select.val() != selectedValue) {
+        select.append('<option value="' + selectedValue + '">' + selectedValue + '</option>');
+        select.val(selectedValue);
       }
     }
   }
@@ -175,6 +179,8 @@ egam.controls.Table.prototype.customizeDataTable = function() {
         if (column.search() !== this.value) {
           column.search(this.value)
             .draw();
+          //After search refresh the dropdowns to reflect search results
+          self.customizeDataTable(true);
         }
       });
     }
