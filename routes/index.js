@@ -87,11 +87,13 @@ module.exports = function (app) {
       return updateAuthGroupsAndOwnerIDs.updateAuthGroups(user)
         .then(function (updateUser) {
           user = updateUser;
-          return updateAuthGroupsAndOwnerIDs.getOwnerIDsForEachAuthGroup(user)
+          //Pass empty object user.authGroupsByownerID and it will be generated also while getting OwnerIDsForEachAuthGroup
+          user.authGroupsByownerID = {};
+          return updateAuthGroupsAndOwnerIDs.getOwnerIDsForEachAuthGroup(user,user.authGroupsByownerID);
         })
         //Now that authgroups with corresponding ownerIDs is returned we can save them in Session
         .then(function (ownerIDsByAuthGroup) {
-          user.ownerIDsByAuthGroup=ownerIDsByAuthGroup;
+          user.ownerIDsByAuthGroup = ownerIDsByAuthGroup;
           req.session.user = user;
           resObject.body.user = user;
         })
