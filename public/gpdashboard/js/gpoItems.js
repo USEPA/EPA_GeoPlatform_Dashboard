@@ -100,7 +100,7 @@ egam.gpoItems.init = function (query, projection) {
         alert("Timeout!");
         $("#loadingMsgCountContainer").addClass("hidden");
         $("#loadingGraphic").addClass("hidden");
-
+        $("#loadingMsgText").html('<span class="glyphicon glyphicon-warning-sign"></span> Failed to Load table');
       }
     }
   });
