@@ -248,6 +248,7 @@ egam.models.gpoItems.PageModelClass.prototype.setAuthGroupsDropdown = function(o
       // TODO: action where my dashboard is sent to a 404 error page upon
       // TODO: clicking download users CSV in the GUI -- looked like an escaping
       // TODO: issue to me
+      //Maybe this could be cleaned up to use the group ID instead 
       var escapeAuthGroup = authgroup.replace(/\(/g, '%5C(')
         .replace(/\)/g, '%5C)');
       href = href.substring(0, href.lastIndexOf('/') + 1) + '^' +
