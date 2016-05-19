@@ -133,21 +133,16 @@ utilities.inheritClass = function(parentClassOrObject,childConstructor){
     if (! childConstructor) childConstructor="UnknownChild";
     childClass = new Function("return function " + childConstructor + "() {this.__parent__.constructor.apply(this, arguments);};")();
   }
-  if ( parentClassOrObject.constructor == Function )
-  {
+  //Inherit the parent prototype
+  childClass.prototype = new parentClassOrObject;
+//have to set the child constructor so that it is not parent (if we inherit parent constructor that will still be in child class variable)
+  childClass.prototype.constructor = childClass;
+  if ( parentClassOrObject.constructor == Function ) {
     //Normal Inheritance
-    childClass.prototype = new parentClassOrObject;
-//have to set the child constructor so that it is not parent (if we inherit parent constructor that will still be in child class variable)
-    childClass.prototype.constructor = childClass;
-//this is helpful in case the parent wants access to the parent methods/properties;
+//this is helpful in case the child wants access to the parent methods/properties;
     childClass.prototype.__parent__ = parentClassOrObject.prototype;
-  }
-  else
-  {
+  } else {
     //Pure Virtual Inheritance
-    childClass.prototype = parentClassOrObject;
-//have to set the child constructor so that it is not parent (if we inherit parent constructor that will still be in child class variable)
-    childClass.prototype.constructor = childClass;
     childClass.prototype.__parent__ = parentClassOrObject;
   }
   return childClass;

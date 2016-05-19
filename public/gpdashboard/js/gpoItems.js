@@ -7,6 +7,180 @@ if (typeof egam.models == 'undefined') egam.models = {};
 //When AMD is implemented we won't need so much .(dot) namespacing for the model,utility and control classes. They will be in directories
 egam.models.gpoItems = {};
 
+//Data here is the actual array of JSON documents that came back from the REST endpoint
+egam.models.gpoItems.PageModelClass = function() {
+  var self = this;
+
+  self.$tableElement = $('#gpoItemsTable');
+  self.$pageElement = $('#gpoItemsPage');
+
+  //Only these fields will be returned from gpoItems/list endpoint
+  self.resultFields = {
+    id: 1,
+    title: 1,
+    description: 1,
+    tags: 1,
+    thumbnail: 1,
+    snippet: 1,
+    licenseInfo: 1,
+    accessInformation: 1,
+    url: 1,
+    AuditData: 1,
+    numViews: 1,
+    modified: 1,
+    type: 1,
+    owner: 1,
+    access: 1,
+    EDGdata: 1,
+  };
+
+  //This is instance of the table class that does all the table stuff. Pass empty array of items initially
+  self.table = new egam.controls.Table([],self.$tableElement,egam.models.gpoItems.RowModelClass);
+
+  //Have to set authGroups in this context so knockout has access to it from PageModel
+  self.authGroups = egam.communityUser.authGroups;
+
+  //Set up the details control now which is part of this Model Class
+  self.details = new egam.models.gpoItems.DetailsModel(self);
+
+    //Set up the authGroups dropdown
+  self.setAuthGroupsDropdown(egam.communityUser.ownerIDsByAuthGroup);
+
+  //Percent passing, Count of personal items should be observable on here
+  self.percentPublicPassing = ko.observable();
+  self.myItemsCount = ko.observable();
+
+
+};
+
+egam.models.gpoItems.PageModelClass.prototype.init = function() {
+  var self = this;
+  var defer = $.Deferred();
+
+  //Only run init once for gpoItems page/model
+  if (self.model) {
+    defer.resolve();
+    return defer;
+  }
+
+  //Show the loading message and count. Hide the table.
+  $('div#loadingMsg').removeClass('hidden');
+  self.$pageElement.addClass('hidden');
+
+  //Apply the bindings for the page now
+  ko.applyBindings(self, self.$pageElement[0]);
+  console.log('Bindings Applied: ' + new Date());
+
+  //Now initialize the table. ie. download data and create table rows
+  //the payload can be reduced if resultFields array was set
+  var fields = this.resultFields || {};
+
+  var query = {};
+  var projection = {
+    sort: {
+      modified: -1,
+    },
+    fields: fields,};
+
+  return self.table.init('gpoitems/list', query, projection)
+    //After table is loaded we can do other stuff
+    .then(function() {
+      self.calculateStats();
+
+      //Switch view for image upload
+      $('.fileinput').on('change.bs.fileinput', function(e) {
+        $('#agoThumb').toggle();
+        $('#imageUpload').toggle();
+      });
+      //On modal close with out saving change thumbnail view clear thumbnail form
+      $('#gpoItemsModal').on('hidden.bs.modal', function(e) {
+        var thumbnailFile = $('#thumbnail')[0].files[0];
+        if (thumbnailFile !== undefined) {
+          $('#agoThumb').toggle();
+          $('#imageUpload').toggle();
+          $('.fileinput').fileinput('clear');
+        }
+      });
+
+      //Now stop showing loading message that page is load
+      $('div#loadingMsg').addClass('hidden');
+      self.$pageElement.removeClass('hidden');
+
+      defer.resolve();
+    });
+
+  return defer;
+};
+
+//This could maybe be generalized later if it needed to be used on other "pages/screens"
+egam.models.gpoItems.PageModelClass.prototype.calculateStats = function() {
+  var self = this;
+  var data = self.table.data.results;
+  //Get percent of docs passing the Audit
+  var publicCount = 0;
+  var publicPassingCount = 0;
+  var myItemsCount = 0;
+  data.forEach(function(doc, index) {
+    if (doc.access == 'public') {
+      publicCount++;
+      if (doc.AuditData.compliant) publicPassingCount++;
+    }
+    if (egam.communityUser.username == doc.owner) myItemsCount++;
+  });
+
+  if (publicPassingCount) {
+    self.percentPublicPassing(Math.round((publicPassingCount / publicCount) * 100));
+  }else {
+    self.percentPublicPassing(Math.round('-'));
+  }
+
+  self.myItemsCount(myItemsCount);
+};
+
+//This could maybe be generalized later if it needed to be used on other "pages/screens"
+egam.models.gpoItems.PageModelClass.prototype.setAuthGroupsDropdown = function(ownerIDsByAuthGroup) {
+  var dropAuthGroups = $('#dropAuthGroups');
+  dropAuthGroups.on('change', function() {
+    // Also set the download link
+    var authgroup = this.value;
+    if (authgroup) {
+      $('#downloadAuthgroupsCSVall').addClass('hidden');
+      $('#downloadAuthgroupsCSVregions').removeClass('hidden');
+      var href = $('#downloadAuthgroupsCSVregions').attr('href');
+
+      // Tack on authgroup to the end of the route to get csv. Note: use ^ and $
+      // to get exact match because it matches regex(Region 1 and 10 would be
+      // same if not). Also we are using authGroup by name so need to escape
+      // ( and ) which is offices like (OAR)
+      // TODO: Not sure about this code, I've had a few weird bugs with this in
+      // TODO: action where my dashboard is sent to a 404 error page upon
+      // TODO: clicking download users CSV in the GUI -- looked like an escaping
+      // TODO: issue to me
+      //Maybe this could be cleaned up to use the group ID instead
+      var escapeAuthGroup = authgroup.replace(/\(/g, '%5C(')
+        .replace(/\)/g, '%5C)');
+      href = href.substring(0, href.lastIndexOf('/') + 1) + '^' +
+        escapeAuthGroup + '$';
+      $('#downloadAuthgroupsCSVregions').attr('href', href);
+    } else {
+      $('#downloadAuthgroupsCSVall').removeClass('hidden');
+      $('#downloadAuthgroupsCSVregions').addClass('hidden');
+    }
+  });
+  var authGroups = Object.keys(ownerIDsByAuthGroup);
+  authGroups.sort();
+
+  dropAuthGroups[0].options.length = 0;
+
+  if (authGroups.length > 1) {
+    dropAuthGroups.append($('<option>', {value: ''}).text('All'));
+  }
+
+  $.each(authGroups, function(index, authGroup) {
+    dropAuthGroups.append($('<option>', {value: authGroup}).text(authGroup));
+  });
+};
+
 //This is limited model which is used for the table rows. It is condensed so that table loads faster
 egam.models.gpoItems.RowModelClass = function(doc, index) {
   var self = this;
@@ -99,207 +273,67 @@ egam.models.gpoItems.FullModelClass = function(doc, index, parent) {
 
 };
 
-//Data here is the actual array of JSON documents that came back from the REST endpoint
-egam.models.gpoItems.PageModelClass = function() {
-  var self = this;
-
-  self.$tableElement = $('#gpoItemsTable');
-  self.$pageElement = $('#gpoItemsPage');
-
-  //Only these fields will be returned from gpoItems/list endpoint
-  self.resultFields = {
-    id: 1,
-    title: 1,
-    description: 1,
-    tags: 1,
-    thumbnail: 1,
-    snippet: 1,
-    licenseInfo: 1,
-    accessInformation: 1,
-    url: 1,
-    AuditData: 1,
-    numViews: 1,
-    modified: 1,
-    type: 1,
-    owner: 1,
-    access: 1,
-    EDGdata: 1,
-  };
-
-  //This is instance of the table class that does all the table stuff. Pass empty array of items initially
-  self.table = new egam.controls.Table([],self.$tableElement,egam.models.gpoItems.RowModelClass);
-
-  //Have to set authGroups in this context so knockout has access to it from PageModel
-  self.authGroups = egam.communityUser.authGroups;
-
-  //Set up the details control now which is part of this Model Class
-  self.details = new egam.models.gpoItems.DetailsModel(self);
-
-  //Set up the authGroups dropdown
-  self.setAuthGroupsDropdown(egam.communityUser.ownerIDsByAuthGroup);
-
-  //Percent passing, Count of personal items should be observable on here
-  self.percentPublicPassing = ko.observable();
-  self.myItemsCount = ko.observable();
-
-
-};
-
-egam.models.gpoItems.PageModelClass.prototype.init = function() {
-  var self = this;
-  var defer = $.Deferred();
-
-  //Only run init once for gpoItems page/model
-  if (self.model) {
-    defer.resolve();
-    return defer;
-  }
-
-  //Show the loading message and count. Hide the table.
-  $('div#loadingMsg').removeClass('hidden');
-  self.$pageElement.addClass('hidden');
-  
-  //Apply the bindings for the page now
-  ko.applyBindings(self, self.$pageElement[0]);
-  console.log('Bindings Applied: ' + new Date());
-
-  //Now initialize the table. ie. download data and create table rows
-  //the payload can be reduced if resultFields array was set
-  var fields = this.resultFields || {};
-
-  var query = {};
-  var projection = {
-    sort: {
-      modified: -1,
-    },
-    fields: fields,};
-  
-  return self.table.init('gpoitems/list', query, projection)
-    //After table is loaded we can do other stuff
-    .then(function() {
-      self.calculateStats();
-
-      //Switch view for image upload
-      $('.fileinput').on('change.bs.fileinput', function(e) {
-        $('#agoThumb').toggle();
-        $('#imageUpload').toggle();
-      });
-      //On modal close with out saving change thumbnail view clear thumbnail form
-      $('#gpoItemsModal').on('hidden.bs.modal', function(e) {
-        var thumbnailFile = $('#thumbnail')[0].files[0];
-        if (thumbnailFile !== undefined) {
-          $('#agoThumb').toggle();
-          $('#imageUpload').toggle();
-          $('.fileinput').fileinput('clear');
-        }
-      });
-
-      //Now stop showing loading message that page is load
-      $('div#loadingMsg').addClass('hidden');
-      self.$pageElement.removeClass('hidden');
-
-      defer.resolve();
-    });
-
-  return defer;
-};
-
-//This could maybe be generalized later if it needed to be used on other "pages/screens"
-egam.models.gpoItems.PageModelClass.prototype.calculateStats = function() {
-  var self = this;
-  var data = self.table.data.results;
-  //Get percent of docs passing the Audit
-  var publicCount = 0;
-  var publicPassingCount = 0;
-  var myItemsCount = 0;
-  data.forEach(function(doc, index) {
-    if (doc.access == 'public') {
-      publicCount++;
-      if (doc.AuditData.compliant) publicPassingCount++;
-    }
-    if (egam.communityUser.username == doc.owner) myItemsCount++;
-  });
-
-  if (publicPassingCount) {
-    self.percentPublicPassing(Math.round((publicPassingCount / publicCount) * 100));
-  }else {
-    self.percentPublicPassing(Math.round('-'));
-  }
-
-  self.myItemsCount(myItemsCount);
-};
-
-//This could maybe be generalized later if it needed to be used on other "pages/screens"
-egam.models.gpoItems.PageModelClass.prototype.setAuthGroupsDropdown = function(ownerIDsByAuthGroup) {
-  var dropAuthGroups = $('#dropAuthGroups');
-  dropAuthGroups.on('change', function() {
-    // Also set the download link
-    var authgroup = this.value;
-    if (authgroup) {
-      $('#downloadAuthgroupsCSVall').addClass('hidden');
-      $('#downloadAuthgroupsCSVregions').removeClass('hidden');
-      var href = $('#downloadAuthgroupsCSVregions').attr('href');
-
-      // Tack on authgroup to the end of the route to get csv. Note: use ^ and $
-      // to get exact match because it matches regex(Region 1 and 10 would be
-      // same if not). Also we are using authGroup by name so need to escape
-      // ( and ) which is offices like (OAR)
-      // TODO: Not sure about this code, I've had a few weird bugs with this in
-      // TODO: action where my dashboard is sent to a 404 error page upon
-      // TODO: clicking download users CSV in the GUI -- looked like an escaping
-      // TODO: issue to me
-      //Maybe this could be cleaned up to use the group ID instead 
-      var escapeAuthGroup = authgroup.replace(/\(/g, '%5C(')
-        .replace(/\)/g, '%5C)');
-      href = href.substring(0, href.lastIndexOf('/') + 1) + '^' +
-        escapeAuthGroup + '$';
-      $('#downloadAuthgroupsCSVregions').attr('href', href);
-    } else {
-      $('#downloadAuthgroupsCSVall').removeClass('hidden');
-      $('#downloadAuthgroupsCSVregions').addClass('hidden');
-    }
-  });
-  var authGroups = Object.keys(ownerIDsByAuthGroup);
-  authGroups.sort();
-
-  dropAuthGroups[0].options.length = 0;
-
-  if (authGroups.length > 1) {
-    dropAuthGroups.append($('<option>', {value: ''}).text('All'));
-  }
-
-  $.each(authGroups, function(index, authGroup) {
-    dropAuthGroups.append($('<option>', {value: authGroup}).text(authGroup));
-  });
-};
 
 
 //Data here is the actual array of JSON documents that came back from the REST endpoint
 egam.models.gpoItems.DetailsModel = function(parent) {
   var self = this;
-
   self.parent = parent;
 
+  self.$element = $('gpoItemsModal');
+  this.bound = false;
   //A new observable for the selected row storing the FULL gpoItem model
   self.selected = ko.observable();
-
-  //Creates the tag controls now
-  self.tagControls = new egam.models.gpoItems.TagControlsClass(self);
+  
+  //Creates the tag controls when row is selected and details model is needed for first time
+  self.tagControls = null;
+  //set up reference to reconcillation stuff here since this page uses it
+  //It is not actually created until somebody hits reconcilliation modal for first time
+  self.reconcillation = null;
 
 };
 
 //On the entire table, we need to know which item is selected to use later with modal, etc.
 egam.models.gpoItems.DetailsModel.prototype.select = function(item) {
   var self = this;
-  var needToApplyBindings = self.selected() ? false : true;
   //    Var fullRowModel = self.selectedCache[item.index] || new egam.gpoItems.FullModelClass(item.doc,self,item.index) ;
   var fullRowModel = new egam.models.gpoItems.FullModelClass(item.doc, item.index, self);
   self.selected(fullRowModel);
 
-  //Now apply binding if not applied and then refresh the tag controls for selected item (to select by doc.owners authGroup)
-  if (needToApplyBindings) ko.applyBindings(self, document.getElementById('gpoItemsModal'));
-  //no need to pass the new doc, it just uses the parent's (this details control) selected doc
-  self.tagControls.refresh();
+  //If no tag Controls created yet then do it now
+  if (!self.tagControls) self.tagControls = new egam.models.gpoItems.TagControlsClass(self);
+  //Note: if the instance of these controls/models are used in multiple places it can be stored in something like egam.shared.tagConrols
+  //Then the we would get self.tagControls = using functions that creates egam.shared.tagConrols if not exists otherwise returns existing so that we don't create another instance again if already created by different consumer
+  // if (!self.tagControls) self.tagControls = egam.utilities.loadSharedControl("tagControls",egam.models.gpoItems.TagControlsClass,[self]);
+
+  //This function will not reinitialize when called second time
+  //If there would have been more promises then just this tagControls then could use .all or chain them
+  self.tagControls.init()
+    .then(function () {
+      //Now apply binding if not applied and then refresh the tag controls for selected item (to select by doc.owners authGroup)
+//  if (needToApplyBindings) ko.applyBindings(self, self.$element[0]);
+      if (!self.bound) {
+        ko.applyBindings(self, document.getElementById('gpoItemsModal'));
+        self.bound=true;
+      }
+
+      //no need to pass the new doc, it just uses the parent's (this details control) selected doc
+      self.tagControls.refresh();
+    });
+};
+
+//Allows you to select an item based on index, usually index will be coming from row number
+egam.models.gpoItems.DetailsModel.prototype.loadReconcile = function() {
+  var self = this;
+  if (!self.reconcillation) {
+    self.reconcillation = new egam.models.edgItems.ReconcilliationModel(self.selected);
+//    self.reconcillation = egam.utilities.loadSharedControl("reconcillation",egam.models.gpoItems.ReconcilliationModel,[self.selected]);
+  }
+
+  self.reconcillation.load(self.selected().doc);
+  //Do things like turn off the details model stuff
+  //$element.modal('hide');
+
 };
 
 //Allows you to select an item based on index, usually index will be coming from row number
@@ -378,7 +412,7 @@ egam.models.gpoItems.TagControlsClass = function(parent) {
   var self = this;
 
   self.parent = parent;
-
+  self.isInit = false;
   //By default the doc to use which contains tag and other item info is self.parent.selected().doc()
   //It is possible to override this and set self.doc
   self._doc = null;
@@ -414,6 +448,19 @@ egam.models.gpoItems.TagControlsClass = function(parent) {
     };
   });
 
+};
+
+//Need to use an init function so we can defer before moving onto bindings
+egam.models.gpoItems.TagControlsClass.prototype.init = function(doc) {
+  var self = this;
+  var defer = $.Deferred();
+
+  //If already got avail tags just return don't ajax them again
+  if (self.isInit) {
+    defer.resolve();
+    return defer;
+  }
+
   egam.utilities.getDataStash('availableTags', 'gpoitems/availableTags')
     .then(function () {
       return egam.utilities.getDataStash('availableAuthgroups', 'gpoitems/authGroups');
@@ -440,7 +487,10 @@ egam.models.gpoItems.TagControlsClass = function(parent) {
           }
         });
       }
+      self.isInit = true;
+      defer.resolve();
     });
+  return defer;
 };
 
 //pass the tags here and update the controls with this information
