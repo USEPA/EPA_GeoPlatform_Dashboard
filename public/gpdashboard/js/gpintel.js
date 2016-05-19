@@ -1,16 +1,27 @@
 // Expose dashboard especially helpful for debugging
-if (typeof egam == 'undefined') var egam = {};
-if (typeof egam.models == 'undefined') egam.models = {};
+if (typeof egam == 'undefined') {
+  var egam = {};
+}
+if (typeof egam.models == 'undefined') {
+  egam.models = {};
+}
 //Place to stash utility functions
-if (typeof egam.utilities == 'undefined') egam.utilities = {};
+if (typeof egam.utilities == 'undefined') {
+  egam.utilities = {};
+}
 //Place for shared instances of controls/models
-if (typeof egam.shared == 'undefined') egam.shared = {};
+if (typeof egam.utilities == 'undefined') {
+  egam.utilities = {};
+}
 
-//For now i'm using .(dot) namespacing categorized by model, utility and control classes. Most classes are models but reusable ones like Table class are controls
-//When AMD is implemented we won't need so much .(dot) namespacing. Different categories will be in directories and each class in own file.
+//For now i'm using .(dot) namespacing categorized by model, utility and control
+//classes. Most classes are models but reusable ones like Table class are
+//controls. When AMD is implemented we won't need so much .(dot) namespacing.
+//Different categories will be in directories and each class in own file.
 
-//Note the acutal instance of the page models are in egam.pages so edgItems page instance will be in egam.pages.edgItems when Bryan does it
-//Also the code for edgItems models and gpoUsers models will be in their own files
+//Note the acutal instance of the page models are in egam.pages so edgItems page
+//instance will be in egam.pages.edgItems when Bryan does it. Also the code for
+//edgItems models and gpoUsers models will be in their own files
 
 //Place to stash the edgItems models for now
 egam.models.edgItems = {};
@@ -101,7 +112,6 @@ egam.searchEDG = function() {
   egam.edginit(title, true);
   $('#gpoItemsModal').modal('hide');
 };
-
 
 // TODO: all EDG code should go in its own module
 egam.edginit = function(itemTitle, edgModal) {
@@ -273,7 +283,7 @@ function populateUserMngntTable() {
         ];
         return monthNames[uDate.getMonth()] + ' ' + uDate.getDate() + ', ' +
             uDate.getFullYear();
-      };
+      }
 
       this.sponsoreeAuthGroups = ko.observableArray(
           egam.communityUser.authGroups);
@@ -390,7 +400,8 @@ function populateUserMngntTable() {
     };
 
     // JSON.parse(data)
-    egam.gpoUsers.tableModel = ko.applyBindings(new gpoUserTableModel(JSON.parse(data)), document.getElementById('userMgmtView'));
+    egam.gpoUsers.tableModel = ko.applyBindings(new gpoUserTableModel(
+      JSON.parse(data)), document.getElementById('userMgmtView'));
 
     $.fn.dataTable.ext.buttons.alert = {
       className: 'buttons-alert',
@@ -695,7 +706,13 @@ egam.models.edgItems.ReconcilliationModel = function() {
   var self = this;
   this.$element =  $('#reconciliationModal');
 
-  this.fields = ['title','snippet','description','licenseInfo','accessInformation'];
+  this.fields = [
+    'title',
+    'snippet',
+    'description',
+    'licenseInfo',
+    'accessInformation',
+  ];
 
   this.onload = onload;
   this.bound = false;
@@ -775,13 +792,16 @@ egam.utilities.getDataStash = function(name,endpoint) {
     url: endpoint,
     dataType: 'json',
     success: function(data, textStatus, jqXHR) {
-      if (data.errors > 0) defer.reject(data.errors);
+      if (data.errors > 0) {
+        defer.reject(data.errors);
+      }
 
       egam.dataStash[name] = data;
       defer.resolve(data);
     },
     error: function(jqXHR, textStatus, errorThrown) {
-      defer.reject('Error getting Data Stash with status ' + textStatus + ': ' + errorThrown);
+      defer.reject('Error getting Data Stash with status ' +
+        textStatus + ': ' + errorThrown);
       console.error('ERRORS: ' + errorThrown);
     },
   });

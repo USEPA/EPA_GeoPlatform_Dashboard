@@ -24,18 +24,29 @@ module.exports = function(app) {
     var utilities = require(app.get('appRoot') + '/shared/utilities');
     var username = '';
     console.log(req.params);
-    if ('session' in req && req.session.username) username = req.session.username;
+    if ('session' in req && req.session.username) {
+      username = req.session.username;
+    }
 
     //If they are not logged in (no username then)
-    if (!username) return res.json(utilities.getHandleError({},'LoginRequired')('Must be logged in to make this request.'));
+    if (!username) {
+      return res.json(utilities.getHandleError({},
+        'LoginRequired')('Must be logged in to make this request.'));
+    }
     var ownerIDs = [username];
-    if ('session' in req && req.session.ownerIDs) ownerIDs = req.session.ownerIDs;
+    if ('session' in req && req.session.ownerIDs) {
+      ownerIDs = req.session.ownerIDs;
+    }
 
     //Make sure that at least logged in user is in ownerIDs
-    if (ownerIDs.indexOf(username) < 0) ownerIDs.push(username);
+    if (ownerIDs.indexOf(username) < 0) {
+      ownerIDs.push(username);
+    }
 
     var isSuperUser = false;
-    if ('session' in req && req.session.user.isSuperUser === true) isSuperUser = true;
+    if ('session' in req && req.session.user.isSuperUser === true) {
+      isSuperUser = true;
+    }
 
     var monk = app.get('monk');
     var config = app.get('config');
@@ -48,9 +59,13 @@ module.exports = function(app) {
     var query = utilities.getRequestInputs(req).query;
 
     //Parse JSON query in object
-    if (typeof query === 'string') query = JSON.parse(query);
+    if (typeof query === 'string') {
+      query = JSON.parse(query);
+    }
     //If query is falsey make it empty object
-    if (!query) query = {};
+    if (!query) {
+      query = {};
+    }
 
     //Now we can filter using url route filter if supplied eg. authGroups/EPA Region 1
     var filterValue = req.params.filterValue;
@@ -71,16 +86,26 @@ module.exports = function(app) {
     var projection = utilities.getRequestInputs(req).projection;
 
     //Parse JSON query in object
-    if (typeof projection === 'string') projection = JSON.parse(projection);
+    if (typeof projection === 'string') {
+      projection = JSON.parse(projection);
+    }
     //If query is falsey make it empty object
-    if (!projection) projection = {};
+    if (!projection) {
+      projection = {};
+    }
 
-    //Only return gpo itmes where this user is the owner (or later probably group admin)
+    //Only return gpo itmes where this user is the owner
+    //(or later probably group admin)
     //comment this out just to test with all
-    //Super user is not limited by ownerIDs. If admin is finding External User then show all external users
-    var findingExternalUsers = (req.session.user.isAdmin && ((req.params.filterType == 'isExternal' && filterValue == true) || query.isExternal === true));
+    //Super user is not limited by ownerIDs. If admin is finding External
+    //User then show all external users
+    var findingExternalUsers = (req.session.user.isAdmin &&
+      ((req.params.filterType == 'isExternal' && filterValue == true) ||
+      query.isExternal === true));
 
-    if (!isSuperUser && !findingExternalUsers) query.username = {$in: ownerIDs};
+    if (!isSuperUser && !findingExternalUsers) {
+      query.username = {$in: ownerIDs};
+    }
 
     if (isCSV === true) {
       streamGPOusersCSV()
@@ -108,9 +133,14 @@ module.exports = function(app) {
         })
         .then(function(csv) {
           var outFile = 'gpoUsers';
-          //Get rid of space and back slashes in file name because back slash will be confused as folder separator in name
+          //Get rid of space and back slashes in file name because back slash
+          //will be confused as folder separator in name
           //get rid of other special characters used in search
-          if (req.params.filterType) outFile += '-' + req.params.filterValue.replace(/ /g, '_').replace(/[\^\$\\]/g, '');
+          if (req.params.filterType) {
+            outFile += '-' + req.params.filterValue
+                .replace(/ /g, '_')
+                .replace(/[\^\$\\]/g, '');
+          }
 
           outFile += '.csv';
           res.attachment(outFile);
@@ -127,9 +157,14 @@ module.exports = function(app) {
       var GPOuserExtensions = require(app.get('appRoot') + '/config/updateFields/GPOuserExtensions.js');
 
       var outFile = 'gpoUsers';
-      //Get rid of space and back slashes in file name because back slash will be confused as folder separator in name
+      //Get rid of space and back slashes in file name because back slash will
+      //be confused as folder separator in name
       //get rid of other special characters used in search
-      if (req.params.filterType) outFile += '-' + req.params.filterValue.replace(/ /g, '_').replace(/[\^\$\\]/g, '');
+      if (req.params.filterType) {
+        outFile += '-' + req.params.filterValue
+            .replace(/ /g, '_')
+            .replace(/[\^\$\\]/g, '');
+      }
 
       outFile += '.csv';
       res.attachment(outFile);
@@ -149,7 +184,10 @@ module.exports = function(app) {
 
           res.write(syncJson2csv({data: cleanupUserDocForOutputCSV(doc), hasCSVColumnTitle: hasCSVColumnTitle}));
           res.write('\r\n');
-          if (hasCSVColumnTitle) hasCSVColumnTitle = false;
+
+          if (hasCSVColumnTitle) {
+            hasCSVColumnTitle = false;
+          }
         })
         .error(function(err) {
           defer.reject('Error streaming GPO users to CSV: ' + err);
@@ -197,14 +235,19 @@ module.exports = function(app) {
             .each(function(doc) {
               res.write(firstCharacter);
               res.write(JSON.stringify(doc));
-              if (firstCharacter == '[') firstCharacter = ',';
+              if (firstCharacter == '[') {
+                firstCharacter = ',';
+              }
             })
             .error(function(err) {
               defer.reject('Error streaming GPO users: ' + err);
             })
             .success(function() {
-              //If firstcharacter was not written then write it now (if no docs need to write leading [
-              if (firstCharacter === '[') res.write(firstCharacter);
+              //If firstcharacter was not written then write it now
+              //(if no docs need to write leading [
+              if (firstCharacter === '[') {
+                res.write(firstCharacter);
+              }
               res.write(']' + end, function() {
                 defer.resolve();
               });
@@ -218,9 +261,13 @@ module.exports = function(app) {
   router.use('/update', function(req, res) {
     var utilities = require(app.get('appRoot') + '/shared/utilities');
     var username = '';
-    if ('session' in req && req.session.username) username = req.session.username;
+    if ('session' in req && req.session.username) {
+      username = req.session.username;
+    }
     //If they are not logged in (no username then
-    if (!username) return res.json(utilities.getHandleError({},'LoginRequired')('Must be logged in to make this request.'));
+    if (!username) {
+      return res.json(utilities.getHandleError({},'LoginRequired')('Must be logged in to make this request.'));
+    }
 
     var monk = app.get('monk');
     var config = app.get('config');
