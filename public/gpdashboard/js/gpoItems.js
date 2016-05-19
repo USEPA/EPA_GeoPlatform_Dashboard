@@ -41,57 +41,77 @@ egam.gpoItems.init = function (query, projection) {
   //Do a post because some long query strings were breaking staging server reverse proxy
   //hit our Express endpoint to get the list of items for this logged in user
   console.log("Call Endpoint Start: " + new Date());
-  $.post('gpoitems/list', {
-    query: query,
-    projection: projection
-  }, function (data) {
-    console.log("Endpoint Data Received : " + new Date());
-    //If "limit" passed to the endpoint then return paging info where data is in data.results
-    //if only data returned for no paging just save data in same structure
-    if ("results" in data) {
-      self.data = data;
-    } else {
-      self.data = {results: data};
+
+  $.ajax({
+    type: 'POST',
+    url: 'gpoitems/list',
+    data: {query: query, projection: projection},
+    dataType: 'json',
+    timeout: 50,
+    success: function(data){
+      console.log("Endpoint Data Received : " + new Date());
+      //If "limit" passed to the endpoint then return paging info where data is in data.results
+      //if only data returned for no paging just save data in same structure
+      if ("results" in data) {
+        self.data = data;
+      } else {
+        self.data = {results: data};
+      }
+
+      $("#loadingMsgCountContainer").removeClass("hidden");
+      $("#loadingMsgCount").text(0);
+      $("#loadingMsgTotalCount").text(self.data.results.length);
+
+      //Show the loading message and count. Hide the table.
+      $('div#loadingMsg').removeClass('hidden');
+      $('div#overviewTable').addClass('hidden');
+
+      //setting up the new PageModel instance with no rows yet
+      self.model = new egam.gpoItems.PageModelClass([]);
+      console.log("Knockout Model created: " + new Date());
+
+      //If there are no rows in results then don't try to bind
+      if (self.data.results.length < 1) return defer.resolve();
+
+      //Add these using .add to push to array
+      //data.results is just the array of objects returned by server
+      self.model.add(self.data.results);
+      //    egam.gpoItems.model.add(data.results,updateLoadingCountMessage)
+      console.log("Knockout Model data added: " + new Date());
+      ko.applyBindings(egam.gpoItems.model, document.getElementById('overviewTable'));
+      console.log("Bindings Applied: " + new Date());
+      self.dataTable = self.tableElement.DataTable({"bRetrieve": true});
+
+      self.tableElement.addClass("loaded");
+      //Now do all the custom filter stuff to dataTable in scope of dataTable
+      egam.gpoItems.customizeDataTable.call(self.dataTable);
+
+      self.calcItemsPassingAudit(self.data.results);
+
+      defer.resolve();
+
+      function updateLoadingCountMessage(index) {
+        //Only show every 10
+        if (index % 10 === 0) $("#loadingMsgCount").text(index + 1);
+      }
+    },
+    error: function(request, status, err){
+      if(status == 'timeout'){
+        alert("Timeout!");
+        $("#loadingMsgCountContainer").addClass("hidden");
+        $("#loadingGraphic").addClass("hidden");
+
+      }
     }
+  });
 
-    $("#loadingMsgCountContainer").removeClass("hidden");
-    $("#loadingMsgCount").text(0);
-    $("#loadingMsgTotalCount").text(self.data.results.length);
-
-    //Show the loading message and count. Hide the table.
-    $('div#loadingMsg').removeClass('hidden');
-    $('div#overviewTable').addClass('hidden');
-
-    //setting up the new PageModel instance with no rows yet
-    self.model = new egam.gpoItems.PageModelClass([]);
-    console.log("Knockout Model created: " + new Date());
-
-    //If there are no rows in results then don't try to bind
-    if (self.data.results.length < 1) return defer.resolve();
-
-    //Add these using .add to push to array
-    //data.results is just the array of objects returned by server
-    self.model.add(self.data.results);
-    //    egam.gpoItems.model.add(data.results,updateLoadingCountMessage)
-    console.log("Knockout Model data added: " + new Date());
-    ko.applyBindings(egam.gpoItems.model, document.getElementById('overviewTable'));
-    console.log("Bindings Applied: " + new Date());
-    self.dataTable = self.tableElement.DataTable({"bRetrieve": true});
-
-    self.tableElement.addClass("loaded");
-    //Now do all the custom filter stuff to dataTable in scope of dataTable
-    egam.gpoItems.customizeDataTable.call(self.dataTable);
-
-    self.calcItemsPassingAudit(self.data.results);
-
-    defer.resolve();
-
-    function updateLoadingCountMessage(index) {
-      //Only show every 10
-      if (index % 10 === 0) $("#loadingMsgCount").text(index + 1);
-    }
-
-  }, 'json');
+  // $.post('gpoitems/list', {
+  //   query: query,
+  //   projection: projection
+  // }, function (data) {
+  //
+  //
+  // }, 'json');
 
   //switch view for image upload
   $('.fileinput').on('change.bs.fileinput', function (e) {
