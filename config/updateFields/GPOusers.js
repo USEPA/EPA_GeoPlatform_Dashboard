@@ -1,12 +1,12 @@
 //These are the fields that we will be updating in GPO
 module.exports = {
   fields: [
-    "fullName",
-    "email"
+    'fullName',
+    'email',
   ],
-  arrays:{
+  arrays: {
   },
-  sets:{
-    authGroup:"authGroups"
-  }
+  sets: {
+    authGroup: 'authGroups',
+  },
 };

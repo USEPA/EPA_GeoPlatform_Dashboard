@@ -1,14 +1,23 @@
 // Expose dashboard especially helpful for debugging
-if (typeof egam == 'undefined') var egam = {};
-if (typeof egam.models == 'undefined') egam.models = {};
+if (typeof egam == 'undefined') {
+  var egam = {};
+}
+if (typeof egam.models == 'undefined') {
+  egam.models = {};
+}
 //Place to stash utility functions
-if (typeof egam.utilities == 'undefined') egam.utilities = {};
+if (typeof egam.utilities == 'undefined') {
+  egam.utilities = {};
+}
 
-//For now i'm using .(dot) namespacing categorized by model, utility and control classes. Most classes are models but reusable ones like Table class are controls
-//When AMD is implemented we won't need so much .(dot) namespacing. Different categories will be in directories and each class in own file.
+//For now i'm using .(dot) namespacing categorized by model, utility and control
+//classes. Most classes are models but reusable ones like Table class are
+//controls. When AMD is implemented we won't need so much .(dot) namespacing.
+//Different categories will be in directories and each class in own file.
 
-//Note the acutal instance of the page models are in egam.pages so edgItems page instance will be in egam.pages.edgItems when Bryan does it
-//Also the code for edgItems models and gpoUsers models will be in their own files
+//Note the acutal instance of the page models are in egam.pages so edgItems page
+//instance will be in egam.pages.edgItems when Bryan does it. Also the code for
+//edgItems models and gpoUsers models will be in their own files
 
 //Place to stash the edgItems models for now
 egam.models.edgItems = {};
@@ -103,15 +112,18 @@ egam.searchEDG = function() {
 
 egam.reconcileEDG = function() {
   $('#reconciliationModal').modal('show');
-//  $('#gpoItemsModal').modal('hide');
+  //  $('#gpoItemsModal').modal('hide');
   //This just temp to know that reconcillation modal was binded
   var applyBindings = false;
   if (!egam.edgItems.reconcillation) {
     egam.edgItems.reconcillation = new egam.models.edgItems.ReconcilliationModel();
     applyBindings = true;
   }
-  egam.edgItems.reconcillation.loadCurrentFields(egam.pages.gpoItems.details.selected().doc);
-  if (applyBindings) ko.applyBindings(egam.edgItems.reconcillation,$('#reconciliationModal')[0]);
+  egam.edgItems.reconcillation
+    .loadCurrentFields(egam.pages.gpoItems.details.selected().doc);
+  if (applyBindings) {
+    ko.applyBindings(egam.edgItems.reconcillation,$('#reconciliationModal')[0]);
+  }
 };
 
 // TODO: all EDG code should go in its own module
@@ -284,7 +296,7 @@ function populateUserMngntTable() {
         ];
         return monthNames[uDate.getMonth()] + ' ' + uDate.getDate() + ', ' +
             uDate.getFullYear();
-      };
+      }
 
       this.sponsoreeAuthGroups = ko.observableArray(
           egam.communityUser.authGroups);
@@ -401,7 +413,8 @@ function populateUserMngntTable() {
     };
 
     // JSON.parse(data)
-    egam.gpoUsers.tableModel = ko.applyBindings(new gpoUserTableModel(JSON.parse(data)), document.getElementById('userMgmtView'));
+    egam.gpoUsers.tableModel = ko.applyBindings(new gpoUserTableModel(
+      JSON.parse(data)), document.getElementById('userMgmtView'));
 
     $.fn.dataTable.ext.buttons.alert = {
       className: 'buttons-alert',
@@ -705,7 +718,13 @@ egam.edgItemTableModel = function(data) {
 egam.models.edgItems.ReconcilliationModel = function() {
   var self = this;
 
-  this.fields = ['title','snippet','description','licenseInfo','accessInformation'];
+  this.fields = [
+    'title',
+    'snippet',
+    'description',
+    'licenseInfo',
+    'accessInformation',
+  ];
 
   this.doc = ko.observable();
   this.fullDoc = null;
@@ -718,7 +737,8 @@ egam.models.edgItems.ReconcilliationModel = function() {
     fullDoc = ko.utils.unwrapObservable(fullDoc);
     var docSlice = {};
     $.each(this.fields,function(index,field) {
-      //UnwrapObservable in case the doc passed does not have observables for fields
+      //UnwrapObservable in case the doc passed does not have observables for
+      //fields
       docSlice[field] = ko.utils.unwrapObservable(fullDoc[field]);
     });
     this.doc(ko.mapping.fromJS(docSlice));
@@ -730,7 +750,7 @@ egam.models.edgItems.ReconcilliationModel = function() {
     var fullDoc = ko.utils.unwrapObservable(this.fullDoc);
 
     $.each(this.fields,function(index,field) {
-      //If FullDoc is observable need to pass the reconcilled field vs setting it
+      //If FullDoc is observable need to pass the reconciled field vs setting it
       if (ko.isObservable(fullDoc[field])) {
         fullDoc[field](self.doc()[field]());
       }else {
@@ -741,7 +761,7 @@ egam.models.edgItems.ReconcilliationModel = function() {
 
   this.copyEDGtoGPO = function(source,destination) {
     var self = this;
-    //if no destination then it is same name as source
+    //If no destination then it is same name as source
     destination = destination || source;
 
     var fullDoc = ko.utils.unwrapObservable(this.fullDoc);
@@ -767,13 +787,16 @@ egam.utilities.getDataStash = function(name,endpoint) {
     url: endpoint,
     dataType: 'json',
     success: function(data, textStatus, jqXHR) {
-      if (data.errors > 0) defer.reject(data.errors);
+      if (data.errors > 0) {
+        defer.reject(data.errors);
+      }
 
       egam.dataStash[name] = data;
       defer.resolve(data);
     },
     error: function(jqXHR, textStatus, errorThrown) {
-      defer.reject('Error getting Data Stash with status ' + textStatus + ': ' + errorThrown);
+      defer.reject('Error getting Data Stash with status ' +
+        textStatus + ': ' + errorThrown);
       console.error('ERRORS: ' + errorThrown);
     },
   });

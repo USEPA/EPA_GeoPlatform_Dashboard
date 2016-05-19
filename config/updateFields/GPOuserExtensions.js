@@ -2,9 +2,9 @@
 //also can pass mapping of item to array so you can send just single item of array to be pushed to array
 module.exports = {
   fields: [
-    "sponsors"
+    'sponsors',
   ],
-  arrays:{
-  sponsor:"sponsors"
-  }
+  arrays: {
+    sponsor: 'sponsors',
+  },
 };

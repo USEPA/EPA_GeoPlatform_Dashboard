@@ -1,13 +1,22 @@
-if (typeof egam == 'undefined') var egam = {};
-if (typeof egam.pages == 'undefined') egam.pages = {};
-if (typeof egam.models == 'undefined') egam.models = {};
+if (typeof egam == 'undefined') {
+  var egam = {};
+}
+if (typeof egam.pages == 'undefined') {
+  egam.pages = {};
+}
+if (typeof egam.models == 'undefined') {
+  egam.models = {};
+}
 
 //Place to stash the gpoItmes models for now
-//Note the acutal instance of the page models are in egam.pages so gpoItems page instance is egam.pages.gpoItems
-//When AMD is implemented we won't need so much .(dot) namespacing for the model,utility and control classes. They will be in directories
+//Note the actual instance of the page models are in egam.pages so gpoItems page
+//instance is egam.pages.gpoItems
+//When AMD is implemented we won't need so much .(dot) namespacing for the
+//model, utility and control classes. They will be in directories
 egam.models.gpoItems = {};
 
-//This is limited model which is used for the table rows. It is condensed so that table loads faster
+//This is limited model which is used for the table rows. It is condensed so
+//that table loads faster
 egam.models.gpoItems.RowModelClass = function(doc, index) {
   var self = this;
   //This is the doc
@@ -31,12 +40,14 @@ egam.models.gpoItems.RowModelClass = function(doc, index) {
     ];
 
     var modDate = new Date(this.doc.modified);
-    return monthNames[modDate.getMonth()] + ' ' + modDate.getDate() + ', ' + modDate.getFullYear();
+    return monthNames[modDate.getMonth()] + ' ' +
+      modDate.getDate() + ', ' + modDate.getFullYear();
   }, this);
 
 };
 
-//This is the FULL model which binds to the modal allowing 2 way data binding and updating etc
+//This is the FULL model which binds to the modal allowing 2 way data binding
+//and updating etc
 egam.models.gpoItems.FullModelClass = function(doc, index, parent) {
   var self = this;
   //The pageModel this belows to
@@ -50,9 +61,10 @@ egam.models.gpoItems.FullModelClass = function(doc, index, parent) {
   this.thumbnailURL = ko.computed(function() {
     if (self.doc().thumbnail() == null) {
       return 'img/noImage.png';
-    } else {
-      return 'https://epa.maps.arcgis.com/sharing/rest/content/items/' + self.doc().id() + '/info/' + self.doc().thumbnail() + '?token=' + egam.portalUser.credential.token;
     }
+    return 'https://epa.maps.arcgis.com/sharing/rest/content/items/' +
+      self.doc().id() + '/info/' + self.doc().thumbnail() +
+      '?token=' + egam.portalUser.credential.token;
   }, this);
 
   this.epaKeywords = function() {
@@ -67,7 +79,14 @@ egam.models.gpoItems.FullModelClass = function(doc, index, parent) {
   this.changeDoc = {};
 
   //Subscribes Setup
-  this.updateFields = ['title', 'snippet', 'description', 'licenseInfo', 'accessInformation', 'url'];
+  this.updateFields = [
+    'title',
+    'snippet',
+    'description',
+    'licenseInfo',
+    'accessInformation',
+    'url',
+  ];
 
   //Condensed this repetitive code
   $.each(this.updateFields, function(index, field) {
@@ -93,13 +112,16 @@ egam.models.gpoItems.FullModelClass = function(doc, index, parent) {
     var unmappedDoc = ko.mapping.toJS(self.doc());
     var auditRes = new Audit();
     auditRes.validate(unmappedDoc, auditField);
-    //Note if you are trying to remap observable doc then have to make doc second parameter do NOT do doc(ko.mapping.fromJS(unmappedDoc)). that will lose subscribers on original doc
+    //Note if you are trying to remap observable doc then have to make doc
+    //second parameter do NOT do doc(ko.mapping.fromJS(unmappedDoc)). that will
+    //lose subscribers on original doc
     ko.mapping.fromJS(unmappedDoc, self.doc());
   };
 
 };
 
-//Data here is the actual array of JSON documents that came back from the REST endpoint
+//Data here is the actual array of JSON documents that came back from the
+//REST endpoint
 egam.models.gpoItems.PageModelClass = function() {
   var self = this;
 
@@ -126,10 +148,13 @@ egam.models.gpoItems.PageModelClass = function() {
     EDGdata: 1,
   };
 
-  //This is instance of the table class that does all the table stuff. Pass empty array of items initially
-  self.table = new egam.controls.Table([],self.$tableElement,egam.models.gpoItems.RowModelClass);
+  //This is instance of the table class that does all the table stuff.
+  //Pass empty array of items initially
+  self.table = new egam.controls.Table([],
+    self.$tableElement,egam.models.gpoItems.RowModelClass);
 
-  //Have to set authGroups in this context so knockout has access to it from PageModel
+  //Have to set authGroups in this context so knockout has access to it from
+  //PageModel
   self.authGroups = egam.communityUser.authGroups;
 
   //Set up the details control now which is part of this Model Class
@@ -158,7 +183,7 @@ egam.models.gpoItems.PageModelClass.prototype.init = function() {
   //Show the loading message and count. Hide the table.
   $('div#loadingMsg').removeClass('hidden');
   self.$pageElement.addClass('hidden');
-  
+
   //Apply the bindings for the page now
   ko.applyBindings(self, self.$pageElement[0]);
   console.log('Bindings Applied: ' + new Date());
@@ -173,7 +198,7 @@ egam.models.gpoItems.PageModelClass.prototype.init = function() {
       modified: -1,
     },
     fields: fields,};
-  
+
   return self.table.init('gpoitems/list', query, projection)
     //After table is loaded we can do other stuff
     .then(function() {
@@ -184,7 +209,8 @@ egam.models.gpoItems.PageModelClass.prototype.init = function() {
         $('#agoThumb').toggle();
         $('#imageUpload').toggle();
       });
-      //On modal close with out saving change thumbnail view clear thumbnail form
+      //On modal close with out saving change thumbnail view clear thumbnail
+      //form
       $('#gpoItemsModal').on('hidden.bs.modal', function(e) {
         var thumbnailFile = $('#thumbnail')[0].files[0];
         if (thumbnailFile !== undefined) {
@@ -204,7 +230,8 @@ egam.models.gpoItems.PageModelClass.prototype.init = function() {
   return defer;
 };
 
-//This could maybe be generalized later if it needed to be used on other "pages/screens"
+//This could maybe be generalized later if it needed to be used on other
+//"pages/screens"
 egam.models.gpoItems.PageModelClass.prototype.calculateStats = function() {
   var self = this;
   var data = self.table.data.results;
@@ -215,13 +242,18 @@ egam.models.gpoItems.PageModelClass.prototype.calculateStats = function() {
   data.forEach(function(doc, index) {
     if (doc.access == 'public') {
       publicCount++;
-      if (doc.AuditData.compliant) publicPassingCount++;
+      if (doc.AuditData.compliant) {
+        publicPassingCount++;
+      }
     }
-    if (egam.communityUser.username == doc.owner) myItemsCount++;
+    if (egam.communityUser.username == doc.owner) {
+      myItemsCount++;
+    }
   });
 
   if (publicPassingCount) {
-    self.percentPublicPassing(Math.round((publicPassingCount / publicCount) * 100));
+    self.percentPublicPassing(
+      Math.round((publicPassingCount / publicCount) * 100));
   }else {
     self.percentPublicPassing(Math.round('-'));
   }
@@ -229,7 +261,8 @@ egam.models.gpoItems.PageModelClass.prototype.calculateStats = function() {
   self.myItemsCount(myItemsCount);
 };
 
-//This could maybe be generalized later if it needed to be used on other "pages/screens"
+//This could maybe be generalized later if it needed to be used on other
+//"pages/screens"
 egam.models.gpoItems.PageModelClass.prototype.setAuthGroupsDropdown = function(ownerIDsByAuthGroup) {
   var dropAuthGroups = $('#dropAuthGroups');
   dropAuthGroups.on('change', function() {
@@ -273,7 +306,8 @@ egam.models.gpoItems.PageModelClass.prototype.setAuthGroupsDropdown = function(o
 };
 
 
-//Data here is the actual array of JSON documents that came back from the REST endpoint
+//Data here is the actual array of JSON documents that came back from the
+//REST endpoint
 egam.models.gpoItems.DetailsModel = function(parent) {
   var self = this;
 
@@ -287,21 +321,27 @@ egam.models.gpoItems.DetailsModel = function(parent) {
 
 };
 
-//On the entire table, we need to know which item is selected to use later with modal, etc.
+//On the entire table, we need to know which item is selected to use later with
+//modal, etc.
 egam.models.gpoItems.DetailsModel.prototype.select = function(item) {
   var self = this;
   var needToApplyBindings = self.selected() ? false : true;
-  //    Var fullRowModel = self.selectedCache[item.index] || new egam.gpoItems.FullModelClass(item.doc,self,item.index) ;
+  //Var fullRowModel = self.selectedCache[item.index] || new egam.gpoItems.FullModelClass(item.doc,self,item.index) ;
   var fullRowModel = new egam.models.gpoItems.FullModelClass(item.doc, item.index, self);
   self.selected(fullRowModel);
 
-  //Now apply binding if not applied and then refresh the tag controls for selected item (to select by doc.owners authGroup)
-  if (needToApplyBindings) ko.applyBindings(self, document.getElementById('gpoItemsModal'));
-  //no need to pass the new doc, it just uses the parent's (this details control) selected doc
+  //Now apply binding if not applied and then refresh the tag controls for
+  //selected item (to select by doc.owners authGroup)
+  if (needToApplyBindings) {
+    ko.applyBindings(self, document.getElementById('gpoItemsModal'));
+  }
+  //No need to pass the new doc, it just uses the parent's
+  //(this details control) selected doc
   self.tagControls.refresh();
 };
 
-//Allows you to select an item based on index, usually index will be coming from row number
+//Allows you to select an item based on index, usually index will be coming from
+//row number
 egam.models.gpoItems.DetailsModel.prototype.selectIndex = function(index) {
   this.select(this.parent.table.items[index]);
 };
@@ -310,7 +350,7 @@ egam.models.gpoItems.DetailsModel.prototype.selectIndex = function(index) {
 //Note: Update is called in details model scope so this will be correct
 egam.models.gpoItems.DetailsModel.prototype.update = function() {
   var self = this;
-  //need to add thumbnail name to document before auditing
+  //Need to add thumbnail name to document before auditing
   var thumbnailFile = null;
   try {
     thumbnailFile = $('#thumbnail')[0].files[0];
@@ -321,14 +361,17 @@ egam.models.gpoItems.DetailsModel.prototype.update = function() {
   } else {
     //Add to to change doc
     self.selected().doc().thumbnail('thumbnail/' + thumbnailFile.name);
-    self.selected().addFieldChange('thumbnail', self.selected().doc().thumbnail());
+    self.selected().addFieldChange('thumbnail', 
+      self.selected().doc().thumbnail());
   }
   //Var thumbnail = $('#thumbnail')[0].files[0];
   //if (thumbnail && thumbnail.name) unmappedDoc.thumbnail = "thumbnail/" + thumbnail.name;
 
   var updateDocsJSON = JSON.stringify(self.selected().changeDoc);
   //Don't try to update if there is nothing to update
-  if (updateDocsJSON == '{}' && !thumbnailFile) return;
+  if (updateDocsJSON == '{}' && !thumbnailFile) {
+    return;
+  }
   //ChangeDoc should be cleared for next time
   self.selected().changeDoc = {};
 
@@ -343,21 +386,23 @@ egam.models.gpoItems.DetailsModel.prototype.update = function() {
     data: mydata,
     cache: false,
     dataType: 'json',
-    // Don't process the files
+    //Don't process the files
     processData: false,
-    // Set content type to false as jQuery will tell the server its a query string request
+    //Set content type to false as jQuery will tell the server its a query
+    //string request
     contentType: false,
     success: function(data, textStatus, jqXHR) {
       if (data.errors < 1) {
-        // Success so call function to process the form
+        //Success so call function to process the form
         console.log('success: ' + data);
 
         //Refresh the data table now that save went through
-        //convert the full model observable doc to the simple JS doc. Only update the doc field in row model item
+        //convert the full model observable doc to the simple JS doc.
+        //Only update the doc field in row model item
         var jsDoc = ko.mapping.toJS(self.selected().doc());
         self.parent.table.update(self.selected().index, jsDoc, 'doc');
       } else {
-        // Handle errors here
+        //Handle errors here
         console.error('ERRORS: ');
         console.error(data.errors);
       }
@@ -372,17 +417,20 @@ egam.models.gpoItems.DetailsModel.prototype.update = function() {
   console.log('Post back updated Items');
 };
 
-//This just encapsulates all the logic for the gpoItems tag controls (dropdowns and list box)
+//This just encapsulates all the logic for the gpoItems tag controls
+//(dropdowns and list box)
 egam.models.gpoItems.TagControlsClass = function(parent) {
   var self = this;
 
   self.parent = parent;
 
-  //By default the doc to use which contains tag and other item info is self.parent.selected().doc()
+  //By default the doc to use which contains tag and other item info is
+  //self.parent.selected().doc()
   //It is possible to override this and set self.doc
   self._doc = null;
-  //note call doc() to get the manually set doc or the default doc from selected()
-  self.doc = function () {
+  //Note: call doc() to get the manually set doc or the default doc from
+  //selected()
+  self.doc = function() {
     return self._doc || ko.utils.unwrapObservable(self.parent.selected().doc);
   };
 
@@ -390,47 +438,57 @@ egam.models.gpoItems.TagControlsClass = function(parent) {
   self.$officeTagSelect = $('#officeTagSelect');
   self.$addOrgTag = $('#addOrgTag');
 
-  //Also storing the Office dropdown value even though it doesn't get acted as a tag but need this to set value of drop. Otherwise Please Select kept getting reset
+  //Also storing the Office dropdown value even though it doesn't get acted as
+  //a tag but need this to set value of drop. Otherwise Please Select kept
+  //getting reset
   self.tagCategories = ['EPA', 'Place', 'Office', 'Org'];
 
   //These are the selected Tags that we save so they can be removed
   self.selectedTags = ko.observableArray(['']);
   //This is where the tag for each cat being added is stored
   self.tagToAdd = {};
-  //This is where function to add Tag for each cat is stored (just a convenience for markup to use)
+  //This is where function to add Tag for each cat is stored
+  //(just a convenience for markup to use)
   self.addTag = {};
 
   //These are the organizations that go with each office
   self.selectedOfficeOrganizations = ko.observableArray([]);
 
-  //Generate the observable for tags to add and the add tag function for each tag category
-  $.each(this.tagCategories, function (i, cat) {
+  //Generate the observable for tags to add and the add tag function for each
+  //tag category
+  $.each(this.tagCategories, function(i, cat) {
     //This is just observable for tag that is being added
     self.tagToAdd[cat] = ko.observable('');
-    //This just calls the more generic addTag function which is just convenience for knockout binding
-    self.addTag[cat] = function () {
+    //This just calls the more generic addTag function which is just convenience
+    //for knockout binding
+    self.addTag[cat] = function() {
       return self.addTagByCat(cat)
     };
   });
 
   egam.utilities.getDataStash('availableTags', 'gpoitems/availableTags')
-    .then(function () {
-      return egam.utilities.getDataStash('availableAuthgroups', 'gpoitems/authGroups');
+    .then(function() {
+      return egam.utilities.getDataStash('availableAuthgroups',
+        'gpoitems/authGroups');
     })
-    .then(function () {
+    .then(function() {
       //Only add change handler if it doesn't already have one
-      if ($._data(self.$officeTagSelect[0]).events && $._data(self.$officeTagSelect[0]).events.change) {
+      if ($._data(self.$officeTagSelect[0]).events &&
+        $._data(self.$officeTagSelect[0]).events.change) {
       } else {
-        //Only set the change handler once if it doesn't exist otherwise there will be multiple handlers fired on change
+        //Only set the change handler once if it doesn't exist otherwise there
+        //will be multiple handlers fired on change
         //This also fires right after binding are applied
-        self.$officeTagSelect.change(function () {
+        self.$officeTagSelect.change(function() {
           // Current office selected
           var office = self.$officeTagSelect.val();
           if (office) {
             self.$addOrgTag.prop('disabled', false);
             self.$orgTagSelect.prop('disabled', false);
-            //Get just the orgs for this one office from all the available tags and set the ko obs array
-            self.selectedOfficeOrganizations(egam.dataStash.availableTags.epaOrganizationNames[office]);
+            //Get just the orgs for this one office from all the available
+            //tags and set the ko obs array
+            self.selectedOfficeOrganizations(
+              egam.dataStash.availableTags.epaOrganizationNames[office]);
           } else {
             // If no office selected then disable the org sub drop and button
             self.$addOrgTag.prop('disabled', true);
@@ -442,17 +500,23 @@ egam.models.gpoItems.TagControlsClass = function(parent) {
     });
 };
 
-//pass the tags here and update the controls with this information
+//Pass the tags here and update the controls with this information
 egam.models.gpoItems.TagControlsClass.prototype.refresh = function(doc) {
-//basically allows the selected doc to manually change if parent.selected().doc() not avail
-  if (doc) this._doc = ko.utils.unwrapObservable(doc);
-//this will change the selected tag for organziation due to owner of selected() doc
+  //Basically allows the selected doc to manually change if
+  //parent.selected().doc() not avail
+  if (doc) {
+    this._doc = ko.utils.unwrapObservable(doc);
+  }
+  //This will change the selected tag for organziation due to owner of
+  //selected() doc
   this.selectOrg();
 };
 
 egam.models.gpoItems.TagControlsClass.prototype.addTagByCat = function(cat) {
   //Make sure a tag category exists
-  if (!this.tagToAdd[cat]) return false;
+  if (!this.tagToAdd[cat]) {
+    return false;
+  }
   var tags = this.doc().tags;
   var tagToAdd = this.tagToAdd[cat]();
   // Prevent blanks and duplicates (I guess let a tag=0 since its falsey)
@@ -466,19 +530,27 @@ egam.models.gpoItems.TagControlsClass.prototype.addTagByCat = function(cat) {
 
 egam.models.gpoItems.TagControlsClass.prototype.selectOrg = function() {
   //Find office or region from item owners first authgroup then select it
-  var ownerEDGauthGroup = "";
-  var ownersAuthgroups = egam.communityUser.authGroupsByownerID[this.doc().owner()];
-  //Note: If owner has more than one auth group then we can't really assume what auth group to pre select
-  if (ownersAuthgroups.length==1) ownerEDGauthGroup = egam.dataStash.availableAuthgroups.ids[
-    ownersAuthgroups[0]].edgName;
+  var ownerEDGauthGroup = '';
+  var ownersAuthgroups = egam.communityUser.authGroupsByownerID[
+    this.doc().owner()];
+  //Note: If owner has more than one auth group then we can't really assume
+  //what auth group to pre select
+  if (ownersAuthgroups.length == 1) {
+    ownerEDGauthGroup = egam.dataStash.availableAuthgroups.ids[
+      ownersAuthgroups[0]].edgName;
+  }
   var office = ownerEDGauthGroup;
-  if (/REG /.exec(ownerEDGauthGroup)) office = 'REG';
+  if (/REG /.exec(ownerEDGauthGroup)) {
+    office = 'REG';
+  }
   this.$officeTagSelect.val(office).change();
   //If there authGroup is a region then select the region number
-  if (office = 'REG' && /REG /.exec(ownerEDGauthGroup)) this.$orgTagSelect.val(ownerEDGauthGroup);
+  if (office = 'REG' && /REG /.exec(ownerEDGauthGroup)) {
+    this.$orgTagSelect.val(ownerEDGauthGroup);
+  }
 };
 
-  //Remove tag from tags array
+//Remove tag from tags array
 egam.models.gpoItems.TagControlsClass.prototype.removeSelected = function() {
   var tags = this.doc().tags;
   tags.removeAll(this.selectedTags());
