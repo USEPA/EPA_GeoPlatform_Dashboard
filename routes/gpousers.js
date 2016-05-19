@@ -67,8 +67,7 @@ module.exports = function(app) {
       query = {};
     }
 
-    //Now we can filter using url route filter if supplied eg. authGroups/
-    //EPA Region 1
+    //Now we can filter using url route filter if supplied eg. authGroups/EPA Region 1
     var filterValue = req.params.filterValue;
     if (req.params.filterType) {
       //Try to convert to something other than string
@@ -154,10 +153,8 @@ module.exports = function(app) {
       //Deasync will make json2csv sync so we can stream in order
       var deasync = require('deasync');
       var syncJson2csv = deasync(json2csv);
-      //Need to get the extension field names for header in case the extension
-      //field doesn't exist in doc
-      var GPOuserExtensions = require(app.get('appRoot') +
-        '/config/updateFields/GPOuserExtensions.js');
+      //Need to get the extension field names for header in case the extension field doesn't exist in doc
+      var GPOuserExtensions = require(app.get('appRoot') + '/config/updateFields/GPOuserExtensions.js');
 
       var outFile = 'gpoUsers';
       //Get rid of space and back slashes in file name because back slash will
@@ -180,19 +177,14 @@ module.exports = function(app) {
       userscollection.find(query, projection)
         .each(function(doc) {
 
-          //Add empty extension fields if they don't exist for firt doc to get
-          //the full header
-          if (hasCSVColumnTitle) {
-            GPOuserExtensions.fields.forEach(function(field) {
-              if (!(field in doc)) {
-                doc[field] = undefined
-              }
-            });
-          }
+          //Add empty extension fields if they don't exist for firt doc to get the full header
+          if (hasCSVColumnTitle) GPOuserExtensions.fields.forEach(function(field) {
+            if (!(field in doc)) doc[field] = undefined
+          });
 
-          res.write(syncJson2csv({data: cleanupUserDocForOutputCSV(doc),
-            hasCSVColumnTitle: hasCSVColumnTitle}));
+          res.write(syncJson2csv({data: cleanupUserDocForOutputCSV(doc), hasCSVColumnTitle: hasCSVColumnTitle}));
           res.write('\r\n');
+
           if (hasCSVColumnTitle) {
             hasCSVColumnTitle = false;
           }
@@ -212,6 +204,7 @@ module.exports = function(app) {
       //Remove fields that we don't want to write out to CSV output file
       delete cleanDoc._id;
       delete cleanDoc.isAdmin;
+      delete cleanDoc.folders;
 
       //Convert lists to string to clean up []'s in the output CSV
       cleanDoc.groups = inputDoc.groups.toString();
@@ -233,8 +226,7 @@ module.exports = function(app) {
       projection.stream = true;
       //Make sure end is a string if null
       end = end || '';
-      //First have to stream the beginning text. Not sure why i did
-      //res.write(beginning) in a promise!
+      //First have to stream the beginning text. Not sure why i did res.write(beginning) in a promise!
       return utilities.writeStreamPromise(res, beginning)
         .then(function() {
           var defer = Q.defer();
@@ -274,9 +266,8 @@ module.exports = function(app) {
     }
     //If they are not logged in (no username then
     if (!username) {
-      eturn
-    } res.json(utilities.getHandleError({},
-      'LoginRequired')('Must be logged in to make this request.'));
+      return res.json(utilities.getHandleError({},'LoginRequired')('Must be logged in to make this request.'));
+    }
 
     var monk = app.get('monk');
     var config = app.get('config');
@@ -289,9 +280,8 @@ module.exports = function(app) {
     var updateDocs = utilities.getRequestInputs(req).updateDocs;
     try {
       updateDocs = JSON.parse(updateDocs);
-    } catch (ex) {
-      return res.json(utilities.getHandleError({},
-        'InvalidJSON')('Update Doc is not valid JSON.'));
+    }catch (ex) {
+      return res.json(utilities.getHandleError({},'InvalidJSON')('Update Doc is not valid JSON.'));
     }
 
     //If they pass an array of docs don't support multiple thumbnails for now.
@@ -308,20 +298,16 @@ module.exports = function(app) {
 
     //This function will get the Update Class Instance needed to run .update
     var getUpdateClassInstance = function(row) {
-      var updateInstance = new UpdateGPOclass(usersCollection,
-        extensionsCollection, req.session,config);
-      //Don't need to add anything else like thumbnail to the instance,
-      //just return the instance
+      var updateInstance = new UpdateGPOclass(usersCollection,extensionsCollection,req.session,config);
+      //Don't need to add anything else like thumbnail to the instance, just return the instance
       return updateInstance;
     };
 
     //This function handles the batch update process and is reusable
     var batchUpdateGPO = require(app.get('appRoot') + '/shared/batchUpdateGPO');
-    batchUpdateGPO(updateDocs,getUpdateClassInstance,'User',
-                   'username',useSync,asyncRowLimit)
+    batchUpdateGPO(updateDocs,getUpdateClassInstance,'User','username',useSync,asyncRowLimit)
       .catch(function(err) {
-        res.json(utilities.getHandleError({},
-          'UpdateError')('Error running batchUpdateGPO.' + err.stack));
+        res.json(utilities.getHandleError({},'UpdateError')('Error running batchUpdateGPO.' + err.stack));
       })
       .done(function(resObjects) {
         res.json(resObjects);

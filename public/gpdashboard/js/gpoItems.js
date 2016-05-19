@@ -15,113 +15,7 @@ if (typeof egam.models == 'undefined') {
 //model, utility and control classes. They will be in directories
 egam.models.gpoItems = {};
 
-//This is limited model which is used for the table rows. It is condensed so
-//that table loads faster
-egam.models.gpoItems.RowModelClass = function(doc, index) {
-  var self = this;
-  //This is the doc
-
-  this.doc = doc;
-  //To keep track of this row when selected
-  this.index = index;
-
-  //This is basically just formatting stuff
-  this.complianceStatus = ko.computed(function() {
-    return this.doc.AuditData.compliant ? 'Pass' : 'Fail';
-  }, this);
-
-  //Format Modified Date
-  this.modifiedDate = ko.computed(function() {
-    var monthNames = [
-      'Jan', 'Feb', 'Mar',
-      'Apr', 'May', 'Jun', 'Jul',
-      'Aug', 'Sep', 'Oct',
-      'Nov', 'Dec',
-    ];
-
-    var modDate = new Date(this.doc.modified);
-    return monthNames[modDate.getMonth()] + ' ' +
-      modDate.getDate() + ', ' + modDate.getFullYear();
-  }, this);
-
-};
-
-//This is the FULL model which binds to the modal allowing 2 way data binding
-//and updating etc
-egam.models.gpoItems.FullModelClass = function(doc, index, parent) {
-  var self = this;
-  //The pageModel this belows to
-  this.parent = parent;
-  //The index in array for this item
-  this.index = index;
-  //This is the doc
-  this.doc = ko.observable(ko.mapping.fromJS(doc));
-
-  //Computed thumbnail url
-  this.thumbnailURL = ko.computed(function() {
-    if (self.doc().thumbnail() == null) {
-      return 'img/noImage.png';
-    }
-    return 'https://epa.maps.arcgis.com/sharing/rest/content/items/' +
-      self.doc().id() + '/info/' + self.doc().thumbnail() +
-      '?token=' + egam.portalUser.credential.token;
-  }, this);
-
-  this.epaKeywords = function() {
-  };
-
-  //Link to item in GPO
-  this.gpoLink = ko.computed(function() {
-    return 'https://epa.maps.arcgis.com/home/item.html?id=' + self.doc().id();
-  }, this);
-
-  //Doc of changed fields
-  this.changeDoc = {};
-
-  //Subscribes Setup
-  this.updateFields = [
-    'title',
-    'snippet',
-    'description',
-    'licenseInfo',
-    'accessInformation',
-    'url',
-  ];
-
-  //Condensed this repetitive code
-  $.each(this.updateFields, function(index, field) {
-    self.doc()[field].subscribe(function(evt) {
-      self.execAudit(field);
-      self.addFieldChange(field, evt);
-    }.bind(self));
-  });
-  //Could condense arrays later if have more than one
-  this.doc().tags.subscribe(function(evt) {
-    self.execAudit('tags');
-    self.addFieldChange('tags', self.doc().tags());
-  }.bind(this), null, 'arrayChange');
-
-  //Add and field that has changed to the changeDoc
-  this.addFieldChange = function(changeField, changeValue) {
-    self.changeDoc['id'] = self.doc().id();
-    self.changeDoc[changeField] = changeValue;
-  };
-
-  //Execute Audit on specified field in doc
-  this.execAudit = function(auditField) {
-    var unmappedDoc = ko.mapping.toJS(self.doc());
-    var auditRes = new Audit();
-    auditRes.validate(unmappedDoc, auditField);
-    //Note if you are trying to remap observable doc then have to make doc
-    //second parameter do NOT do doc(ko.mapping.fromJS(unmappedDoc)). that will
-    //lose subscribers on original doc
-    ko.mapping.fromJS(unmappedDoc, self.doc());
-  };
-
-};
-
-//Data here is the actual array of JSON documents that came back from the
-//REST endpoint
+//Data here is the actual array of JSON documents that came back from the REST endpoint
 egam.models.gpoItems.PageModelClass = function() {
   var self = this;
 
@@ -160,7 +54,7 @@ egam.models.gpoItems.PageModelClass = function() {
   //Set up the details control now which is part of this Model Class
   self.details = new egam.models.gpoItems.DetailsModel(self);
 
-  //Set up the authGroups dropdown
+    //Set up the authGroups dropdown
   self.setAuthGroupsDropdown(egam.communityUser.ownerIDsByAuthGroup);
 
   //Percent passing, Count of personal items should be observable on here
@@ -281,6 +175,7 @@ egam.models.gpoItems.PageModelClass.prototype.setAuthGroupsDropdown = function(o
       // TODO: action where my dashboard is sent to a 404 error page upon
       // TODO: clicking download users CSV in the GUI -- looked like an escaping
       // TODO: issue to me
+      //Maybe this could be cleaned up to use the group ID instead
       var escapeAuthGroup = authgroup.replace(/\(/g, '%5C(')
         .replace(/\)/g, '%5C)');
       href = href.substring(0, href.lastIndexOf('/') + 1) + '^' +
@@ -305,19 +200,116 @@ egam.models.gpoItems.PageModelClass.prototype.setAuthGroupsDropdown = function(o
   });
 };
 
+//This is limited model which is used for the table rows. It is condensed so that table loads faster
+egam.models.gpoItems.RowModelClass = function(doc, index) {
+  var self = this;
+  //This is the doc
+
+  this.doc = doc;
+  //To keep track of this row when selected
+  this.index = index;
+
+  //This is basically just formatting stuff
+  this.complianceStatus = ko.computed(function() {
+    return this.doc.AuditData.compliant ? 'Pass' : 'Fail';
+  }, this);
+
+  //Format Modified Date
+  this.modifiedDate = ko.computed(function() {
+    var monthNames = [
+      'Jan', 'Feb', 'Mar',
+      'Apr', 'May', 'Jun', 'Jul',
+      'Aug', 'Sep', 'Oct',
+      'Nov', 'Dec',
+    ];
+
+    var modDate = new Date(this.doc.modified);
+    return monthNames[modDate.getMonth()] + ' ' + modDate.getDate() + ', ' + modDate.getFullYear();
+  }, this);
+
+};
+
+//This is the FULL model which binds to the modal allowing 2 way data binding and updating etc
+egam.models.gpoItems.FullModelClass = function(doc, index, parent) {
+  var self = this;
+  //The pageModel this belows to
+  this.parent = parent;
+  //The index in array for this item
+  this.index = index;
+  //This is the doc
+  this.doc = ko.observable(ko.mapping.fromJS(doc));
+
+  //Computed thumbnail url
+  this.thumbnailURL = ko.computed(function() {
+    if (self.doc().thumbnail() == null) {
+      return 'img/noImage.png';
+    } else {
+      return 'https://epa.maps.arcgis.com/sharing/rest/content/items/' + self.doc().id() + '/info/' + self.doc().thumbnail() + '?token=' + egam.portalUser.credential.token;
+    }
+  }, this);
+
+  this.epaKeywords = function() {
+  };
+
+  //Link to item in GPO
+  this.gpoLink = ko.computed(function() {
+    return 'https://epa.maps.arcgis.com/home/item.html?id=' + self.doc().id();
+  }, this);
+
+  //Doc of changed fields
+  this.changeDoc = {};
+
+  //Subscribes Setup
+  this.updateFields = ['title', 'snippet', 'description', 'licenseInfo', 'accessInformation', 'url'];
+
+  //Condensed this repetitive code
+  $.each(this.updateFields, function(index, field) {
+    self.doc()[field].subscribe(function(evt) {
+      self.execAudit(field);
+      self.addFieldChange(field, evt);
+    }.bind(self));
+  });
+  //Could condense arrays later if have more than one
+  this.doc().tags.subscribe(function(evt) {
+    self.execAudit('tags');
+    self.addFieldChange('tags', self.doc().tags());
+  }.bind(this), null, 'arrayChange');
+
+  //Add and field that has changed to the changeDoc
+  this.addFieldChange = function(changeField, changeValue) {
+    self.changeDoc['id'] = self.doc().id();
+    self.changeDoc[changeField] = changeValue;
+  };
+
+  //Execute Audit on specified field in doc
+  this.execAudit = function(auditField) {
+    var unmappedDoc = ko.mapping.toJS(self.doc());
+    var auditRes = new Audit();
+    auditRes.validate(unmappedDoc, auditField);
+    //Note if you are trying to remap observable doc then have to make doc second parameter do NOT do doc(ko.mapping.fromJS(unmappedDoc)). that will lose subscribers on original doc
+    ko.mapping.fromJS(unmappedDoc, self.doc());
+  };
+
+};
+
+
 
 //Data here is the actual array of JSON documents that came back from the
 //REST endpoint
 egam.models.gpoItems.DetailsModel = function(parent) {
   var self = this;
-
   self.parent = parent;
 
+  self.$element = $('gpoItemsModal');
+  this.bound = false;
   //A new observable for the selected row storing the FULL gpoItem model
   self.selected = ko.observable();
-
-  //Creates the tag controls now
-  self.tagControls = new egam.models.gpoItems.TagControlsClass(self);
+  
+  //Creates the tag controls when row is selected and details model is needed for first time
+  self.tagControls = null;
+  //set up reference to reconcillation stuff here since this page uses it
+  //It is not actually created until somebody hits reconcilliation modal for first time
+  self.reconcillation = null;
 
 };
 
@@ -325,19 +317,44 @@ egam.models.gpoItems.DetailsModel = function(parent) {
 //modal, etc.
 egam.models.gpoItems.DetailsModel.prototype.select = function(item) {
   var self = this;
-  var needToApplyBindings = self.selected() ? false : true;
-  //Var fullRowModel = self.selectedCache[item.index] || new egam.gpoItems.FullModelClass(item.doc,self,item.index) ;
+  //    Var fullRowModel = self.selectedCache[item.index] || new egam.gpoItems.FullModelClass(item.doc,self,item.index) ;
   var fullRowModel = new egam.models.gpoItems.FullModelClass(item.doc, item.index, self);
   self.selected(fullRowModel);
 
-  //Now apply binding if not applied and then refresh the tag controls for
-  //selected item (to select by doc.owners authGroup)
-  if (needToApplyBindings) {
-    ko.applyBindings(self, document.getElementById('gpoItemsModal'));
+  //If no tag Controls created yet then do it now
+  if (!self.tagControls) self.tagControls = new egam.models.gpoItems.TagControlsClass(self);
+  //Note: if the instance of these controls/models are used in multiple places it can be stored in something like egam.shared.tagConrols
+  //Then the we would get self.tagControls = using functions that creates egam.shared.tagConrols if not exists otherwise returns existing so that we don't create another instance again if already created by different consumer
+  // if (!self.tagControls) self.tagControls = egam.utilities.loadSharedControl("tagControls",egam.models.gpoItems.TagControlsClass,[self]);
+
+  //This function will not reinitialize when called second time
+  //If there would have been more promises then just this tagControls then could use .all or chain them
+  self.tagControls.init()
+    .then(function () {
+      //Now apply binding if not applied and then refresh the tag controls for selected item (to select by doc.owners authGroup)
+//  if (needToApplyBindings) ko.applyBindings(self, self.$element[0]);
+      if (!self.bound) {
+        ko.applyBindings(self, document.getElementById('gpoItemsModal'));
+        self.bound=true;
+      }
+
+      //no need to pass the new doc, it just uses the parent's (this details control) selected doc
+      self.tagControls.refresh();
+    });
+};
+
+//Allows you to select an item based on index, usually index will be coming from row number
+egam.models.gpoItems.DetailsModel.prototype.loadReconcile = function() {
+  var self = this;
+  if (!self.reconcillation) {
+    self.reconcillation = new egam.models.edgItems.ReconcilliationModel(self.selected);
+//    self.reconcillation = egam.utilities.loadSharedControl("reconcillation",egam.models.gpoItems.ReconcilliationModel,[self.selected]);
   }
-  //No need to pass the new doc, it just uses the parent's
-  //(this details control) selected doc
-  self.tagControls.refresh();
+
+  self.reconcillation.load(self.selected().doc);
+  //Do things like turn off the details model stuff
+  //$element.modal('hide');
+
 };
 
 //Allows you to select an item based on index, usually index will be coming from
@@ -423,9 +440,8 @@ egam.models.gpoItems.TagControlsClass = function(parent) {
   var self = this;
 
   self.parent = parent;
-
-  //By default the doc to use which contains tag and other item info is
-  //self.parent.selected().doc()
+  self.isInit = false;
+  //By default the doc to use which contains tag and other item info is self.parent.selected().doc()
   //It is possible to override this and set self.doc
   self._doc = null;
   //Note: call doc() to get the manually set doc or the default doc from
@@ -466,6 +482,19 @@ egam.models.gpoItems.TagControlsClass = function(parent) {
     };
   });
 
+};
+
+//Need to use an init function so we can defer before moving onto bindings
+egam.models.gpoItems.TagControlsClass.prototype.init = function(doc) {
+  var self = this;
+  var defer = $.Deferred();
+
+  //If already got avail tags just return don't ajax them again
+  if (self.isInit) {
+    defer.resolve();
+    return defer;
+  }
+
   egam.utilities.getDataStash('availableTags', 'gpoitems/availableTags')
     .then(function() {
       return egam.utilities.getDataStash('availableAuthgroups',
@@ -497,7 +526,10 @@ egam.models.gpoItems.TagControlsClass = function(parent) {
           }
         });
       }
+      self.isInit = true;
+      defer.resolve();
     });
+  return defer;
 };
 
 //Pass the tags here and update the controls with this information

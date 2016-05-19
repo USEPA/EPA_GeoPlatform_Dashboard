@@ -9,6 +9,10 @@ if (typeof egam.models == 'undefined') {
 if (typeof egam.utilities == 'undefined') {
   egam.utilities = {};
 }
+//Place for shared instances of controls/models
+if (typeof egam.utilities == 'undefined') {
+  egam.utilities = {};
+}
 
 //For now i'm using .(dot) namespacing categorized by model, utility and control
 //classes. Most classes are models but reusable ones like Table class are
@@ -29,7 +33,6 @@ egam.edgItems = {
   resultSet: [],
   tableModel: null,
   dataTable: null,
-  reconcillation: null,
 };
 
 egam.gpoUsers = {
@@ -108,22 +111,6 @@ egam.searchEDG = function() {
   });
   egam.edginit(title, true);
   $('#gpoItemsModal').modal('hide');
-};
-
-egam.reconcileEDG = function() {
-  $('#reconciliationModal').modal('show');
-  //  $('#gpoItemsModal').modal('hide');
-  //This just temp to know that reconcillation modal was binded
-  var applyBindings = false;
-  if (!egam.edgItems.reconcillation) {
-    egam.edgItems.reconcillation = new egam.models.edgItems.ReconcilliationModel();
-    applyBindings = true;
-  }
-  egam.edgItems.reconcillation
-    .loadCurrentFields(egam.pages.gpoItems.details.selected().doc);
-  if (applyBindings) {
-    ko.applyBindings(egam.edgItems.reconcillation,$('#reconciliationModal')[0]);
-  }
 };
 
 // TODO: all EDG code should go in its own module
@@ -686,7 +673,7 @@ egam.edgItemTableModel = function(data) {
                 $('#edgModal').modal('hide');
 
                 // Show reconciliation modal
-                egam.reconcileEDG();
+                egam.pages.gpoItems.details.loadReconcile();
               } else {
                 // Handle errors here
                 console.error('ERRORS: ');
@@ -717,6 +704,7 @@ egam.edgItemTableModel = function(data) {
 
 egam.models.edgItems.ReconcilliationModel = function() {
   var self = this;
+  this.$element =  $('#reconciliationModal');
 
   this.fields = [
     'title',
@@ -726,40 +714,58 @@ egam.models.edgItems.ReconcilliationModel = function() {
     'accessInformation',
   ];
 
+  this.onload = onload;
+  this.bound = false;
   this.doc = ko.observable();
   this.fullDoc = null;
 
-  //This loads the current fields for item into reconcilliation model
-  this.loadCurrentFields = function(fullDoc) {
-    var self = this;
-    this.fullDoc = fullDoc;
-    //FullDoc passed in might not be observable
-    fullDoc = ko.utils.unwrapObservable(fullDoc);
-    var docSlice = {};
-    $.each(this.fields,function(index,field) {
-      //UnwrapObservable in case the doc passed does not have observables for
-      //fields
-      docSlice[field] = ko.utils.unwrapObservable(fullDoc[field]);
-    });
-    this.doc(ko.mapping.fromJS(docSlice));
-  };
+};
 
-  //This loads the reconciled fields into the current item for possible saving
-  this.loadReconciledFields = function() {
-    var self = this;
-    var fullDoc = ko.utils.unwrapObservable(this.fullDoc);
+//This willl load the reconcillation controls when called (eg. the reconcile button is clicked)
+egam.models.edgItems.ReconcilliationModel.prototype.load = function(fullDoc) {
 
-    $.each(this.fields,function(index,field) {
-      //If FullDoc is observable need to pass the reconciled field vs setting it
-      if (ko.isObservable(fullDoc[field])) {
-        fullDoc[field](self.doc()[field]());
-      }else {
-        fullDoc[field] = self.doc()[field]();
-      }
-    });
-  };
+  this.$element.modal('show');
+  //Had to do this for testing
+  //  $('#gpoItemsModal').modal('hide');
 
-  this.copyEDGtoGPO = function(source,destination) {
+  this.loadCurrentFields(fullDoc);
+  //If not bound yet then apply bindings
+  if (!this.bound) {
+    ko.applyBindings(this,this.$element[0]);
+    this.bound = true;
+  }
+};
+
+//This loads the current fields for item into reconcilliation model
+egam.models.edgItems.ReconcilliationModel.prototype.loadCurrentFields = function(fullDoc) {
+  var self = this;
+  this.fullDoc = fullDoc;
+  //FullDoc passed in might not be observable
+  fullDoc = ko.utils.unwrapObservable(fullDoc);
+  var docSlice = {};
+  $.each(this.fields,function(index,field) {
+    //UnwrapObservable in case the doc passed does not have observables for fields
+    docSlice[field] = ko.utils.unwrapObservable(fullDoc[field]);
+  });
+  this.doc(ko.mapping.fromJS(docSlice));
+};
+
+//This loads the reconciled fields into the current item for possible saving
+egam.models.edgItems.ReconcilliationModel.prototype.loadReconciledFields = function() {
+  var self = this;
+  var fullDoc = ko.utils.unwrapObservable(this.fullDoc);
+
+  $.each(this.fields,function(index,field) {
+    //If FullDoc is observable need to pass the reconcilled field vs setting it
+    if (ko.isObservable(fullDoc[field])) {
+      fullDoc[field](self.doc()[field]());
+    }else {
+      fullDoc[field] = self.doc()[field]();
+    }
+  });
+};
+
+egam.models.edgItems.ReconcilliationModel.prototype.copyEDGtoGPO = function(source,destination) {
     var self = this;
     //If no destination then it is same name as source
     destination = destination || source;
@@ -767,9 +773,8 @@ egam.models.edgItems.ReconcilliationModel = function() {
     var fullDoc = ko.utils.unwrapObservable(this.fullDoc);
     var edgValue = ko.utils.unwrapObservable(fullDoc.EDGdata[source]);
     this.doc()[destination]($.trim(edgValue));
-  };
-
 };
+
 
 //This is basically generic way to hit endopint get dataset and store it
 //Example datasets are available authgroups and available tags
@@ -804,3 +809,12 @@ egam.utilities.getDataStash = function(name,endpoint) {
   return defer;
 };
 
+egam.utilities.loadSharedControl = function(name,constructor,args) {
+  if (egam.shared[name]) {
+    return egam.shared[name];
+  }else {
+    args.unshift(null);
+    var factoryFunction = constructor.bind.apply(constructor, args);
+    return new factoryFunction();
+  }
+};
