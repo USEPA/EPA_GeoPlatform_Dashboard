@@ -96,12 +96,10 @@ egam.gpoItems.init = function (query, projection) {
       }
     },
     error: function(request, status, err){
-      if(status == 'timeout'){
-        alert("Timeout!");
-        $("#loadingMsgCountContainer").addClass("hidden");
-        $("#loadingGraphic").addClass("hidden");
-        $("#loadingMsgText").html('<span class="glyphicon glyphicon-warning-sign"></span> Failed to Load table');
-      }
+      $("#loadingMsgCountContainer").addClass("hidden");
+      $("#loadingGraphic").addClass("hidden");
+      $("#loadingMsgText").html('<span class="glyphicon glyphicon-warning-sign"></span> Table failed to Load');
+      $("#loadingMsgText").append('</br><h4>Status: ' + status + '</h4>' + '<h4>Error: ' + err + '</h4>')
     }
   });
 
