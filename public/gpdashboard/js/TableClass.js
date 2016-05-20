@@ -30,47 +30,65 @@ egam.controls.Table.prototype.init = function(endpoint, query, projection) {
   //reverse proxy
   //hit our Express endpoint to get the list of items for this logged in user
   console.log('Call Endpoint Start: ' + new Date());
-  $.post(endpoint, {
-    query: query,
-    projection: projection,
-  }, function(data) {
-    console.log('Endpoint Data Received : ' + new Date());
-    //If "limit" passed to the endpoint then return paging info where data is
-    //in data.results
-    //If only data returned for no paging just save data in same structure
-    if ('results' in data) {
-      self.data = data;
-    } else {
-      self.data = {results: data};
-    }
 
-    $('#loadingMsgCountContainer').removeClass('hidden');
-    $('#loadingMsgTotalCount').text(self.data.results.length);
-
-    //Doing this in the next tick at least shows the item count
-    setTimeout(function() {
-
-      //To get the datatable object already created us "bRetrieve": true
-      self.dataTable = self.$element.DataTable({bRetrieve: true});
-      //Add these using .add to push to array
-      //data.results is just the array of objects returned by server
-      self.add(self.data.results);
-      console.log('Knockout Model data added: ' + new Date());
-
-      //Now do all the custom filter stuff to dataTable in scope of dataTable
-      self.customizeDataTable();
-
-      defer.resolve();
-    },0);
-
-    function updateLoadingCountMessage(index) {
-      //Only show every 10
-      if (index % 10 === 0) {
-        $('#loadingMsgCount').text(index + 1);
+  $.ajax({
+    type: 'POST',
+    url: endpoint,
+    data: {query: query, projection: projection},
+    dataType: 'json',
+    timeout: 50,
+    success: function(data){
+      console.log('Endpoint Data Received : ' + new Date());
+      //If "limit" passed to the endpoint then return paging info where data is
+      //in data.results
+      //If only data returned for no paging just save data in same structure
+      if ('results' in data) {
+        self.data = data;
+      } else {
+        self.data = {results: data};
       }
-    }
 
-  }, 'json');
+      $('#loadingMsgCountContainer').removeClass('hidden');
+      $('#loadingMsgTotalCount').text(self.data.results.length);
+
+      //Doing this in the next tick at least shows the item count
+      setTimeout(function() {
+
+        //To get the datatable object already created us "bRetrieve": true
+        self.dataTable = self.$element.DataTable({bRetrieve: true});
+        //Add these using .add to push to array
+        //data.results is just the array of objects returned by server
+        self.add(self.data.results);
+        console.log('Knockout Model data added: ' + new Date());
+
+        //Now do all the custom filter stuff to dataTable in scope of dataTable
+        self.customizeDataTable();
+
+        defer.resolve();
+      },0);
+
+      function updateLoadingCountMessage(index) {
+        //Only show every 10
+        if (index % 10 === 0) {
+          $('#loadingMsgCount').text(index + 1);
+        }
+      }
+    },
+    error: function(request, status, err){
+      $("#loadingMsgCountContainer").addClass("hidden");
+      $("#loadingGraphic").addClass("hidden");
+      $("#loadingMsgText").html('<span class="glyphicon glyphicon-warning-sign"></span> Table failed to Load');
+      $("#loadingMsgText").append('</br><h4>Status: ' + status + '</h4>' + '<h4>Error: ' + err + '</h4>')
+    }
+  });
+
+  // $.post(endpoint, {
+  //   query: query,
+  //   projection: projection,
+  // }, function(data) {
+  //
+  //
+  // }, 'json');
 
   return defer;
 };
