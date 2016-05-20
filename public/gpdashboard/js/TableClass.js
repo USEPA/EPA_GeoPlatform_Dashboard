@@ -36,7 +36,7 @@ egam.controls.Table.prototype.init = function(endpoint, query, projection) {
     url: endpoint,
     data: {query: query, projection: projection},
     dataType: 'json',
-    timeout: 50,
+    timeout: 6000,
     success: function(data){
       console.log('Endpoint Data Received : ' + new Date());
       //If "limit" passed to the endpoint then return paging info where data is
