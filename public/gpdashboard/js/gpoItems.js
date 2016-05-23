@@ -128,7 +128,7 @@ egam.models.gpoItems.PageModelClass.prototype.init = function() {
 //"pages/screens"
 egam.models.gpoItems.PageModelClass.prototype.calculateStats = function() {
   var self = this;
-  var data = self.table.data.results;
+  var data = self.table.data;
   //Get percent of docs passing the Audit
   var publicCount = 0;
   var publicPassingCount = 0;
@@ -353,7 +353,7 @@ egam.models.gpoItems.DetailsModel.prototype.loadReconcile = function() {
 
   self.reconcillation.load(self.selected().doc);
   //Do things like turn off the details model stuff
-  //$element.modal('hide');
+  self.$element.modal('hide');
 
 };
 
