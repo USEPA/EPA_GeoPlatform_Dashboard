@@ -6,15 +6,20 @@ if (typeof egam.controls == 'undefined') {
   egam.controls = {};
 }
 
-egam.controls.Table = function(items,elementSelector,RowModelClass) {
+egam.controls.Table = function(items,elementSelector,RowModelClass,resultsName) {
   this.items = items;
   this.$element = $(elementSelector);
   this.RowModelClass = RowModelClass;
+//full data contains rows and info about the rows like paging info
+  this.allData = null;
+  // data is just the array of objects used to create items
   this.data = null;
   this.dataTable = null;
+  // resultsName is the name of the results in object returned by endpoint (default='results'). for edg stuff it is dataSet
+  this.resultsName = resultsName | 'results';
 };
 
-egam.controls.Table.prototype.init = function(endpoint, query, projection) {
+egam.controls.Table.prototype.init = function(endpoint, query, projection, resultsName) {
   var self = this;
   //First get the data for GPOitems table
   //Just for testing to speed some things up
@@ -23,6 +28,9 @@ egam.controls.Table.prototype.init = function(endpoint, query, projection) {
   //Projection in Mongo/Monk is what fields you want to return and sorting,
   //offsetting, etc.
   projection = JSON.stringify(projection);
+  // resultsName is the name of the results in object returned by endpoint (default='results'). for edg stuff it is dataSet
+  if (resultsName) this.resultsName = resultsName;
+
   //Use this so we know when everything is loaded
   var defer = $.Deferred();
 
@@ -30,26 +38,24 @@ egam.controls.Table.prototype.init = function(endpoint, query, projection) {
   //reverse proxy
   //hit our Express endpoint to get the list of items for this logged in user
   console.log('Call Endpoint Start: ' + new Date());
+  $.post(endpoint, {
+    query: query,
+    projection: projection,
+  }, function(returnedData) {
+    console.log('Endpoint Data Received : ' + new Date());
+    //The endpoint might return return other info other than array of objects with desired table data which will be saved in this.data
+    // eg. If "limit" passed to dashboard gpo endpoints then paging info is returned and this.data is actually in returnedData.results
+    //If there is a field called resultsName (default=results) in data returned by endpoint that is where the array of objects or this.data resides
+    //Otherwise have to assume data returned is the array of objets or this.data
+    if (resultsName in returnedData) {
+      self.allData = returnedData;
+      self.data = returnedData[resultsName];
+    } else {
+      self.data = returnedData;
+    }
 
-  $.ajax({
-    type: 'POST',
-    url: endpoint,
-    data: {query: query, projection: projection},
-    dataType: 'json',
-    timeout: 6000,
-    success: function(data){
-      console.log('Endpoint Data Received : ' + new Date());
-      //If "limit" passed to the endpoint then return paging info where data is
-      //in data.results
-      //If only data returned for no paging just save data in same structure
-      if ('results' in data) {
-        self.data = data;
-      } else {
-        self.data = {results: data};
-      }
-
-      $('#loadingMsgCountContainer').removeClass('hidden');
-      $('#loadingMsgTotalCount').text(self.data.results.length);
+    $('#loadingMsgCountContainer').removeClass('hidden');
+    $('#loadingMsgTotalCount').text(self.data.length);
 
       //Doing this in the next tick at least shows the item count
       setTimeout(function() {
