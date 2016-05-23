@@ -310,6 +310,7 @@ egam.models.gpoItems.DetailsModel = function(parent) {
   //set up reference to reconcillation stuff here since this page uses it
   //It is not actually created until somebody hits reconcilliation modal for first time
   self.reconcillation = null;
+  self.searchEDG = null;
 
 };
 
@@ -354,6 +355,17 @@ egam.models.gpoItems.DetailsModel.prototype.loadReconcile = function() {
   self.reconcillation.load(self.selected().doc);
   //Do things like turn off the details model stuff
   //$element.modal('hide');
+
+};
+
+
+egam.models.gpoItems.DetailsModel.prototype.loadSearchEDG = function() {
+  var self = this;
+  if (!self.searchEDG) {
+    self.searchEDG = new egam.models.edgItems.searchEDGModel(self.selected);
+  }
+
+  self.searchEDG.load(self.selected().doc);
 
 };
 
