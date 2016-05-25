@@ -1,4 +1,3 @@
-
 //Place to stash the edgItmes models for now
 //Note the actual instance of the page models are in egam.pages so edgItems page
 //instance is egam.pages.edgItems
@@ -8,106 +7,146 @@ egam.models.edgItems = {};
 
 
 
-//Data here is the actual array of JSON documents that came back from the REST endpoint
-//egam.models.edgItems.PageModelClass = function() {
-//  var self = this;
-//
-//  self.$tableElement = $('#gpoItemsTable');
-//  self.$pageElement = $('#gpoItemsPage');
-//
-//  //Only these fields will be returned from gpoItems/list endpoint
-//  self.resultFields = {
-//    id: 1,
-//    title: 1,
-//    description: 1,
-//    tags: 1,
-//    thumbnail: 1,
-//    snippet: 1,
-//    licenseInfo: 1,
-//    accessInformation: 1,
-//    url: 1,
-//    AuditData: 1,
-//    numViews: 1,
-//    modified: 1,
-//    type: 1,
-//    owner: 1,
-//    access: 1,
-//    EDGdata: 1,
-//  };
-//
-//  //This is instance of the table class that does all the table stuff.
-//  //Pass empty array of items initially
-//  self.table = new egam.controls.Table([],
-//    self.$tableElement,egam.models.edgItems.RowModelClass);
-//
-//  //Have to set authGroups in this context so knockout has access to it from
-//  //PageModel
-//  self.authGroups = egam.communityUser.authGroups;
-//
-//  //Set up the details control now which is part of this Model Class
-//  self.details = new egam.models.edgItems.DetailsModel(self);
-//
-//  //Set up the authGroups dropdown
-//  self.setAuthGroupsDropdown(egam.communityUser.ownerIDsByAuthGroup);
-//
-//  //Percent passing, Count of personal items should be observable on here
-//  self.percentPublicPassing = ko.observable();
-//  self.myItemsCount = ko.observable();
-//
-//
-//};
+//Data here is the actual array of JSON documents that came back from the REST
+//endpoint
+egam.models.edgItems.PageModelClass = function() {
+  var self = this;
+
+  self.$tableElement = $('#edgItemsTable');
+  self.$pageElement = $('#edgItemsPage');
+
+  //This is instance of the table class that does all the table stuff.
+  //Pass empty array of items initially
+  self.table = new egam.controls.Table([],
+    self.$tableElement,egam.models.edgItems.RowModelClass);
+
+  ////Set up the details control now which is part of this Model Class
+  //self.details = new egam.models.edgItems.DetailsModel(self);
+};
+
+// Load EDG table on initial click of EDG
+egam.models.edgItems.PageModelClass.prototype.init = function() {
+  var self = this;
+  var defer = $.Deferred();
+
+  //Only run init once for gpoItems page/model
+  if (self.model) {
+    defer.resolve();
+    return defer;
+  }
+
+  //Show the loading message but hide count (doesn't work for external).
+  //Hide the table.
+  $('#loadingMsgTotalCount').text('');
+  $('div#loadingMsg').removeClass('hidden');
+  self.$pageElement.addClass('hidden');
+
+  //Apply the bindings for the page now
+  ko.applyBindings(self, self.$pageElement[0]);
+  console.log('Bindings Applied: ' + new Date());
 
 
+  // Get ALL the records for now (will make it more targeted later)
+  var edgURLParams = {
+    f: 'dcat',
+    max: '5000',
+  };
+  var edgURL = 'https://edg.epa.gov/metadata/rest/find/document?' +
+    $.param(edgURLParams);
 
+  return self.table.init(edgURL, null, null, 'dataset')
+  //After table is loaded we can do other stuff
+    .then(function() {
+      //Now stop showing loading message that page is load
+      $('div#loadingMsg').addClass('hidden');
+      self.$pageElement.removeClass('hidden');
 
+      defer.resolve();
+    });
+};
 
+//This is limited model which is used for the table rows. It is condensed so
+//that table loads faster
+egam.models.edgItems.RowModelClass = function(doc, index) {
+  var self = this;
+  //This is the doc
 
+  this.doc = doc;
+  //To keep track of this row when selected
+  this.index = index;
 
+};
 
-
-
-
-
-egam.models.edgItems.SearchEDGModel = function() {
+//Model for Search EDG modal accessed from GPO details modal
+egam.models.edgItems.LinkEDGModel = function() {
   var self = this;
   this.$element =  $('#edgModal');
+  this.$tableElement = $('#edgModalItemsTable');
 
+  this.gpoDoc = null;
   this.gpoID = null;
   this.gpoTitle = null;
 
   this.onload = onload;
   this.bound = false;
-  this.doc = ko.observable();
-  this.fullDoc = null;
+
+  //This is instance of the table class that does all the table stuff.
+  //Pass empty array of items initially
+  self.table = new egam.controls.Table([],
+    self.$tableElement,egam.models.edgItems.RowModelClass);
 
 };
 
 
-//This will load the controls when called (eg. the link button is clicked)
-egam.models.edgItems.SearchEDGModel.prototype.load = function(fullDoc) {
-
+//This will load the controls when called (eg. the Search button is clicked)
+egam.models.edgItems.LinkEDGModel.prototype.load = function(gpoDoc) {
+  var self = this;
   this.$element.modal('show');
 
-  this.loadCurrentFields(fullDoc);
+  //Get actual values for these instead of observables
+  this.gpoDoc = ko.utils.unwrapObservable(gpoDoc);
+  this.gpoID = ko.utils.unwrapObservable(this.gpoDoc.id);
+  this.gpoTitle = ko.utils.unwrapObservable(this.gpoDoc.title);
+
   //If not bound yet then apply bindings
   if (!this.bound) {
     ko.applyBindings(this,this.$element[0]);
     this.bound = true;
   }
+
+  // Get
+  var edgURLParams = {
+    f: 'dcat',
+    max: '100',
+    searchText: 'title:\'' + this.gpoTitle + '\'',
+  };
+  var edgURL = 'https://edg.epa.gov/metadata/rest/find/document?' +
+    $.param(edgURLParams);
+
+  return self.table.init(edgURL, null, null, 'dataset')
 };
 
+//Re-initialize the table on user-submitted search term
+egam.models.edgItems.LinkEDGModel.prototype.customSearch = function() {
+  var self = this;
+  // Get
+  var edgURLParams = {
+    f: 'dcat',
+    max: '100',
+    searchText: 'title:\'' + $('#edgTitleSearch').val() + '\'',
+  };
+  var edgURL = 'https://edg.epa.gov/metadata/rest/find/document?' +
+    $.param(edgURLParams);
 
-//This loads the current fields for item into searchEDG model
-egam.models.edgItems.SearchEDGModel.prototype.loadCurrentFields = function(fullDoc) {
-  this.fullDoc = fullDoc;
-  this.gpoID = ko.utils.unwrapObservable(fullDoc['id']);
-  this.gpoTitle = ko.utils.unwrapObservable(fullDoc['title']);
+  return self.table.init(edgURL, null, null, 'dataset')
 };
 
-
-
-egam.models.edgItems.SearchEDGModel.prototype.linkRecord = function(edgURLs) {
+//Get reference URLs from EDG Search. Find metadata URL and open full EDG
+//metadata for this record.
+egam.models.edgItems.LinkEDGModel.prototype.linkRecord = function(edgURLs) {
+  var self = this;
   var edgURL = '';
+  //Find reference URL that matches EDG metadata directory
   edgURLs.forEach(function(url, index) {
     if (url.indexOf('edg.epa.gov/metadata/rest/document') > -1) {
       edgURL = url;
@@ -182,7 +221,9 @@ egam.models.edgItems.SearchEDGModel.prototype.linkRecord = function(edgURLs) {
         }
         var mydata = new FormData();
         mydata.append('updateDocs', JSON.stringify({
-          id: this.gpoID, EDGdata: {
+          id: self.gpoID,
+          owner: self.owner,
+          EDGdata: {
             title: title,
             purpose: purpose,
             abstract: abstract,
@@ -247,13 +288,10 @@ egam.models.edgItems.SearchEDGModel.prototype.linkRecord = function(edgURLs) {
     alert('No matching URL for this record: ' + gpoID);
     console.log('No matching URL for this record: ' + gpoID);
   }
-}
+};
 
 
-
-
-
-
+//Model for reconciling EDG and GPO metadata
 egam.models.edgItems.ReconcilliationModel = function() {
   var self = this;
   this.$element =  $('#reconciliationModal');
@@ -273,7 +311,8 @@ egam.models.edgItems.ReconcilliationModel = function() {
 
 };
 
-//This willl load the reconcillation controls when called (eg. the reconcile button is clicked)
+//This willl load the reconcillation controls when called
+//(eg. the reconcile button is clicked)
 egam.models.edgItems.ReconcilliationModel.prototype.load = function(fullDoc) {
 
   this.$element.modal('show');
@@ -296,7 +335,8 @@ egam.models.edgItems.ReconcilliationModel.prototype.loadCurrentFields = function
   fullDoc = ko.utils.unwrapObservable(fullDoc);
   var docSlice = {};
   $.each(this.fields,function(index,field) {
-    //UnwrapObservable in case the doc passed does not have observables for fields
+    //UnwrapObservable in case the doc passed does not have observables for
+    //fields
     docSlice[field] = ko.utils.unwrapObservable(fullDoc[field]);
   });
   this.doc(ko.mapping.fromJS(docSlice));

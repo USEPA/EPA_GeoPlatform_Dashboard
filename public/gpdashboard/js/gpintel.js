@@ -19,21 +19,13 @@ if (typeof egam.utilities == 'undefined') {
 //controls. When AMD is implemented we won't need so much .(dot) namespacing.
 //Different categories will be in directories and each class in own file.
 
-//Note the acutal instance of the page models are in egam.pages so edgItems page
-//instance will be in egam.pages.edgItems when Bryan does it. Also the code for
-//edgItems models and gpoUsers models will be in their own files
+//Note the acutal instance of the page models are in egam.pages
 
 //Place to stash the edgItems models for now
 egam.models.edgItems = {};
 
 //Place to store and save general data retrieved from REST endpoints
 egam.dataStash = {};
-
-egam.edgItems = {
-  resultSet: [],
-  tableModel: null,
-  dataTable: null,
-};
 
 egam.gpoUsers = {
   resultSet: [],
@@ -52,7 +44,7 @@ $(document).ready(function() {
     $('#' + view + 'View').collapse('show');
     $('.view').not(document.getElementById(view)).collapse('hide');
     if (e.target.hash == '#edgView') {
-      egam.edginit();
+      loadEDGitemsPage();
     }else if (e.target.hash == '#userMgmtView') {
       // Only load user table the first time user click on userMgmtView
       if (!egam.gpoUsers.isLoaded) {
@@ -99,110 +91,6 @@ $(document).ready(function() {
 
 });
 
-
-egam.searchEDG = function() {
-  $('#edgModal').modal('show');
-  var title = $('#title').val();
-  $('#edgTitleSearch').val(title);
-
-  // If the Search button on the EDG modal is clicked, re-search EDG
-  $('#edgBtnModal').click(function() {
-    egam.edginit($('#edgTitleSearch').val(), true);
-  });
-  egam.edginit(title, true);
-  $('#gpoItemsModal').modal('hide');
-};
-
-// TODO: all EDG code should go in its own module
-egam.edginit = function(itemTitle, edgModal) {
-
-  // Handle default values
-  itemTitle = typeof itemTitle !== 'undefined' ? itemTitle : '';
-  edgModal = typeof edgModal !== 'undefined' ? edgModal : false;
-
-  // If first time ever binding to table, need to apply binding, but can only
-  // bind once so don't bind again if reloading table
-  var needToApplyBindings = false;
-
-  if (egam.edgItems.tableModel) {
-    // Only occurs if reloading the whole table have to actually remove
-    // dataTable rows and destroy datatable in order to get knockout to
-    // rebind table
-    if (egam.edgItems.dataTable) {
-      egam.edgItems.dataTable.api().clear().draw();
-      if ('fnDestroy' in egam.edgItems.dataTable) {
-        egam.edgItems.dataTable.fnDestroy();
-      }
-    }
-    egam.edgItems.tableModel.content.removeAll();
-    console.log('Wiped out table model and data table: ' +
-        egam.edgItems.tableModel.content().length);
-  } else {
-    // Setting up the new tableModel instance with no rows yet
-    egam.edgItems.tableModel = new egam.edgItemTableModel([]);
-    needToApplyBindings = true;
-  }
-
-  var edgURLRoot = 'https://edg.epa.gov/metadata/rest/find/document?';
-  var edgURLParams = {};
-
-  var edgDiv = '#edgitemtable';
-
-  if (edgModal) {
-    edgURLParams = {
-      f: 'dcat',
-      max: '20',
-      searchText: itemTitle,
-    };
-    edgDiv = '#edgitemmodaltable';
-  } else {
-    edgURLParams = {
-      f: 'dcat',
-      max: '100',
-    };
-  }
-
-  $.ajax({
-    url: edgURLRoot + $.param(edgURLParams),
-    dataType: 'json',
-    success: function(data) {
-      egam.edgItems.tableModel.add(data.dataset)
-          .then(function() {
-            // If there are no rows then don't try to bind
-            if (data.dataset.length < 1) {
-              return;
-            }
-            if (needToApplyBindings) {
-              // Bind the data
-              ko.applyBindings(egam.edgItems.tableModel,
-                  document.getElementById('edgViewViewTable'));
-              ko.applyBindings(egam.edgItems.tableModel,
-                  document.getElementById('edgModal'));
-            }
-            setTimeout(function() {
-              if (egam.edgItems.dataTable &&
-                  ('fnDestroy' in egam.edgItems.dataTable)) {
-                egam.edgItems.dataTable.fnDestroy();
-              }
-              egam.renderEDGitemsDataTable(edgDiv)
-                  .then(function(dt) {
-                    egam.edgItems.dataTable = dt;
-                  });
-            }, 0);
-          });
-    },
-    error: function(request, textStatus, errorThrown) {
-      if (edgModal) {
-        $('#edgModal').modal('hide');
-      }
-      alert('EDG Error, ' + request.statusText + ': ' +
-          (edgURLRoot + $.param(edgURLParams)));
-      console.log('EDG JSON parse error, ' + request.statusText + ': ' +
-          (edgURLRoot + $.param(edgURLParams)));
-    },
-  });
-
-};
 
 function populateUserMngntTable() {
 
@@ -461,246 +349,6 @@ function populateUserMngntTable() {
   });
 }
 
-egam.renderEDGitemsDataTable = function(edgDiv) {
-  // Apply data table magic, ordered ascending by title
-  // Use this so we know when table is rendered
-  var defer = $.Deferred();
-  $(edgDiv).DataTable({
-    aaSorting: [],
-    oLanguage: {
-      // Changing DataTables search label to Filter to not confuse with EDG
-      // Search
-      sSearch: 'Filter: ',
-    },
-    initComplete: function() {
-      defer.resolve(this);
-      $(edgDiv).addClass('loaded');
-    },
-  });
-
-  return defer;
-};
-
-
-egam.edgItemModel = function(data) {
-  var self = this;
-
-  // Knockout mapping JSON data to view model
-  ko.mapping.fromJS(data, {}, self);
-};
-
-// Data here is the actual array of edg JSON documents that came back from the
-// REST endpoint
-egam.edgItemTableModel = function(data) {
-  var self = this;
-
-  self.content = ko.observableArray(data.map(function(doc) {
-    return new egam.edgItemModel(doc);
-  }));
-
-  // On the entire table, we need to know which item is selected to use later
-  // with modal, etc.
-  self.select = function(item) {
-    self.selected(item);
-  };
-
-  // Allows you to select an item based on index, usually index will be coming
-  // from row number
-  self.selectIndex = function(index) {
-    var selectedItem = self.content()[index];
-    self.selected(selectedItem);
-  };
-
-  // A new observable for the selected row
-  self.selected = ko.observable();
-
-  if (self.content().length > 0) {
-    // Automatically select the 1st item in the table
-    // no idea why we are doing this?
-    self.selected = ko.observable(self.content()[0]);
-  }
-
-  self.clear = function() {
-    self.content().length = 0;
-  };
-
-
-  // Data is an array of documents from the REST endpoint
-  self.add = function(data, callback) {
-    // Use this so we know when everything is loaded
-    var defer = $.Deferred();
-
-    // This lets things work async style so that page is not locked up when ko
-    // is mapping
-    // Maybe use an async library later
-    var i = 0;
-    var interval = setInterval(function() {
-      if (i >= data.length) {
-        // Needed because it calls it once more after promise is resolved
-        // (don't know why!)
-        return;
-      }
-      if (data.length > 0) {
-        self.content.push(new egam.edgItemModel(data[i], true));
-        if (callback) {
-          callback(i);
-        }
-      }
-      i += 1;
-      if (i >= data.length) {
-        defer.resolve();
-        clearInterval(interval);
-      }
-    }, 0);
-
-    return defer;
-  };
-
-
-  self.linkRecord = function(gpoID, edgURLs) {
-    var edgURL = '';
-    edgURLs.forEach(function(url, index) {
-      if (url.indexOf('edg.epa.gov/metadata/rest/document') > -1) {
-        edgURL = url;
-      }
-    });
-    if (edgURL) {
-      $.ajax({
-        type: 'GET',
-
-        // Name of file you want to parse
-        url: edgURL,
-        dataType: 'xml',
-        success: function(xml) {
-          var title = $(xml).find('citation').find('title').text();
-
-          // Need to capture different metadata styles
-          if (!title) {
-            title = $(xml).find('title').text();
-            if (!title) {
-              title = $(xml).find('gmd\\:citation')
-                  .find('gmd\\:CI_Citation')
-                  .find('gmd\\:title')
-                  .find('gco\\:CharacterString').text()
-            }
-          }
-          var purpose = $(xml).find('purpose').text();
-          var abstract = $(xml).find('abstract').text();
-
-          // Need to capture different metadata styles
-          if (!abstract) {
-            abstract = $(xml).find('description').text();
-            if (!abstract) {
-              abstract = $(xml).find('gmd\\:abstract')
-                  .find('gco\\:CharacterString').text();
-            }
-          }
-          var acc = $(xml).find('accconst').text();
-          var usecon = $(xml).find('useconst').text();
-
-          // Need to capture different metadata styles
-          if (!usecon) {
-            acc = $(xml).find('gmd\\:MD_SecurityConstraints')
-                .find('gmd\\:useLimitation')
-                .find('gco\\:CharacterString').text();
-            usecon = $(xml).find('gmd\\:MD_LegalConstraints')
-                .find('gmd\\:useLimitation')
-                .find('gco\\:CharacterString').text();
-          }
-          var useconst = '';
-          if (acc || usecon) {
-            useconst = 'Access constraints: ' + acc +
-                ' Use constraints: ' + usecon;
-          }
-
-          var publisher = $(xml).find('publish').text();
-
-          // Need to capture different metadata styles
-          if (!publisher) {
-            var agency = $(xml).find('agencyName').text();
-            var subagency = $(xml).find('subAgencyName').text();
-            if (agency) {
-              if (subagency) {
-                publisher = agency + ', ' + subagency;
-              } else {
-                publisher = agency;
-              }
-            } else {
-              publisher = $(xml).find('gmd\\:contact')
-                  .find('gmd\\:organisationName')
-                  .find('gco\\:CharacterString').text();
-            }
-          }
-          var mydata = new FormData();
-          mydata.append('updateDocs', JSON.stringify({
-            id: gpoID, EDGdata: {
-              title: title,
-              purpose: purpose,
-              abstract: abstract,
-              useconst: useconst,
-              publisher: publisher,
-              url: edgURL,},
-          }));
-          console.log(mydata);
-          $.ajax({
-            url: 'gpoitems/update',
-            type: 'POST',
-            data: mydata,
-            cache: false,
-            dataType: 'json',
-
-            // Don't process the files
-            processData: false,
-
-            // Set content type to false as jQuery will tell the server its a
-            // query string request
-            contentType: false,
-            success: function(data, textStatus, jqXHR) {
-              if (data.errors < 1) {
-                // Success so call function to process the form
-                console.log('success: ' + data);
-                var doctemp = ko.mapping.toJS(
-                    egam.pages.gpoItems.details.selected().doc());
-                doctemp.EDGdata = {
-                  title: title,
-                  purpose: purpose,
-                  abstract: abstract,
-                  useconst: useconst,
-                  publisher: publisher,
-                  url: edgURL,};
-                egam.pages.gpoItems.details.selected().doc(
-                    ko.mapping.fromJS(doctemp));
-                $('#edgModal').modal('hide');
-
-                // Show reconciliation modal
-                egam.pages.gpoItems.details.loadReconcile();
-              } else {
-                // Handle errors here
-                console.error('ERRORS: ');
-                console.error(data.errors);
-              }
-            },
-            error: function(jqXHR, textStatus, errorThrown) {
-              // Handle errors here
-              console.log('ERRORS: ' + textStatus);
-
-              // STOP LOADING SPINNER
-            },
-          });
-        },
-        error: function(jqXHR, textStatus, errorThrown) {
-          alert('EDG metadata record could not be loaded: ' + edgURL +
-              ' (' + textStatus + ')');
-          console.log('EDG metadata record could not be loaded: ' + edgURL +
-              ' (' + textStatus + ')');
-        },
-      });
-    } else {
-      alert('No matching URL for this record: ' + gpoID);
-      console.log('No matching URL for this record: ' + gpoID);
-    }
-  }
-};
 
 //This is basically generic way to hit endopint get dataset and store it
 //Example datasets are available authgroups and available tags
@@ -744,3 +392,23 @@ egam.utilities.loadSharedControl = function(name,constructor,args) {
     return new factoryFunction();
   }
 };
+
+
+function loadEDGitemsPage() {
+  if (!egam.pages.edgItems) {
+    //Create the new PageModel instance
+    egam.pages.edgItems = new egam.models.edgItems.PageModelClass();
+    console.log('EDGitems Page Model created: ' + new Date());
+
+    //Basically initialize the gpoItems page because that is the first page we
+    //want to see on login
+
+    egam.pages.edgItems.init()
+      .then(function () {
+        return true;
+      })
+      .fail(function (err) {
+        console.error(err);
+      });
+  }
+}

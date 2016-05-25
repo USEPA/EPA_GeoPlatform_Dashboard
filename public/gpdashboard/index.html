@@ -540,7 +540,7 @@
                                       <div class="id_holder" data-bind="attr: {id: selected().doc().id}"></div>
                                       <div class="form-group">
                                           <label>EDG Link</label>
-                                          <button type="button" id="edgBtn" class="btn btn-default" data-bind="click: function () { egam.searchEDG(); }">Search for matching EDG record.</button>
+                                          <button type="button" id="edgBtn" class="btn btn-default" data-bind="click: loadLinkEDG">Search for matching EDG record.</button>
                                       </div>
                                       <div class="form-group">
                                           <!-- ko if: selected().doc().EDGdata -->
@@ -767,14 +767,31 @@
                                  <label id="edgTitleSearchLabel" for="edgTitleSearch">Search EDG by Title:</label>
                                  <span class="edgTitleSearchBlock">
                                     <input class="form-control" id="edgTitleSearch" >
-                                    <button type="button" id="edgBtnModal" class="btn btn-primary">Search</button>
+                                    <button type="button" id="edgBtnModal" class="btn btn-primary" data-bind="click:customSearch">Search</button>
                                  </span>
                              </div>
                          </div>
                          <div class="modal-body">
 
                              <div id="edgModalViewTable">
-                                 <table id="edgitemmodaltable" class="table table-hover table-bordered table-responsive">
+                                 <table id="edgModalItemsTable" class="table table-hover table-bordered table-responsive" data-bind="dataTable:
+                                    {
+                                        deferRender: true,
+                                        dataSource: egam.pages.gpoItems.details.linkEDG.table.items,
+                                        rowTemplate: 'EDGitemsRowTemplate',
+                                        options: {
+                                            paging: true,
+                                            aaSorting: [],
+                                            oLanguage: {
+                                              sSearch: 'Filter: ',
+                                            },
+                                        },
+                                        columns: [
+                                            {data:'doc.title'},
+                                            {data:'doc.contactPoint.fn'},
+                                            {data:null}
+                                            ]
+                                    }">
                                      <thead>
                                      <tr>
                                          <th>Title</th>
@@ -783,15 +800,18 @@
                                      </tr>
                                      </thead>
                                      <tbody>
-                                     <!-- ko foreach: content -->
-                                     <tr>
-                                         <td><a data-bind="attr: { href: $data.references()[0] }, html: $data.title" target="_blank"></a></td>
-                                         <td><a data-bind="attr: { href: $data.contactPoint.hasEmail }, html: $data.contactPoint.fn" target="_blank"></a></td>
-                                         <td><button class="btn btn-primary btn-xs" id="edgLinkBtn" data-bind="click: function () {$root.linkRecord( $('.id_holder').attr('id'), $data.references()) }">Link EDG Record</button></td>
-                                     </tr>
-                                     <!-- /ko -->
                                      </tbody>
                                  </table>
+
+
+                                 <script id="EDGitemsRowTemplate" type="text/html">
+                                     <tr data-toggle="modal" data-target="#edgItemsModal" >
+                                         <td><a data-bind="attr: { href: doc.references[0] }, html: doc.title" target="_blank"></a></td>
+                                         <td><a data-bind="attr: { href: doc.contactPoint.hasEmail }, html: doc.contactPoint.fn" target="_blank"></a></td>
+                                         <td><button class="btn btn-primary btn-xs" id="edgLinkBtn" data-bind="click: function () {return $root.linkRecord(doc.references) }">Link EDG Record</button></td>
+                                     </tr>
+
+                                 </script>
                              </div>
                          </div>
                          <div class="modal-footer">
@@ -912,10 +932,20 @@
              <!-- End userMgmtView  View -->
              <!-- userMgmtView  View -->
              <div role="tabpanel" class="tab-pane" id="edgView" >
-                 <div id="edgViewViewTable">
+                 <div id="edgItemsPage">
                      <h2 class="sub-header">EDG Items</h2>
                      <p>Work on this pane is still in progress. When complete, this pane will allow users to review metadata records in the EDG, see which have been linked to GeoPlatform content items, and audit the quality of records for compliance with the EDG Metadata Technical Specification. We also anticipate providing summary statistics and progress metrics.</p>
-                     <table id="edgitemtable" class="table table-striped table-bordered table-responsive">
+                     <table id="edgItemsTable" class="table table-hover table-bordered table-responsive" data-bind="dataTable:
+                            {
+                                deferRender: true,
+                                dataSource: egam.pages.edgItems.table.items,
+                                rowTemplate: 'EDGitemsRowTemplateFull',
+                                options: {paging: true},
+                                columns: [
+                                    {data:'doc.title'},
+                                    {data:'doc.contactPoint.fn'}
+                                    ]
+                            }">
                          <thead>
                          <tr>
                              <th>Title</th>
@@ -923,14 +953,14 @@
                          </tr>
                          </thead>
                          <tbody>
-                         <!-- ko foreach: content -->
-                         <tr>
-                             <td><a data-bind="attr: { href: $data.references()[0] }, html: $data.title" target="_blank"></a></td>
-                             <td><a data-bind="attr: { href: $data.contactPoint.hasEmail }, html: $data.contactPoint.fn" target="_blank"></a></td>
-                         </tr>
-                         <!-- /ko -->
                          </tbody>
                      </table>
+                     <script id="EDGitemsRowTemplateFull" type="text/html">
+                         <tr>
+                             <td><a data-bind="attr: { href: doc.references[0] }, html: doc.title" target="_blank"></a></td>
+                             <td><a data-bind="attr: { href: doc.contactPoint.hasEmail }, html: doc.contactPoint.fn" target="_blank"></a></td>
+                         </tr>
+                     </script>
                  </div>
              </div>
              <!-- End userMgmtView  View -->

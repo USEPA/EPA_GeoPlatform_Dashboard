@@ -310,7 +310,7 @@ egam.models.gpoItems.DetailsModel = function(parent) {
   //set up reference to reconcillation stuff here since this page uses it
   //It is not actually created until somebody hits reconcilliation modal for first time
   self.reconcillation = null;
-  self.searchEDG = null;
+  self.linkEDG = null;
 
 };
 
@@ -359,14 +359,15 @@ egam.models.gpoItems.DetailsModel.prototype.loadReconcile = function() {
 };
 
 
-egam.models.gpoItems.DetailsModel.prototype.loadSearchEDG = function() {
+egam.models.gpoItems.DetailsModel.prototype.loadLinkEDG = function() {
   var self = this;
-  if (!self.searchEDG) {
-    self.searchEDG = new egam.models.edgItems.searchEDGModel(self.selected);
+  if (!self.linkEDG) {
+    self.linkEDG = new egam.models.edgItems.LinkEDGModel(self.selected);
   }
 
-  self.searchEDG.load(self.selected().doc);
+  self.linkEDG.load(self.selected().doc);
 
+  $('#edgTitleSearch').val(self.selected().doc().title());
 };
 
 //Allows you to select an item based on index, usually index will be coming from
