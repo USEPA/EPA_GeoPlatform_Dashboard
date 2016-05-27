@@ -6,16 +6,26 @@ if (typeof egam.controls == 'undefined') {
   egam.controls = {};
 }
 
-egam.controls.Table = function(items,elementSelector,RowModelClass) {
+egam.controls.Table = function(items,elementSelector,RowModelClass,resultsName) {
   this.items = items;
   this.$element = $(elementSelector);
   this.RowModelClass = RowModelClass;
+  //Full data contains rows and info about the rows like paging info
+  this.allData = null;
+  // Data is just the array of objects used to create items
   this.data = null;
   this.dataTable = null;
+  // ResultsName is the name of the results in object returned by endpoint (default='results'). for edg stuff it is dataSet
+  this.resultsName = resultsName | 'results';
 };
 
-egam.controls.Table.prototype.init = function(endpoint, query, projection) {
+egam.controls.Table.prototype.init = function(endpoint, query, projection, resultsName) {
   var self = this;
+  //Clear out existing table/items if exists
+  if (self.dataTable) {
+    self.dataTable.clear();
+    self.items = [];
+  }
   //First get the data for GPOitems table
   //Just for testing to speed some things up
   //  query.access = 'public';
@@ -23,6 +33,11 @@ egam.controls.Table.prototype.init = function(endpoint, query, projection) {
   //Projection in Mongo/Monk is what fields you want to return and sorting,
   //offsetting, etc.
   projection = JSON.stringify(projection);
+  // ResultsName is the name of the results in object returned by endpoint (default='results'). for edg stuff it is dataSet
+  if (resultsName) {
+    this.resultsName = resultsName;
+  }
+
   //Use this so we know when everything is loaded
   var defer = $.Deferred();
 
@@ -30,26 +45,27 @@ egam.controls.Table.prototype.init = function(endpoint, query, projection) {
   //reverse proxy
   //hit our Express endpoint to get the list of items for this logged in user
   console.log('Call Endpoint Start: ' + new Date());
-
   $.ajax({
     type: 'POST',
     url: endpoint,
     data: {query: query, projection: projection},
     dataType: 'json',
     timeout: 6000,
-    success: function(data){
+    success: function(returnedData) {
       console.log('Endpoint Data Received : ' + new Date());
-      //If "limit" passed to the endpoint then return paging info where data is
-      //in data.results
-      //If only data returned for no paging just save data in same structure
-      if ('results' in data) {
-        self.data = data;
+      //The endpoint might return return other info other than array of objects with desired table data which will be saved in this.data
+      // eg. If "limit" passed to dashboard gpo endpoints then paging info is returned and this.data is actually in returnedData.results
+      //If there is a field called resultsName (default=results) in data returned by endpoint that is where the array of objects or this.data resides
+      //Otherwise have to assume data returned is the array of objets or this.data
+      if (resultsName in returnedData) {
+        self.allData = returnedData;
+        self.data = returnedData[resultsName];
       } else {
-        self.data = {results: data};
+        self.data = returnedData;
       }
 
       $('#loadingMsgCountContainer').removeClass('hidden');
-      $('#loadingMsgTotalCount').text(self.data.results.length);
+      $('#loadingMsgTotalCount').text(self.data.length);
 
       //Doing this in the next tick at least shows the item count
       setTimeout(function() {
@@ -57,15 +73,15 @@ egam.controls.Table.prototype.init = function(endpoint, query, projection) {
         //To get the datatable object already created us "bRetrieve": true
         self.dataTable = self.$element.DataTable({bRetrieve: true});
         //Add these using .add to push to array
-        //data.results is just the array of objects returned by server
-        self.add(self.data.results);
+        //self.data is just the array of objects returned by server
+        self.add(self.data);
         console.log('Knockout Model data added: ' + new Date());
 
         //Now do all the custom filter stuff to dataTable in scope of dataTable
         self.customizeDataTable();
 
         defer.resolve();
-      },0);
+      }, 0);
 
       function updateLoadingCountMessage(index) {
         //Only show every 10
@@ -73,22 +89,15 @@ egam.controls.Table.prototype.init = function(endpoint, query, projection) {
           $('#loadingMsgCount').text(index + 1);
         }
       }
+
     },
-    error: function(request, status, err){
-      $("#loadingMsgCountContainer").addClass("hidden");
-      $("#loadingGraphic").addClass("hidden");
-      $("#loadingMsgText").html('<span class="glyphicon glyphicon-warning-sign"></span> Table failed to Load');
-      $("#loadingMsgText").append('</br><h4>Status: ' + status + '</h4>' + '<h4>Error: ' + err + '</h4>')
+    error: function(request, status, err) {
+      $('#loadingMsgCountContainer').addClass('hidden');
+      $('#loadingGraphic').addClass('hidden');
+      $('#loadingMsgText').html('<span class="glyphicon glyphicon-warning-sign"></span> Table failed to Load');
+      $('#loadingMsgText').append('</br><h4>Status: ' + status + '</h4>' + '<h4>Error: ' + err + '</h4>');
     }
   });
-
-  // $.post(endpoint, {
-  //   query: query,
-  //   projection: projection,
-  // }, function(data) {
-  //
-  //
-  // }, 'json');
 
   return defer;
 };
@@ -115,7 +124,6 @@ egam.controls.Table.prototype.add = function(data, callback) {
   //It just as fast (or maybe a bit faster) to add to dataTable after the ko
   //applyBindings command was run
   //Passing false to .draw() will not page or sort when redrawing
-
   self.dataTable.rows.add(self.items).draw(false);
   console.log('DataTable rows added ' + new Date());
   defer.resolve();
@@ -187,7 +195,7 @@ egam.controls.Table.prototype.customizeDataTable = function(refresh,selectColumn
       //Don't create the options if they are already in there.
       //(Unless a refresh is being forced)
       if (!(refresh && select.attr('refreshable')) &&
-          select[0].options.length > 1) {
+        select[0].options.length > 1) {
         return;
       }
       //Don't redraw the select on column that was just selected
@@ -248,4 +256,3 @@ egam.controls.Table.prototype.runAllClientSideFilters = function() {
     }
   });
 };
-
