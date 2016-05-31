@@ -128,7 +128,7 @@ egam.models.gpoItems.PageModelClass.prototype.init = function() {
 //"pages/screens"
 egam.models.gpoItems.PageModelClass.prototype.calculateStats = function() {
   var self = this;
-  var data = self.table.data.results;
+  var data = self.table.data;
   //Get percent of docs passing the Audit
   var publicCount = 0;
   var publicPassingCount = 0;
@@ -310,6 +310,7 @@ egam.models.gpoItems.DetailsModel = function(parent) {
   //set up reference to reconcillation stuff here since this page uses it
   //It is not actually created until somebody hits reconcilliation modal for first time
   self.reconcillation = null;
+  self.linkEDG = null;
 
 };
 
@@ -353,8 +354,20 @@ egam.models.gpoItems.DetailsModel.prototype.loadReconcile = function() {
 
   self.reconcillation.load(self.selected().doc);
   //Do things like turn off the details model stuff
-  //$element.modal('hide');
+  self.$element.modal('hide');
 
+};
+
+
+egam.models.gpoItems.DetailsModel.prototype.loadLinkEDG = function() {
+  var self = this;
+  if (!self.linkEDG) {
+    self.linkEDG = new egam.models.edgItems.LinkEDGModel(self.selected);
+  }
+
+  self.linkEDG.load(self.selected().doc);
+
+  $('#edgTitleSearch').val(self.selected().doc().title());
 };
 
 //Allows you to select an item based on index, usually index will be coming from

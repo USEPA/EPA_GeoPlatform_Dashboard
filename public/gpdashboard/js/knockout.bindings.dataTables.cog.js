@@ -81,41 +81,46 @@
 
           //First keep a copy of the original attributes and handlers so they can be restored
           var rowTemplateElement = $("#" + rowTemplate)[0];
-          if (! rowTemplateElement.originalAttributes) rowTemplateElement.originalAttributes = {};
-          if (! rowTemplateElement.originalHandlers) rowTemplateElement.originalHandlers = {};
+          if (!rowTemplateElement.originalAttributes) rowTemplateElement.originalAttributes = {};
+          if (!rowTemplateElement.originalHandlers) rowTemplateElement.originalHandlers = {};
 
-          var originalAttributes =  rowTemplateElement.originalAttributes[displayIndexFull];
-          if (! originalAttributes) {
-              originalAttributes = [];
-              $.each($(row)[0].attributes,function (i,att) {
-                originalAttributes.push({name:att.name,value:att.value});
-              });
+          var originalAttributes = rowTemplateElement.originalAttributes[displayIndexFull];
+          if (!originalAttributes) {
+            originalAttributes = [];
+            $.each($(row)[0].attributes, function (i, att) {
+              originalAttributes.push({name: att.name, value: att.value});
+            });
             rowTemplateElement.originalAttributes[displayIndexFull] = originalAttributes;
           } else {
-          //If original attributes stored then replace current with original
-          //This must be done because we don't want attributes from template hanging around when grid is redrawn when data changes
-          //remove any attributes on row to start with clean slate before restoring the original attributes and eventually the template attributes
-            var atts = $.map($(row)[0].attributes, function(att) {return att.name});
-            $.each(atts, function(i,att) {
+            //If original attributes stored then replace current with original
+            //This must be done because we don't want attributes from template hanging around when grid is redrawn when data changes
+            //remove any attributes on row to start with clean slate before restoring the original attributes and eventually the template attributes
+            var atts = $.map($(row)[0].attributes, function (att) {
+              return att.name
+            });
+            $.each(atts, function (i, att) {
 //              console.log(att);
               $(row).removeAttr(att);
             });
-            $.each(originalAttributes, function() {
-                $(row).attr(this.name, this.value);
+            $.each(originalAttributes, function () {
+              $(row).attr(this.name, this.value);
             });
           }
 
-          var originalHandlers =  rowTemplateElement.originalHandlers[displayIndexFull];
-          if (! originalHandlers) {
+          var originalHandlers = rowTemplateElement.originalHandlers[displayIndexFull];
+          if (!originalHandlers) {
             //This was just testing click handlers on dataTable before knockout binding
             //$(row).bind("click",function () {console.log("hello world")});
 
             originalHandlers = {};
             var rowEvents = $._data(row).events || {};
-            $.each(rowEvents,function (key) {
-              originalHandlers[key]=[];
-              $.each(this, function() {
-                originalHandlers[key].push({type:this.type, handler:this.handler});
+            $.each(rowEvents, function (key) {
+              originalHandlers[key] = [];
+              $.each(this, function () {
+                originalHandlers[key].push({
+                  type: this.type,
+                  handler: this.handler
+                });
               });
             });
             rowTemplateElement.originalHandlers[displayIndexFull] = originalHandlers;
@@ -125,9 +130,9 @@
             //remove any handlers on row to start with clean slate before restoring the original handlers  and eventually the template handlers
             $(row).unbind();
 
-            $.each(originalHandlers, function() {
+            $.each(originalHandlers, function () {
               // iterate registered handler of original
-              $.each(this, function() {
+              $.each(this, function () {
                 $(row).bind(this.type, this.handler);
               });
             });
@@ -136,21 +141,25 @@
           //Copy all of the template row attributes and event handlersto the dataTables row and then remove the template row node but keep it's children (td)
           // loop through template row attributes and apply them to datatables row
           var trFromTemplate = $(row).children();
-          $.each(trFromTemplate[0].attributes, function() {
-            //Don't replace class attribute just add to class attribute
-            if (this.name=='class') {
-              $(row).addClass(this.value);
-            }else{
-              $(row).attr(this.name, this.value);
-            }
-          });
-          //looop through template row event handlers and apply them to dataTables row
-          $.each($._data(trFromTemplate[0]).events, function() {
-            // iterate registered handler of original
-            $.each(this, function() {
-              $(row).bind(this.type, this.handler);
+          if (trFromTemplate[0].attributes) {
+            $.each(trFromTemplate[0].attributes, function() {
+              //Don't replace class attribute just add to class attribute
+              if (this.name == 'class') {
+                $(row).addClass(this.value);
+              } else {
+                $(row).attr(this.name, this.value);
+              }
             });
-          });
+          }
+          //looop through template row event handlers and apply them to dataTables row
+          if ($._data(trFromTemplate[0]).events) {
+            $.each($._data(trFromTemplate[0]).events, function () {
+              // iterate registered handler of original
+              $.each(this, function () {
+                $(row).bind(this.type, this.handler);
+              });
+            });
+          }
 
 
 //now remove the template row so we don't have double rows
