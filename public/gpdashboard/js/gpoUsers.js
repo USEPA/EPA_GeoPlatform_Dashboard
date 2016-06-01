@@ -46,10 +46,10 @@ egam.models.gpoUsers.PageModelClass = function() {
 
   //Have to set authGroups in this context so knockout has access to it from
   //PageModel
-  // self.authGroups = egam.communityUser.authGroups;
+  self.authGroups = egam.communityUser.authGroups;
 
   //Set up the details control now which is part of this Model Class
-  // self.details = new egam.models.gpoItems.DetailsModel(self);
+  self.details = new egam.models.gpoUsers.DetailsModel(self);
 
     //Set up the authGroups dropdown
   // self.setAuthGroupsDropdown(egam.communityUser.ownerIDsByAuthGroup);
@@ -208,23 +208,86 @@ egam.models.gpoUsers.RowModelClass = function(doc, index) {
   //To keep track of this row when selected
   this.index = index;
 
-  //This is basically just formatting stuff
-  // this.complianceStatus = ko.computed(function() {
-  //   return this.doc.AuditData.compliant ? 'Pass' : 'Fail';
-  // }, this);
+  if (!doc.sponsors) {
+    doc['sponsors'] = [];
+  }
 
-  //Format Modified Date
-  // this.modifiedDate = ko.computed(function() {
-  //   var monthNames = [
-  //     'Jan', 'Feb', 'Mar',
-  //     'Apr', 'May', 'Jun', 'Jul',
-  //     'Aug', 'Sep', 'Oct',
-  //     'Nov', 'Dec',
-  //   ];
-  //
-  //   var modDate = new Date(this.doc.modified);
-  //   return monthNames[modDate.getMonth()] + ' ' + modDate.getDate() + ', ' + modDate.getFullYear();
-  // }, this);
+  this.latestSponsor = ko.computed(function() {
+    var sponsorsLen = self.doc.sponsors.length;
+    if (sponsorsLen > 0) {
+      return self.doc.sponsors[sponsorsLen - 1].username();
+    }else{
+      return null;
+    }
+  });
+
+  // Format Date from millaseconds to something useful
+  function formatDate(uDate) {
+    var monthNames = [
+      'Jan', 'Feb', 'Mar',
+      'Apr', 'May', 'Jun', 'Jul',
+      'Aug', 'Sep', 'Oct',
+      'Nov', 'Dec',
+    ];
+    return monthNames[uDate.getMonth()] + ' ' + uDate.getDate() + ', ' +
+        uDate.getFullYear();
+  }
+
+  this.spStartDate = ko.computed(function() {
+    var spLen = self.doc.sponsors.length;
+    if (spLen > 0) {
+      var dDate = new Date(self.doc.sponsors[spLen - 1].startDate());
+      return formatDate(dDate);
+    }else{
+      return null;
+    }
+  });
+
+  this.spEndDate = ko.computed(function() {
+    var spLen = self.doc.sponsors.length;
+    if (spLen > 0) {
+      var dDate = new Date(self.doc.sponsors[spLen - 1].endDate());
+      return formatDate(dDate);
+    }else{
+      return null;
+    }
+  });
+
+  this.spOrg = ko.computed(function() {
+    var spLen = self.doc.sponsors.length;
+    if (spLen > 0) {
+      return self.doc.sponsors[spLen - 1].organization();
+    }else{
+      return null;
+    }
+  });
+
+  this.spAuthGroup = ko.computed(function() {
+    var spLen = self.doc.sponsors.length;
+    if (spLen > 0) {
+      return self.doc.sponsors[spLen - 1].authGroup();
+    }else{
+      return null;
+    }
+  });
+
+  this.spReason = ko.computed(function() {
+    var spLen = self.doc.sponsors.length;
+    if (spLen > 0) {
+      return self.doc.sponsors[spLen - 1].reason();
+    }else{
+      return null;
+    }
+  });
+
+  this.spDescript = ko.computed(function() {
+    var spLen = self.doc.sponsors.length;
+    if (spLen > 0) {
+      return self.doc.sponsors[spLen - 1].description();
+    }else{
+      return null;
+    }
+  });
 
 };
 
@@ -238,6 +301,12 @@ egam.models.gpoUsers.FullModelClass = function(doc, index, parent) {
   //This is the doc
   this.doc = ko.observable(ko.mapping.fromJS(doc));
 
+  this.sponsoreeAuthGroups = ko.observableArray(
+      egam.communityUser.authGroups);
+
+  this.renew = function() {
+    console.log("sponsor");
+  }
   //Computed thumbnail url
   // this.thumbnailURL = ko.computed(function() {
   //   if (self.doc().thumbnail() == null) {
@@ -295,55 +364,55 @@ egam.models.gpoUsers.FullModelClass = function(doc, index, parent) {
 
 //Data here is the actual array of JSON documents that came back from the
 //REST endpoint
-egam.models.gpoItems.DetailsModel = function(parent) {
+egam.models.gpoUsers.DetailsModel = function(parent) {
   var self = this;
   self.parent = parent;
 
-  self.$element = $('gpoItemsModal');
+  self.$element = $('gpoUsersModal');
   this.bound = false;
   //A new observable for the selected row storing the FULL gpoItem model
   self.selected = ko.observable();
   
   //Creates the tag controls when row is selected and details model is needed for first time
-  self.tagControls = null;
+  //self.tagControls = null;
   //set up reference to reconcillation stuff here since this page uses it
   //It is not actually created until somebody hits reconcilliation modal for first time
-  self.reconcillation = null;
+  //self.reconcillation = null;
 
 };
 
 //On the entire table, we need to know which item is selected to use later with
 //modal, etc.
-egam.models.gpoItems.DetailsModel.prototype.select = function(item) {
+egam.models.gpoUsers.DetailsModel.prototype.select = function(item) {
   var self = this;
   //    Var fullRowModel = self.selectedCache[item.index] || new egam.gpoItems.FullModelClass(item.doc,self,item.index) ;
-  var fullRowModel = new egam.models.gpoItems.FullModelClass(item.doc, item.index, self);
+  var fullRowModel = new egam.models.gpoUsers.FullModelClass(item.doc, item.index, self);
   self.selected(fullRowModel);
 
   //If no tag Controls created yet then do it now
-  if (!self.tagControls) self.tagControls = new egam.models.gpoItems.TagControlsClass(self);
+  //if (!self.tagControls) self.tagControls = new egam.models.gpoItems.TagControlsClass(self);
   //Note: if the instance of these controls/models are used in multiple places it can be stored in something like egam.shared.tagConrols
   //Then the we would get self.tagControls = using functions that creates egam.shared.tagConrols if not exists otherwise returns existing so that we don't create another instance again if already created by different consumer
   // if (!self.tagControls) self.tagControls = egam.utilities.loadSharedControl("tagControls",egam.models.gpoItems.TagControlsClass,[self]);
 
   //This function will not reinitialize when called second time
   //If there would have been more promises then just this tagControls then could use .all or chain them
-  self.tagControls.init()
-    .then(function () {
+  //self.tagControls.init()
+    //.then(function () {
       //Now apply binding if not applied and then refresh the tag controls for selected item (to select by doc.owners authGroup)
 //  if (needToApplyBindings) ko.applyBindings(self, self.$element[0]);
-      if (!self.bound) {
-        ko.applyBindings(self, document.getElementById('gpoItemsModal'));
-        self.bound=true;
-      }
+      //if (!self.bound) {
+      //  ko.applyBindings(self, document.getElementById('gpoItemsModal'));
+      //  self.bound=true;
+      //}
 
       //no need to pass the new doc, it just uses the parent's (this details control) selected doc
-      self.tagControls.refresh();
-    });
+      //self.tagControls.refresh();
+    //});
 };
 
 //Allows you to select an item based on index, usually index will be coming from row number
-egam.models.gpoItems.DetailsModel.prototype.loadReconcile = function() {
+egam.models.gpoUsers.DetailsModel.prototype.loadReconcile = function() {
   var self = this;
   if (!self.reconcillation) {
     self.reconcillation = new egam.models.edgItems.ReconcilliationModel(self.selected);
@@ -358,13 +427,13 @@ egam.models.gpoItems.DetailsModel.prototype.loadReconcile = function() {
 
 //Allows you to select an item based on index, usually index will be coming from
 //row number
-egam.models.gpoItems.DetailsModel.prototype.selectIndex = function(index) {
+egam.models.gpoUsers.DetailsModel.prototype.selectIndex = function(index) {
   this.select(this.parent.table.items[index]);
 };
 
 //Post updated docs back to Mongo and change local view model
 //Note: Update is called in details model scope so this will be correct
-egam.models.gpoItems.DetailsModel.prototype.update = function() {
+egam.models.gpoUsers.DetailsModel.prototype.update = function() {
   var self = this;
   //Need to add thumbnail name to document before auditing
   var thumbnailFile = null;
@@ -435,53 +504,53 @@ egam.models.gpoItems.DetailsModel.prototype.update = function() {
 
 //This just encapsulates all the logic for the gpoItems tag controls
 //(dropdowns and list box)
-egam.models.gpoItems.TagControlsClass = function(parent) {
-  var self = this;
-
-  self.parent = parent;
-  self.isInit = false;
-  //By default the doc to use which contains tag and other item info is self.parent.selected().doc()
-  //It is possible to override this and set self.doc
-  self._doc = null;
-  //Note: call doc() to get the manually set doc or the default doc from
-  //selected()
-  self.doc = function() {
-    return self._doc || ko.utils.unwrapObservable(self.parent.selected().doc);
-  };
-
-  self.$orgTagSelect = $('#orgTagSelect');
-  self.$officeTagSelect = $('#officeTagSelect');
-  self.$addOrgTag = $('#addOrgTag');
-
-  //Also storing the Office dropdown value even though it doesn't get acted as
-  //a tag but need this to set value of drop. Otherwise Please Select kept
-  //getting reset
-  self.tagCategories = ['EPA', 'Place', 'Office', 'Org'];
-
-  //These are the selected Tags that we save so they can be removed
-  self.selectedTags = ko.observableArray(['']);
-  //This is where the tag for each cat being added is stored
-  self.tagToAdd = {};
-  //This is where function to add Tag for each cat is stored
-  //(just a convenience for markup to use)
-  self.addTag = {};
-
-  //These are the organizations that go with each office
-  self.selectedOfficeOrganizations = ko.observableArray([]);
-
-  //Generate the observable for tags to add and the add tag function for each
-  //tag category
-  $.each(this.tagCategories, function(i, cat) {
-    //This is just observable for tag that is being added
-    self.tagToAdd[cat] = ko.observable('');
-    //This just calls the more generic addTag function which is just convenience
-    //for knockout binding
-    self.addTag[cat] = function() {
-      return self.addTagByCat(cat)
-    };
-  });
-
-};
+// egam.models.gpoItems.TagControlsClass = function(parent) {
+//   var self = this;
+//
+//   self.parent = parent;
+//   self.isInit = false;
+//   //By default the doc to use which contains tag and other item info is self.parent.selected().doc()
+//   //It is possible to override this and set self.doc
+//   self._doc = null;
+//   //Note: call doc() to get the manually set doc or the default doc from
+//   //selected()
+//   self.doc = function() {
+//     return self._doc || ko.utils.unwrapObservable(self.parent.selected().doc);
+//   };
+//
+//   self.$orgTagSelect = $('#orgTagSelect');
+//   self.$officeTagSelect = $('#officeTagSelect');
+//   self.$addOrgTag = $('#addOrgTag');
+//
+//   //Also storing the Office dropdown value even though it doesn't get acted as
+//   //a tag but need this to set value of drop. Otherwise Please Select kept
+//   //getting reset
+//   self.tagCategories = ['EPA', 'Place', 'Office', 'Org'];
+//
+//   //These are the selected Tags that we save so they can be removed
+//   self.selectedTags = ko.observableArray(['']);
+//   //This is where the tag for each cat being added is stored
+//   self.tagToAdd = {};
+//   //This is where function to add Tag for each cat is stored
+//   //(just a convenience for markup to use)
+//   self.addTag = {};
+//
+//   //These are the organizations that go with each office
+//   self.selectedOfficeOrganizations = ko.observableArray([]);
+//
+//   //Generate the observable for tags to add and the add tag function for each
+//   //tag category
+//   $.each(this.tagCategories, function(i, cat) {
+//     //This is just observable for tag that is being added
+//     self.tagToAdd[cat] = ko.observable('');
+//     //This just calls the more generic addTag function which is just convenience
+//     //for knockout binding
+//     self.addTag[cat] = function() {
+//       return self.addTagByCat(cat)
+//     };
+//   });
+//
+// };
 
 //Need to use an init function so we can defer before moving onto bindings
 egam.models.gpoItems.TagControlsClass.prototype.init = function(doc) {

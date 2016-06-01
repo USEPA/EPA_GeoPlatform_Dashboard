@@ -345,10 +345,10 @@ egam.models.gpoItems.DetailsModel.prototype.select = function(item) {
 };
 
 //Allows you to select an item based on index, usually index will be coming from row number
-egam.models.gpoItems.DetailsModel.prototype.loadReconcile = function() {
+egam.models.gpoUsers.DetailsModel.prototype.loadReconcile = function() {
   var self = this;
   if (!self.reconcillation) {
-    self.reconcillation = new egam.models.edgItems.ReconcilliationModel(self.selected);
+    //self.reconcillation = new egam.models.edgItems.ReconcilliationModel(self.selected);
 //    self.reconcillation = egam.utilities.loadSharedControl("reconcillation",egam.models.gpoItems.ReconcilliationModel,[self.selected]);
   }
 
@@ -372,13 +372,13 @@ egam.models.gpoItems.DetailsModel.prototype.loadLinkEDG = function() {
 
 //Allows you to select an item based on index, usually index will be coming from
 //row number
-egam.models.gpoItems.DetailsModel.prototype.selectIndex = function(index) {
+egam.models.gpoUsers.DetailsModel.prototype.selectIndex = function(index) {
   this.select(this.parent.table.items[index]);
 };
 
 //Post updated docs back to Mongo and change local view model
 //Note: Update is called in details model scope so this will be correct
-egam.models.gpoItems.DetailsModel.prototype.update = function() {
+egam.models.gpoUsers.DetailsModel.prototype.update = function() {
   var self = this;
   //Need to add thumbnail name to document before auditing
   var thumbnailFile = null;

@@ -94,11 +94,11 @@ $(document).ready(function() {
 
 function populateUserMngntTable() {
   
-  alert("populate User table");
+  //alert("populate User table");
   egam.pages.gpoUsers = new egam.models.gpoUsers.PageModelClass();
   console.log('GPOusers Page Model created: ' + new Date());
 
-  egam.pages.gpoUsers.init()
+  egam.pages.gpoUsers.init();
   // var queryUM = {isExternal: true};
   // $.post('gpousers/list', {
   //   query: JSON.stringify(queryUM),
