@@ -862,9 +862,9 @@
                     {data:'spAuthGroup'},
                     {data:'spOrg'},
                     {data:'spDescript'},
-                    {data:'spReason'},
-                    {data:'spStartDate'},
-                    {data:'spEndDate'},
+		            {data:'spReason'},
+		            {data:'spStartDate'},
+		            {data:'spEndDate'},
                     ]
                     }">
                      <thead>
@@ -890,9 +890,9 @@
                  <script id="GPOusersRowTemplate" type="text/html">
                      <tr>
                          <td>
-                         <div>
-                         <button class="btn btn-primary btn-xs" id="sponsorBtn" data-bind="click: function (item) {return $root.details.select(item)}" data-toggle="modal" data-target="#gpoUsersModal">Sponsor Me!</button>
-                         </div>
+                            <div>
+                                <button class="btn btn-primary btn-xs" id="sponsorBtn" data-bind="click: function (item) {return $root.details.select(item)}" data-toggle="modal" data-target="#gpoUsersModal">Sponsor Me!</button>
+                            </div>
                          </td>
                          <td data-bind="text: doc.fullName"></td>
                          <td data-bind="text: doc.email"></td>
@@ -942,7 +942,7 @@
                          </div>
                          <div class="modal-footer">
                              <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                             <button type="button" id="userSponorSave" class="btn btn-primary" data-bind="click: selected().renew">Confirm</button>
+                             <button type="button" id="userSponorSave" class="btn btn-primary" data-bind="click: update">Confirm</button>
                          </div>
                      </div>
                  </div>

@@ -37,6 +37,7 @@ egam.models.gpoUsers.PageModelClass = function() {
     role: 1,
     provider: 1,
     folders: 1,
+    sponsors: 1,
   };
 
   //This is instance of the table class that does all the table stuff.
@@ -81,6 +82,7 @@ egam.models.gpoUsers.PageModelClass.prototype.init = function() {
   ko.applyBindings(self, self.$pageElement[0]);
   console.log('Bindings Applied: ' + new Date());
 
+  
   //Now initialize the table. ie. download data and create table rows
   //the payload can be reduced if resultFields array was set
   var fields = this.resultFields || {};
@@ -95,23 +97,10 @@ egam.models.gpoUsers.PageModelClass.prototype.init = function() {
   return self.table.init('gpousers/list', query, projection)
     //After table is loaded we can do other stuff
     .then(function() {
-    //  self.calculateStats();
+      //Add stuff for filter buttons self.table.datatable
 
-  //     //Switch view for image upload
-  //     $('.fileinput').on('change.bs.fileinput', function(e) {
-  //       $('#agoThumb').toggle();
-  //       $('#imageUpload').toggle();
-  //     });
-  //     //On modal close with out saving change thumbnail view clear thumbnail
-  //     //form
-  //     $('#gpoItemsModal').on('hidden.bs.modal', function(e) {
-  //       var thumbnailFile = $('#thumbnail')[0].files[0];
-  //       if (thumbnailFile !== undefined) {
-  //         $('#agoThumb').toggle();
-  //         $('#imageUpload').toggle();
-  //         $('.fileinput').fileinput('clear');
-  //       }
-  //     });
+
+
   //
   //     //Now stop showing loading message that page is load
   //     $('div#loadingMsg').addClass('hidden');
@@ -208,6 +197,8 @@ egam.models.gpoUsers.RowModelClass = function(doc, index) {
   //To keep track of this row when selected
   this.index = index;
 
+  //Add computed object for Current Sponsor
+
   if (!doc.sponsors) {
     doc['sponsors'] = [];
   }
@@ -215,7 +206,7 @@ egam.models.gpoUsers.RowModelClass = function(doc, index) {
   this.latestSponsor = ko.computed(function() {
     var sponsorsLen = self.doc.sponsors.length;
     if (sponsorsLen > 0) {
-      return self.doc.sponsors[sponsorsLen - 1].username();
+      return self.doc.sponsors[sponsorsLen - 1].username;
     }else{
       return null;
     }
@@ -236,7 +227,7 @@ egam.models.gpoUsers.RowModelClass = function(doc, index) {
   this.spStartDate = ko.computed(function() {
     var spLen = self.doc.sponsors.length;
     if (spLen > 0) {
-      var dDate = new Date(self.doc.sponsors[spLen - 1].startDate());
+      var dDate = new Date(self.doc.sponsors[spLen - 1].startDate);
       return formatDate(dDate);
     }else{
       return null;
@@ -246,7 +237,7 @@ egam.models.gpoUsers.RowModelClass = function(doc, index) {
   this.spEndDate = ko.computed(function() {
     var spLen = self.doc.sponsors.length;
     if (spLen > 0) {
-      var dDate = new Date(self.doc.sponsors[spLen - 1].endDate());
+      var dDate = new Date(self.doc.sponsors[spLen - 1].endDate);
       return formatDate(dDate);
     }else{
       return null;
@@ -256,7 +247,11 @@ egam.models.gpoUsers.RowModelClass = function(doc, index) {
   this.spOrg = ko.computed(function() {
     var spLen = self.doc.sponsors.length;
     if (spLen > 0) {
-      return self.doc.sponsors[spLen - 1].organization();
+      if(self.doc.sponsors[spLen - 1].organization){
+        return self.doc.sponsors[spLen - 1].organization;
+      }else{
+        return null;
+      }
     }else{
       return null;
     }
@@ -265,7 +260,11 @@ egam.models.gpoUsers.RowModelClass = function(doc, index) {
   this.spAuthGroup = ko.computed(function() {
     var spLen = self.doc.sponsors.length;
     if (spLen > 0) {
-      return self.doc.sponsors[spLen - 1].authGroup();
+      if(self.doc.sponsors[spLen - 1].authGroup){
+        return self.doc.sponsors[spLen - 1].authGroup;
+      }else {
+        return null;
+      }
     }else{
       return null;
     }
@@ -274,7 +273,11 @@ egam.models.gpoUsers.RowModelClass = function(doc, index) {
   this.spReason = ko.computed(function() {
     var spLen = self.doc.sponsors.length;
     if (spLen > 0) {
-      return self.doc.sponsors[spLen - 1].reason();
+      if(self.doc.sponsors[spLen - 1].reason){
+        return self.doc.sponsors[spLen - 1].reason;
+      }else {
+        return null;
+      }
     }else{
       return null;
     }
@@ -283,7 +286,11 @@ egam.models.gpoUsers.RowModelClass = function(doc, index) {
   this.spDescript = ko.computed(function() {
     var spLen = self.doc.sponsors.length;
     if (spLen > 0) {
-      return self.doc.sponsors[spLen - 1].description();
+      if(self.doc.sponsors[spLen - 1].description){
+        return self.doc.sponsors[spLen - 1].description;
+      }else{
+        return null;
+      }
     }else{
       return null;
     }
@@ -304,9 +311,7 @@ egam.models.gpoUsers.FullModelClass = function(doc, index, parent) {
   this.sponsoreeAuthGroups = ko.observableArray(
       egam.communityUser.authGroups);
 
-  this.renew = function() {
-    console.log("sponsor");
-  }
+
   //Computed thumbnail url
   // this.thumbnailURL = ko.computed(function() {
   //   if (self.doc().thumbnail() == null) {
@@ -401,10 +406,10 @@ egam.models.gpoUsers.DetailsModel.prototype.select = function(item) {
     //.then(function () {
       //Now apply binding if not applied and then refresh the tag controls for selected item (to select by doc.owners authGroup)
 //  if (needToApplyBindings) ko.applyBindings(self, self.$element[0]);
-      //if (!self.bound) {
-      //  ko.applyBindings(self, document.getElementById('gpoItemsModal'));
-      //  self.bound=true;
-      //}
+      if (!self.bound) {
+        ko.applyBindings(self, document.getElementById('gpoUsersModal'));
+        self.bound=true;
+      }
 
       //no need to pass the new doc, it just uses the parent's (this details control) selected doc
       //self.tagControls.refresh();
@@ -434,72 +439,131 @@ egam.models.gpoUsers.DetailsModel.prototype.selectIndex = function(index) {
 //Post updated docs back to Mongo and change local view model
 //Note: Update is called in details model scope so this will be correct
 egam.models.gpoUsers.DetailsModel.prototype.update = function() {
+  alert("update");
   var self = this;
-  //Need to add thumbnail name to document before auditing
-  var thumbnailFile = null;
-  try {
-    thumbnailFile = $('#thumbnail')[0].files[0];
-  } catch (ex) {
-  }
-  if (!thumbnailFile) {
-    console.log('No thumbnail to post');
-  } else {
-    //Add to to change doc
-    self.selected().doc().thumbnail('thumbnail/' + thumbnailFile.name);
-    self.selected().addFieldChange('thumbnail', 
-      self.selected().doc().thumbnail());
-  }
-  //Var thumbnail = $('#thumbnail')[0].files[0];
-  //if (thumbnail && thumbnail.name) unmappedDoc.thumbnail = "thumbnail/" + thumbnail.name;
 
-  var updateDocsJSON = JSON.stringify(self.selected().changeDoc);
-  //Don't try to update if there is nothing to update
-  if (updateDocsJSON == '{}' && !thumbnailFile) {
-    return;
-  }
-  //ChangeDoc should be cleared for next time
-  self.selected().changeDoc = {};
+  //Get current data for sponsoring
+  var defaultDuration = 90;
+  var sD = new Date();
+  var sponsorDate = sD.getTime();
+  var endDate = sponsorDate + defaultDuration * 24 * 3600 * 1000;
 
-  var mydata = new FormData();
-  mydata.append('updateDocs', updateDocsJSON);
-  mydata.append('thumbnail', thumbnailFile);
+  // Get assigned authGroup from dropdown
+  var userAuthDrop = $('#UserAuthDrop');
+  var authGroup = userAuthDrop[0]
+      .options[userAuthDrop[0].selectedIndex].value;
 
+  // Get other fields
+  var org = $('#SponsoredOrg').val();
+  var descript = $('#spDescription').val();
+  var reason = $('#spPurpose');
+  var reasonSelected = reason[0].options[reason[0].selectedIndex].value;
 
-  $.ajax({
-    url: 'gpoitems/update',
-    type: 'POST',
-    data: mydata,
-    cache: false,
-    dataType: 'json',
-    //Don't process the files
-    processData: false,
-    //Set content type to false as jQuery will tell the server its a query
-    //string request
-    contentType: false,
-    success: function(data, textStatus, jqXHR) {
-      if (data.errors < 1) {
-        //Success so call function to process the form
-        console.log('success: ' + data);
+  // Create updateDoc to post back to mongo
+        myUserData = {};
+        updateUserData = {
+          username: self.selected().doc().username(),
+          sponsor: {
+            username: egam.communityUser.username,
+            startDate: sponsorDate,
+            endDate: endDate,
+            authGroup: authGroup,
+            reason: reasonSelected,
+            organization: org,
+            description: descript,
+          },
+          authGroup: authGroup,
+        };
+        updatedSponsor = {
+          username: egam.communityUser.username,
+          startDate: sponsorDate,
+          endDate: endDate,
+          authGroup: authGroup,
+          reason: reasonSelected,
+          organization: org,
+          description: descript,
+        };
+        myUserData.updateDocs = JSON.stringify(updateUserData);
 
-        //Refresh the data table now that save went through
-        //convert the full model observable doc to the simple JS doc.
-        //Only update the doc field in row model item
-        var jsDoc = ko.mapping.toJS(self.selected().doc());
-        self.parent.table.update(self.selected().index, jsDoc, 'doc');
-      } else {
-        //Handle errors here
-        console.error('ERRORS: ');
-        console.error(data.errors);
-      }
-    },
-    error: function(jqXHR, textStatus, errorThrown) {
-      // Handle errors here
-      console.log('ERRORS: ' + errorThrown);
-      // STOP LOADING SPINNER
-    },
-  });
+        //Alert(JSON.stringify(updateUserData));
+        var unmapped = ko.mapping.toJS(self.selected().doc());
 
-  console.log('Post back updated Items');
+        // Update in UI doc
+        unmapped.sponsors.push(updatedSponsor);
+        unmapped.authGroups.push(authGroup);
+
+        // Console.log(JSON.stringify(unmapped));
+        ko.mapping.fromJS(unmapped, self.selected().doc());
+
+        // Post to mongo
+        $.ajax({
+          url: 'gpousers/update',
+          type: 'POST',
+          data: myUserData,
+          cache: false,
+          dataType: 'json',
+          success: function(rdata, textStatus, jqXHR) {
+            console.log('Success: Posted new sponsor to Mongo');
+
+            // Alert(JSON.stringify(rdata));
+          },
+          error: function(jqXHR, textStatus, errorThrown) {
+            // Handle errors here
+            console.log('ERRORS: ' + textStatus);
+          },
+        });
+        $('#gpoUsersModal').modal('hide');
+        $('#updateAuth').hide();
+      //};
+
+  // var updateDocsJSON = JSON.stringify(self.selected().changeDoc);
+  // //Don't try to update if there is nothing to update
+  // if (updateDocsJSON == '{}' && !thumbnailFile) {
+  //   return;
+  // }
+  // //ChangeDoc should be cleared for next time
+  // self.selected().changeDoc = {};
+  //
+  // var mydata = new FormData();
+  // mydata.append('updateDocs', updateDocsJSON);
+  // mydata.append('thumbnail', thumbnailFile);
+  //
+  //
+  // $.ajax({
+  //   url: 'gpoitems/update',
+  //   type: 'POST',
+  //   data: mydata,
+  //   cache: false,
+  //   dataType: 'json',
+  //   //Don't process the files
+  //   processData: false,
+  //   //Set content type to false as jQuery will tell the server its a query
+  //   //string request
+  //   contentType: false,
+  //   success: function(data, textStatus, jqXHR) {
+  //     if (data.errors < 1) {
+  //       //Success so call function to process the form
+  //       console.log('success: ' + data);
+  //
+  //       //Refresh the data table now that save went through
+  //       //convert the full model observable doc to the simple JS doc.
+  //       //Only update the doc field in row model item
+  //       var jsDoc = ko.mapping.toJS(self.selected().doc());
+  //       self.parent.table.update(self.selected().index, jsDoc, 'doc');
+  //     } else {
+  //       //Handle errors here
+  //       console.error('ERRORS: ');
+  //       console.error(data.errors);
+  //     }
+  //   },
+  //   error: function(jqXHR, textStatus, errorThrown) {
+  //     // Handle errors here
+  //     console.log('ERRORS: ' + errorThrown);
+  //     // STOP LOADING SPINNER
+  //   },
+  // });
+
+  console.log('Post back updated GPO Users');
 };
 
 //This just encapsulates all the logic for the gpoItems tag controls

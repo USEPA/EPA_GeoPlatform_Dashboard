@@ -378,7 +378,7 @@ egam.models.gpoUsers.DetailsModel.prototype.selectIndex = function(index) {
 
 //Post updated docs back to Mongo and change local view model
 //Note: Update is called in details model scope so this will be correct
-egam.models.gpoUsers.DetailsModel.prototype.update = function() {
+egam.models.gpoItems.DetailsModel.prototype.update = function() {
   var self = this;
   //Need to add thumbnail name to document before auditing
   var thumbnailFile = null;

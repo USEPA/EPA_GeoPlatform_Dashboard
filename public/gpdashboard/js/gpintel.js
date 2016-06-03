@@ -327,7 +327,7 @@ function populateUserMngntTable() {
   //           .search(searchVal, true, false)
   //           .draw();
   //     },
-  //   };
+  //    };
   //
   //   egam.gpoUsers.tableModel = $('#userMgmtTable').DataTable({
   //     dom: 'Bfrtip',
