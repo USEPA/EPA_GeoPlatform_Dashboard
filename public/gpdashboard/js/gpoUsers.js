@@ -40,6 +40,40 @@ egam.models.gpoUsers.PageModelClass = function() {
     sponsors: 1,
   };
 
+  //Set events for user table filter buttons
+  $.fn.dataTable.ext.buttons.userTableFilter = {
+    className: 'buttons-alert',
+    action: function(e, dt, node, config) {
+
+      // Alert( this.text() );
+      var userTable = self.table.dataTable;
+
+      // Console.log(e);
+      var searchVal;
+      if (this.text() == 'All External Users') {
+        searchVal = '.*';
+        this.active(true);
+        userTable.button(1).active(false);
+        userTable.button(2).active(false);
+      }else if (this.text() == 'Sponsored') {
+        searchVal = '.+';
+        this.active(true);
+        userTable.button(0).active(false);
+        userTable.button(2).active(false);
+      }else if (this.text() == 'Unsponsored') {
+        searchVal = '^' + '$';
+        this.active(true);
+        userTable.button(0).active(false);
+        userTable.button(1).active(false);
+      }
+
+      userTable
+          .column(3)
+          .search(searchVal, true, false)
+          .draw();
+    },
+  };
+
   //This is instance of the table class that does all the table stuff.
   //Pass empty array of items initially
    self.table = new egam.controls.Table([],
@@ -51,14 +85,6 @@ egam.models.gpoUsers.PageModelClass = function() {
 
   //Set up the details control now which is part of this Model Class
   self.details = new egam.models.gpoUsers.DetailsModel(self);
-
-    //Set up the authGroups dropdown
-  // self.setAuthGroupsDropdown(egam.communityUser.ownerIDsByAuthGroup);
-
-  //Percent passing, Count of personal items should be observable on here
-  // self.percentPublicPassing = ko.observable();
-  // self.myItemsCount = ko.observable();
-
 
 };
 
@@ -99,7 +125,8 @@ egam.models.gpoUsers.PageModelClass.prototype.init = function() {
     .then(function() {
       //Add stuff for filter buttons self.table.datatable
 
-
+      //Set All External Users button to be the active button initially
+      self.table.dataTable.buttons(0).active(true);
 
   //
   //     //Now stop showing loading message that page is load

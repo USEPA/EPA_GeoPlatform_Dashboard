@@ -854,7 +854,25 @@
                     deferRender: true,
                     dataSource: egam.pages.gpoUsers.table.items,
                     rowTemplate: 'GPOusersRowTemplate',
-                    options: {paging: true},
+                    options: {paging: true,
+                        dom: 'Bfrtip',
+                        buttons: [
+                        {
+                            extend: 'userTableFilter',
+                            text: 'All External Users',
+                        },
+                          {
+                            extend: 'userTableFilter',
+                            text: 'Sponsored',
+                          },
+                          {
+                            extend: 'userTableFilter',
+                            text: 'Unsponsored',
+                          },
+                        ],
+                        order: [
+                          [1, 'asc'],
+                        ],},
                     columns: [
                     {data:'doc.fullName'},
                     {data:'doc.email'},
