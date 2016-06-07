@@ -348,7 +348,7 @@ egam.models.gpoItems.DetailsModel.prototype.select = function(item) {
 egam.models.gpoItems.DetailsModel.prototype.loadReconcile = function() {
   var self = this;
   if (!self.reconcillation) {
-    //self.reconcillation = new egam.models.edgItems.ReconcilliationModel(self.selected);
+    self.reconcillation = new egam.models.edgItems.ReconcilliationModel(self.selected);
 //    self.reconcillation = egam.utilities.loadSharedControl("reconcillation",egam.models.gpoItems.ReconcilliationModel,[self.selected]);
   }
 
