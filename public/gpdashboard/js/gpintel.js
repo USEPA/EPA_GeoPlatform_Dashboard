@@ -27,10 +27,6 @@ egam.models.edgItems = {};
 //Place to store and save general data retrieved from REST endpoints
 egam.dataStash = {};
 
-// egam.gpoUsers = {
-//   isLoaded: false,
-// };
-
 $(document).ready(function() {
 
 
@@ -45,10 +41,6 @@ $(document).ready(function() {
     }else if (e.target.hash == '#userMgmtView') {
       // Only load user table the first time user click on userMgmtView
       populateUserMngntTable();
-      // if (!egam.gpoUsers.isLoaded) {
-      //   populateUserMngntTable();
-      //   egam.gpoUsers.isLoaded = true;
-      // }
     }
   });
 
@@ -95,13 +87,16 @@ function populateUserMngntTable() {
   if (!egam.pages.gpoUsers) {
     //Create the new PageModel instance
     egam.pages.gpoUsers = new egam.models.gpoUsers.PageModelClass();
-    egam.pages.gpoUsers.init();
     console.log('gpoUsers Page Model created: ' + new Date());
+
+    egam.pages.gpoUsers.init()
+        .then(function () {
+          return true;
+        })
+        .fail(function (err) {
+          console.error(err);
+        });
   }
-
-  //egam.pages.gpoUsers = new egam.models.gpoUsers.PageModelClass();
-  //console.log('GPOusers Page Model created: ' + new Date());
-
 }
 
 

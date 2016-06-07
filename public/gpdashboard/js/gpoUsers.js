@@ -302,19 +302,6 @@ egam.models.gpoUsers.DetailsModel.prototype.select = function(item) {
         ko.applyBindings(self, document.getElementById('gpoUsersModal'));
         self.bound=true;
       }
-
-      //no need to pass the new doc, it just uses the parent's (this details control) selected doc
-      //self.tagControls.refresh();
-    //});
-};
-
-//Allows you to select an item based on index, usually index will be coming from row number
-egam.models.gpoUsers.DetailsModel.prototype.loadReconcile = function() {
-  var self = this;
-  if (!self.reconcillation) {
-    self.reconcillation = new egam.models.edgItems.ReconcilliationModel(self.selected);
-
-  }
 };
 
 //Allows you to select an item based on index, usually index will be coming from
