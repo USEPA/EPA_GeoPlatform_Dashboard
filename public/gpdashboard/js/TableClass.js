@@ -16,7 +16,7 @@ egam.controls.Table = function(items,elementSelector,RowModelClass,resultsName) 
   this.data = null;
   this.dataTable = null;
   // ResultsName is the name of the results in object returned by endpoint (default='results'). for edg stuff it is dataSet
-  this.resultsName = resultsName | 'results';
+  this.resultsName = resultsName || 'results';
 };
 
 egam.controls.Table.prototype.init = function(endpoint, query, projection, resultsName) {
@@ -57,9 +57,9 @@ egam.controls.Table.prototype.init = function(endpoint, query, projection, resul
       // eg. If "limit" passed to dashboard gpo endpoints then paging info is returned and this.data is actually in returnedData.results
       //If there is a field called resultsName (default=results) in data returned by endpoint that is where the array of objects or this.data resides
       //Otherwise have to assume data returned is the array of objets or this.data
-      if (resultsName in returnedData) {
+      if (self.resultsName in returnedData) {
         self.allData = returnedData;
-        self.data = returnedData[resultsName];
+        self.data = returnedData[self.resultsName];
       } else {
         self.data = returnedData;
       }

@@ -849,7 +849,43 @@
              <div role="tabpanel" class="tab-pane" id="userMgmtView" >
                  <h2 class="sub-header">User Management</h2>
                  <p>Work on this pane is still in progress. This page allows administrators to manage the sponsorship of external accounts. Please view the help for additional guidance.</p>
-                 <table id="userMgmtTable" class="table table-hover table-bordered table-responsive">
+                 <table id="gpoUsersTable" class="table table-hover table-bordered table-responsive" data-bind="dataTable:
+                {
+                    deferRender: true,
+                    dataSource: egam.pages.gpoUsers.table.items,
+                    rowTemplate: 'GPOusersRowTemplate',
+                    options: {paging: true,
+                        dom: 'Bfrtip',
+                        buttons: [
+                        {
+                            extend: 'userTableFilter',
+                            text: 'All External Users',
+                        },
+                          {
+                            extend: 'userTableFilter',
+                            text: 'Sponsored',
+                          },
+                          {
+                            extend: 'userTableFilter',
+                            text: 'Unsponsored',
+                          },
+                        ],
+                        order: [
+                          [1, 'asc'],
+                        ],},
+                    columns: [
+                    {data:'doc.isExternal'},
+                    {data:'doc.fullName'},
+                    {data:'doc.email'},
+                    {data:'latestSponsor'},
+                    {data:'spAuthGroup'},
+                    {data:'spOrg'},
+                    {data:'spDescript'},
+		            {data:'spReason'},
+		            {data:'spStartDate'},
+		            {data:'spEndDate'},
+                    ]
+                    }">
                      <thead>
                      <tr>
                          <th>Sponsored</th>
@@ -864,15 +900,21 @@
                          <th>End Date</th>
                      </tr>
                      </thead>
-                     <tbody data-bind="foreach: users">
-                     <tr >
-                         <td >
-                             <div>
-                                <button class="btn btn-primary btn-xs" id="sponsorBtn" data-bind="click: $parent.select" data-toggle="modal" data-target="#userMgmtModal">Sponsor Me!</button>
-                             </div>
+                     <tbody>
+
+                     </tbody>
+                     <tfoot>
+                     </tfoot>
+                 </table>
+                 <script id="GPOusersRowTemplate" type="text/html">
+                     <tr>
+                         <td>
+                            <div>
+                                <button class="btn btn-primary btn-xs" id="sponsorBtn" data-bind="click: function (item) {return $root.details.select(item)}" data-toggle="modal" data-target="#gpoUsersModal">Sponsor Me!</button>
+                            </div>
                          </td>
-                         <td data-bind="text: uData.fullName"></td>
-                         <td data-bind="text: uData.email"></td>
+                         <td data-bind="text: doc.fullName"></td>
+                         <td data-bind="text: doc.email"></td>
                          <td data-bind="text: latestSponsor"></td>
                          <td data-bind="text: spAuthGroup"></td>
                          <td data-bind="text: spOrg"></td>
@@ -881,48 +923,45 @@
                          <td data-bind="text: spStartDate"></td>
                          <td data-bind="text: spEndDate"></td>
                      </tr>
-                     </tbody>
-                     <tfoot>
-                     </tfoot>
-                 </table>
-                 <div class="modal fade" id="userMgmtModal" tabindex="-1" role="dialog" data-keyboard="false" data-backdrop="static" aria-labelledby="userMgmtModalLabel">
-                     <div class="modal-dialog modal-sm" role="document">
-                         <div class="modal-content">
-                             <div class="modal-header">
-                                 <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                                 <h4 class="modal-title" id="userMgmtModalLabel">Confirm Sponsorship</h4>
+                 </script>
+             </div>
+             <div class="modal fade" id="gpoUsersModal" tabindex="-1" role="dialog" data-keyboard="false" data-backdrop="static" aria-labelledby="userMgmtModalLabel">
+                 <div class="modal-dialog modal-sm" role="document">
+                     <div class="modal-content">
+                         <div class="modal-header">
+                             <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                             <h4 class="modal-title" id="userMgmtModalLabel">Confirm Sponsorship</h4>
+                         </div>
+                         <div class="modal-body" >
+                             <div class="form-group">
+                                 <label for="SponsoredOrg" data-bind="text: selected().doc().fullName"></label>
                              </div>
-                             <div class="modal-body" >
-                                 <div class="form-group">
-                                     <label for="SponsoredOrg" data-bind="text: selected().uData.fullName()"></label>
-                                 </div>
-                                 <div class="form-group">
-                                     <label for="spPurpose">Reason:</label>
-                                     <select class="form-control" id="spPurpose">
-                                         <option value="Emergency Response">Emergency Response</option>
-                                         <option value="Other Federal Agency">Other Federal Agency</option>
-                                         <option value="State Agency">State Agency</option>
-                                         <option value="University">University</option>
-                                         <option value="Long Term GIS Support">Long Term GIS Support</option>
-                                     </select>
-                                 </div>
-                                 <div class="form-group">
-                                     <label for="SponsoredOrg">Organization:</label>
-                                     <input class="form-control" id="SponsoredOrg" type="text" style="width: 100%">
-                                 </div>
-                                 <div class="form-group">
-                                     <label for="spDescription">Description:</label>
-                                     <textarea class="form-control" rows="5" id="spDescription" style="min-width: 100%"></textarea>
-                                 </div>
-                                 <div class="form-group" id="updateAuth">
-                                     <label for="UserAuthDrop">Choose an Authoritative Group:</label>
-                                     <select class="form-control" id="UserAuthDrop" data-bind="options: selected().sponsoreeAuthGroups" style="width: 100%"></select>
-                                 </div>
+                             <div class="form-group">
+                                 <label for="spPurpose">Reason:</label>
+                                 <select class="form-control" id="spPurpose">
+                                     <option value="Emergency Response">Emergency Response</option>
+                                     <option value="Other Federal Agency">Other Federal Agency</option>
+                                     <option value="State Agency">State Agency</option>
+                                     <option value="University">University</option>
+                                     <option value="Long Term GIS Support">Long Term GIS Support</option>
+                                 </select>
                              </div>
-                             <div class="modal-footer">
-                                 <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                                 <button type="button" id="userSponorSave" class="btn btn-primary" data-bind="click: selected().renew">Confirm</button>
+                             <div class="form-group">
+                                 <label for="SponsoredOrg">Organization:</label>
+                                 <input class="form-control" id="SponsoredOrg" type="text" style="width: 100%">
                              </div>
+                             <div class="form-group">
+                                 <label for="spDescription">Description:</label>
+                                 <textarea class="form-control" rows="5" id="spDescription" style="min-width: 100%"></textarea>
+                             </div>
+                             <div class="form-group" id="updateAuth">
+                                 <label for="UserAuthDrop">Choose an Authoritative Group:</label>
+                                 <select class="form-control" id="UserAuthDrop" data-bind="options: selected().sponsoreeAuthGroups" style="width: 100%"></select>
+                             </div>
+                         </div>
+                         <div class="modal-footer">
+                             <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                             <button type="button" id="userSponorSave" class="btn btn-primary" data-bind="click: update">Confirm</button>
                          </div>
                      </div>
                  </div>
@@ -990,6 +1029,7 @@
     <script src="js/TableClass.js"></script>
     <script src="js/gpintel.js"></script>
     <script src="js/gpoItems.js"></script>
+    <script src="js/gpoUsers.js"></script>
     <script src="js/edgItems.js"></script>
     <script src="js/Audit.js"></script>
     <!-- Due to some weird timing issues, this order needs to be followed -->

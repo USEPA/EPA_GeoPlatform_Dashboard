@@ -27,12 +27,9 @@ egam.models.edgItems = {};
 //Place to store and save general data retrieved from REST endpoints
 egam.dataStash = {};
 
-egam.gpoUsers = {
-  resultSet: [],
-  tableModel: null,
-  dataTable: null,
-  isLoaded: false,
-};
+// egam.gpoUsers = {
+//   isLoaded: false,
+// };
 
 $(document).ready(function() {
 
@@ -47,10 +44,11 @@ $(document).ready(function() {
       loadEDGitemsPage();
     }else if (e.target.hash == '#userMgmtView') {
       // Only load user table the first time user click on userMgmtView
-      if (!egam.gpoUsers.isLoaded) {
-        populateUserMngntTable();
-        egam.gpoUsers.isLoaded = true;
-      }
+      populateUserMngntTable();
+      // if (!egam.gpoUsers.isLoaded) {
+      //   populateUserMngntTable();
+      //   egam.gpoUsers.isLoaded = true;
+      // }
     }
   });
 
@@ -94,259 +92,16 @@ $(document).ready(function() {
 
 function populateUserMngntTable() {
 
-  var queryUM = {isExternal: true};
-  $.post('gpousers/list', {
-    query: JSON.stringify(queryUM),
-  }, function(data) {
-    // Alert(data);
-    egam.gpoUsers.resultSet = data;
+  if (!egam.pages.gpoUsers) {
+    //Create the new PageModel instance
+    egam.pages.gpoUsers = new egam.models.gpoUsers.PageModelClass();
+    egam.pages.gpoUsers.init();
+    console.log('gpoUsers Page Model created: ' + new Date());
+  }
 
-    var gpoUserModel = function(u) {
-      var self = this;
+  //egam.pages.gpoUsers = new egam.models.gpoUsers.PageModelClass();
+  //console.log('GPOusers Page Model created: ' + new Date());
 
-      if (!u.sponsors) {
-        u['sponsors'] = [];
-      }
-      this.uData = ko.mapping.fromJS(u);
-
-      // Sponsor fields
-      this.latestSponsor = ko.computed(function() {
-        var sponsorsLen = self.uData.sponsors().length;
-        if (sponsorsLen > 0) {
-          return self.uData.sponsors()[sponsorsLen - 1].username();
-        }
-      });
-
-      this.spStartDate = ko.computed(function() {
-        var spLen = self.uData.sponsors().length;
-        if (spLen > 0) {
-          var dDate = new Date(self.uData.sponsors()[spLen - 1].startDate());
-          return formatDate(dDate);
-        }
-      });
-
-      this.spEndDate = ko.computed(function() {
-        var spLen = self.uData.sponsors().length;
-        if (spLen > 0) {
-          var dDate = new Date(self.uData.sponsors()[spLen - 1].endDate());
-          return formatDate(dDate);
-        }
-      });
-
-      this.spOrg = ko.computed(function() {
-        var spLen = self.uData.sponsors().length;
-        if (spLen > 0) {
-          return self.uData.sponsors()[spLen - 1].organization();
-        }
-      });
-
-      this.spAuthGroup = ko.computed(function() {
-        var spLen = self.uData.sponsors().length;
-        if (spLen > 0) {
-          return self.uData.sponsors()[spLen - 1].authGroup();
-        }
-      });
-
-      this.spReason = ko.computed(function() {
-        var spLen = self.uData.sponsors().length;
-        if (spLen > 0) {
-          return self.uData.sponsors()[spLen - 1].reason();
-        }
-      });
-
-      this.spDescript = ko.computed(function() {
-        var spLen = self.uData.sponsors().length;
-        if (spLen > 0) {
-          return self.uData.sponsors()[spLen - 1].description();
-        }
-      });
-
-      // Format Date from millaseconds to something useful
-      function formatDate(uDate) {
-        var monthNames = [
-          'Jan', 'Feb', 'Mar',
-          'Apr', 'May', 'Jun', 'Jul',
-          'Aug', 'Sep', 'Oct',
-          'Nov', 'Dec',
-        ];
-        return monthNames[uDate.getMonth()] + ' ' + uDate.getDate() + ', ' +
-            uDate.getFullYear();
-      }
-
-      this.sponsoreeAuthGroups = ko.observableArray(
-          egam.communityUser.authGroups);
-
-      this.renew = function() {
-
-        // Get current data for sponsoring
-        var defaultDuration = 90;
-        var sD = new Date();
-        var sponsorDate = sD.getTime();
-        var endDate = sponsorDate + defaultDuration * 24 * 3600 * 1000;
-
-        // Get assigned authGroup from dropdown
-        var userAuthDrop = $('#UserAuthDrop');
-        var authGroup = userAuthDrop[0]
-            .options[userAuthDrop[0].selectedIndex].value;
-
-        // Get other fields
-        var org = $('#SponsoredOrg').val();
-        var descript = $('#spDescription').val();
-        var reason = $('#spPurpose');
-        var reasonSelected = reason[0].options[reason[0].selectedIndex].value;
-
-        // Create updateDoc to post back to mongo
-        myUserData = {};
-        updateUserData = {
-          username: self.uData.username(),
-          sponsor: {
-            username: egam.communityUser.username,
-            startDate: sponsorDate,
-            endDate: endDate,
-            authGroup: authGroup,
-            reason: reasonSelected,
-            organization: org,
-            description: descript,
-          },
-          authGroup: authGroup,
-        };
-        updatedSponsor = {
-          username: egam.communityUser.username,
-          startDate: sponsorDate,
-          endDate: endDate,
-          authGroup: authGroup,
-          reason: reasonSelected,
-          organization: org,
-          description: descript,
-        };
-        myUserData.updateDocs = JSON.stringify(updateUserData);
-
-        // Alert(JSON.stringify(updateUserData));
-        var unmapped = ko.mapping.toJS(self.uData);
-
-        // Update in UI doc
-        unmapped.sponsors.push(updatedSponsor);
-        unmapped.authGroups.push(authGroup);
-
-        // Console.log(JSON.stringify(unmapped));
-        ko.mapping.fromJS(unmapped, self.uData);
-
-        // Console.log(userAuthDrop);
-
-        // Post to mongo
-        $.ajax({
-          url: 'gpousers/update',
-          type: 'POST',
-          data: myUserData,
-          cache: false,
-          dataType: 'json',
-          success: function(rdata, textStatus, jqXHR) {
-            console.log('Success: Posted new sponsor to Mongo');
-
-            // Alert(JSON.stringify(rdata));
-          },
-          error: function(jqXHR, textStatus, errorThrown) {
-            // Handle errors here
-            console.log('ERRORS: ' + textStatus);
-          },
-        });
-        $('#userMgmtModal').modal('hide');
-        $('#updateAuth').hide();
-      };
-    };
-
-    var gpoUserTableModel = function(usersDoc) {
-      var self = this;
-
-      self.users = ko.observableArray(usersDoc.map(function(doc) {
-        return new gpoUserModel(doc);
-      }));
-
-      self.select = function(item) {
-        self.selected(item);
-      };
-
-      // Allows you to select an item based on index, usually index will be
-      // coming from row number
-      self.selectIndex = function(index) {
-        var selectedItem = self.users()[index];
-        self.selected(selectedItem);
-      };
-
-      self.selected = ko.observable();
-
-      if (self.users().length > 0) {
-        // Automatically select the 1st item in the table
-        // no idea why we are doing this?
-        self.selected = ko.observable(self.users()[0]);
-      }
-
-      self.clear = function() {
-        self.users().length = 0;
-      };
-
-    };
-
-    // JSON.parse(data)
-    egam.gpoUsers.tableModel = ko.applyBindings(new gpoUserTableModel(
-      JSON.parse(data)), document.getElementById('userMgmtView'));
-
-    $.fn.dataTable.ext.buttons.alert = {
-      className: 'buttons-alert',
-      action: function(e, dt, node, config) {
-
-        // Alert( this.text() );
-        var userTable = $('#userMgmtTable').DataTable();
-
-        // Console.log(e);
-        var searchVal;
-        if (this.text() == 'All External Users') {
-          searchVal = '.*';
-          this.active(true);
-          userTable.button(1).active(false);
-          userTable.button(2).active(false);
-        }else if (this.text() == 'Sponsored') {
-          searchVal = '.+';
-          this.active(true);
-          userTable.button(0).active(false);
-          userTable.button(2).active(false);
-        }else if (this.text() == 'Unsponsored') {
-          searchVal = '^' + '$';
-          this.active(true);
-          userTable.button(0).active(false);
-          userTable.button(1).active(false);
-        }
-
-        userTable
-            .column(3)
-            .search(searchVal, true, false)
-            .draw();
-      },
-    };
-
-    egam.gpoUsers.tableModel = $('#userMgmtTable').DataTable({
-      dom: 'Bfrtip',
-      buttons: [
-          {
-            extend: 'alert',
-            text: 'All External Users',
-          },
-          {
-            extend: 'alert',
-            text: 'Sponsored',
-          },
-          {
-            extend: 'alert',
-            text: 'Unsponsored',
-          },
-        ],
-      order: [
-        [1, 'asc'],
-      ],
-    });
-    //Make All External Users button active
-    egam.gpoUsers.tableModel.buttons(0).active(true);
-  });
 }
 
 
