@@ -27,9 +27,9 @@ egam.models.edgItems = {};
 //Place to store and save general data retrieved from REST endpoints
 egam.dataStash = {};
 
-egam.gpoUsers = {
-  isLoaded: false,
-};
+// egam.gpoUsers = {
+//   isLoaded: false,
+// };
 
 $(document).ready(function() {
 
@@ -44,10 +44,11 @@ $(document).ready(function() {
       loadEDGitemsPage();
     }else if (e.target.hash == '#userMgmtView') {
       // Only load user table the first time user click on userMgmtView
-      if (!egam.gpoUsers.isLoaded) {
-        populateUserMngntTable();
-        egam.gpoUsers.isLoaded = true;
-      }
+      populateUserMngntTable();
+      // if (!egam.gpoUsers.isLoaded) {
+      //   populateUserMngntTable();
+      //   egam.gpoUsers.isLoaded = true;
+      // }
     }
   });
 
@@ -90,12 +91,16 @@ $(document).ready(function() {
 
 
 function populateUserMngntTable() {
-  
-  //alert("populate User table");
-  egam.pages.gpoUsers = new egam.models.gpoUsers.PageModelClass();
-  console.log('GPOusers Page Model created: ' + new Date());
 
-  egam.pages.gpoUsers.init();
+  if (!egam.pages.gpoUsers) {
+    //Create the new PageModel instance
+    egam.pages.gpoUsers = new egam.models.gpoUsers.PageModelClass();
+    egam.pages.gpoUsers.init();
+    console.log('gpoUsers Page Model created: ' + new Date());
+  }
+
+  //egam.pages.gpoUsers = new egam.models.gpoUsers.PageModelClass();
+  //console.log('GPOusers Page Model created: ' + new Date());
 
 }
 

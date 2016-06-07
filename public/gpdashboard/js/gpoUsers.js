@@ -313,13 +313,8 @@ egam.models.gpoUsers.DetailsModel.prototype.loadReconcile = function() {
   var self = this;
   if (!self.reconcillation) {
     self.reconcillation = new egam.models.edgItems.ReconcilliationModel(self.selected);
-//    self.reconcillation = egam.utilities.loadSharedControl("reconcillation",egam.models.gpoItems.ReconcilliationModel,[self.selected]);
+
   }
-
-  self.reconcillation.load(self.selected().doc);
-  //Do things like turn off the details model stuff
-  //$element.modal('hide');
-
 };
 
 //Allows you to select an item based on index, usually index will be coming from
