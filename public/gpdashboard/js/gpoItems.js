@@ -345,7 +345,7 @@ egam.models.gpoItems.DetailsModel.prototype.select = function(item) {
 };
 
 //Allows you to select an item based on index, usually index will be coming from row number
-egam.models.gpoUsers.DetailsModel.prototype.loadReconcile = function() {
+egam.models.gpoItems.DetailsModel.prototype.loadReconcile = function() {
   var self = this;
   if (!self.reconcillation) {
     //self.reconcillation = new egam.models.edgItems.ReconcilliationModel(self.selected);
@@ -372,7 +372,7 @@ egam.models.gpoItems.DetailsModel.prototype.loadLinkEDG = function() {
 
 //Allows you to select an item based on index, usually index will be coming from
 //row number
-egam.models.gpoUsers.DetailsModel.prototype.selectIndex = function(index) {
+egam.models.gpoItems.DetailsModel.prototype.selectIndex = function(index) {
   this.select(this.parent.table.items[index]);
 };
 
