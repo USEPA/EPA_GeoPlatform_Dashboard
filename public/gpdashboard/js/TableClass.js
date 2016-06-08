@@ -50,7 +50,7 @@ egam.controls.Table.prototype.init = function(endpoint, query, projection, resul
     url: endpoint,
     data: {query: query, projection: projection},
     dataType: 'json',
-    timeout: 6000,
+    timeout: 15000,
     success: function(returnedData) {
       console.log('Endpoint Data Received : ' + new Date());
       //The endpoint might return return other info other than array of objects with desired table data which will be saved in this.data

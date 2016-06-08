@@ -59,6 +59,7 @@ Audit.prototype.validators = {
 };
 
 Audit.prototype.globalValidator = function(doc) {
+  this.checkWordLimit('description', doc, 5, null, true);
   //When they upload a excel file for features it can make the title be excel
   //spread sheet cell or range of cells
   this.checkRegexMatch(['title'], doc, ['^\\s*\\$[A-Za-z]+\\$\\d+'],
@@ -67,9 +68,9 @@ Audit.prototype.globalValidator = function(doc) {
 
 Audit.prototype.validators.access.public = function(doc) {
   //This function is called on all public items
-  this.checkForbiddenWords(['title', 'tags'], doc, [' test ', '-copy ']);
+  this.checkForbiddenWords(['title', 'tags'], doc, ['-copy ']);
 
-  this.checkForbiddenWords(['snippet', 'description'], doc, [' test '], true);
+  //this.checkForbiddenWords(['snippet', 'description'], doc, [' test '], true);
 };
 
 Audit.prototype.validators.type['Feature Service'] = function(doc) {
@@ -92,7 +93,6 @@ Audit.prototype.validators.type['Web Mapping Application'] = function(doc) {
   //This function is called on all Web Map types
   //This was not maintaining scope of the audit object
   this.validators.type['Web Map'].apply(this, [doc]);
-  this.checkWordLimit('description', doc, 5, null, true);
 };
 
 

@@ -56,8 +56,8 @@
           <ul class="nav navbar-nav navbar-right">
             <li id="userId" style="display:none">
                 <a>Welcome <span data-bind="text: communityUser.fullName"></span>
-                (<span data-bind="css: {hidden: communityUser.role != 'org_admin'}">Non-Administrator</span>
-                <span data-bind="css: {hidden: communityUser.role == 'org_admin'}">GPO Administrator</span>)</a>
+                <span data-bind="css: {hidden: communityUser.isAdmin}">(Non-Administrator)</span>
+                <span data-bind="css: {hidden: communityUser.isAdmin != true}">(GPO Administrator)</span></a>
             </li>
             <li id="personalizedPanel" style="display: none; "><a id="sign-out" href="#">Sign Out</a></li>
             <li id="anonymousPanel" style="display: block"><a href="#" id="sign-in-navbar" >Sign In</a></li>
