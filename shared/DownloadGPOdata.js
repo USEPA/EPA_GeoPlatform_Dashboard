@@ -987,30 +987,6 @@ DownloadGPOdata.prototype.getHandleGPOthumbnail = function(defer,
   };
 };
 
-DownloadGPOdata.prototype.getHandleGPOfolders = function(defer,
-                                                         currentGPOid,
-                                                         historyID) {
-  var self = this;
-  //Must have access to the defer created for calling request function that
-  //produced response so it can be resolved
-  return function HandleGPOthumbnail(response) {
-    //NOte the response sent to here is the readable stream form of response
-    //not the object that contains the body
-
-    //Try to get filename from response header
-    var filename = self.hr.saved.modifiedThumbnails[currentGPOid];
-
-    self.saveStreamToGridFS(response, currentGPOid, historyID,
-        slashData, filename, 'thumbnail').catch(function(err) {
-      defer.reject('Error updating Thumbnail to Grid FS : ' + err);
-    }).done(function() {
-      defer.resolve(slashData);
-    });
-
-    return true;
-  };
-};
-
 DownloadGPOdata.prototype.saveStreamToGridFS = function(readableStream,id,
                                                         historyID,SlashData,
                                                         filename,binaryType) {
