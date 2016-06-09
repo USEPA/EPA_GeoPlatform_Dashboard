@@ -390,7 +390,7 @@
                     {data:'doc.type'},
                     {data:'doc.numViews'},
                     {data:'doc.owner'},
-                    {data:{_:'modifiedDate',sort:'doc.modified'},type:'num'},
+                    {data:{_:function (row) {return egam.utilities.formatDate(row.doc.modified)},sort:'doc.modified'},type:'num'},
                     {data:'complianceStatus'}
                     ]
                     }">
@@ -470,7 +470,8 @@
                         <td data-bind="text: doc.type"></td>
                         <td data-bind="text: doc.numViews"></td>
                         <td data-bind="text: doc.owner"></td>
-                        <td data-bind="text: modifiedDate"></td>
+                        <td data-bind="text: egam.utilities.formatDate(doc.modified)"></td>
+                        {data:{_:function (row) {return egam.utilities.formatDate(row.latestSponsor().startDate)},sort:'latestSponsor().startDate'},type:'num'},
                         <td data-bind="css: {auditRowPass: doc.AuditData.compliant,auditRowFail: !doc.AuditData.compliant}">
                             <img class="pass" src="img/greenOK.jpg" alt="Pass" style="width:25px">
                             <img class="fail" src="img/warning.png" alt="Fail" style="width:25px">
@@ -874,30 +875,66 @@
                           [1, 'asc'],
                         ],},
                     columns: [
-                    {data:'doc.isExternal'},
-                    {data:'doc.fullName'},
-                    {data:'doc.email'},
-                    {data:'latestSponsor'},
-                    {data:'spAuthGroup'},
-                    {data:'spOrg'},
-                    {data:'spDescript'},
-		            {data:'spReason'},
-		            {data:'spStartDate'},
-		            {data:'spEndDate'},
+                        {data:'doc.isExternal'},
+                        {data:'doc.fullName'},
+                        {data:'doc.email'},
+                        {data:'latestSponsor().username'},
+                        {data:'latestSponsor().authGroup'},
+                        {data:'latestSponsor().organization'},
+                        {data:'latestSponsor().description'},
+                        {data:'latestSponsor().reason'},
+                        {data:{_:function (row) {return egam.utilities.formatDate(row.latestSponsor().startDate)},sort:'latestSponsor().startDate'},type:'num'},
+                        {data:{_:function (row) {return egam.utilities.formatDate(row.latestSponsor().endDate)},sort:'latestSponsor().endDate'},type:'num'},
                     ]
                     }">
                      <thead>
                      <tr>
                          <th>Sponsored</th>
-                         <th>Name</th>
-                         <th>E-mail</th>
-                         <th>Sponsor</th>
-                         <th>Auth Group</th>
-                         <th>Organization</th>
-                         <th>Description</th>
-                         <th>Reason</th>
-                         <th>Start Date</th>
-                         <th>End Date</th>
+                         <th>Name
+                            <span onclick="event.stopPropagation();" >
+                                <input class="search form-control input-sm" style="width:9em" placeholder="Search By Name">
+                            </span>
+                         </th>
+                         <th>E-mail<br />
+                            <span onclick="event.stopPropagation();" >
+                                <input class="search form-control input-sm" style="width:9em" placeholder="Search By Email">
+                            </span>
+                         </th>
+                         <th>Sponsor
+                            <span onclick="event.stopPropagation();" >
+                                <input class="search form-control input-sm" style="width:9em" placeholder="Search By Sponsor">
+                            </span>
+                         </th>
+                         <th>Auth Group
+                            <span onclick="event.stopPropagation();" >
+                                <select class="search form-control input-sm" style="width:9em"><option value="">All</option></select>
+                            </span>
+                         </th>
+                         <th>Organization
+                            <span onclick="event.stopPropagation();" >
+                                <select class="search form-control input-sm" style="width:9em"><option value="">All</option></select>
+                            </span>
+                         </th>
+                         <th>Description
+                            <span onclick="event.stopPropagation();" >
+                                <input class="search form-control input-sm" style="width:9em" placeholder="Search By Description">
+                            </span>
+                         </th>
+                         <th>Reason
+                            <span onclick="event.stopPropagation();" >
+                                <select class="search form-control input-sm" style="width:9em"><option value="">All</option></select>
+                            </span>
+                         </th>
+                         <th>Start Date
+                            <span onclick="event.stopPropagation();" >
+                                <input class="search form-control input-sm" style="width:9em" placeholder="Search By Start Date">
+                            </span>
+                         </th>
+                         <th>End Date
+                            <span onclick="event.stopPropagation();" >
+                                <input class="search form-control input-sm" style="width:9em" placeholder="Search By End Date">
+                            </span>
+                         </th>
                      </tr>
                      </thead>
                      <tbody>
@@ -915,13 +952,13 @@
                          </td>
                          <td data-bind="text: doc.fullName"></td>
                          <td data-bind="text: doc.email"></td>
-                         <td data-bind="text: latestSponsor"></td>
-                         <td data-bind="text: spAuthGroup"></td>
-                         <td data-bind="text: spOrg"></td>
-                         <td data-bind="text: spDescript"></td>
-                         <td data-bind="text: spReason"></td>
-                         <td data-bind="text: spStartDate"></td>
-                         <td data-bind="text: spEndDate"></td>
+                         <td data-bind="text: latestSponsor().username"></td>
+                         <td data-bind="text: latestSponsor().authGroup"></td>
+                         <td data-bind="text: latestSponsor().organization"></td>
+                         <td data-bind="text: latestSponsor().description"></td>
+                         <td data-bind="text: latestSponsor().reason"></td>
+                         <td data-bind="text: egam.utilities.formatDate(latestSponsor().startDate)"></td>
+                         <td data-bind="text: egam.utilities.formatDate(latestSponsor().endDate)"></td>
                      </tr>
                  </script>
              </div>
