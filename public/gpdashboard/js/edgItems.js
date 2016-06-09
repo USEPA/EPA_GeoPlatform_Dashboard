@@ -78,10 +78,13 @@ egam.models.edgItems.RowModelClass = function(doc, index) {
 };
 
 //Model for Search EDG modal accessed from GPO details modal
-egam.models.edgItems.LinkEDGModel = function() {
+egam.models.edgItems.LinkEDGModel = function(parent) {
   var self = this;
   this.$element =  $('#edgModal');
   this.$tableElement = $('#edgModalItemsTable');
+
+  //This is the details model
+  this.parent = parent;
 
   this.gpoDoc = null;
   this.gpoID = null;
@@ -103,10 +106,12 @@ egam.models.edgItems.LinkEDGModel.prototype.load = function(gpoDoc) {
   var self = this;
   this.$element.modal('show');
 
-  //Get actual values for these instead of observables
-  this.gpoDoc = ko.utils.unwrapObservable(gpoDoc);
-  this.gpoID = ko.utils.unwrapObservable(this.gpoDoc.id);
-  this.gpoTitle = ko.utils.unwrapObservable(this.gpoDoc.title);
+  //Save the passed doc
+  this.gpoDoc = gpoDoc;
+  //In case non observable doc loaded unwrap it
+  this.gpoDocUnWrapped = ko.utils.unwrapObservable(gpoDoc);
+  this.gpoID = ko.utils.unwrapObservable(this.gpoDocUnWrapped.id);
+  this.gpoTitle = ko.utils.unwrapObservable(this.gpoDocUnWrapped.title);
 
   //If not bound yet then apply bindings
   if (!this.bound) {
@@ -248,18 +253,23 @@ egam.models.edgItems.LinkEDGModel.prototype.linkRecord = function(edgURLs) {
             if (data.errors < 1) {
               // Success so call function to process the form
               console.log('success: ' + data);
-              var doctemp = ko.mapping.toJS(
-                egam.pages.gpoItems.details.selected().doc());
-              doctemp.EDGdata = {
+              //Need to just add the EDG data to the selected doc. If we create new doc we will lose subscriptions
+              var edgDataObserv = ko.mapping.fromJS({
                 title: title,
                 purpose: purpose,
                 abstract: abstract,
                 useconst: useconst,
                 publisher: publisher,
-                url: edgURL,};
-              egam.pages.gpoItems.details.selected().doc(
-                ko.mapping.fromJS(doctemp));
-              $('#edgModal').modal('hide');
+                url: edgURL,});
+
+              //Now just set the EDGdata since it is just an object and not observable itself even though members are (for now at least)
+              //Note maybe I should be operating on the this.GPOdoc here to be more genearl
+              //self.parent.selected().doc().EDGdata = edgDataObserv;
+              self.gpoDocUnWrapped.EDGdata = edgDataObserv;
+              //If need EDG change to trigger something later could do this
+              //if (ko.isObservable(self.gpoDoc)) { self.gpoDoc(self.gpoDoc())};
+
+              self.$element.modal('hide');
 
               // Show reconciliation modal
               egam.pages.gpoItems.details.loadReconcile();
@@ -285,8 +295,8 @@ egam.models.edgItems.LinkEDGModel.prototype.linkRecord = function(edgURLs) {
       },
     });
   } else {
-    alert('No matching URL for this record: ' + gpoID);
-    console.log('No matching URL for this record: ' + gpoID);
+    alert('No matching URL for this record: ' + self.gpoID);
+    console.log('No matching URL for this record: ' + self.gpoID);
   }
 };
 

@@ -362,7 +362,7 @@ egam.models.gpoItems.DetailsModel.prototype.loadReconcile = function() {
 egam.models.gpoItems.DetailsModel.prototype.loadLinkEDG = function() {
   var self = this;
   if (!self.linkEDG) {
-    self.linkEDG = new egam.models.edgItems.LinkEDGModel(self.selected);
+    self.linkEDG = new egam.models.edgItems.LinkEDGModel(self);
   }
 
   self.linkEDG.load(self.selected().doc);
