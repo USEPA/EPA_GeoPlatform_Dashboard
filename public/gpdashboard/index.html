@@ -982,22 +982,58 @@
                                 options: {paging: true},
                                 columns: [
                                     {data:'doc.title'},
-                                    {data:'doc.contactPoint.fn'}
+                                    {data:'doc.description'},
+                                    {data:'doc.keyword'},
+                                    {data:'doc.modified'},
+                                    {data:'doc.publisher'},
+                                    {data:'doc.contactPoint'},
+                                    {data:'doc.identifier'},
+                                    {data:'doc.accessLevel'},
+                                    {data:'doc.bureauCode'},
+                                    {data:'doc.programCode'},
+                                    {data:'doc.license'},
+                                    {data:'doc.spatial'},
+                                    {data:'doc.auditStatus'}
                                     ]
                             }">
                          <thead>
                          <tr>
                              <th>Title</th>
-                             <th>Owner</th>
+                             <th>Description</th>
+                             <th>Keyword</th>
+                             <th>Modified</th>
+                             <th>Publisher</th>
+                             <th>Contact Point</th>
+                             <th>Identifier</th>
+                             <th>Access Level</th>
+                             <th>Bureau Code</th>
+                             <th>Program Code</th>
+                             <th>License</th>
+                             <th>Spatial</th>
+                             <th>Audit Status</th>
                          </tr>
                          </thead>
                          <tbody>
                          </tbody>
                      </table>
                      <script id="EDGitemsRowTemplateFull" type="text/html">
-                         <tr>
-                             <td><a data-bind="attr: { href: doc.references[0] }, html: doc.title" target="_blank"></a></td>
-                             <td><a data-bind="attr: { href: doc.contactPoint.hasEmail }, html: doc.contactPoint.fn" target="_blank"></a></td>
+                         <tr data-bind="css: {danger: !doc.auditStatus}">
+                             <td data-bind="text: doc.title" ></td>
+                             <td class="truncate" data-bind="text: doc.description"></td>
+                             <td class="truncate" data-bind="text: doc.keyword"></td>
+                             <td data-bind="text: doc.modified"></td>
+                             <td class="truncate" data-bind="text: doc.publisher"></td>
+                             <td><a data-bind="attr: { href: doc.contactPointEmail }, html: doc.contactPoint" target="_blank"></a></td>
+                             <td class="truncate" data-bind="text: doc.identifier"></td>
+                             <td data-bind="text: doc.accessLevel"></td>
+                             <td data-bind="text: doc.bureauCode"></td>
+                             <td data-bind="text: doc.programCode"></td>
+                             <td class="truncate" data-bind="text: doc.license"></td>
+                             <td class="truncate" data-bind="text: doc.spatial"></td>
+                             <td data-bind="css: {auditRowPass: doc.auditStatus,auditRowFail: !doc.auditStatus}">
+                                 <img class="pass" src="img/greenOK.jpg" alt="Pass" style="width:25px">
+                                 <img class="fail" src="img/warning.png" alt="Fail" style="width:25px">
+                             </td >
                          </tr>
                      </script>
                  </div>

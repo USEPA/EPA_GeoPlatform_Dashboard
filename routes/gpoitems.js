@@ -54,7 +54,9 @@ module.exports = function(app) {
         SlashData: 0
       }
     };
-    utilities.genericRouteListCreation(app, req, res, 'GPOitems', query, projection)
+    
+    utilities.genericRouteListCreation(app, req, res, 'GPOitems',
+                                       query, projection);
 
 
   });

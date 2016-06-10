@@ -305,6 +305,8 @@ utilities.batchUpdateDB = function(collection,docs,idField) {
   return defer.promise;
 };
 
+// Moved to Utilities to create a more generic function that can be used by 
+// multiple tables (e.g. GPO & EDG)
 utilities.genericRouteListCreation = function(app, req, res,
                                               collectionName,
                                               queryExternal,
@@ -354,7 +356,6 @@ utilities.genericRouteListCreation = function(app, req, res,
     projection = {};
   }
   merge.recursive(projection,projectionExternal);
-  console.log(projection);
 
   //Need to limit the number of rows to prevent crashing
   //This was fixed by streaming and not sending back SlashData so if
@@ -368,6 +369,23 @@ utilities.genericRouteListCreation = function(app, req, res,
     if (projection.limit > config.maxRowLimit || projection.limit === 0) {
       projection.limit = config.maxRowLimit
     }
+  }
+
+  if (!('fields' in projection)) {
+    projection.fields = {};
+  }
+
+  //Find if there are inclusion fields
+  var inclusionFields = Object.keys(projection.fields)
+    .filter(function(field) {return projection.fields[field] === 1});
+  if (inclusionFields.length > 0) {
+    Object.keys(projection.fields).forEach(function(fieldName) {
+      if (projection.fields[fieldName] == 0) {
+        delete projection.fields[fieldName];
+      }
+    });
+  } else {
+    projection.fields.SlashData = 0;
   }
 
   //Assume if you pass limit return paging information
