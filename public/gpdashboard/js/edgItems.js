@@ -14,6 +14,22 @@ egam.models.edgItems.PageModelClass = function() {
 
   self.$tableElement = $('#edgItemsTable');
   self.$pageElement = $('#edgItemsPage');
+  
+  self.resultFields = {
+    title: 1,
+    description: 1,
+    keyword: 1,
+    modified: 1,
+    publisher: 1,
+    contactPoint: 1,
+    identifier: 1,
+    accessLevel: 1,
+    bureauCode: 1,
+    programCode: 1,
+    license: 1,
+    spatial: 1,
+    distribution: 1
+  };
 
   //This is instance of the table class that does all the table stuff.
   //Pass empty array of items initially
