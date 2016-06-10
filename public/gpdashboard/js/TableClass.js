@@ -17,14 +17,18 @@ egam.controls.Table = function(items,elementSelector,RowModelClass,resultsName) 
   this.dataTable = null;
   // ResultsName is the name of the results in object returned by endpoint (default='results'). for edg stuff it is dataSet
   this.resultsName = resultsName || 'results';
+  //Set the default timeout. It can also be passed to init
+  this.timeOut = 15000;
 };
 
-egam.controls.Table.prototype.init = function(endpoint, query, projection, resultsName) {
+egam.controls.Table.prototype.init = function(endpoint, query, projection, resultsName, timeOut) {
   var self = this;
   //Clear out existing table/items if exists
   if (self.dataTable) {
     self.dataTable.clear();
-    self.items = [];
+  }
+  if (self.items) {
+    self.items.length = 0;
   }
   //First get the data for GPOitems table
   //Just for testing to speed some things up
@@ -50,7 +54,8 @@ egam.controls.Table.prototype.init = function(endpoint, query, projection, resul
     url: endpoint,
     data: {query: query, projection: projection},
     dataType: 'json',
-    timeout: 15000,
+    //Use default timeOut if it isn't passed
+    timeout: timeOut || this.timeOut,
     success: function(returnedData) {
       console.log('Endpoint Data Received : ' + new Date());
       //The endpoint might return return other info other than array of objects with desired table data which will be saved in this.data
@@ -180,11 +185,12 @@ egam.controls.Table.prototype.customizeDataTable = function(refresh,selectColumn
         var val = $.fn.dataTable.util.escapeRegex(
           $(this).val()
         );
-        column.search(val ? '^' + val + '$' : '', true, false)
+        var text = $(this).find('option:selected').text();
+        column.search(val || !text ? '^' + val + '$' : '', true, false)
           .draw();
         //After search refresh the dropdowns to reflect search results
         //pass columnIndex so selected column doesn't get refreshed (unless they select all)
-        self.customizeDataTable(true,val ? columnIndex : null);
+        self.customizeDataTable(true,val || !text ? columnIndex : null);
       });
 
       if (select[0].options.length <= 1) {
@@ -211,7 +217,7 @@ egam.controls.Table.prototype.customizeDataTable = function(refresh,selectColumn
       //possibly because dataTables binding sets data() different than ko cell
       //contents)
       column.data().unique().sort().each(function(data, index) {
-        if (!select.find('option[value=\'' + data + '\']').length > 0) {
+        if (!select.find('option[text=\'' + data + '\']').length > 0) {
           select.append('<option value="' + data + '">' + data + '</option>');
         }
       });

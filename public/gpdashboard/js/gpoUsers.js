@@ -146,104 +146,17 @@ egam.models.gpoUsers.RowModelClass = function(doc, index) {
   //To keep track of this row when selected
   this.index = index;
 
+  //Have to return this for latest sponsor when no sponsor because jquery datatables actually wants the field in the first column
+  this.emptySponsor = {username:null,organization:null,authGroup:"",reason:null,description:null,startDate:null,endDate:null};
+
   //Add computed object for Current Sponsor
-
-  if (!doc.sponsors) {
-    doc['sponsors'] = [];
-  }
-
   this.latestSponsor = ko.computed(function() {
-    var sponsorsLen = self.doc.sponsors.length;
-    if (sponsorsLen > 0) {
-      return self.doc.sponsors[sponsorsLen - 1].username;
-    }else{
-      return null;
+    if (this.doc.sponsors && this.doc.sponsors.length > 0) {
+      return this.doc.sponsors[this.doc.sponsors.length - 1];
+    } else {
+      return this.emptySponsor;
     }
-  });
-
-  // Format Date from millaseconds to something useful
-  function formatDate(uDate) {
-    var monthNames = [
-      'Jan', 'Feb', 'Mar',
-      'Apr', 'May', 'Jun', 'Jul',
-      'Aug', 'Sep', 'Oct',
-      'Nov', 'Dec',
-    ];
-    return monthNames[uDate.getMonth()] + ' ' + uDate.getDate() + ', ' +
-        uDate.getFullYear();
-  }
-
-  this.spStartDate = ko.computed(function() {
-    var spLen = self.doc.sponsors.length;
-    if (spLen > 0) {
-      var dDate = new Date(self.doc.sponsors[spLen - 1].startDate);
-      return formatDate(dDate);
-    }else{
-      return null;
-    }
-  });
-
-  this.spEndDate = ko.computed(function() {
-    var spLen = self.doc.sponsors.length;
-    if (spLen > 0) {
-      var dDate = new Date(self.doc.sponsors[spLen - 1].endDate);
-      return formatDate(dDate);
-    }else{
-      return null;
-    }
-  });
-
-  this.spOrg = ko.computed(function() {
-    var spLen = self.doc.sponsors.length;
-    if (spLen > 0) {
-      if(self.doc.sponsors[spLen - 1].organization){
-        return self.doc.sponsors[spLen - 1].organization;
-      }else{
-        return null;
-      }
-    }else{
-      return null;
-    }
-  });
-
-  this.spAuthGroup = ko.computed(function() {
-    var spLen = self.doc.sponsors.length;
-    if (spLen > 0) {
-      if(self.doc.sponsors[spLen - 1].authGroup){
-        return self.doc.sponsors[spLen - 1].authGroup;
-      }else {
-        return null;
-      }
-    }else{
-      return null;
-    }
-  });
-
-  this.spReason = ko.computed(function() {
-    var spLen = self.doc.sponsors.length;
-    if (spLen > 0) {
-      if(self.doc.sponsors[spLen - 1].reason){
-        return self.doc.sponsors[spLen - 1].reason;
-      }else {
-        return null;
-      }
-    }else{
-      return null;
-    }
-  });
-
-  this.spDescript = ko.computed(function() {
-    var spLen = self.doc.sponsors.length;
-    if (spLen > 0) {
-      if(self.doc.sponsors[spLen - 1].description){
-        return self.doc.sponsors[spLen - 1].description;
-      }else{
-        return null;
-      }
-    }else{
-      return null;
-    }
-  });
+  },this);
 
 };
 
@@ -286,39 +199,13 @@ egam.models.gpoUsers.DetailsModel.prototype.select = function(item) {
   var fullRowModel = new egam.models.gpoUsers.FullModelClass(item.doc, item.index, self);
   self.selected(fullRowModel);
 
-  //If no tag Controls created yet then do it now
-  //if (!self.tagControls) self.tagControls = new egam.models.gpoItems.TagControlsClass(self);
-  //Note: if the instance of these controls/models are used in multiple places it can be stored in something like egam.shared.tagConrols
-  //Then the we would get self.tagControls = using functions that creates egam.shared.tagConrols if not exists otherwise returns existing so that we don't create another instance again if already created by different consumer
-  // if (!self.tagControls) self.tagControls = egam.utilities.loadSharedControl("tagControls",egam.models.gpoItems.TagControlsClass,[self]);
-
-  //This function will not reinitialize when called second time
-  //If there would have been more promises then just this tagControls then could use .all or chain them
-  //self.tagControls.init()
-    //.then(function () {
-      //Now apply binding if not applied and then refresh the tag controls for selected item (to select by doc.owners authGroup)
-//  if (needToApplyBindings) ko.applyBindings(self, self.$element[0]);
-      if (!self.bound) {
-        ko.applyBindings(self, document.getElementById('gpoUsersModal'));
-        self.bound=true;
-      }
-
-      //no need to pass the new doc, it just uses the parent's (this details control) selected doc
-      //self.tagControls.refresh();
-    //});
-};
-
-//Allows you to select an item based on index, usually index will be coming from row number
-egam.models.gpoUsers.DetailsModel.prototype.loadReconcile = function() {
-  var self = this;
-  if (!self.reconcillation) {
-    self.reconcillation = new egam.models.edgItems.ReconcilliationModel(self.selected);
-
+  if (!self.bound) {
+    ko.applyBindings(self, document.getElementById('gpoUsersModal'));
+    self.bound = true;
   }
 };
 
-//Allows you to select an item based on index, usually index will be coming from
-//row number
+//Allows you to select an item based on index, usually index will be coming from row number
 egam.models.gpoUsers.DetailsModel.prototype.selectIndex = function(index) {
   this.select(this.parent.table.items[index]);
 };
@@ -326,7 +213,6 @@ egam.models.gpoUsers.DetailsModel.prototype.selectIndex = function(index) {
 //Post updated docs back to Mongo and change local view model
 //Note: Update is called in details model scope so this will be correct
 egam.models.gpoUsers.DetailsModel.prototype.update = function() {
-  alert("update");
   var self = this;
 
   //Get current data for sponsoring

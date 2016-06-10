@@ -148,6 +148,19 @@ egam.utilities.loadSharedControl = function(name,constructor,args) {
   }
 };
 
+egam.utilities.formatDate = function(dateTime) {
+  if (! dateTime) return null;
+  var monthNames = [
+    'Jan', 'Feb', 'Mar',
+    'Apr', 'May', 'Jun', 'Jul',
+    'Aug', 'Sep', 'Oct',
+    'Nov', 'Dec'
+  ];
+
+  var modDate = new Date(dateTime);
+  return monthNames[modDate.getMonth()] + ' ' + modDate.getDate() + ', ' + modDate.getFullYear();
+};
+
 
 function loadEDGitemsPage() {
   if (!egam.pages.edgItems) {

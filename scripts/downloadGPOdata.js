@@ -49,7 +49,7 @@ downloadGPOdata.onlyGetMetaData = downloadGPOdataConfig.onlyGetMetaData | false;
 downloadGPOdata.dontRemoveGPOitems = false;
 //The 2 REST calls need to get owner Folder ID and name takes some time.
 //Might not want to do this on log in?
-downloadGPOdata.dontGetOwnerFolders = true;
+downloadGPOdata.dontGetOwnerFolders = false;
 
 //For testing saving json and text only set to true, usually set to false
 downloadGPOdata.dontSaveBinary = false;

@@ -214,19 +214,6 @@ egam.models.gpoItems.RowModelClass = function(doc, index) {
     return this.doc.AuditData.compliant ? 'Pass' : 'Fail';
   }, this);
 
-  //Format Modified Date
-  this.modifiedDate = ko.computed(function() {
-    var monthNames = [
-      'Jan', 'Feb', 'Mar',
-      'Apr', 'May', 'Jun', 'Jul',
-      'Aug', 'Sep', 'Oct',
-      'Nov', 'Dec',
-    ];
-
-    var modDate = new Date(this.doc.modified);
-    return monthNames[modDate.getMonth()] + ' ' + modDate.getDate() + ', ' + modDate.getFullYear();
-  }, this);
-
 };
 
 //This is the FULL model which binds to the modal allowing 2 way data binding and updating etc
@@ -362,7 +349,7 @@ egam.models.gpoItems.DetailsModel.prototype.loadReconcile = function() {
 egam.models.gpoItems.DetailsModel.prototype.loadLinkEDG = function() {
   var self = this;
   if (!self.linkEDG) {
-    self.linkEDG = new egam.models.edgItems.LinkEDGModel(self.selected);
+    self.linkEDG = new egam.models.edgItems.LinkEDGModel(self);
   }
 
   self.linkEDG.load(self.selected().doc);
