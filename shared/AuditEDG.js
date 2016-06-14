@@ -24,7 +24,9 @@ AuditEDG.prototype.validate = function(doc, fieldsToValidate) {
   var valid = true;
   Object.keys(doc).forEach(function(key) {
     //Check if required fields exist and check if identifier is formatted
-    //correctly
+    //correctly (8 digits-4 digits-4 digits-4 digits-12 digits). There are
+    //several EDG records that have malformed identifiers so this should
+    //catch that.
     if (self.fieldsToValidate.indexOf(key) != -1 && !doc[key] ||
       (key == 'identifier' && !(/{?.{8}-.{4}-.{4}-.{4}-.{12}}?/.test(doc[key])))
     ) {
