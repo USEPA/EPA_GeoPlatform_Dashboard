@@ -12,7 +12,6 @@ module.exports = function(app) {
   });
 
   router.use('/list.csv', function(req, res) {
-    var isCSV = false;
     handleGPOitemsListRoute(req, res, true);
   });
 
@@ -20,7 +19,11 @@ module.exports = function(app) {
     handleGPOitemsListRoute(req, res, false);
   });
 
-  function handleGPOitemsListRoute(req, res, isCSV) {
+  router.use('/emaillist', function(req, res) {
+    handleGPOitemsListRoute(req, res, false, true);
+  });
+
+  function handleGPOitemsListRoute(req, res, isCSV, emailsOnly) {
     var utilities = require(app.get('appRoot') + '/shared/utilities');
     var username = '';
     console.log(req.params);
@@ -116,13 +119,23 @@ module.exports = function(app) {
           res.end()
         });
     } else {
-      streamGPOusers()
-        .catch(function(err) {
-          console.error('Error streaming GPOusers: ' + err)
-        })
-        .done(function() {
-          res.end()
-        });
+      if (emailsOnly !== true) {
+        streamGPOusers()
+            .catch(function(err) {
+              console.error('Error getting GPOusers Stream: ' + err)
+            })
+            .done(function() {
+              res.end()
+            });
+      } else {
+        streamGPOuserEmails()
+            .catch(function (err) {
+              console.error('Error getting GPOusers Emails: ' + err)
+            })
+            .done(function () {
+              res.end()
+            });
+      }
     }
 
     function getGPOusersCSV() {
@@ -177,7 +190,7 @@ module.exports = function(app) {
       userscollection.find(query, projection)
         .each(function(doc) {
 
-          //Add empty extension fields if they don't exist for firt doc to get the full header
+          //Add empty extension fields if they don't exist for first doc to get the full header
           if (hasCSVColumnTitle) GPOuserExtensions.fields.forEach(function(field) {
             if (!(field in doc)) doc[field] = undefined
           });
@@ -254,6 +267,43 @@ module.exports = function(app) {
             });
           return defer.promise;
         })
+    }
+
+    //returns a list of email addresses for users in the auth group requested
+    function streamGPOuserEmails(beginning, end, isCSV) {
+      //This will make streaming output to client
+      projection.stream = true;
+      //Make sure end is a string if null
+      end = end || '';
+      //First have to stream the beginning text. Not sure why i did res.write(beginning) in a promise!
+      return utilities.writeStreamPromise(res, beginning)
+          .then(function() {
+            var defer = Q.defer();
+            var firstCharacter = '[';
+            userscollection.find(query, projection)
+                .each(function(doc) {
+                  res.write(firstCharacter);
+                  //this will write out all email addresses and include duplicates if a user has more than 1 GPO Account
+                  res.write(JSON.stringify(doc.email));
+                  if (firstCharacter == '[') {
+                    firstCharacter = ',';
+                  }
+                })
+                .error(function(err) {
+                  defer.reject('Error streaming GPO users: ' + err);
+                })
+                .success(function() {
+                  //If firstcharacter was not written then write it now
+                  //(if no docs need to write leading [
+                  if (firstCharacter === '[') {
+                    res.write(firstCharacter);
+                  }
+                  res.write(']' + end, function() {
+                    defer.resolve();
+                  });
+                });
+            return defer.promise;
+          })
     }
 
   }
