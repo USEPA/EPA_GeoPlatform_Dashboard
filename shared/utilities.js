@@ -305,5 +305,178 @@ utilities.batchUpdateDB = function(collection,docs,idField) {
   return defer.promise;
 };
 
+// Moved to Utilities to create a more generic function that can be used by 
+// multiple tables (e.g. GPO & EDG)
+utilities.genericRouteListCreation = function(app, req, res,
+                                              collectionName,
+                                              queryExternal,
+                                              projectionExternal) {
+  var username = '';
+  if ('session' in req && req.session.username) {
+    username = req.session.username;
+  }
+  //If they are not logged in (no username then
+  if (!username) {
+    return res.json(utilities.getHandleError({},
+      'LoginRequired')('Must be logged in to make this request.'));
+  }
+
+  var Q = require('q');
+  var merge = require('merge');
+  var utilities = require(app.get('appRoot') + '/shared/utilities');
+  var monk = app.get('monk');
+  var config = app.get('config');
+
+  var itemscollection = monk.get(collectionName);
+
+  var error = null;
+
+  //This function gets input for both post and get for now
+  var query = utilities.getRequestInputs(req).query;
+
+  //Parse JSON querdfy in object
+  if (typeof query === 'string') {
+    query = JSON.parse(query);
+  }
+  //If query is falsey make it empty object
+  if (!query) {
+    query = {};
+  }
+  merge.recursive(query,queryExternal);
+
+  //This function gets input for both post and get for now
+  var projection = utilities.getRequestInputs(req).projection;
+
+  //Parse JSON query in object
+  if (typeof projection === 'string') {
+    projection = JSON.parse(projection);
+  }
+  //If query is falsey make it empty object
+  if (!projection) {
+    projection = {};
+  }
+  merge.recursive(projection,projectionExternal);
+
+  //Need to limit the number of rows to prevent crashing
+  //This was fixed by streaming and not sending back SlashData so if
+  //config.maxRowLimit=null don't force a limit
+  if (config.maxRowLimit) {
+    if (!('limit' in projection)) {
+      projection.limit = config.maxRowLimit;
+    }
+    //Force limit to be <= MaxRowLimit (Note passing limit=0 to Mongo means
+    //no limit so cap that also)
+    if (projection.limit > config.maxRowLimit || projection.limit === 0) {
+      projection.limit = config.maxRowLimit
+    }
+  }
+
+  if (!('fields' in projection)) {
+    projection.fields = {};
+  }
+
+  //Find if there are inclusion fields
+  var inclusionFields = Object.keys(projection.fields)
+    .filter(function(field) {return projection.fields[field] === 1});
+  if (inclusionFields.length > 0) {
+    Object.keys(projection.fields).forEach(function(fieldName) {
+      if (projection.fields[fieldName] == 0) {
+        delete projection.fields[fieldName];
+      }
+    });
+  } else {
+    projection.fields.SlashData = 0;
+  }
+
+  //Assume if you pass limit return paging information
+  if ('limit' in projection) {
+    streamItemsPaging()
+      .then(function(beginning) {return streamItems(beginning,'}')})
+      .catch(function(err) {
+        console.error('Error streaming items paging: ' + err);
+      })
+      .done(function() {res.end()});
+  } else {
+    //If no limit passed then just stream array of all items
+    streamItems()
+      .catch(function(err) {
+        console.error('Error streaming items: ' + err);
+      })
+      .done(function() {res.end()});
+  }
+
+  function streamItems(beginning,end) {
+    //This will make streaming output to client
+    projection.stream = true;
+    //Make sure end is a string if null
+    end = end || '';
+    //First have to stream the beginning text
+    return utilities.writeStreamPromise(res,beginning)
+      .then(function() {
+        var defer = Q.defer();
+        var firstCharacter = '[';
+        itemscollection.find(query, projection)
+          .each(function(doc) {
+            res.write(firstCharacter);
+            res.write(JSON.stringify(doc));
+            if (firstCharacter == '[') {
+              firstCharacter = ',';
+            }
+          })
+          .error(function(err) {
+            defer.reject('Error streaming items: ' + err);
+          })
+          .success(function() {
+            //If firstcharacter was not written then write it now
+            //(if no docs need to write leading [
+            if (firstCharacter === '[') {
+              res.write(firstCharacter);
+            }
+            res.write(']' + end, function() {
+              defer.resolve();
+            });
+          });
+        return defer.promise;
+      })
+  }
+  function getTotalRowsPromise() {
+    //Save total rows in session for a query so we don't have to keep getting
+    //count when paging
+    if ('session' in req && (collectionName + 'List') in req.session &&
+      req.session[collectionName + 'List'].query == JSON.stringify(query)) {
+      console.log('Use Session Total');
+      return Q(req.session[collectionName + 'List'].total);
+    }
+    return Q(itemscollection.count(query))
+      .then(function(total) {
+        if ('session' in req) {
+          req.session[collectionName + 'List'] = {
+            query: JSON.stringify(query),
+            total: total,};
+        }
+        console.log('Save Session: ' +
+          JSON.stringify(req.session[collectionName + 'List']));
+        return total;
+      });
+  }
+
+  function streamItemsPaging() {
+    //Have to get the total rows either from DB or session and then get the
+    //paging stuff
+    return getTotalRowsPromise()
+      .then(function(total) {
+        var resObject = {};
+        resObject.total = total;
+        resObject.start = projection.skip || 1;
+        resObject.num = projection.limit || total;
+        resObject.nextStart = resObject.start + resObject.num;
+        if (resObject.nextStart > resObject.total) {
+          resObject.nextStart = -1;
+        }
+        return JSON.stringify(resObject).replace(/}$/,',"results":');
+      });
+  }
+};
+
 module.exports = utilities;
 

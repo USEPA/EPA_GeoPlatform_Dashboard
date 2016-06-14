@@ -207,3 +207,14 @@ a, span, tr, h4:hover {
   .edgTitleSearchBlock {
     display: block;
   }
+  .truncate {
+    max-width: 40px;
+    word-wrap: break-word;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .truncate:hover {
+    overflow: visible;
+    white-space: normal;
+  }

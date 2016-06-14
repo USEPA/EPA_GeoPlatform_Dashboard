@@ -14,6 +14,23 @@ egam.models.edgItems.PageModelClass = function() {
 
   self.$tableElement = $('#edgItemsTable');
   self.$pageElement = $('#edgItemsPage');
+  
+  self.resultFields = {
+    title: 1,
+    description: 1,
+    keyword: 1,
+    modified: 1,
+    publisher: 1,
+    contactPoint: 1,
+    contactPointEmail: 1,
+    identifier: 1,
+    accessLevel: 1,
+    bureauCode: 1,
+    programCode: 1,
+    license: 1,
+    spatial: 1,
+    auditStatus: 1
+  };
 
   //This is instance of the table class that does all the table stuff.
   //Pass empty array of items initially
@@ -46,15 +63,15 @@ egam.models.edgItems.PageModelClass.prototype.init = function() {
   console.log('Bindings Applied: ' + new Date());
 
 
-  // Get ALL the records for now (will make it more targeted later)
-  var edgURLParams = {
-    f: 'dcat',
-    max: '5000',
-  };
-  var edgURL = 'https://edg.epa.gov/metadata/rest/find/document?' +
-    $.param(edgURLParams);
+  //Now initialize the table. ie. download data and create table rows
+  //the payload can be reduced if resultFields array was set
+  var fields = this.resultFields || {};
 
-  return self.table.init(edgURL, null, null, 'dataset')
+  var query = {};
+  var projection = {fields: fields};
+
+  //Now that we are downloading EDG data, load it from Mongo
+  return self.table.init('edgitems/list', query, projection)
   //After table is loaded we can do other stuff
     .then(function() {
       //Now stop showing loading message that page is load
