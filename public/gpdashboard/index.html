@@ -388,6 +388,7 @@
                     {data:'doc.title'},
                     {data:'doc.access'},
                     {data:'doc.type'},
+                    {data:'ownerFolderTitle'},
                     {data:'doc.numViews'},
                     {data:'doc.owner'},
                     {data:{_:function (row) {return egam.utilities.formatDate(row.doc.modified)},sort:'doc.modified'},type:'num'},
@@ -414,6 +415,11 @@
                         </span>
                     </th>
                     <th>Type<br>
+                        <span onclick="event.stopPropagation();" >
+                            <select class="search form-control input-sm"><option value="">All</option></select>
+                        </span>
+                    </th>
+                    <th>Folder<br>
                         <span onclick="event.stopPropagation();" >
                             <select class="search form-control input-sm"><option value="">All</option></select>
                         </span>
@@ -468,6 +474,7 @@
                         <td data-bind="text: doc.title" ></td>
                         <td data-bind="text: doc.access"></td>
                         <td data-bind="text: doc.type"></td>
+                        <td data-bind="text: ownerFolderTitle"></td>
                         <td data-bind="text: doc.numViews"></td>
                         <td data-bind="text: doc.owner"></td>
                         <td data-bind="text: egam.utilities.formatDate(doc.modified)"></td>

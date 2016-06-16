@@ -40,6 +40,7 @@ egam.models.gpoItems.PageModelClass = function() {
     owner: 1,
     access: 1,
     EDGdata: 1,
+    ownerFolder: 1,
   };
 
   //This is instance of the table class that does all the table stuff.
@@ -212,6 +213,12 @@ egam.models.gpoItems.RowModelClass = function(doc, index) {
   //This is basically just formatting stuff
   this.complianceStatus = ko.computed(function() {
     return this.doc.AuditData.compliant ? 'Pass' : 'Fail';
+  }, this);
+
+  //This is to get the folder that the item is in
+  this.ownerFolderTitle = ko.computed(function(){
+    if (! doc.ownerFolder) return null;
+    return doc.ownerFolder.title;
   }, this);
 
 };
