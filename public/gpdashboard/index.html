@@ -38,7 +38,7 @@
   </head>
 
   <body>
-    <nav class="navbar navbar-inverse navbar-fixed-top">
+    <nav id="globalNavigationBar" class="navbar navbar-inverse navbar-fixed-top">
       <div class="container-fluid">
         <div class="navbar-header">
           <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
@@ -54,7 +54,11 @@
         </div>
         <div id="navbar" class="navbar-collapse collapse">
           <ul class="nav navbar-nav navbar-right">
-            <li id="userId" style="display: none"></li>
+            <li id="userId" style="display:none">
+                <a>Welcome <span data-bind="text: communityUser.fullName"></span>
+                <span data-bind="css: {hidden: communityUser.isAdmin}">(Non-Administrator)</span>
+                <span data-bind="css: {hidden: communityUser.isAdmin != true}">(GPO Administrator)</span></a>
+            </li>
             <li id="personalizedPanel" style="display: none; "><a id="sign-out" href="#">Sign Out</a></li>
             <li id="anonymousPanel" style="display: block"><a href="#" id="sign-in-navbar" >Sign In</a></li>
             <li><a id="egamHelp" href="#">Help</a></li>
@@ -305,7 +309,7 @@
         <div class="col-sm-3 col-md-2 sidebar" id="sideNav" style="display: none; ">
             <ul class="nav nav-pills nav-stacked" role="tablist">
                 <li role="presentation" class="active">
-                    <a href="#overviewView" role="tab" aria-controls="overviewView" data-toggle="tab">GeoPlatform Online Content</a>
+                    <a href="#gpoItemsView" role="tab" aria-controls="gpoItemsView" data-toggle="tab">GeoPlatform Online Content</a>
                 </li>
                 <li role="presentation">
                     <a href="#metricsView" role="tab" aria-controls="metricsView"
@@ -338,53 +342,56 @@
 
          <div class="tab-content">
               <!-- Begin overview class="view collapse in"-->
-              <div role="tabpanel" class="tab-pane active" id="overviewView" >
-            <div id="loadingMsg" class="jumbotron hidden">
-                <h2 class="text-center">Just one moment, fetching the latest GeoPlatform content for you...</h2>
-                <h3 id="loadingMsgCountContainer" class="text-center hidden"><span id="loadingMsgCount"></span> / <span id="loadingMsgTotalCount"></span> items loaded</h3>
-                <img src="img/loading.gif" class="img-responsive center-block" alt="now loading" />
-            </div>
-            <!--</div>-->
-            <div id="overviewTable" >
+             <div id="loadingMsg" class="jumbotron hidden">
+                 <h2 id="loadingMsgText" class="text-center">Just one moment, fetching the latest GeoPlatform content for you...</h2>
+                 <h3 id="loadingMsgCountContainer" class="text-center hidden"><span id="loadingMsgCount"></span> <span id="loadingMsgTotalCount"></span> items are loading</h3>
+                 <img id="loadingGraphic" src="img/loading.gif" class="img-responsive center-block" alt="now loading" />
+             </div>
+
+             <div role="tabpanel" class="tab-pane active" id="gpoItemsView" >
+            <div id="gpoItemsPage" class="hidden">
                 <div id="gpoContentHeader" class="row placeholders">
                     <div class="col-xs-6 col-sm-3">
                         <h4>Public Items Audit Result</h4>
-                        <span id="percPublicPassingAudit" class="text-muted">75% Passing</span>
+                        <span id="percPublicPassingAudit" class="text-muted" data-bind="text:percentPublicPassing"></span> % Passing
                     </div>
                     <div class="col-xs-6 col-sm-3">
                         <h4>My Items</h4>
-                        <span id="agoItems" class="text-muted"></span>
+                        <span id="agoItems" class="text-muted" data-bind="text:myItemsCount"></span>
                     </div>
                     <div class="col-xs-6 col-sm-3">
                         <h4>My Groups</h4>
-                        <span id="agoGroups" class="text-muted"></span>
+                        <span id="agoGroups" class="text-muted" data-bind="text:egam.communityUser.groups.length"></span>
                     </div>
                     <div class="col-xs-6 col-sm-3">
                         <h4 style="white-space:nowrap;">Auth Groups
                         </h4>
-                        <a data-toggle="tooltip" data-placement="left" title="Show/Hide Auth Groups"><span id="authGroupsCount" class="text-muted" data-toggle="collapse" href="#collapseExample" aria-expanded="false" aria-controls="collapseExample"></span></a>
+                        <a data-toggle="tooltip" data-placement="left" title="Show/Hide Auth Groups"><span id="authGroupsCount" class="text-muted" data-toggle="collapse" href="#collapseExample" aria-expanded="false" aria-controls="collapseExample" data-bind="text:Object.keys(egam.communityUser.ownerIDsByAuthGroup).length"></span></a>
                         <div class="collapse" id="collapseExample">
-                            <select id="dropAuthGroups" class="search form-control input-sm hidden" >
+                            <select id="dropAuthGroups" class="search form-control input-sm " >
                             </select>
-                            <a id="downloadAuthgroupsCSVall" href="gpoUsers/list.csv" class="hidden">download users</a>
+                            <a id="downloadAuthgroupsCSVall" href="gpoUsers/list.csv" class="">download users</a>
                             <a id="downloadAuthgroupsCSVregions" href="gpoUsers/list.csv/authGroups/" class="hidden">download users</a>
                         </div>
                     </div>
                 </div>
              <h3 class="sub-header"></h3>
+                <!-- Note: needed to use type:'num' below so that doc.modified was treated like a number -->
                 <table id="gpoItemsTable" class="table table-hover table-bordered table-responsive" data-bind="dataTable:
                 {
                     deferRender: true,
-                    dataSource: egam.gpoItems.model.items,
+                    dataSource: egam.pages.gpoItems.table.items,
                     rowTemplate: 'GPOitemsRowTemplate',
+                    options: {paging: true},
                     columns: [
                     {data:null},
                     {data:'doc.title'},
                     {data:'doc.access'},
                     {data:'doc.type'},
+                    {data:'ownerFolderTitle'},
                     {data:'doc.numViews'},
                     {data:'doc.owner'},
-                    {data:{_:'modifiedDate',sort:'doc.modified'},type:'num'},
+                    {data:{_:function (row) {return egam.utilities.formatDate(row.doc.modified)},sort:'doc.modified'},type:'num'},
                     {data:'complianceStatus'}
                     ]
                     }">
@@ -412,6 +419,11 @@
                             <select class="search form-control input-sm"><option value="">All</option></select>
                         </span>
                     </th>
+                    <th>Folder<br>
+                        <span onclick="event.stopPropagation();" >
+                            <select class="search form-control input-sm"><option value="">All</option></select>
+                        </span>
+                    </th>
                     <th>Views</th>
                     <th class="ownerColumn">Owner<br>
                         <span onclick="event.stopPropagation();" >
@@ -420,12 +432,16 @@
                     </th>
                       <th>Modified<br>
                         <span onclick="event.stopPropagation();" >
-                            <!--<select class="search form-control input-sm"><option value="">All</option></select>-->
+                            <input class="search form-control input-sm" placeholder="Search By Modified Date">
                         </span>
                       </th>
-                    <th>Audit<br>
+                    <th>Audit Status<br>
                         <span onclick="event.stopPropagation();" >
-                            <select class="search form-control input-sm"><option value="">All</option></select>
+                            <select id="dropAuditStatus" class="search form-control input-sm">
+                                <option value="">All</option>
+                                <option value="Fail">Fail</option>
+                                <option value="Pass">Pass</option>
+                            </select>
                         </span>
                     </th>
                   </tr>
@@ -437,7 +453,7 @@
               </table>
 
                 <script id="GPOitemsRowTemplate" type="text/html">
-                    <tr data-bind="css: {danger: !doc.AuditData.compliant,loading: loading}, click: $root.select" data-toggle="modal" data-target="#gpoItemsModal" >
+                    <tr data-bind="css: {danger: !doc.AuditData.compliant}, click: function (item) {return $root.details.select(item)} " data-toggle="modal" data-target="#gpoItemsModal" >
                         <td data-bind="attr: { 'data-order2': doc.type}" style="display:none">
                             <!-- ko if:doc.type=='Web Map' -->
                             <img src="img/item_type_icons/maps16.png">
@@ -458,9 +474,11 @@
                         <td data-bind="text: doc.title" ></td>
                         <td data-bind="text: doc.access"></td>
                         <td data-bind="text: doc.type"></td>
+                        <td data-bind="text: ownerFolderTitle"></td>
                         <td data-bind="text: doc.numViews"></td>
                         <td data-bind="text: doc.owner"></td>
-                        <td data-bind="text: modifiedDate"></td>
+                        <td data-bind="text: egam.utilities.formatDate(doc.modified)"></td>
+                        {data:{_:function (row) {return egam.utilities.formatDate(row.latestSponsor().startDate)},sort:'latestSponsor().startDate'},type:'num'},
                         <td data-bind="css: {auditRowPass: doc.AuditData.compliant,auditRowFail: !doc.AuditData.compliant}">
                             <img class="pass" src="img/greenOK.jpg" alt="Pass" style="width:25px">
                             <img class="fail" src="img/warning.png" alt="Fail" style="width:25px">
@@ -476,7 +494,7 @@
               <div class="modal-dialog modal-lg" role="document">
                   <div class="modal-content">
                       <div class="modal-header">
-                          <button type="button" class="close" data-dismiss="modal" aria-label="Close" data-bind="click: selected().closeModal" ><span aria-hidden="true">&times;</span></button>
+                          <button type="button" class="close" data-dismiss="modal" aria-label="Close" data-bind="" ><span aria-hidden="true">&times;</span></button>
                           <h4 class="modal-title" id="myModalLabel">Item Details
                               <span><a class="glyphicon glyphicon-link" data-bind="attr: {href: selected().gpoLink}" target="_blank" aria-hidden="true" data-toggle="tooltip" data-placement="right" title="Go to Item in GPO"></a></span></h4>
                       </div>
@@ -505,37 +523,37 @@
                                       <div class="form-group">
                                           <label for="addEPATag">EPA Keywords</label>
                                           <div class="form-inline">
-                                              <button id="addEPATag" class="btn btn-default"  type="submit" data-bind="click: selected().addTag['EPA']">Add</button>
-                                              <select class="tag-select search form-control" id="epaTagSelect" data-bind="options:dataSets.availableTags.epaKeywords,optionsCaption:'Please Select', value: selected().tagToAdd['EPA'], valueUpdate: 'afterkeydown'"></select>
+                                              <button id="addEPATag" class="btn btn-default"  type="submit" data-bind="click: tagControls.addTag['EPA']">Add</button>
+                                              <select class="tag-select search form-control" id="epaTagSelect" data-bind="options:egam.dataStash.availableTags.epaKeywords,optionsCaption:'Please Select', value: tagControls.tagToAdd['EPA'], valueUpdate: 'afterkeydown'"></select>
                                           </div>
                                           <label for="addPlaceTag">Place Keywords</label>
                                           <div class="form-inline">
-                                              <button id="addPlaceTag" class="btn btn-default"  type="submit" data-bind="click: selected().addTag['Place']">Add</button>
-                                              <select class="tag-select search form-control" id="placeTagSelect" data-bind="options:dataSets.availableTags.placeKeywords,optionsCaption:'Please Select',value: selected().tagToAdd['Place'], valueUpdate: 'afterkeydown'"></select>
+                                              <button id="addPlaceTag" class="btn btn-default"  type="submit" data-bind="click: tagControls.addTag['Place']">Add</button>
+                                              <select class="tag-select search form-control" id="placeTagSelect" data-bind="options:egam.dataStash.availableTags.placeKeywords,optionsCaption:'Please Select',value: tagControls.tagToAdd['Place'], valueUpdate: 'afterkeydown'"></select>
                                           </div>
                                           <label for="addOrgTag">EPA Organization Names</label>
                                           <div class="form-inline">
-                                              <button id="addOrgTag" class="btn btn-default"  type="submit" data-bind="click: selected().addTag['Org']">Add</button>
-                                              <select class="tag-select search form-control" id="officeTagSelect" data-bind="options:dataSets.availableTags.epaOffices,optionsCaption:'Please Select', value: selected().tagToAdd['Office'], valueUpdate: 'afterkeydown'"></select>
-                                              <select class="tag-select search form-control" id="orgTagSelect" data-bind="options:selectedOfficeOrganizations,optionsCaption:'Please Select',, value: selected().tagToAdd['Org'], valueUpdate: 'afterkeydown'"></select>
+                                              <button id="addOrgTag" class="btn btn-default"  type="submit" data-bind="click: tagControls.addTag['Org']">Add</button>
+                                              <select class="tag-select search form-control" id="officeTagSelect" data-bind="options:egam.dataStash.availableTags.epaOffices,optionsCaption:'Please Select', value: tagControls.tagToAdd['Office'], valueUpdate: 'afterkeydown'"></select>
+                                              <select class="tag-select search form-control" id="orgTagSelect" data-bind="options:tagControls.selectedOfficeOrganizations,optionsCaption:'Please Select',, value: tagControls.tagToAdd['Org'], valueUpdate: 'afterkeydown'"></select>
                                           </div>
                                       </div>
                                       <div class="form-group has-success" data-bind="css: {'has-error': selected().doc().AuditData.errors.tags&&selected().doc().AuditData.errors.tags.compliant()===false}">
-                                          <select id="tagsList" class="form-control" multiple="multiple" height="5" data-bind="options: selected().doc().tags, selectedOptions: selected().selectedTags"> </select>
+                                          <select id="tagsList" class="form-control" multiple="multiple" height="5" data-bind="options: selected().doc().tags, selectedOptions: tagControls.selectedTags"> </select>
                                           <span class="help-block" data-bind="style: {display: !selected().doc().AuditData.errors.tags.compliant() ? 'block' : 'none'}, text: selected().doc().AuditData.errors.tags.messages"></span>
                                       </div>
                                       <div class="form-group">
-                                          <button class="btn btn-default" data-bind="click: selected().removeSelectedTags, enable: selected().selectedTags().length > 0">Remove</button>
+                                          <button class="btn btn-default" data-bind="click: function () {return tagControls.removeSelected()}, enable: tagControls.selectedTags().length > 0">Remove</button>
                                       </div>
                                       <div class="id_holder" data-bind="attr: {id: selected().doc().id}"></div>
                                       <div class="form-group">
                                           <label>EDG Link</label>
-                                          <button type="button" id="edgBtn" class="btn btn-default" data-bind="click: function () { egam.searchEDG(); }">Search for matching EDG record.</button>
+                                          <button type="button" id="edgBtn" class="btn btn-default" data-bind="click: loadLinkEDG">Search for matching EDG record.</button>
                                       </div>
                                       <div class="form-group">
                                           <!-- ko if: selected().doc().EDGdata -->
                                           <label>EDG Reconciliation</label><br />
-                                          <button type="button" id="reconcileBtn" class="btn btn-default" data-bind="click: function () { $('#reconciliationModal').modal('show'); $('#myModal').modal('hide'); }">Reconcile with EDG</button>
+                                          <button type="button" id="reconcileBtn" class="btn btn-default" data-bind="click: loadReconcile">Reconcile with EDG</button>
                                           <!-- /ko -->
                                       </div>
                                       <!--</form>-->
@@ -598,8 +616,8 @@
                           </form>
                       </div>
                       <div class="modal-footer">
-                          <button type="button" id="closeBtn" class="btn btn-default" data-bind="click: selected().closeModal" data-dismiss="modal" >Close</button>
-                          <button type="button" class="btn btn-primary" data-bind="click: selected().update" data-dismiss="modal">Save changes</button>
+                          <button type="button" id="closeBtn" class="btn btn-default" data-dismiss="modal" >Close</button>
+                          <button type="button" class="btn btn-primary" data-bind="click: update" data-dismiss="modal">Save changes</button>
                       </div>
                   </div>
               </div>
@@ -611,7 +629,7 @@
                   <div class="modal-dialog modal-lg" role="document">
                       <div class="modal-content">
                           <div class="modal-header">
-                              <button type="button" class="close" data-dismiss="modal" aria-label="Close" data-bind="click: selected().closeModal" ><span aria-hidden="true">&times;</span></button>
+                              <button type="button" class="close" data-dismiss="modal" aria-label="Close" data-bind="" ><span aria-hidden="true">&times;</span></button>
                               <h4 class="modal-title" id="myModalLabel">Item Reconciliation
                           </div>
                           <div class="modal-body">
@@ -635,17 +653,17 @@
                                               <td>
                                                   <div class="form-group has-success">
                                                       <label for="GPOtitle">Title</label>
-                                                      <input class="form-control"  id="GPOtitle" data-bind="value: selected().doc().title, valueUpdate: 'afterkeydown'" type="text">
+                                                      <input class="form-control"  id="GPOtitle" data-bind="value: doc().title, valueUpdate: 'afterkeydown'" type="text">
                                                   </div>
                                               </td>
                                               <td>
-                                                  <div class="reconcileLink"><a class="glyphicon glyphicon-arrow-left" onclick="$('#GPOtitle').val($('#EDGtitle').val())"></a></div>
+                                                  <div class="reconcileLink"><a class="glyphicon glyphicon-arrow-left" data-bind="click: function () {copyEDGtoGPO('title')}" ></a></div>
                                               </td>
                                               <td>
                                                   <div class="form-group has-success">
                                                       <label for="EDGtitle">Title</label>
-                                                      <!-- ko if: selected().doc().EDGdata -->
-                                                      <input readonly class="form-control"  id="EDGtitle" data-bind="value: selected().doc().EDGdata.title" type="text">
+                                                      <!-- ko if: fullDoc().EDGdata -->
+                                                      <input readonly class="form-control"  id="EDGtitle" data-bind="value: fullDoc().EDGdata.title" type="text">
                                                       <!-- /ko -->
                                                   </div>
                                               </td>
@@ -654,17 +672,17 @@
                                               <td>
                                                   <div class="form-group has-success">
                                                       <label for="GPOinputSnippet">Summary</label>
-                                                      <input class="form-control"  id="GPOinputSnippet" data-bind="value: selected().doc().snippet, valueUpdate: 'afterkeydown'" type="text">
+                                                      <input class="form-control"  id="GPOinputSnippet" data-bind="value: doc().snippet, valueUpdate: 'afterkeydown'" type="text">
                                                   </div>
                                               </td>
                                               <td>
-                                                  <div class="reconcileLink"><a class="glyphicon glyphicon-arrow-left" onclick="$('#GPOinputSnippet').val($('#EDGinputSnippet').val())"></a></div>
+                                                  <div class="reconcileLink"><a class="glyphicon glyphicon-arrow-left" data-bind="click: function () {copyEDGtoGPO('purpose','snippet')}"></a></div>
                                               </td>
                                               <td>
                                                   <div class="form-group has-success">
                                                       <label for="EDGinputSnippet">Summary</label>
-                                                      <!-- ko if: selected().doc().EDGdata -->
-                                                      <input readonly class="form-control"  id="EDGinputSnippet" data-bind="value: selected().doc().EDGdata.purpose" type="text">
+                                                      <!-- ko if: fullDoc().EDGdata -->
+                                                      <input readonly class="form-control"  id="EDGinputSnippet" data-bind="value: fullDoc().EDGdata.purpose" type="text">
                                                       <!-- /ko -->
                                                   </div>
                                               </td>
@@ -674,18 +692,18 @@
                                                   <div class="form-group has-success">
                                                       <label>Description</label>
                                         <textarea class="form-control" id="GPOinputDesc"
-                                                  data-bind="wysiwyg: selected().doc().description, valueUpdate:
+                                                  data-bind="wysiwyg: doc().description, valueUpdate:
                                         'afterkeydown'" rows="6" placeholder="Description"></textarea>
                                                   </div>
                                               </td>
                                               <td>
-                                                  <div class="reconcileLink"><a class="glyphicon glyphicon-arrow-left" onclick="$('#GPOinputDesc').val($('#EDGinputDesc').val())"></a></div>
+                                                  <div class="reconcileLink"><a class="glyphicon glyphicon-arrow-left"  data-bind="click: function () {copyEDGtoGPO('abstract','description')}" ></a></div>
                                               </td>
                                               <td>
                                                   <div class="form-group has-success">
                                                       <label for="EDGinputDesc">Description</label>
-                                                      <!-- ko if: selected().doc().EDGdata -->
-                                                      <textarea readonly class="form-control" id="EDGinputDesc" data-bind="value: selected().doc().EDGdata.abstract" rows="7"></textarea>
+                                                      <!-- ko if: fullDoc().EDGdata -->
+                                                      <textarea readonly class="form-control" id="EDGinputDesc" data-bind="value: fullDoc().EDGdata.abstract" rows="7"></textarea>
                                                       <!-- /ko -->
                                                   </div>
                                               </td>
@@ -695,19 +713,19 @@
                                                   <div class="form-group has-success">
                                                       <label>Access and Use Constraints</label>
                                         <textarea class="form-control" id="GPOinputAccessUse"
-                                                  data-bind="wysiwyg: selected().doc().licenseInfo, valueUpdate:
+                                                  data-bind="wysiwyg: doc().licenseInfo, valueUpdate:
                                         'afterkeydown'" rows="6"
                                                   placeholder="Access and Use Constraints"></textarea>
                                                   </div>
                                               </td>
                                               <td>
-                                                  <div class="reconcileLink"><a class="glyphicon glyphicon-arrow-left" onclick="$('#GPOinputAccessUse').val($('#EDGinputAccessUse').val())"></a></div>
+                                                  <div class="reconcileLink"><a class="glyphicon glyphicon-arrow-left" data-bind="click: function () {copyEDGtoGPO('useconst','licenseInfo')}" ></a></div>
                                               </td>
                                               <td>
                                                   <div class="form-group has-success">
                                                       <label for="EDGinputAccessUse">Access and Use Constraints</label>
-                                                      <!-- ko if: selected().doc().EDGdata -->
-                                                      <textarea readonly class="form-control" id="EDGinputAccessUse" data-bind="value: selected().doc().EDGdata.useconst" rows="7"></textarea>
+                                                      <!-- ko if: fullDoc().EDGdata -->
+                                                      <textarea readonly class="form-control" id="EDGinputAccessUse" data-bind="value: fullDoc().EDGdata.useconst" rows="7"></textarea>
                                                       <!-- /ko -->
                                                   </div>
                                               </td>
@@ -716,17 +734,17 @@
                                               <td>
                                                   <div class="form-group has-success">
                                                       <label for="GPOinputAccessInfo">Credits</label>
-                                                      <input class="form-control" id="GPOinputAccessInfo" data-bind="value: selected().doc().accessInformation, valueUpdate: 'afterkeydown'" type="text">
+                                                      <input class="form-control" id="GPOinputAccessInfo" data-bind="value: doc().accessInformation, valueUpdate: 'afterkeydown'" type="text">
                                                   </div>
                                               </td>
                                               <td>
-                                                  <div class="reconcileLink"><a class="glyphicon glyphicon-arrow-left" onclick="$('#GPOinputAccessInfo').val($('#EDGinputAccessInfo').val())"></a></div>
+                                                  <div class="reconcileLink"><a class="glyphicon glyphicon-arrow-left" data-bind="click: function () {copyEDGtoGPO('publisher','accessInformation')}" "></a></div>
                                               </td>
                                               <td>
                                                   <div class="form-group has-success">
                                                       <label for="EDGinputAccessInfo">Credits</label>
-                                                      <!-- ko if: selected().doc().EDGdata -->
-                                                      <input readonly class="form-control" id="EDGinputAccessInfo" data-bind="value: selected().doc().EDGdata.publisher" type="text">
+                                                      <!-- ko if: fullDoc().EDGdata -->
+                                                      <input readonly class="form-control" id="EDGinputAccessInfo" data-bind="value: fullDoc().EDGdata.publisher" type="text">
                                                       <!-- /ko -->
                                                   </div>
                                               </td>
@@ -737,8 +755,8 @@
                               </form>
                           </div>
                           <div class="modal-footer">
-                              <button type="button" id="closeReconcileBtn" class="btn btn-default" data-bind="click: function() { selected().closeModal; $('#myModal').modal('show'); }" data-dismiss="modal" >Close</button>
-                              <button type="button" class="btn btn-primary" data-bind="click: selected().loadReconciledFields" data-dismiss="modal">Load reconciled values</button>
+                              <button type="button" id="closeReconcileBtn" class="btn btn-default" data-bind="click: function() {}" data-dismiss="modal" >Close</button>
+                              <button type="button" class="btn btn-primary" data-bind="click: loadReconciledFields(egam.pages.gpoItems.details.selected().doc); $('#gpoItemsModal').modal('show');" data-dismiss="modal">Load reconciled values</button>
                           </div>
                       </div>
                   </div>
@@ -757,14 +775,31 @@
                                  <label id="edgTitleSearchLabel" for="edgTitleSearch">Search EDG by Title:</label>
                                  <span class="edgTitleSearchBlock">
                                     <input class="form-control" id="edgTitleSearch" >
-                                    <button type="button" id="edgBtnModal" class="btn btn-primary">Search</button>
+                                    <button type="button" id="edgBtnModal" class="btn btn-primary" data-bind="click:customSearch">Search</button>
                                  </span>
                              </div>
                          </div>
                          <div class="modal-body">
 
                              <div id="edgModalViewTable">
-                                 <table id="edgitemmodaltable" class="table table-hover table-bordered table-responsive">
+                                 <table id="edgModalItemsTable" class="table table-hover table-bordered table-responsive" data-bind="dataTable:
+                                    {
+                                        deferRender: true,
+                                        dataSource: egam.pages.gpoItems.details.linkEDG.table.items,
+                                        rowTemplate: 'EDGitemsRowTemplate',
+                                        options: {
+                                            paging: true,
+                                            aaSorting: [],
+                                            oLanguage: {
+                                              sSearch: 'Filter: ',
+                                            },
+                                        },
+                                        columns: [
+                                            {data:'doc.title'},
+                                            {data:'doc.contactPoint.fn'},
+                                            {data:null}
+                                            ]
+                                    }">
                                      <thead>
                                      <tr>
                                          <th>Title</th>
@@ -773,15 +808,18 @@
                                      </tr>
                                      </thead>
                                      <tbody>
-                                     <!-- ko foreach: content -->
-                                     <tr>
-                                         <td><a data-bind="attr: { href: $data.references()[0] }, html: $data.title" target="_blank"></a></td>
-                                         <td><a data-bind="attr: { href: $data.contactPoint.hasEmail }, html: $data.contactPoint.fn" target="_blank"></a></td>
-                                         <td><button class="btn btn-primary btn-xs" id="edgLinkBtn" data-bind="click: function () {$root.linkRecord( $('.id_holder').attr('id'), $data.references()) }">Link EDG Record</button></td>
-                                     </tr>
-                                     <!-- /ko -->
                                      </tbody>
                                  </table>
+
+
+                                 <script id="EDGitemsRowTemplate" type="text/html">
+                                     <tr data-toggle="modal" data-target="#edgItemsModal" >
+                                         <td><a data-bind="attr: { href: doc.references[0] }, html: doc.title" target="_blank"></a></td>
+                                         <td><a data-bind="attr: { href: doc.contactPoint.hasEmail }, html: doc.contactPoint.fn" target="_blank"></a></td>
+                                         <td><button class="btn btn-primary btn-xs" id="edgLinkBtn" data-bind="click: function () {return $root.linkRecord(doc.references) }">Link EDG Record</button></td>
+                                     </tr>
+
+                                 </script>
                              </div>
                          </div>
                          <div class="modal-footer">
@@ -819,80 +857,155 @@
              <div role="tabpanel" class="tab-pane" id="userMgmtView" >
                  <h2 class="sub-header">User Management</h2>
                  <p>Work on this pane is still in progress. This page allows administrators to manage the sponsorship of external accounts. Please view the help for additional guidance.</p>
-                 <table id="userMgmtTable" class="table table-hover table-bordered table-responsive">
+                 <table id="gpoUsersTable" class="table table-hover table-bordered table-responsive" data-bind="dataTable:
+                {
+                    deferRender: true,
+                    dataSource: egam.pages.gpoUsers.table.items,
+                    rowTemplate: 'GPOusersRowTemplate',
+                    options: {paging: true,
+                        dom: 'Bfrtip',
+                        buttons: [
+                        {
+                            extend: 'userTableFilter',
+                            text: 'All External Users',
+                        },
+                          {
+                            extend: 'userTableFilter',
+                            text: 'Sponsored',
+                          },
+                          {
+                            extend: 'userTableFilter',
+                            text: 'Unsponsored',
+                          },
+                        ],
+                        order: [
+                          [1, 'asc'],
+                        ],},
+                    columns: [
+                        {data:'doc.isExternal'},
+                        {data:'doc.fullName'},
+                        {data:'doc.email'},
+                        {data:'latestSponsor().username'},
+                        {data:'latestSponsor().authGroup'},
+                        {data:'latestSponsor().organization'},
+                        {data:'latestSponsor().description'},
+                        {data:'latestSponsor().reason'},
+                        {data:{_:function (row) {return egam.utilities.formatDate(row.latestSponsor().startDate)},sort:'latestSponsor().startDate'},type:'num'},
+                        {data:{_:function (row) {return egam.utilities.formatDate(row.latestSponsor().endDate)},sort:'latestSponsor().endDate'},type:'num'},
+                    ]
+                    }">
                      <thead>
                      <tr>
                          <th>Sponsored</th>
-                         <th>Name</th>
-                         <th>E-mail</th>
-                         <th>Sponsor</th>
-                         <th>Auth Group</th>
-                         <th>Organization</th>
-                         <th>Description</th>
-                         <th>Reason</th>
-                         <th>Start Date</th>
-                         <th>End Date</th>
+                         <th>Name
+                            <span onclick="event.stopPropagation();" >
+                                <input class="search form-control input-sm" style="width:9em" placeholder="Search By Name">
+                            </span>
+                         </th>
+                         <th>E-mail<br />
+                            <span onclick="event.stopPropagation();" >
+                                <input class="search form-control input-sm" style="width:9em" placeholder="Search By Email">
+                            </span>
+                         </th>
+                         <th>Sponsor
+                            <span onclick="event.stopPropagation();" >
+                                <input class="search form-control input-sm" style="width:9em" placeholder="Search By Sponsor">
+                            </span>
+                         </th>
+                         <th>Auth Group
+                            <span onclick="event.stopPropagation();" >
+                                <select class="search form-control input-sm" style="width:9em"><option value="">All</option></select>
+                            </span>
+                         </th>
+                         <th>Organization
+                            <span onclick="event.stopPropagation();" >
+                                <select class="search form-control input-sm" style="width:9em"><option value="">All</option></select>
+                            </span>
+                         </th>
+                         <th>Description
+                            <span onclick="event.stopPropagation();" >
+                                <input class="search form-control input-sm" style="width:9em" placeholder="Search By Description">
+                            </span>
+                         </th>
+                         <th>Reason
+                            <span onclick="event.stopPropagation();" >
+                                <select class="search form-control input-sm" style="width:9em"><option value="">All</option></select>
+                            </span>
+                         </th>
+                         <th>Start Date
+                            <span onclick="event.stopPropagation();" >
+                                <input class="search form-control input-sm" style="width:9em" placeholder="Search By Start Date">
+                            </span>
+                         </th>
+                         <th>End Date
+                            <span onclick="event.stopPropagation();" >
+                                <input class="search form-control input-sm" style="width:9em" placeholder="Search By End Date">
+                            </span>
+                         </th>
                      </tr>
                      </thead>
-                     <tbody data-bind="foreach: users">
-                     <tr >
-                         <td >
-                             <div>
-                                <button class="btn btn-primary btn-xs" id="sponsorBtn" data-bind="click: $parent.select" data-toggle="modal" data-target="#userMgmtModal">Sponsor Me!</button>
-                             </div>
-                         </td>
-                         <td data-bind="text: uData.fullName"></td>
-                         <td data-bind="text: uData.email"></td>
-                         <td data-bind="text: latestSponsor"></td>
-                         <td data-bind="text: spAuthGroup"></td>
-                         <td data-bind="text: spOrg"></td>
-                         <td data-bind="text: spDescript"></td>
-                         <td data-bind="text: spReason"></td>
-                         <td data-bind="text: spStartDate"></td>
-                         <td data-bind="text: spEndDate"></td>
-                     </tr>
+                     <tbody>
+
                      </tbody>
                      <tfoot>
                      </tfoot>
                  </table>
-                 <div class="modal fade" id="userMgmtModal" tabindex="-1" role="dialog" data-keyboard="false" data-backdrop="static" aria-labelledby="userMgmtModalLabel">
-                     <div class="modal-dialog modal-sm" role="document">
-                         <div class="modal-content">
-                             <div class="modal-header">
-                                 <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                                 <h4 class="modal-title" id="userMgmtModalLabel">Confirm Sponsorship</h4>
+                 <script id="GPOusersRowTemplate" type="text/html">
+                     <tr>
+                         <td>
+                            <div>
+                                <button class="btn btn-primary btn-xs" id="sponsorBtn" data-bind="click: function (item) {return $root.details.select(item)}" data-toggle="modal" data-target="#gpoUsersModal">Sponsor Me!</button>
+                            </div>
+                         </td>
+                         <td data-bind="text: doc.fullName"></td>
+                         <td data-bind="text: doc.email"></td>
+                         <td data-bind="text: latestSponsor().username"></td>
+                         <td data-bind="text: latestSponsor().authGroup"></td>
+                         <td data-bind="text: latestSponsor().organization"></td>
+                         <td data-bind="text: latestSponsor().description"></td>
+                         <td data-bind="text: latestSponsor().reason"></td>
+                         <td data-bind="text: egam.utilities.formatDate(latestSponsor().startDate)"></td>
+                         <td data-bind="text: egam.utilities.formatDate(latestSponsor().endDate)"></td>
+                     </tr>
+                 </script>
+             </div>
+             <div class="modal fade" id="gpoUsersModal" tabindex="-1" role="dialog" data-keyboard="false" data-backdrop="static" aria-labelledby="userMgmtModalLabel">
+                 <div class="modal-dialog modal-sm" role="document">
+                     <div class="modal-content">
+                         <div class="modal-header">
+                             <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                             <h4 class="modal-title" id="userMgmtModalLabel">Confirm Sponsorship</h4>
+                         </div>
+                         <div class="modal-body" >
+                             <div class="form-group">
+                                 <label for="SponsoredOrg" data-bind="text: selected().doc().fullName"></label>
                              </div>
-                             <div class="modal-body" >
-                                 <div class="form-group">
-                                     <label for="SponsoredOrg" data-bind="text: selected().uData.fullName()"></label>
-                                 </div>
-                                 <div class="form-group">
-                                     <label for="spPurpose">Reason:</label>
-                                     <select class="form-control" id="spPurpose">
-                                         <option value="Emergency Response">Emergency Response</option>
-                                         <option value="Other Federal Agency">Other Federal Agency</option>
-                                         <option value="State Agency">State Agency</option>
-                                         <option value="University">University</option>
-                                         <option value="Long Term GIS Support">Long Term GIS Support</option>
-                                     </select>
-                                 </div>
-                                 <div class="form-group">
-                                     <label for="SponsoredOrg">Organization:</label>
-                                     <input class="form-control" id="SponsoredOrg" type="text" style="width: 100%">
-                                 </div>
-                                 <div class="form-group">
-                                     <label for="spDescription">Description:</label>
-                                     <textarea class="form-control" rows="5" id="spDescription" style="min-width: 100%"></textarea>
-                                 </div>
-                                 <div class="form-group" id="updateAuth">
-                                     <label for="UserAuthDrop">Choose an Authoritative Group:</label>
-                                     <select class="form-control" id="UserAuthDrop" data-bind="options: selected().sponsoreeAuthGroups" style="width: 100%"></select>
-                                 </div>
+                             <div class="form-group">
+                                 <label for="spPurpose">Reason:</label>
+                                 <select class="form-control" id="spPurpose">
+                                     <option value="Emergency Response">Emergency Response</option>
+                                     <option value="Other Federal Agency">Other Federal Agency</option>
+                                     <option value="State Agency">State Agency</option>
+                                     <option value="University">University</option>
+                                     <option value="Long Term GIS Support">Long Term GIS Support</option>
+                                 </select>
                              </div>
-                             <div class="modal-footer">
-                                 <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                                 <button type="button" id="userSponorSave" class="btn btn-primary" data-bind="click: selected().renew">Confirm</button>
+                             <div class="form-group">
+                                 <label for="SponsoredOrg">Organization:</label>
+                                 <input class="form-control" id="SponsoredOrg" type="text" style="width: 100%">
                              </div>
+                             <div class="form-group">
+                                 <label for="spDescription">Description:</label>
+                                 <textarea class="form-control" rows="5" id="spDescription" style="min-width: 100%"></textarea>
+                             </div>
+                             <div class="form-group" id="updateAuth">
+                                 <label for="UserAuthDrop">Choose an Authoritative Group:</label>
+                                 <select class="form-control" id="UserAuthDrop" data-bind="options: selected().sponsoreeAuthGroups" style="width: 100%"></select>
+                             </div>
+                         </div>
+                         <div class="modal-footer">
+                             <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                             <button type="button" id="userSponorSave" class="btn btn-primary" data-bind="click: update">Confirm</button>
                          </div>
                      </div>
                  </div>
@@ -902,25 +1015,71 @@
              <!-- End userMgmtView  View -->
              <!-- userMgmtView  View -->
              <div role="tabpanel" class="tab-pane" id="edgView" >
-                 <div id="edgViewViewTable">
+                 <div id="edgItemsPage">
                      <h2 class="sub-header">EDG Items</h2>
                      <p>Work on this pane is still in progress. When complete, this pane will allow users to review metadata records in the EDG, see which have been linked to GeoPlatform content items, and audit the quality of records for compliance with the EDG Metadata Technical Specification. We also anticipate providing summary statistics and progress metrics.</p>
-                     <table id="edgitemtable" class="table table-striped table-bordered table-responsive">
+                     <table id="edgItemsTable" class="table table-hover table-bordered table-responsive" data-bind="dataTable:
+                            {
+                                deferRender: true,
+                                dataSource: egam.pages.edgItems.table.items,
+                                rowTemplate: 'EDGitemsRowTemplateFull',
+                                options: {paging: true},
+                                columns: [
+                                    {data:'doc.title'},
+                                    {data:'doc.description'},
+                                    {data:'doc.keyword'},
+                                    {data:'doc.modified'},
+                                    {data:'doc.publisher'},
+                                    {data:'doc.contactPoint'},
+                                    {data:'doc.identifier'},
+                                    {data:'doc.accessLevel'},
+                                    {data:'doc.bureauCode'},
+                                    {data:'doc.programCode'},
+                                    {data:'doc.license'},
+                                    {data:'doc.spatial'},
+                                    {data:'doc.auditStatus'}
+                                    ]
+                            }">
                          <thead>
                          <tr>
                              <th>Title</th>
-                             <th>Owner</th>
+                             <th>Description</th>
+                             <th>Keyword</th>
+                             <th>Modified</th>
+                             <th>Publisher</th>
+                             <th>Contact Point</th>
+                             <th>Identifier</th>
+                             <th>Access Level</th>
+                             <th>Bureau Code</th>
+                             <th>Program Code</th>
+                             <th>License</th>
+                             <th>Spatial</th>
+                             <th>Audit Status</th>
                          </tr>
                          </thead>
                          <tbody>
-                         <!-- ko foreach: content -->
-                         <tr>
-                             <td><a data-bind="attr: { href: $data.references()[0] }, html: $data.title" target="_blank"></a></td>
-                             <td><a data-bind="attr: { href: $data.contactPoint.hasEmail }, html: $data.contactPoint.fn" target="_blank"></a></td>
-                         </tr>
-                         <!-- /ko -->
                          </tbody>
                      </table>
+                     <script id="EDGitemsRowTemplateFull" type="text/html">
+                         <tr data-bind="css: {danger: !doc.auditStatus}">
+                             <td data-bind="text: doc.title" ></td>
+                             <td class="truncate" data-bind="text: doc.description"></td>
+                             <td class="truncate" data-bind="text: doc.keyword"></td>
+                             <td data-bind="text: doc.modified"></td>
+                             <td class="truncate" data-bind="text: doc.publisher"></td>
+                             <td><a data-bind="attr: { href: doc.contactPointEmail }, html: doc.contactPoint" target="_blank"></a></td>
+                             <td class="truncate" data-bind="text: doc.identifier"></td>
+                             <td data-bind="text: doc.accessLevel"></td>
+                             <td data-bind="text: doc.bureauCode"></td>
+                             <td data-bind="text: doc.programCode"></td>
+                             <td class="truncate" data-bind="text: doc.license"></td>
+                             <td class="truncate" data-bind="text: doc.spatial"></td>
+                             <td data-bind="css: {auditRowPass: doc.auditStatus,auditRowFail: !doc.auditStatus}">
+                                 <img class="pass" src="img/greenOK.jpg" alt="Pass" style="width:25px">
+                                 <img class="fail" src="img/warning.png" alt="Fail" style="width:25px">
+                             </td >
+                         </tr>
+                     </script>
                  </div>
              </div>
              <!-- End userMgmtView  View -->
@@ -947,8 +1106,11 @@
     <script src="js/wysiwyg.js"></script>
 
     <script src="js/knockout.bindings.dataTables.cog.js"></script>
+    <script src="js/TableClass.js"></script>
     <script src="js/gpintel.js"></script>
     <script src="js/gpoItems.js"></script>
+    <script src="js/gpoUsers.js"></script>
+    <script src="js/edgItems.js"></script>
     <script src="js/Audit.js"></script>
     <!-- Due to some weird timing issues, this order needs to be followed -->
     <script src="js/esrijsapi/dojo/dojo.js" data-dojo-config="async: true"></script>

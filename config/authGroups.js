@@ -1,5 +1,5 @@
-// Note might be careful changing this while somebody is running
-// downloadGPOusers.js or logging in because it uses this file
+//Note might be careful changing this while somebody is running
+//downloadGPOusers.js or logging in because it uses this file
 var ids = {
     'EPA Region 1': {id: '63641797ea964222bdfb662b21a5fa1c',edgName: 'REG 01'},
     'EPA Region 2': {id: '9670ee274c7745d9b2e71222a3339b61',edgName: 'REG 02'},

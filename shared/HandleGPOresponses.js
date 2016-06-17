@@ -6,11 +6,15 @@ var HandleGPOreponse = function(config) {
   this.current = null;
 };
 
-//generate function for handling Reponse Promise from Request Promise which returns [request,body]
-//saveKeys [respKey1,respKey2] or just "respKey1" will save these keys under same name
+//Generate function for handling Reponse Promise from Request Promise which
+//returns [request,body]
+//saveKeys [respKey1,respKey2] or just "respKey1" will save these keys under
+//same name
 //savedKeyMap={respKey1:savedKey1,respKey2:savedKey2} will save under new name
 //Note: if object passed for savedKeys then it is actually savedKeyMap
-HandleGPOreponse.prototype.getHandleResponsePromise = function(savedKeys, savedKeyMap, requestMethod) {
+HandleGPOreponse.prototype.getHandleResponsePromise = function(savedKeys,
+                                                               savedKeyMap,
+                                                               requestMethod) {
   var self = this;
   return function(data) {
     //Don't think this needs to actually return a promise
@@ -20,24 +24,31 @@ HandleGPOreponse.prototype.getHandleResponsePromise = function(savedKeys, savedK
 };
 
 //This get generic response handler.
-HandleGPOreponse.prototype.handleResponse = function(response, savedKeys, savedKeyMap, requestMethod) {
+HandleGPOreponse.prototype.handleResponse = function(response, savedKeys,
+                                                     savedKeyMap,
+                                                     requestMethod) {
   var error = null;
 
   var body = response.body;
 
-  if (requestMethod === "head") {
+  if (requestMethod === 'head') {
     return response.headers
   }
 
   if (response.statusCode == 200) {
-    //            console.log(body);
+    //            Console.log(body);
     try {
       this.current = JSON.parse(body);
-      if (!this.current) error = 'JSON body is empty: ';
+      if (!this.current) {
+        error = 'JSON body is empty: ';
+      }
 
-      //can also pass just string if single key to save
-      if (typeof savedKeys === "string") savedKeys = [savedKeys];
-      //If savedKeys is an object instead array and no keymap passed then it is a keyMap
+      //Can also pass just string if single key to save
+      if (typeof savedKeys === 'string') {
+        savedKeys = [savedKeys];
+      }
+      //If savedKeys is an object instead array and no keymap passed then it is
+      //a keyMap
       if (!(savedKeyMap || Array.isArray(savedKeys))) {
         savedKeyMap = savedKeys;
         savedKeys = null;
@@ -46,15 +57,19 @@ HandleGPOreponse.prototype.handleResponse = function(response, savedKeys, savedK
       if (this.current && savedKeys) {
         savedKeys.forEach(function(key) {
           this.saved[key] = this.current[key];
-          console.log(key + " : " + this.current[key]);
-          if (!this.current[key]) error = 'Error getting ' + key;
+          console.log(key + ' : ' + this.current[key]);
+          if (!this.current[key]) {
+            error = 'Error getting ' + key;
+          }
         }, this);
       }
       if (this.current && savedKeyMap) {
         Object.keys(savedKeyMap).forEach(function(key) {
           this.saved[savedKeyMap[key]] = this.current[key];
-          console.log(savedKeyMap[key] + " : " + this.current[key]);
-          if (!this.current[key]) error = 'Error getting ' + savedKeyMap[key];
+          console.log(savedKeyMap[key] + ' : ' + this.current[key]);
+          if (!this.current[key]) {
+            error = 'Error getting ' + savedKeyMap[key];
+          }
         }, this);
       }
     } catch (ex) {
@@ -63,7 +78,9 @@ HandleGPOreponse.prototype.handleResponse = function(response, savedKeys, savedK
   } else {
     error = 'Status code not 200';
   }
-  if (error) throw (error + ' with response body: ' + body);
+  if (error) {
+    throw (error + ' with response body: ' + body);
+  }
   return this.current;
 };
 
@@ -76,8 +93,10 @@ HandleGPOreponse.prototype.getAGOLcallPromise = function(requestPars) {
 };
 
 HandleGPOreponse.prototype.callAGOL = function(requestPars, savedKeys, savedKeyMap) {
-  return this.getAGOLcallPromise(requestPars).then(this.getHandleResponsePromise(savedKeys, savedKeyMap, requestPars.method));
-}
+  return this.getAGOLcallPromise(requestPars)
+    .then(this.getHandleResponsePromise(savedKeys, savedKeyMap,
+                                        requestPars.method));
+};
 
 HandleGPOreponse.prototype.promiseWhile = function(condition, promiseFunction) {
   var Q = require('q');
@@ -86,14 +105,17 @@ HandleGPOreponse.prototype.promiseWhile = function(condition, promiseFunction) {
   function loop() {
     // When the result of calling `condition` is no longer true, we are
     // done.
-    if (!condition()) return done.resolve();
+    if (!condition()) {
+      return done.resolve();
+    }
     // Use `when`, in case `promiseFunction` does not return a promise.
     // When it completes loop again otherwise, if it fails, reject the
     // done promise
     try {
       Q.when(promiseFunction(), loop, done.reject);
     }catch (ex) {
-//Use try catch and reject if there is an exception otherwise crash app when Q throws err when running first loop with q.nextTick
+      //Use try catch and reject if there is an exception otherwise crash app
+      //when Q throws err when running first loop with q.nextTick
       done.reject(ex);
     }
 

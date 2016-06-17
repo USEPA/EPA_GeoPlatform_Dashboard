@@ -172,16 +172,6 @@ a, span, tr, h4:hover {
       display:inline;
   }
 
-  table tr.loading {
-/*      background:blue; */
-      display:none;
-  }
-
-    table.loaded tr.loading {
-        display: table-row;
-/*        background:green; */
-    }
-
   .reconcileLink {
     text-align: center;
   }
@@ -216,4 +206,15 @@ a, span, tr, h4:hover {
 
   .edgTitleSearchBlock {
     display: block;
+  }
+  .truncate {
+    max-width: 40px;
+    word-wrap: break-word;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .truncate:hover {
+    overflow: visible;
+    white-space: normal;
   }
