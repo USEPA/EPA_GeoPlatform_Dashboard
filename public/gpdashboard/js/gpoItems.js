@@ -217,7 +217,7 @@ egam.models.gpoItems.RowModelClass = function(doc, index) {
 
   //This is to get the folder that the item is in
   this.ownerFolderTitle = ko.computed(function(){
-    if (! doc.ownerFolder) return null;
+    if (! doc.ownerFolder) return 'Root Folder';
     return doc.ownerFolder.title;
   }, this);
 

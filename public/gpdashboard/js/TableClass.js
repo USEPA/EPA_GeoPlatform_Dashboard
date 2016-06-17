@@ -211,18 +211,29 @@ egam.controls.Table.prototype.customizeDataTable = function(refresh,selectColumn
 
       //Empty out all but first option which is "All"
       var selectedValue = select.val();
+      var selectedText = select.find('option:selected').text();
       select.find('option:gt(0)').remove();
 
       //Simply just use data (don't need to use data-search attribute anymore
       //possibly because dataTables binding sets data() different than ko cell
       //contents)
       column.data().unique().sort().each(function(data, index) {
-        if (!select.find('option[text=\'' + data + '\']').length > 0) {
+        //If the value is falsey but not zero then make it empty string
+        if (!data && data != 0) {
+          data = '';
+        }
+        var selOptions = $(select[0].options).filter(function() { return $(this).html() == data; });
+        if (!selOptions.length > 0) {
           select.append('<option value="' + data + '">' + data + '</option>');
         }
       });
       //Reset the selected value
-      select.val(selectedValue);
+      //if sel value is '' then must select by text
+      if (selectedValue == '') {
+        $(select[0].options).filter(function() { return $(this).html() == selectedText; }).attr('selected','selected');
+      }else {
+        select.val(selectedValue);
+      }
       //If the selectedValue doesn't exist then I guess add it and select 8t
       if (select.val() != selectedValue) {
         select.append('<option value="' + selectedValue + '">' +
