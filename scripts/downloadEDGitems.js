@@ -25,6 +25,9 @@ Q.nfcall(request, requestPars)
     if (response[0].statusCode == 200) {
       dataArray = JSON.parse(response[0].body)['dataset'];
       dataArray.forEach(function(item) {
+        //If missing required fields, add them (w/ empty strings)
+        item = auditInstance.createRequiredFields(item);
+        //Validate fields
         item.auditStatus = auditInstance.validate(item);
         //If publisher is an object, just grab the name
         if (item.publisher && item.publisher.name) {

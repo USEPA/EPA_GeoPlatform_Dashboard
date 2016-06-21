@@ -29,6 +29,7 @@ egam.models.edgItems.PageModelClass = function() {
     programCode: 1,
     license: 1,
     spatial: 1,
+    accrualPeriodicity: 1,
     auditStatus: 1
   };
 
