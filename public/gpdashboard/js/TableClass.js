@@ -19,6 +19,8 @@ egam.controls.Table = function(items,elementSelector,RowModelClass,resultsName) 
   this.resultsName = resultsName || 'results';
   //Set the default timeout. It can also be passed to init
   this.timeOut = 15000;
+  //list of checked row
+  this.checkedRows = [];
 };
 
 egam.controls.Table.prototype.init = function(endpoint, query, projection, resultsName, timeOut) {
@@ -272,4 +274,14 @@ egam.controls.Table.prototype.runAllClientSideFilters = function() {
       headerInput.trigger('change');
     }
   });
+};
+
+egam.controls.Table.prototype.checkRow = function (item, evt) {
+  if(evt.target.checked){
+    this.checkedRows.push(item);
+  }else {
+    index = $.inArray(item, this.checkedRows);
+    this.checkedRows.splice(index, 1);
+  };
+  return true;
 };

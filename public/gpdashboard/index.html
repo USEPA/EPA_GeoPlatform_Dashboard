@@ -397,7 +397,7 @@
                     }">
                     <thead>
                   <tr>
-                      <th style="display:none"></th>
+                      <th></th>
                     <th>Title<br>
                         <span onclick="event.stopPropagation();" >
                             <input class="search form-control input-sm" placeholder="Search By Title">
@@ -453,23 +453,11 @@
               </table>
 
                 <script id="GPOitemsRowTemplate" type="text/html">
-                    <tr data-bind="css: {danger: !doc.AuditData.compliant}, click: function (item) {return $root.details.select(item)} " data-toggle="modal" data-target="#gpoItemsModal" >
-                        <td data-bind="attr: { 'data-order2': doc.type}" style="display:none">
-                            <!-- ko if:doc.type=='Web Map' -->
-                            <img src="img/item_type_icons/maps16.png">
-                            <!-- /ko -->
-                            <!-- ko if:doc.type=='Web Mapping Application' -->
-                            <img src="img/item_type_icons/apps16.png">
-                            <!-- /ko -->
-                            <!-- ko if:doc.type=='Feature Layer' -->
-                            <img src="img/item_type_icons/featureshosted16.png">
-                            <!-- /ko -->
-                            <!-- ko if:doc.type=='Service Definition' -->
-                            <img src="img/item_type_icons/datafiles16.png">
-                            <!-- /ko -->
-                            <!-- ko if:doc.type=='Map Image layer' -->
-                            <img src="img/item_type_icons/mapimages16.png">
-                            <!-- /ko -->
+                    <tr data-bind="css: {danger: !doc.AuditData.compliant}, click:function(item){return $root.details.select(item)}" data-toggle="modal" data-target="#gpoItemsModal" >
+                        <td>
+                            <span onclick="event.stopPropagation();">
+                                <input type="checkbox" data-bind="checked: isChecked, click: function(item, evt){return $root.table.checkRow(item,evt)}">
+                            </span>
                         </td>
                         <td data-bind="text: doc.title" ></td>
                         <td data-bind="text: doc.access"></td>

@@ -221,6 +221,7 @@ egam.models.gpoItems.RowModelClass = function(doc, index) {
     return doc.ownerFolder.title;
   }, this);
 
+  this.isChecked = ko.observable(false);
 };
 
 //This is the FULL model which binds to the modal allowing 2 way data binding and updating etc
