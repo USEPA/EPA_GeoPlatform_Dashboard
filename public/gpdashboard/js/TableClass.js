@@ -257,6 +257,7 @@ egam.controls.Table.prototype.customizeDataTable = function(refresh,selectColumn
         }
       });
     }
+
   }
 
 };
@@ -283,5 +284,31 @@ egam.controls.Table.prototype.checkRow = function (item, evt) {
     index = $.inArray(item, this.checkedRows);
     this.checkedRows.splice(index, 1);
   };
+  return true;
+};
+
+egam.controls.Table.prototype.checkAll = function (e, ex){
+  var self = this;
+  console.log(e);
+  var rItems = e.table.dataTable.rows({"search":"applied"});
+  var iArray = e.table.items;
+
+  if(ex.target.checked){
+    rItems.every(function (item) {
+      var i = iArray[item];
+      i.isChecked = true;
+      self.checkedRows.push(i);
+    })
+  }else{
+    rItems.every(function (item) {
+      var i = iArray[item];
+      i.isChecked = false;
+      index = $.inArray(i, self.checkedRows);
+      self.checkedRows.splice(index, 1);
+    })
+  }
+  this.dataTable.draw();
+  console.log(self.checkedRows);
+
   return true;
 };
