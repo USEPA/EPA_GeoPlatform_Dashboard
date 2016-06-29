@@ -382,12 +382,11 @@
                     deferRender: true,
                     dataSource: egam.pages.gpoItems.table.items,
                     rowTemplate: 'GPOitemsRowTemplate',
-                    options: {paging: true},
-                    columnDefs: [
-                        { Sortable: false, aTargets: [ -1 ], },
-                    ],
+                    options: {paging: true,
+                              aaSorting: [],
+                            },
                     columns: [
-                    {data:null},
+                    {data:null, sortable: false},
                     {data:'doc.title'},
                     {data:'doc.access'},
                     {data:'doc.type'},
