@@ -277,38 +277,43 @@ egam.controls.Table.prototype.runAllClientSideFilters = function() {
   });
 };
 
-egam.controls.Table.prototype.checkRow = function (item, evt) {
-  if(evt.target.checked){
-    this.checkedRows.push(item);
-  }else {
-    index = $.inArray(item, this.checkedRows);
+egam.controls.Table.prototype.checkRow = function(item, evt) {
+  //Have to get item index in checkRows storage if adding also because don't want to add duplicates
+  //This probably won't happen for single manually checking but could occur when checking ALL
+  var index = $.inArray(item, this.checkedRows);
+
+  if (evt.target.checked) {
+    //Only add the row to checkRows if it is not in there
+    if (index < 0) {
+      this.checkedRows.push(item);
+    }
+  } else {
+    //Remove the row from checkedRows storage using splice
     this.checkedRows.splice(index, 1);
-  };
+  }
+
   return true;
 };
 
-egam.controls.Table.prototype.checkAll = function (e, ex){
+egam.controls.Table.prototype.checkAll = function(model, evt) {
   var self = this;
-  console.log(e);
-  var rItems = e.table.dataTable.rows({"search":"applied"});
-  var iArray = e.table.items;
+  //Note: rows({"search":"applied"}) would just the indices for the displayed rows (after filtering/sorting) but .data() actually gets the row items
+  //Also can access the dataTable on this table class instance using self.dataTable
+  var displayedItems = self.dataTable.rows({search: 'applied'}).data();
 
-  if(ex.target.checked){
-    rItems.every(function (item) {
-      var i = iArray[item];
-      i.isChecked = true;
-      self.checkedRows.push(i);
-    })
-  }else{
-    rItems.every(function (item) {
-      var i = iArray[item];
-      i.isChecked = false;
-      index = $.inArray(i, self.checkedRows);
-      self.checkedRows.splice(index, 1);
-    })
-  }
-  this.dataTable.draw();
-  console.log(self.checkedRows);
+  displayedItems.each(function(item) {
+    //Note isChecked field on row model should be observable for 2 way data binding to work
+    //(Actually might not be necessary because of way dataTable rebinds on draw())
+    item.isChecked(evt.target.checked);
+    //Just fire the checkRow function for this item
+    self.checkRow(item,evt);
+
+  });
+
+  //Pass false so that search/paging not reset when redrawn
+  //Actually don't need to redraw table because isChecked field is observable (2 way data binding)
+  //this.dataTable.draw(false);
+  //console.log(self.checkedRows);
 
   return true;
 };
