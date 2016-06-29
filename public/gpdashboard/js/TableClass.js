@@ -19,6 +19,8 @@ egam.controls.Table = function(items,elementSelector,RowModelClass,resultsName) 
   this.resultsName = resultsName || 'results';
   //Set the default timeout. It can also be passed to init
   this.timeOut = 15000;
+  //list of checked row
+  this.checkedRows = [];
 };
 
 egam.controls.Table.prototype.init = function(endpoint, query, projection, resultsName, timeOut) {
@@ -255,6 +257,7 @@ egam.controls.Table.prototype.customizeDataTable = function(refresh,selectColumn
         }
       });
     }
+
   }
 
 };
@@ -272,4 +275,40 @@ egam.controls.Table.prototype.runAllClientSideFilters = function() {
       headerInput.trigger('change');
     }
   });
+};
+
+egam.controls.Table.prototype.checkRow = function (item, evt) {
+  if(evt.target.checked){
+    this.checkedRows.push(item);
+  }else {
+    index = $.inArray(item, this.checkedRows);
+    this.checkedRows.splice(index, 1);
+  };
+  return true;
+};
+
+egam.controls.Table.prototype.checkAll = function (e, ex){
+  var self = this;
+  console.log(e);
+  var rItems = e.table.dataTable.rows({"search":"applied"});
+  var iArray = e.table.items;
+
+  if(ex.target.checked){
+    rItems.every(function (item) {
+      var i = iArray[item];
+      i.isChecked = true;
+      self.checkedRows.push(i);
+    })
+  }else{
+    rItems.every(function (item) {
+      var i = iArray[item];
+      i.isChecked = false;
+      index = $.inArray(i, self.checkedRows);
+      self.checkedRows.splice(index, 1);
+    })
+  }
+  this.dataTable.draw();
+  console.log(self.checkedRows);
+
+  return true;
 };
