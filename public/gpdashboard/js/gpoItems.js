@@ -159,8 +159,20 @@ egam.models.gpoItems.PageModelClass.prototype.calculateStats = function() {
 //This could maybe be generalized later if it needed to be used on other
 //"pages/screens"
 egam.models.gpoItems.PageModelClass.prototype.setAuthGroupsDropdown = function(ownerIDsByAuthGroup) {
+  var self = this;
   var dropAuthGroups = $('#dropAuthGroups');
   dropAuthGroups.on('change', function() {
+    var reOwnerIDs = '';
+    if (this.value) {
+      var ownerIDs = ownerIDsByAuthGroup[this.value];
+      reOwnerIDs = ownerIDs.join('|');
+    }
+    //Make sure the dataTable has been created in case this event is fired before that (it is being fired when dropdown created)
+    if (self.table.dataTable) {
+      self.table.dataTable.column('.ownerColumnForAuthGroupSearch')
+        .search(reOwnerIDs, true, false)
+        .draw();
+    }
     // Also set the download link
     var authgroup = this.value;
     if (authgroup) {
