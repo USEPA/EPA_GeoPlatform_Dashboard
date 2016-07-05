@@ -291,12 +291,19 @@ egam.controls.Table.prototype.checkRow = function(item, evt) {
     //Remove the row from checkedRows storage using splice
     this.checkedRows.splice(index, 1);
   }
+  //if items check show makePublic button else hide
+  if(this.checkedRows.length > 0) {
+    $('#makePublic').show();
+  }else{
+    $('#makePublic').hide();
+  }
 
   return true;
 };
 
 egam.controls.Table.prototype.checkAll = function(model, evt) {
   var self = this;
+
   //Note: rows({"search":"applied"}) would just the indices for the displayed rows (after filtering/sorting) but .data() actually gets the row items
   //Also can access the dataTable on this table class instance using self.dataTable
   var displayedItems = self.dataTable.rows({search: 'applied'}).data();
