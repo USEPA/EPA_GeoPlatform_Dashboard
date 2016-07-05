@@ -33,14 +33,15 @@ module.exports = function(app) {
     //Define this and it will be filled in handleResponse or handleError
     var resObject = {};
 
-    console.log('LOGIN session.username: ' + req.session.username);
+    //Get the logged in user. note don't pass res as second arg because don't want to error out if not logged in!
+    var loggedInUser = utilities.getUserFromSession(req);
 
-    if ('session' in req && req.session.username &&
-        username === req.session.username) {
+    if (loggedInUser && loggedInUser.username && username === loggedInUser.username) {
       //If they are already logged into the session don't do it all over again
-      console.log('USER ALREADY IN SESSION');
+      console.log('USER ALREADY IN SESSION: ' + loggedInUser.username);
       res.json({errors: [], body: {user: req.session.user}});
     } else {
+      console.log('Logging In User : ' + username);
       hr.callAGOL(requestPars)
         .then(handleResponse)
         .then(getSuperUser)
@@ -58,7 +59,6 @@ module.exports = function(app) {
       if (username === user.username) {
         //Save the user to the session
         if ('session' in req) {
-          req.session.username = username;
           req.session.token = token;
           req.session.user = user;
         }
@@ -120,7 +120,7 @@ module.exports = function(app) {
         //Now that ownerIDs is returned we can save them in Session
         .then(function(ownerIDs) {
           //Note: Super user will see all ownerIDs
-          req.session.ownerIDs = ownerIDs;
+          user.ownerIDs= ownerIDs;
           return resObject;
         });
 
@@ -265,7 +265,7 @@ module.exports = function(app) {
 
   router.use('/logout', function(req, res, next) {
     if ('session' in req) {
-      console.log('Logout for username: ' + req.session.username);
+      console.log('Logout for username: ' + req.session.user.username);
       req.session.destroy();
     }
     res.json({errors: [], body: {}});

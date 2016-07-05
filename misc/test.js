@@ -1,3 +1,133 @@
+var utilities=require('../shared/utilities');
+
+var testObj = {a:{},b:{},c:1,d:2};
+testObj.a = {};
+testObj.a.a2 = {};
+testObj.a.a2.a3 = 100;
+testObj.a.a2.b3 = 200;
+testObj.b = {};
+testObj.b.a2 = 10;
+testObj.b.b2 = 20;
+
+var testSlice = utilities.sliceObject(testObj,['a.a2.a3','b.b2','c']);
+console.log(testSlice);
+
+return;
+
+var MonkClass = require('monk');
+
+var monk = MonkClass('mongodb://localhost:27017/egam');
+var itemsCollection = monk.get('GPOitems');
+var usersCollection = monk.get('GPOusers');
+console.log(new Date());
+
+var items = ['cbac72d48fe84ed2a814e103de4e6f84','507b33c0f4b84c08b6223134eec8f044','ecfe2dcdbc234a0781bd43d2acde2b6a'];
+utilities.getDistinctArrayFromDB(itemsCollection,{id:{$in:items}},'owner')
+  .then(function (owners){
+    console.log(owners);
+  });
+
+console.log(itemsCollection.id("570edd967ed06330369c9033"));
+
+//itemsCollection.find({_id:"570edd967ed06330369c9033"},{},function (e,docs) {
+itemsCollection.findById("570edd967ed06330369c9033",{fields:{'AuditData.compliant':1}},function (e,docs) {
+    console.log(docs);
+    console.log("end")
+  });
+
+return;
+console.log("here");
+
+var uniq = {};
+
+var query = {"authGroups": {$ne: []}, "isAdmin": true};
+
+utilities.getDistinctArrayFromDB(usersCollection, query, "authGroups")
+  .then(function (authGroups) {
+    console.log("done " + authGroups[0]);
+    console.log("done " + authGroups[1]);
+    console.log("done " + authGroups[2]);
+    console.log("done " + authGroups.length);
+    console.log(new Date());
+    return true;
+  });
+
+return;
+
+return utilities.getDistinctArrayFromDB(itemsCollection, {}, "owner")
+  .then(function (ownerIDs) {
+    console.log("done " + ownerIDs.length);
+    console.log(new Date());
+    return true;
+  });
+
+return;
+
+return utilities.getDistinctArrayFromDBaggregate(itemsCollection, {}, "owner")
+  .then(function (ownerIDs) {
+    console.log("done " + ownerIDs.length);
+    console.log(new Date());
+    return true;
+  });
+
+return;
+
+return utilities.getDistinctArrayFromDBaggregate(usersCollection, query, "authGroups")
+  .then(function (authGroups) {
+    console.log("done " + authGroups.length);
+    console.log(new Date());
+    return true;
+  });
+
+return;
+
+
+
+
+itemsCollection.find({}, {fields:{owner:1},limit:null,stream:true})
+  .each(function (doc) {
+    uniq[doc.owner]=1;
+//    console.log(doc.id);
+  })
+  .success(function () {
+    console.log(Object.keys(uniq));
+    console.log("done");
+    console.log(new Date());
+  })
+;
+
+return;
+
+itemsCollection.find({},{fields:{owner:1},limit:null},function (e,docs) {
+
+  console.log(new Date());
+  console.log("end")
+});
+return;
+
+itemsCollection.col.aggregate(
+  [
+    {"$match": {} },
+    {
+      "$group" : {
+        "_id" : "$owner"
+      }
+    },
+    {"$project": {owner:1}}
+  ],function () {console.log(new Date())}
+);
+
+return;
+
+return utilities.getDistinctArrayFromDB(itemsCollection, {}, "owner")
+  .then(function (ownerIDs) {
+    console.log("done " + ownerIDs.length);
+    console.log(new Date());
+    return true;
+  });
+
+return;
+
 var Q = require('q');
 
 var dum1 = function () {
@@ -64,103 +194,6 @@ return Q.fcall(function () {console.log("foo")})
 
 return;
 
-var utilities=require('../shared/utilities');
-var MonkClass = require('monk');
-
-var monk = MonkClass('mongodb://localhost:27017/egam');
-var itemsCollection = monk.get('GPOitems');
-var usersCollection = monk.get('GPOusers');
-console.log(new Date());
-
-var uniq = {};
-
-var query = {"authGroups": {$ne: []}, "isAdmin": true};
-
-return utilities.getDistinctArrayFromDB(usersCollection, query, "authGroups")
-  .then(function (authGroups) {
-    console.log("done " + authGroups[0]);
-    console.log("done " + authGroups[1]);
-    console.log("done " + authGroups[2]);
-    console.log("done " + authGroups.length);
-    console.log(new Date());
-    return true;
-  });
-
-return;
-
-return utilities.getDistinctArrayFromDB(itemsCollection, {}, "owner")
-  .then(function (ownerIDs) {
-    console.log("done " + ownerIDs.length);
-    console.log(new Date());
-    return true;
-  });
-
-return;
-
-return utilities.getDistinctArrayFromDBaggregate(itemsCollection, {}, "owner")
-  .then(function (ownerIDs) {
-    console.log("done " + ownerIDs.length);
-    console.log(new Date());
-    return true;
-  });
-
-return;
-
-return utilities.getDistinctArrayFromDBaggregate(usersCollection, query, "authGroups")
-  .then(function (authGroups) {
-    console.log("done " + authGroups.length);
-    console.log(new Date());
-    return true;
-  });
-
-return;
-
-
-
-
-itemsCollection.find({}, {fields:{owner:1},limit:null,stream:true})
-  .each(function (doc) {
-    uniq[doc.owner]=1;
-//    console.log(doc.id);
-  })
-  .success(function () {
-    console.log(Object.keys(uniq));
-      console.log("done");
-    console.log(new Date());
-    })
-;
-
-return;
-
-itemsCollection.find({},{fields:{owner:1},limit:null},function (docs) {
-
-  console.log(new Date());
-  console.log("end")
-});
-return;
-
-itemsCollection.col.aggregate(
-  [
-    {"$match": {} },
-    {
-      "$group" : {
-        "_id" : "$owner"
-      }
-    },
-    {"$project": {owner:1}}
-  ],function () {console.log(new Date())}
-  );
-
-return;
-
-return utilities.getDistinctArrayFromDB(itemsCollection, {}, "owner")
-  .then(function (ownerIDs) {
-    console.log("done " + ownerIDs.length);
-    console.log(new Date());
-    return true;
-  });
-
-return;
 
 var AuditClass=require('../shared/Audit');
 var audit = new AuditClass();
