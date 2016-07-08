@@ -20,29 +20,32 @@ egam.models.gpoItemCheckList = {};
 // };
 
 //Data here is the actual array of JSON documents that came back from the REST endpoint
-egam.models.gpoItemCheckList.PageModelClass = function() {
+egam.models.gpoItemCheckList.RequestPageModelClass = function() {
   var self = this;
 
   //self.$tableElement = $('#gpoUsersTable');
-  //self.$pageElement = $('#userMgmtView');
+  self.$pageElement = $('#checkListModal');
+  self.sponsoreeAuthGroups = ko.observableArray(
+      egam.communityUser.authGroups);
+  self.confirm = ko.observable();
 
   //Only these fields will be returned from gpoItems/list endpoint
-  self.resultFields = {
-    _id: 1,
-    username: 1,
-    fullName: 1,
-    modified: 1,
-    created: 1,
-    groups: 1,
-    authGroups: 1,
-    isAdmin: 1,
-    isExternal: 1,
-    email: 1,
-    role: 1,
-    provider: 1,
-    folders: 1,
-    sponsors: 1,
-  };
+  // self.resultFields = {
+  //   _id: 1,
+  //   username: 1,
+  //   fullName: 1,
+  //   modified: 1,
+  //   created: 1,
+  //   groups: 1,
+  //   authGroups: 1,
+  //   isAdmin: 1,
+  //   isExternal: 1,
+  //   email: 1,
+  //   role: 1,
+  //   provider: 1,
+  //   folders: 1,
+  //   sponsors: 1,
+  // };
 
   //This is instance of the table class that does all the table stuff.
   //Pass empty array of items initially
@@ -51,13 +54,13 @@ egam.models.gpoItemCheckList.PageModelClass = function() {
 
   //Have to set authGroups in this context so knockout has access to it from
   //PageModel
-  self.authGroups = egam.communityUser.authGroups;
+
 
   //Set up the details control now which is part of this Model Class
-  self.details = new egam.models.gpoItemCheckList.DetailsModel(self);
+  //self.details = new egam.models.gpoItemCheckList.RequestModel(self);
 };
 
-egam.models.gpoItemCheckList.PageModelClass.prototype.init = function() {
+egam.models.gpoItemCheckList.RequestPageModelClass.prototype.init = function() {
   console.log("gpoItemCheckList init");
 
   var self = this;
@@ -76,8 +79,8 @@ egam.models.gpoItemCheckList.PageModelClass.prototype.init = function() {
   // self.$pageElement.addClass('hidden');
   //
   // //Apply the bindings for the page now
-  // ko.applyBindings(self, self.$pageElement[0]);
-  // console.log('Bindings Applied: ' + new Date());
+  ko.applyBindings(self, self.$pageElement[0]);
+  console.log('Bindings Applied: ' + new Date());
   //
   // //Now initialize the table. ie. download data and create table rows
   // //the payload can be reduced if resultFields array was set
@@ -107,6 +110,24 @@ egam.models.gpoItemCheckList.PageModelClass.prototype.init = function() {
    return defer;
 };
 
+egam.models.gpoItemCheckList.RequestPageModelClass.prototype.update = function(){
+  var self = this;
+  
+  var checkListName = $('#requestName').val();
+  // Get assigned authGroup from dropdown
+  var reqAuthDrop = $('#RequestAuthGroup');
+  var authGroup = reqAuthDrop[0]
+      .options[reqAuthDrop[0].selectedIndex].value;
+  
+  var submitPublicRequest = {submission : {
+                                name: checkListName,
+                                items: egam.pages.gpoItems.table.checkedRows,
+                                authGroup: authGroup}};
+  
+  //post to mongo goes here
+
+  console.log(submitPublicRequest);
+};
 //This is limited model which is used for the table rows. It is condensed so that table loads faster
 egam.models.gpoItemCheckList.RowModelClass = function(doc, index) {
   var self = this;
@@ -145,6 +166,15 @@ egam.models.gpoItemCheckList.FullModelClass = function(doc, index, parent) {
 
   //Doc of changed fields
   //this.changeDoc = {};
+
+};
+
+egam.models.gpoItemCheckList.RequestModel = function(parent) {
+  var self = this;
+  self.parent = parent;
+
+  self.$element = $('#checkListModal');
+  this.bound = false;
 
 };
 

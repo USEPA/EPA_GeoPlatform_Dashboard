@@ -280,24 +280,25 @@ egam.controls.Table.prototype.runAllClientSideFilters = function() {
 egam.controls.Table.prototype.checkRow = function(item, evt) {
   //Have to get item index in checkRows storage if adding also because don't want to add duplicates
   //This probably won't happen for single manually checking but could occur when checking ALL
-  var index = $.inArray(item, this.checkedRows);
+  var itemID = item.doc.id;
+  var index = $.inArray(itemID, this.checkedRows);
 
   if (evt.target.checked) {
     //Only add the row to checkRows if it is not in there
     if (index < 0) {
-      this.checkedRows.push(item);
+      this.checkedRows.push(itemID);
     }
   } else {
     //Remove the row from checkedRows storage using splice
     this.checkedRows.splice(index, 1);
   }
   //if items check show makePublic button else hide
-  if(this.checkedRows.length > 0) {
+  if (this.checkedRows.length > 0) {
     //$('#makePublic').show();
     $('#makePublic').prop('disabled', false);
-  }else{
+  } else {
     //$('#makePublic').hide();
-    $('#makePublic').prop('disabled', false);
+    $('#makePublic').prop('disabled', true);
   }
 
   return true;
@@ -313,10 +314,11 @@ egam.controls.Table.prototype.checkAll = function(model, evt) {
   displayedItems.each(function(item) {
     //Note isChecked field on row model should be observable for 2 way data binding to work
     //(Actually might not be necessary because of way dataTable rebinds on draw())
-    item.isChecked(evt.target.checked);
-    //Just fire the checkRow function for this item
-    self.checkRow(item,evt);
-
+    if(item.doc.owner == egam.portalUser.username){
+      item.isChecked(evt.target.checked);
+      //Just fire the checkRow function for this item
+      self.checkRow(item,evt);
+    }
   });
 
   //Pass false so that search/paging not reset when redrawn
@@ -330,14 +332,14 @@ egam.controls.Table.prototype.checkAll = function(model, evt) {
 //For checklist
 egam.controls.Table.prototype.showGPOCheckList = function(){
 //Create an instance of gpoItemsCheckList
-//   if (!egam.pages.gpoItemCheckList) {
-//     //Create the new PageModel instance
-//     egam.pages.gpoItemCheckList = new egam.models.gpoItemCheckList.PageModelClass;
-//     egam.pages.gpoItemCheckList.init();
-//     console.log('gpoItemCheckList Page Model created: ' + new Date());
-//   }
+  if (!egam.pages.gpoItemCheckList) {
+    //Create the new PageModel instance
+    egam.pages.gpoItemCheckList = new egam.models.gpoItemCheckList.RequestPageModelClass;
+    egam.pages.gpoItemCheckList.init();
+    console.log('gpoItemCheckList Request Page Model created: ' + new Date());
+  }
   
-  console.log(egam.communityUser.authGroups);
+
   $('#checkListModal').modal('toggle');
   return true;
 };
