@@ -299,7 +299,9 @@ egam.controls.Table.prototype.checkAll = function(model, evt) {
   var self = this;
   //Note: rows({"search":"applied"}) would just the indices for the displayed rows (after filtering/sorting) but .data() actually gets the row items
   //Also can access the dataTable on this table class instance using self.dataTable
-  var displayedItems = self.dataTable.rows({search: 'applied'}).data();
+  //var displayedItems = self.dataTable.rows({search: 'applied'}).data();
+  //only select per page
+  var displayedItems = self.dataTable.rows({page: 'current'}).data();
 
   displayedItems.each(function(item) {
     //Note isChecked field on row model should be observable for 2 way data binding to work
@@ -309,7 +311,7 @@ egam.controls.Table.prototype.checkAll = function(model, evt) {
     self.checkRow(item,evt);
 
   });
-
+  
   //Pass false so that search/paging not reset when redrawn
   //Actually don't need to redraw table because isChecked field is observable (2 way data binding)
   //this.dataTable.draw(false);
