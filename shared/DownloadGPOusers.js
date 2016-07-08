@@ -50,6 +50,7 @@ var DownloadGPOusers = function() {
   this.orgID = null;
   //Set the mongoDB url
   this.mongoDBurl = null;
+  this.listingID = null;
 
   this.request = require('request');
   this.Q = require('q');
@@ -184,6 +185,8 @@ DownloadGPOusers.prototype.downloadInner = function() {
     .then(self.getSelfInvokedFunction(self.getLocalGPOids))
     .then(self.getSelfInvokedFunction(getGPOusers))
     .then(self.getSelfInvokedFunction(getGPOgroups))
+    .then(self.getSelfInvokedFunction(self.getListingId))
+    .then(self.getSelfInvokedFunction(self.getGPOentitlements))
     .then(self.getSelfInvokedFunction(self.removeLocalGPOitems))
     .then(self.getSelfInvokedFunction(self.getOwnerIDs))
     .catch(function(err) {
@@ -270,6 +273,32 @@ DownloadGPOusers.prototype.getOrgId = function() {
   var requestPars = {method: 'get', url: url, qs: parameters};
 
   return this.hr.callAGOL(requestPars, {id: 'orgID'});
+};
+
+//Get listing ID for use in looking up user license information
+DownloadGPOusers.prototype.getListingId = function() {
+  var self = this;
+  if (this.listingID) {
+    this.hr.saved.listingID = this.listingID;
+    return this.listingID;
+  }
+
+  var url = this.portal + '/sharing/rest/content/listings';
+
+  var parameters = {
+    token: this.hr.saved.token,
+    f: 'json',
+    q: 'title:"ArcGIS Pro"'};
+  //Pass parameters via form attribute
+  var requestPars = {method: 'get', url: url, qs: parameters};
+
+  return this.Q.nfcall(this.request, requestPars)
+  .then(function(response) {
+    if (response[0].statusCode == 200) {
+      var listings = JSON.parse(response[0].body)['listings'];
+      self.hr.saved.listingId = listings[0]['itemId'];
+    }
+  });
 };
 
 //Routines for gettting all the items metadata from AGOL (Have to do this so we
@@ -744,6 +773,34 @@ DownloadGPOusers.prototype.getGPOgroupsAsync = function() {
   //done until it runs process.exit in done. chain was NOT waiting before and
   //process exit was executing and data data not being retrieved
   return defer.promise
+};
+
+
+
+
+DownloadGPOusers.prototype.getGPOentitlements = function() {
+  var self = this;
+  var entitlementCollection = self.monk.get('GPOuserEntitlements');
+  var url = this.portal + '/sharing/rest/content/listings/' +
+    this.hr.saved.listingId + '/userEntitlements';
+
+  var parameters = {
+    token: this.hr.saved.token,
+    f: 'json'
+  };
+
+  var requestPars = {method: 'get', url: url, qs: parameters};
+  var entitlements = [];
+  return this.Q.nfcall(this.request, requestPars)
+    .then(function(response) {
+      if (response[0].statusCode == 200) {
+        entitlements = JSON.parse(response[0].body)['userEntitlements'];
+        entitlements.forEach(function(item) {
+          item['date'] = Date.now();
+        });
+        return entitlementCollection.insert(entitlements);
+      }
+    })
 };
 
 DownloadGPOusers.prototype.removeLocalGPOitems = function() {
