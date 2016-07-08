@@ -376,8 +376,12 @@
                     </div>
                 </div>
              <h3 class="sub-header"></h3>
-                <div class="btn-group" role="group">
-                    <button type="button" id="makePublic" class="btn btn-default" data-bind="click: function(){$('#checkListModal').modal('toggle')}" style="display: none; margin-bottom: 5px">Make Public</button>
+
+                <div class="btn-group" role="group" style="margin-bottom: 5px">
+                    <button type="button" id="makePublic" class="btn btn-default" data-bind="click: function(){return $root.table.showGPOCheckList()}" disabled="true" >Make Public</button>
+                    <button class="btn btn-primary" type="button" >
+                        Requests <span class="badge">4</span>
+                    </button>
                 </div>
                 <!-- Note: needed to use type:'num' below so that doc.modified was treated like a number '<row <col-sm-6 l><col-sm-6 f>><t><ip>'-->
                 <table id="gpoItemsTable" class="table table-hover table-bordered table-responsive" data-bind="dataTable:
@@ -633,6 +637,10 @@
                                  <span class="input-group-addon" id="basic-addon1">Project Name</span>
                                  <input type="text" class="form-control" aria-describedby="basic-addon1">
                              </div>
+                             <div class="row input-group" >
+                                 <span class="input-group-addon" id="basic-addon2">Authoritative Group</span>
+                                 <select class="form-control" aria-describedby="basic-addon2" data-bind="options: egam.communityUser.authGroups" ></select>
+                             </div>
                              <div class="row panel panel-default">
                                  <div class="panel-body" style="max-height: 300px; overflow-y: scroll">
                                      <p>I certify that the content does not contain any sensitive data or data that is otherwise inappropriate for sharing with the public.
@@ -670,7 +678,7 @@
                          </div>
                          <div class="modal-footer">
                              <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                             <button type="button" class="btn btn-primary">Confirm</button>
+                             <button type="button" class="btn btn-primary" data-bind="click: egam.pages.gpoItemCheckList.saveCheckList()}">Confirm</button>
                          </div>
                      </div><!-- /.modal-content -->
                  </div><!-- /.modal-dialog -->
@@ -1163,6 +1171,7 @@
     <script src="js/gpintel.js"></script>
     <script src="js/gpoItems.js"></script>
     <script src="js/gpoUsers.js"></script>
+    <script src="js/gpoItemCheckList.js"></script>
     <script src="js/edgItems.js"></script>
     <script src="js/Audit.js"></script>
     <!-- Due to some weird timing issues, this order needs to be followed -->

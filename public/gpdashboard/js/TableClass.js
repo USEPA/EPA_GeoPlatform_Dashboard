@@ -293,9 +293,11 @@ egam.controls.Table.prototype.checkRow = function(item, evt) {
   }
   //if items check show makePublic button else hide
   if(this.checkedRows.length > 0) {
-    $('#makePublic').show();
+    //$('#makePublic').show();
+    $('#makePublic').prop('disabled', false);
   }else{
-    $('#makePublic').hide();
+    //$('#makePublic').hide();
+    $('#makePublic').prop('disabled', false);
   }
 
   return true;
@@ -322,5 +324,20 @@ egam.controls.Table.prototype.checkAll = function(model, evt) {
   //this.dataTable.draw(false);
   //console.log(self.checkedRows);
 
+  return true;
+};
+
+//For checklist
+egam.controls.Table.prototype.showGPOCheckList = function(){
+//Create an instance of gpoItemsCheckList
+//   if (!egam.pages.gpoItemCheckList) {
+//     //Create the new PageModel instance
+//     egam.pages.gpoItemCheckList = new egam.models.gpoItemCheckList.PageModelClass;
+//     egam.pages.gpoItemCheckList.init();
+//     console.log('gpoItemCheckList Page Model created: ' + new Date());
+//   }
+  
+  console.log(egam.communityUser.authGroups);
+  $('#checkListModal').modal('toggle');
   return true;
 };
