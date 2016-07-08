@@ -218,19 +218,22 @@ egam.models.gpoItems.RowModelClass = function(doc, index) {
   var self = this;
   //This is the doc
 
-  this.doc = doc;
+  //Actually need to make this observable so that it triggers the computed function when table updated
+  //Can't just create a new RowModelClass instance because it wipes out existing one that jquery dataTables is bound to
+  //Could have made the computed just standard function but don't want to keep calling it everytime referenced
+  this.doc = ko.observable(doc);
   //To keep track of this row when selected
   this.index = index;
 
   //This is basically just formatting stuff
   this.complianceStatus = ko.computed(function() {
-    return this.doc.AuditData.compliant ? 'Pass' : 'Fail';
+    return this.doc().AuditData.compliant ? 'Pass' : 'Fail';
   }, this);
 
   //This is to get the folder that the item is in
   this.ownerFolderTitle = ko.computed(function(){
-    if (! doc.ownerFolder) return 'Root Folder';
-    return doc.ownerFolder.title;
+    if (! this.doc().ownerFolder) return 'Root Folder';
+    return this.doc().ownerFolder.title;
   }, this);
 
   this.isChecked = ko.observable(false);
@@ -326,7 +329,7 @@ egam.models.gpoItems.DetailsModel = function(parent) {
 egam.models.gpoItems.DetailsModel.prototype.select = function(item) {
   var self = this;
   //    Var fullRowModel = self.selectedCache[item.index] || new egam.gpoItems.FullModelClass(item.doc,self,item.index) ;
-  var fullRowModel = new egam.models.gpoItems.FullModelClass(item.doc, item.index, self);
+  var fullRowModel = new egam.models.gpoItems.FullModelClass(ko.utils.unwrapObservable(item.doc), item.index, self);
   self.selected(fullRowModel);
 
   //If no tag Controls created yet then do it now

@@ -148,15 +148,21 @@ egam.controls.Table.prototype.update = function(index, value, field) {
   //Update the row model items in items array of at least just a field in the
   //row model item in array
   if (field) {
-    self.items[index][field] = value;
+    //If the field value is observable then have to pass the value
+    if (ko.isObservable(self.items[index][field])) {
+      self.items[index][field](value);
+    } else {
+      self.items[index][field] = value;
+    }
+
   }else {
     self.items[index] = value;
   }
 
-  //Have to update the data AND redraw the table/row also. passing false will
-  //not page/sort. Updating data will allow data to be refreshed in regards to
-  //search and sort. draw just changes html
-  self.dataTable.row([index]).data(self.items[index]).draw(false);
+  //Have to update the data AND redraw the table/row also. passing 'page' will
+  //not page/sort/filter. Before I was passing false which wasn't paging but it was sorting/filtering after update and row item was being "lost"
+  // Updating data will allow data to be refreshed in regards to search and sort. draw just changes html
+  self.dataTable.row([index]).data(self.items[index]).draw('page');
 
   console.log('DataTable row end update' + new Date());
 };

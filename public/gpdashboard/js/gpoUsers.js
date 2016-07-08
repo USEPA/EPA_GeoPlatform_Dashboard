@@ -142,7 +142,10 @@ egam.models.gpoUsers.RowModelClass = function(doc, index) {
   var self = this;
   //This is the doc
 
-  this.doc = doc;
+  //Actually need to make this observable so that it triggers the computed function when table updated
+  //Can't just create a new RowModelClass instance because it wipes out existing one that jquery dataTables is bound to
+  //Could have made the computed just standard function but don't want to keep calling it everytime referenced
+  this.doc = ko.observable(doc);
   //To keep track of this row when selected
   this.index = index;
 
@@ -151,14 +154,15 @@ egam.models.gpoUsers.RowModelClass = function(doc, index) {
 
   //Add computed object for Current Sponsor
   this.latestSponsor = ko.computed(function() {
-    if (this.doc.sponsors && this.doc.sponsors.length > 0) {
-      return this.doc.sponsors[this.doc.sponsors.length - 1];
+    if (this.doc().sponsors && this.doc().sponsors.length > 0) {
+      return this.doc().sponsors[this.doc().sponsors.length - 1];
     } else {
       return this.emptySponsor;
     }
   },this);
 
 };
+
 
 //This is the FULL model which binds to the modal allowing 2 way data binding and updating etc
 egam.models.gpoUsers.FullModelClass = function(doc, index, parent) {
@@ -196,7 +200,7 @@ egam.models.gpoUsers.DetailsModel = function(parent) {
 egam.models.gpoUsers.DetailsModel.prototype.select = function(item) {
   var self = this;
   //    Var fullRowModel = self.selectedCache[item.index] || new egam.gpoItems.FullModelClass(item.doc,self,item.index) ;
-  var fullRowModel = new egam.models.gpoUsers.FullModelClass(item.doc, item.index, self);
+  var fullRowModel = new egam.models.gpoUsers.FullModelClass(ko.utils.unwrapObservable(item.doc), item.index, self);
   self.selected(fullRowModel);
 
   if (!self.bound) {
@@ -227,14 +231,15 @@ egam.models.gpoUsers.DetailsModel.prototype.update = function() {
       .options[userAuthDrop[0].selectedIndex].value;
 
   // Get other fields
+  //The details model for sponsor should be bound with knockout so we don't have to do this type of stuff
   var org = $('#SponsoredOrg').val();
   var descript = $('#spDescription').val();
   var reason = $('#spPurpose');
   var reasonSelected = reason[0].options[reason[0].selectedIndex].value;
 
   // Create updateDoc to post back to mongo
-  myUserData = {};
-  updateUserData = {
+
+  var updateUserData = {
     username: self.selected().doc().username(),
     sponsor: {
       username: egam.communityUser.username,
@@ -243,29 +248,22 @@ egam.models.gpoUsers.DetailsModel.prototype.update = function() {
       authGroup: authGroup,
       reason: reasonSelected,
       organization: org,
-      description: descript,
+      description: descript
     },
-    authGroup: authGroup,
+    authGroup: authGroup
   };
-  updatedSponsor = {
-    username: egam.communityUser.username,
-    startDate: sponsorDate,
-    endDate: endDate,
-    authGroup: authGroup,
-    reason: reasonSelected,
-    organization: org,
-    description: descript,
-  };
+
+  var myUserData = {};
   myUserData.updateDocs = JSON.stringify(updateUserData);
 
-  //Alert(JSON.stringify(updateUserData));
+  //Could have maybe just directly changed self.selected().doc() instead of toJS and fromJS but would have to create observable array for user.sponsors if empty
   var unmapped = ko.mapping.toJS(self.selected().doc());
 
-  // Update in UI doc
-  unmapped.sponsors.push(updatedSponsor);
+  //Need to initialize the sponsors array if it isn't there before push
+  if (!unmapped.sponsors) unmapped.sponsors = [];
+  unmapped.sponsors.push(updateUserData.sponsor);
   unmapped.authGroups.push(authGroup);
 
-  // Console.log(JSON.stringify(unmapped));
   ko.mapping.fromJS(unmapped, self.selected().doc());
 
   // Post to mongo
@@ -277,8 +275,11 @@ egam.models.gpoUsers.DetailsModel.prototype.update = function() {
     dataType: 'json',
     success: function(rdata, textStatus, jqXHR) {
       console.log('Success: Posted new sponsor to Mongo');
-
-      // Alert(JSON.stringify(rdata));
+      //Refresh the data table now that save went through
+      //convert the full model observable doc to the simple JS doc.
+      //Only update the doc field in row model item
+      var jsDoc = ko.mapping.toJS(self.selected().doc());
+      self.parent.table.update(self.selected().index, jsDoc, 'doc');
     },
     error: function(jqXHR, textStatus, errorThrown) {
       // Handle errors here

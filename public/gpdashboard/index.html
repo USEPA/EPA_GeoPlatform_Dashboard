@@ -387,15 +387,15 @@
                             },
                     columns: [
                     {data:null, sortable: false},
-                    {data:'doc.title'},
-                    {data:'doc.access'},
-                    {data:'doc.type'},
+                    {data:'doc().title'},
+                    {data:'doc().access'},
+                    {data:'doc().type'},
                     {data:'ownerFolderTitle'},
-                    {data:'doc.numViews'},
-                    {data:'doc.owner'},
-                    {data:{_:function (row) {return egam.utilities.formatDate(row.doc.modified)},sort:'doc.modified'},type:'num'},
+                    {data:'doc().numViews'},
+                    {data:'doc().owner'},
+                    {data:{_:function (row) {return egam.utilities.formatDate(row.doc().modified)},sort:'doc().modified'},type:'num'},
                     {data:'complianceStatus'},
-                    {data:'doc.owner', sortable: false}
+                    {data:'doc().owner', sortable: false}
                     ]
                     }">
                     <thead>
@@ -461,24 +461,24 @@
               </table>
 
                 <script id="GPOitemsRowTemplate" type="text/html">
-                    <tr data-bind="css: {danger: !doc.AuditData.compliant}, click:function(item){return $root.details.select(item)}" data-toggle="modal" data-target="#gpoItemsModal" >
+                    <tr data-bind="css: {danger: !doc().AuditData.compliant}, click:function(item){return $root.details.select(item)}" data-toggle="modal" data-target="#gpoItemsModal" >
                         <td>
                             <span onclick="event.stopPropagation();">
                                 <input type="checkbox" id="test" data-bind="checked: isChecked, click: function(item, evt){return $root.table.checkRow(item,evt)}">
                             </span>
                         </td>
-                        <td data-bind="text: doc.title" ></td>
-                        <td data-bind="text: doc.access"></td>
-                        <td data-bind="text: doc.type"></td>
+                        <td data-bind="text: doc().title" ></td>
+                        <td data-bind="text: doc().access"></td>
+                        <td data-bind="text: doc().type"></td>
                         <td data-bind="text: ownerFolderTitle"></td>
-                        <td data-bind="text: doc.numViews"></td>
-                        <td data-bind="text: doc.owner"></td>
-                        <td data-bind="text: egam.utilities.formatDate(doc.modified)"></td>
-                        <td data-bind="css: {auditRowPass: doc.AuditData.compliant,auditRowFail: !doc.AuditData.compliant}">
+                        <td data-bind="text: doc().numViews"></td>
+                        <td data-bind="text: doc().owner"></td>
+                        <td data-bind="text: egam.utilities.formatDate(doc().modified)"></td>
+                        <td data-bind="css: {auditRowPass: doc().AuditData.compliant,auditRowFail: !doc().AuditData.compliant}">
                             <img class="pass" src="img/greenOK.jpg" alt="Pass" style="width:25px">
                             <img class="fail" src="img/warning.png" alt="Fail" style="width:25px">
                         </td >
-                        <td data-bind="text: doc.owner" style="display:none"></td>
+                        <td data-bind="text: doc().owner" style="display:none"></td>
                     </tr>
 
                 </script>
@@ -878,9 +878,9 @@
                           [1, 'asc'],
                         ],},
                     columns: [
-                        {data:'doc.isExternal'},
-                        {data:'doc.fullName'},
-                        {data:'doc.email'},
+                        {data:'doc().isExternal'},
+                        {data:'doc().fullName'},
+                        {data:'doc().email'},
                         {data:'latestSponsor().username'},
                         {data:'latestSponsor().authGroup'},
                         {data:'latestSponsor().organization'},
@@ -953,8 +953,8 @@
                                 <button class="btn btn-primary btn-xs" id="sponsorBtn" data-bind="click: function (item) {return $root.details.select(item)}" data-toggle="modal" data-target="#gpoUsersModal">Sponsor Me!</button>
                             </div>
                          </td>
-                         <td data-bind="text: doc.fullName"></td>
-                         <td data-bind="text: doc.email"></td>
+                         <td data-bind="text: doc().fullName"></td>
+                         <td data-bind="text: doc().email"></td>
                          <td data-bind="text: latestSponsor().username"></td>
                          <td data-bind="text: latestSponsor().authGroup"></td>
                          <td data-bind="text: latestSponsor().organization"></td>
