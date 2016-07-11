@@ -109,11 +109,29 @@ utilities.sliceObject = function(obj,slice) {
   var mySlice = {};
 
   slice.forEach(function(key) {
-    if (key in obj) {
-      mySlice[key] = obj[key];
-    }
+    sliceSingle(obj,key,mySlice);
   });
-
+  //This function takes an object and add key field to mySlice if it exists
+  //If key is lke objField.field then creates objField in slice and runs sliceSingle on
+  function sliceSingle(obj,key,mySlice) {
+    var mySplit = key.split('.');
+    if (mySplit.length > 1) {
+      var objField = mySplit[0];
+      //Now get the key of the key that was an object (could be dotted again so must join remaining)
+      var objFieldKey = mySplit.slice(1).join('.');
+      if (objField in obj) {
+        if (!(objField in mySlice)) {
+          mySlice[objField] = {};
+        }
+        sliceSingle(obj[objField],objFieldKey,mySlice[objField])
+      }
+    } else {
+      //When key is just simple key without nested fields then set the value
+      if (key in obj) {
+        mySlice[key] = obj[key];
+      }
+    }
+  }
   return mySlice;
 };
 
@@ -167,14 +185,12 @@ utilities.inheritClass = function(parentClassOrObject,childConstructor) {
 
 //Get array from DB from single field
 utilities.getArrayFromDBnoStream = function(collection,query,field) {
-  console.log('remove getArrayFromDB');
   var Q = require('q');
   var proj = {fields: {}};
   proj[field] = 1;
   return Q(collection.find(query, proj))
 //  Return Q(collection.find(query, {fields:{authGroups:1}}))
     .then(function(docs) {
-      console.log('then getArrayFromDB');
       return docs.map(function(doc) {
         return doc[field];});
     });
@@ -311,14 +327,12 @@ utilities.genericRouteListCreation = function(app, req, res,
                                               collectionName,
                                               queryExternal,
                                               projectionExternal) {
-  var username = '';
-  if ('session' in req && req.session.username) {
-    username = req.session.username;
-  }
-  //If they are not logged in (no username then
-  if (!username) {
-    return res.json(utilities.getHandleError({},
-      'LoginRequired')('Must be logged in to make this request.'));
+
+  var user = this.getUserFromSession(req,res);
+
+  //If they are not logged in (no user) then don't show them anything just send error
+  if (!user) {
+    return false;
   }
 
   var Q = require('q');
@@ -476,6 +490,19 @@ utilities.genericRouteListCreation = function(app, req, res,
         return JSON.stringify(resObject).replace(/}$/,',"results":');
       });
   }
+};
+
+utilities.getUserFromSession = function(req,res) {
+  var user = null;
+  if ('session' in req && req.session.user) {
+    user = req.session.user;
+  }
+  //If res passed then respond with error message
+  if (!user && res) {
+    res.json(utilities.getHandleError({},
+      'LoginRequired')('Must be logged in to make this request.'));
+  }
+  return user;
 };
 
 module.exports = utilities;

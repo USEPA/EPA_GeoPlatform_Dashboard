@@ -31,7 +31,7 @@ UpdateGPOuser.prototype.checkPermission = function() {
 
   var hasPermission = false;
   //User can see this username they can modify it
-  if (self.session.ownerIDs.indexOf(self.updateDoc.username) >= 0) {
+  if (self.session.user.ownerIDs.indexOf(self.updateDoc.username) >= 0) {
     return Q.fcall(function() {return true});
   }
   //If logged in user is not admin then can not modify external user

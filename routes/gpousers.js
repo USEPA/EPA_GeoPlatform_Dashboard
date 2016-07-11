@@ -22,30 +22,13 @@ module.exports = function(app) {
 
   function handleGPOitemsListRoute(req, res, isCSV) {
     var utilities = require(app.get('appRoot') + '/shared/utilities');
-    var username = '';
-    console.log(req.params);
-    if ('session' in req && req.session.username) {
-      username = req.session.username;
-    }
 
-    //If they are not logged in (no username then)
-    if (!username) {
-      return res.json(utilities.getHandleError({},
-        'LoginRequired')('Must be logged in to make this request.'));
-    }
-    var ownerIDs = [username];
-    if ('session' in req && req.session.ownerIDs) {
-      ownerIDs = req.session.ownerIDs;
-    }
+    //Get the stored/logged in user. If not logged in this error message sent to user
+    var user = utilities.getUserFromSession(req,res);
 
-    //Make sure that at least logged in user is in ownerIDs
-    if (ownerIDs.indexOf(username) < 0) {
-      ownerIDs.push(username);
-    }
-
-    var isSuperUser = false;
-    if ('session' in req && req.session.user.isSuperUser === true) {
-      isSuperUser = true;
+    //If user not created then don't go on. getUserFromSession(res) already sent login error message to user
+    if (!user) {
+      return false;
     }
 
     var monk = app.get('monk');
@@ -103,8 +86,8 @@ module.exports = function(app) {
       ((req.params.filterType == 'isExternal' && filterValue == true) ||
       query.isExternal === true));
 
-    if (!isSuperUser && !findingExternalUsers) {
-      query.username = {$in: ownerIDs};
+    if (!user.isSuperUser && !findingExternalUsers) {
+      query.username = {$in: user.ownerIDs};
     }
 
     if (isCSV === true) {
@@ -260,13 +243,13 @@ module.exports = function(app) {
 
   router.use('/update', function(req, res) {
     var utilities = require(app.get('appRoot') + '/shared/utilities');
-    var username = '';
-    if ('session' in req && req.session.username) {
-      username = req.session.username;
-    }
-    //If they are not logged in (no username then
-    if (!username) {
-      return res.json(utilities.getHandleError({},'LoginRequired')('Must be logged in to make this request.'));
+
+    //Get the stored/logged in user. If not logged in this error message sent to user
+    var user = utilities.getUserFromSession(req,res);
+
+    //If user not created then don't go on. getUserFromSession(res) already sent login error message to user
+    if (!user) {
+      return false;
     }
 
     var monk = app.get('monk');

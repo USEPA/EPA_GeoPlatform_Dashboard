@@ -44,7 +44,7 @@ UpdateGPOitem.prototype.checkPermission = function() {
     .then(function(doc) {
       //If owner ID of this object is accessible by user then update otherwise
       //return error
-      if (self.session.ownerIDs.indexOf(doc.owner) >= 0) {
+      if (self.session.user.ownerIDs.indexOf(doc.owner) >= 0) {
         self.updateOwner = doc.owner;
         hasPermission = true;
       }
@@ -132,6 +132,7 @@ UpdateGPOitem.prototype.getOwnerFolder = function(id) {
     });
 };
 
+//Creating child version of this to take care of Audit and thumbnail stuff
 UpdateGPOitem.prototype.updateLocal = function() {
   var self = this;
   var Q = require('q');
