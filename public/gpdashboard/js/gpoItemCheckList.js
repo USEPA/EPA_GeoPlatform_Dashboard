@@ -123,10 +123,28 @@ egam.models.gpoItemCheckList.RequestPageModelClass.prototype.update = function()
                                 name: checkListName,
                                 items: egam.pages.gpoItems.table.checkedRows,
                                 authGroup: authGroup}};
-  
-  //post to mongo goes here
 
-  console.log(submitPublicRequest);
+  // Post to mongo
+  $.ajax({
+    url: 'gpochecklists/update',
+    type: 'POST',
+    data: submitPublicRequest,
+    cache: false,
+    dataType: 'json',
+    success: function(rdata, textStatus, jqXHR) {
+      console.log('Success: Posted new checklist to Mongo');
+      // Alert(JSON.stringify(rdata));
+    },
+    error: function(jqXHR, textStatus, errorThrown) {
+      // Handle errors here
+      console.log('ERRORS: ' + textStatus);
+    },
+  });
+  $('#checkListModal').modal('hide');
+  //$('#updateAuth').hide();
+
+  console.log('Post back new checklist');
+  //console.log(submitPublicRequest);
 };
 //This is limited model which is used for the table rows. It is condensed so that table loads faster
 egam.models.gpoItemCheckList.RowModelClass = function(doc, index) {

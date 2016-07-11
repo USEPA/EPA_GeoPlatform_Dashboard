@@ -338,8 +338,21 @@ egam.controls.Table.prototype.showGPOCheckList = function(){
     egam.pages.gpoItemCheckList.init();
     console.log('gpoItemCheckList Request Page Model created: ' + new Date());
   }
-  
 
   $('#checkListModal').modal('toggle');
+  return true;
+};
+
+//Show Checklists to be approved
+egam.controls.Table.prototype.adminCheckLists = function(){
+//Create an instance of gpoItemsCheckList
+  if (!egam.pages.gpoItemCheckList) {
+    //Create the new PageModel instance
+    //egam.pages.gpoItemCheckList = new egam.models.gpoItemCheckList.RequestPageModelClass;
+    //egam.pages.gpoItemCheckList.init();
+    //console.log('gpoItemCheckList Request Page Model created: ' + new Date());
+  }
+
+  $('#adminCheckListModal').modal('toggle');
   return true;
 };

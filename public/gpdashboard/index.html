@@ -379,7 +379,7 @@
 
                 <div class="btn-group" role="group" style="margin-bottom: 5px">
                     <button type="button" id="makePublic" class="btn btn-default" data-bind="click: function(){return $root.table.showGPOCheckList()}" disabled="true" >Make Public</button>
-                    <button class="btn btn-primary" type="button" >
+                    <button class="btn btn-primary" type="button" data-bind="click: function(){return $root.table.adminCheckLists()}">
                         Requests <span class="badge">4</span>
                     </button>
                 </div>
@@ -684,6 +684,25 @@
                  </div><!-- /.modal-dialog -->
              </div><!-- /.modal -->
             <!-- End Checklist Modal-->
+             <!-- Admin Checklist Modal-->
+             <div id="adminCheckListModal" class="modal fade" tabindex="-1" role="dialog">
+                 <div class="modal-dialog">
+                     <div class="modal-content">
+                         <div class="modal-header">
+                             <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                             <h4 class="modal-title">EPA GPO Admin Public Content Requests</h4>
+                         </div>
+                         <div class="modal-body">
+                             .... Checklist stuff
+                         </div>
+                         <div class="modal-footer">
+                             <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                             <button type="button" class="btn btn-primary" data-bind="" >Make Public</button>
+                         </div>
+                     </div><!-- /.modal-content -->
+                 </div><!-- /.modal-dialog -->
+             </div><!-- /.modal -->
+             <!-- End Admin Checklist Modal-->
 
               <!-- Modal for Reconciliation -->
               <div class="modal fade" id="reconciliationModal" tabindex="-1" role="dialog" data-keyboard="false" data-backdrop="static" aria-labelledby="myModalLabel">
