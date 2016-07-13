@@ -159,8 +159,20 @@ egam.models.gpoItems.PageModelClass.prototype.calculateStats = function() {
 //This could maybe be generalized later if it needed to be used on other
 //"pages/screens"
 egam.models.gpoItems.PageModelClass.prototype.setAuthGroupsDropdown = function(ownerIDsByAuthGroup) {
+  var self = this;
   var dropAuthGroups = $('#dropAuthGroups');
   dropAuthGroups.on('change', function() {
+    var reOwnerIDs = '';
+    if (this.value) {
+      var ownerIDs = ownerIDsByAuthGroup[this.value];
+      reOwnerIDs = ownerIDs.join('|');
+    }
+    //Make sure the dataTable has been created in case this event is fired before that (it is being fired when dropdown created)
+    if (self.table.dataTable) {
+      self.table.dataTable.column('.ownerColumnForAuthGroupSearch')
+        .search(reOwnerIDs, true, false)
+        .draw();
+    }
     // Also set the download link
     var authgroup = this.value;
     if (authgroup) {
@@ -206,21 +218,25 @@ egam.models.gpoItems.RowModelClass = function(doc, index) {
   var self = this;
   //This is the doc
 
-  this.doc = doc;
+  //Actually need to make this observable so that it triggers the computed function when table updated
+  //Can't just create a new RowModelClass instance because it wipes out existing one that jquery dataTables is bound to
+  //Could have made the computed just standard function but don't want to keep calling it everytime referenced
+  this.doc = ko.observable(doc);
   //To keep track of this row when selected
   this.index = index;
 
   //This is basically just formatting stuff
   this.complianceStatus = ko.computed(function() {
-    return this.doc.AuditData.compliant ? 'Pass' : 'Fail';
+    return this.doc().AuditData.compliant ? 'Pass' : 'Fail';
   }, this);
 
   //This is to get the folder that the item is in
   this.ownerFolderTitle = ko.computed(function(){
-    if (! doc.ownerFolder) return null;
-    return doc.ownerFolder.title;
+    if (! this.doc().ownerFolder) return 'Root Folder';
+    return this.doc().ownerFolder.title;
   }, this);
 
+  this.isChecked = ko.observable(false);
 };
 
 //This is the FULL model which binds to the modal allowing 2 way data binding and updating etc
@@ -313,7 +329,7 @@ egam.models.gpoItems.DetailsModel = function(parent) {
 egam.models.gpoItems.DetailsModel.prototype.select = function(item) {
   var self = this;
   //    Var fullRowModel = self.selectedCache[item.index] || new egam.gpoItems.FullModelClass(item.doc,self,item.index) ;
-  var fullRowModel = new egam.models.gpoItems.FullModelClass(item.doc, item.index, self);
+  var fullRowModel = new egam.models.gpoItems.FullModelClass(ko.utils.unwrapObservable(item.doc), item.index, self);
   self.selected(fullRowModel);
 
   //If no tag Controls created yet then do it now

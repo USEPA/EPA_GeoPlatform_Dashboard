@@ -7,46 +7,32 @@ module.exports = function(app) {
   var multer = require('multer');
   var upload = multer({ dest: app.get('appRoot') + '/tmp/'});
 
+  var utilities = require(app.get('appRoot') + '/shared/utilities');
 
   router.use('/list', function(req, res) {
-
-    var utilities = require(app.get('appRoot') + '/shared/utilities');
 
     var query = {};
     var projection = {};
 
-    var username = '';
-    if ('session' in req && req.session.username) {
-      username = req.session.username;
+    //Get the stored/logged in user. If not logged in this error message sent to user
+    var user = utilities.getUserFromSession(req,res);
+
+    //If user not created then don't go on. getUserFromSession(res) already sent login error message to user
+    if (!user) {
+      return false;
     }
 
-    var ownerIDs = [username];
-    if ('session' in req && req.session.ownerIDs) {
-      ownerIDs = req.session.ownerIDs;
-    }
-    //Make sure that at least logged in user is in ownerIDs
-    if (ownerIDs.indexOf(username) < 0) {
-      ownerIDs.push(username)
-    }
-
-    var isSuperUser = false;
-    if ('session' in req && req.session.user.isSuperUser === true) {
-      isSuperUser = true;
-    }
-
-    //Only return gpo itmes where this user is the owner
-    //(or later probably group admin)
-    //comment this out just to test with all
-    //Super user is not limited by ownerIDs
-    if (!isSuperUser) {
-      query.owner = {$in: ownerIDs};
+    //Only return gpo itmes where this user can see the owner's items
+    //Super user is not limited by ownerIDs though
+    if (!user.isSuperUser) {
+      query.owner = {$in: user.ownerIDs};
     }
 
     //Let front end decided on getting only public
     //query.access = "public";
     //For testing only let superUser see public for now
     //(don't want 10,000 records)
-    //if (isSuperUser) query.access = "public";
+    //if (user.isSuperUser) query.access = "public";
 
     //Don't return SlashData!
     projection = {
@@ -62,17 +48,20 @@ module.exports = function(app) {
   });
 
   router.use('/update', upload.single('thumbnail'), function(req, res) {
-    var username = '';
-    if ('session' in req && req.session.username) {
-      username = req.session.username;
-    }
-    //If they are not logged in (no username then
-    if (!username) {
-      return res.json(utilities.getHandleError({},
-        'LoginRequired')('Must be logged in to make this request.'));
+    //Get the stored/logged in user. If not logged in this error message sent to user
+    var user = utilities.getUserFromSession(req,res);
+
+    //If user not created then don't go on. getUserFromSession(res) already sent login error message to user
+    if (!user) {
+      return false;
     }
 
+    var monk = app.get('monk');
+    var config = app.get('config');
+    var gfs = app.get('gfs');
 
+    var itemsCollection = monk.get('GPOitems');
+    var extensionsCollection = monk.get('GPOitemExtensions');
 
     var error = null;
     //This function gets input for both post and get for now
@@ -89,7 +78,7 @@ module.exports = function(app) {
     //If they pass an array of docs don't support multiple thumbnails for now.
     // Can add later when we know how front end will pass them
     if (Array.isArray(updateDocs)) {
-      if (updateDocs > 1) {
+      if (updateDocs.length > 1) {
         thumbnail = null;
       }
     } else {

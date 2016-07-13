@@ -10,6 +10,12 @@ var UpdateGPOgeneric =  function(updateKey, updateName, collection,
   this.extensionsCollection = extensionsCollection;
   //The ownerIDs this user can update
   this.session = session;
+  //get the user object from session
+  this.user = null;
+  if (session) {
+    this.user = session.user;
+  }
+
   //Config info passed in
   this.config = config;
 
@@ -202,16 +208,18 @@ UpdateGPOgeneric.prototype.updateLocal = function() {
 
   return Q.all([
     function() {
-      if (!UpdateCommand) {
+      if (!UpdateCommand || !self.collection) {
         return false;
       }
       return Q(self.collection.update(updateQueryCommand,UpdateCommand));
     }(),
 //This will upsert only the extensions collection
     function() {
-      if (!ExtensionsUpdateCommand) {
+      if (!ExtensionsUpdateCommand || !self.extensionsCollection) {
         return false;
       }
+      console.log(updateQueryCommand);
+      console.log(ExtensionsUpdateCommand);
       return Q(self.extensionsCollection.update(updateQueryCommand,
         ExtensionsUpdateCommand,{upsert: true}));
     }(),
@@ -222,8 +230,8 @@ UpdateGPOgeneric.prototype.updateLocal = function() {
 
 UpdateGPOgeneric.prototype.mergeFieldMaps = function(map1,map2) {
   var merge = require('merge');
-  var fullmap1 = map1;
-  var fullmap2 = map2;
+  var fullmap1 = map1 || {fields: []};
+  var fullmap2 = map2 || {fields: []};
   if (Array.isArray(map1)) {
     fullmap1 = {fields: map1};
   }
@@ -245,22 +253,22 @@ UpdateGPOgeneric.prototype.mergeFieldMaps = function(map1,map2) {
   }
   //Then we can merge the map.arrays object togehter
   var arrays = true;
-  if (map1.arrays) {
-    arrays = merge(arrays,map1.arrays);
+  if (fullmap1.arrays) {
+    arrays = merge(arrays,fullmap1.arrays);
   }
-  if (map2.arrays) {
-    arrays = merge(arrays,map2.arrays);
+  if (fullmap2.arrays) {
+    arrays = merge(arrays,fullmap2.arrays);
   }
   if (arrays !== true) {
     mergedMap.arrays = arrays;
   }
   //Then we can merge the map.sets object togehter
   var sets = true;
-  if (map1.sets) {
-    sets = merge(sets,map1.sets);
+  if (fullmap1.sets) {
+    sets = merge(sets,fullmap1.sets);
   }
-  if (map2.sets) {
-    sets = merge(sets,map2.sets);
+  if (fullmap2.sets) {
+    sets = merge(sets,fullmap2.sets);
   }
   if (sets !== true) mergedMap.sets = sets;
   return mergedMap;
@@ -274,7 +282,7 @@ UpdateGPOgeneric.prototype.getUpdateCommand = function(updateDoc,fieldsMap) {
   var fields = null;
   //Can also just pass fields as array if we aren't passing array items to
   //push to array
-  if (Array.isArray(fields)) {
+  if (Array.isArray(fieldsMap)) {
     fields = fieldsMap;
   }else {
     //    Console.log("fieldsMap " + JSON.stringify(fieldsMap));

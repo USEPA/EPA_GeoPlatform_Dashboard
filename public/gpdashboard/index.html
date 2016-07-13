@@ -382,22 +382,29 @@
                     deferRender: true,
                     dataSource: egam.pages.gpoItems.table.items,
                     rowTemplate: 'GPOitemsRowTemplate',
-                    options: {paging: true},
+                    options: {paging: true,
+                              aaSorting: [],
+                            },
                     columns: [
-                    {data:null},
-                    {data:'doc.title'},
-                    {data:'doc.access'},
-                    {data:'doc.type'},
+                    {data:null, sortable: false},
+                    {data:'doc().title'},
+                    {data:'doc().access'},
+                    {data:'doc().type'},
                     {data:'ownerFolderTitle'},
-                    {data:'doc.numViews'},
-                    {data:'doc.owner'},
-                    {data:{_:function (row) {return egam.utilities.formatDate(row.doc.modified)},sort:'doc.modified'},type:'num'},
-                    {data:'complianceStatus'}
+                    {data:'doc().numViews'},
+                    {data:'doc().owner'},
+                    {data:{_:function (row) {return egam.utilities.formatDate(row.doc().modified)},sort:'doc().modified'},type:'num'},
+                    {data:'complianceStatus'},
+                    {data:'doc().owner', sortable: false}
                     ]
                     }">
                     <thead>
                   <tr>
-                      <th style="display:none"></th>
+                      <th>
+                          <span onclick="event.stopPropagation();">
+                               <input type="checkbox" data-bind="click: function(e, ex){return $root.table.checkAll(e,ex)}"/>
+                          </span>
+                      </th>
                     <th>Title<br>
                         <span onclick="event.stopPropagation();" >
                             <input class="search form-control input-sm" placeholder="Search By Title">
@@ -416,18 +423,18 @@
                     </th>
                     <th>Type<br>
                         <span onclick="event.stopPropagation();" >
-                            <select class="search form-control input-sm"><option value="">All</option></select>
+                            <select class="search form-control input-sm" style="width:18em"><option value="">All</option></select>
                         </span>
                     </th>
                     <th>Folder<br>
                         <span onclick="event.stopPropagation();" >
-                            <select class="search form-control input-sm"><option value="">All</option></select>
+                            <select class="search form-control input-sm" style="width:18em"><option value="">All</option></select>
                         </span>
                     </th>
                     <th>Views</th>
-                    <th class="ownerColumn">Owner<br>
+                    <th >Owner<br>
                         <span onclick="event.stopPropagation();" >
-                            <select class="search form-control input-sm"><option value="">All</option></select>
+                            <select class="search form-control input-sm" style="width:18em"><option value="">All</option></select>
                         </span>
                     </th>
                       <th>Modified<br>
@@ -444,6 +451,7 @@
                             </select>
                         </span>
                     </th>
+                      <th class="ownerColumnForAuthGroupSearch" style="display:none"></th>
                   </tr>
                 </thead>
                 <tfoot>
@@ -453,36 +461,24 @@
               </table>
 
                 <script id="GPOitemsRowTemplate" type="text/html">
-                    <tr data-bind="css: {danger: !doc.AuditData.compliant}, click: function (item) {return $root.details.select(item)} " data-toggle="modal" data-target="#gpoItemsModal" >
-                        <td data-bind="attr: { 'data-order2': doc.type}" style="display:none">
-                            <!-- ko if:doc.type=='Web Map' -->
-                            <img src="img/item_type_icons/maps16.png">
-                            <!-- /ko -->
-                            <!-- ko if:doc.type=='Web Mapping Application' -->
-                            <img src="img/item_type_icons/apps16.png">
-                            <!-- /ko -->
-                            <!-- ko if:doc.type=='Feature Layer' -->
-                            <img src="img/item_type_icons/featureshosted16.png">
-                            <!-- /ko -->
-                            <!-- ko if:doc.type=='Service Definition' -->
-                            <img src="img/item_type_icons/datafiles16.png">
-                            <!-- /ko -->
-                            <!-- ko if:doc.type=='Map Image layer' -->
-                            <img src="img/item_type_icons/mapimages16.png">
-                            <!-- /ko -->
+                    <tr data-bind="css: {danger: !doc().AuditData.compliant}, click:function(item){return $root.details.select(item)}" data-toggle="modal" data-target="#gpoItemsModal" >
+                        <td>
+                            <span onclick="event.stopPropagation();">
+                                <input type="checkbox" id="test" data-bind="checked: isChecked, click: function(item, evt){return $root.table.checkRow(item,evt)}">
+                            </span>
                         </td>
-                        <td data-bind="text: doc.title" ></td>
-                        <td data-bind="text: doc.access"></td>
-                        <td data-bind="text: doc.type"></td>
+                        <td data-bind="text: doc().title" ></td>
+                        <td data-bind="text: doc().access"></td>
+                        <td data-bind="text: doc().type"></td>
                         <td data-bind="text: ownerFolderTitle"></td>
-                        <td data-bind="text: doc.numViews"></td>
-                        <td data-bind="text: doc.owner"></td>
-                        <td data-bind="text: egam.utilities.formatDate(doc.modified)"></td>
-                        {data:{_:function (row) {return egam.utilities.formatDate(row.latestSponsor().startDate)},sort:'latestSponsor().startDate'},type:'num'},
-                        <td data-bind="css: {auditRowPass: doc.AuditData.compliant,auditRowFail: !doc.AuditData.compliant}">
+                        <td data-bind="text: doc().numViews"></td>
+                        <td data-bind="text: doc().owner"></td>
+                        <td data-bind="text: egam.utilities.formatDate(doc().modified)"></td>
+                        <td data-bind="css: {auditRowPass: doc().AuditData.compliant,auditRowFail: !doc().AuditData.compliant}">
                             <img class="pass" src="img/greenOK.jpg" alt="Pass" style="width:25px">
                             <img class="fail" src="img/warning.png" alt="Fail" style="width:25px">
                         </td >
+                        <td data-bind="text: doc().owner" style="display:none"></td>
                     </tr>
 
                 </script>
@@ -882,9 +878,9 @@
                           [1, 'asc'],
                         ],},
                     columns: [
-                        {data:'doc.isExternal'},
-                        {data:'doc.fullName'},
-                        {data:'doc.email'},
+                        {data:'doc().isExternal'},
+                        {data:'doc().fullName'},
+                        {data:'doc().email'},
                         {data:'latestSponsor().username'},
                         {data:'latestSponsor().authGroup'},
                         {data:'latestSponsor().organization'},
@@ -957,8 +953,8 @@
                                 <button class="btn btn-primary btn-xs" id="sponsorBtn" data-bind="click: function (item) {return $root.details.select(item)}" data-toggle="modal" data-target="#gpoUsersModal">Sponsor Me!</button>
                             </div>
                          </td>
-                         <td data-bind="text: doc.fullName"></td>
-                         <td data-bind="text: doc.email"></td>
+                         <td data-bind="text: doc().fullName"></td>
+                         <td data-bind="text: doc().email"></td>
                          <td data-bind="text: latestSponsor().username"></td>
                          <td data-bind="text: latestSponsor().authGroup"></td>
                          <td data-bind="text: latestSponsor().organization"></td>
@@ -1033,10 +1029,10 @@
                                     {data:'doc.contactPoint'},
                                     {data:'doc.identifier'},
                                     {data:'doc.accessLevel'},
-                                    {data:'doc.bureauCode'},
                                     {data:'doc.programCode'},
                                     {data:'doc.license'},
                                     {data:'doc.spatial'},
+                                    {data:'doc.accrualPeriodicity'},
                                     {data:'doc.auditStatus'}
                                     ]
                             }">
@@ -1050,10 +1046,10 @@
                              <th>Contact Point</th>
                              <th>Identifier</th>
                              <th>Access Level</th>
-                             <th>Bureau Code</th>
                              <th>Program Code</th>
                              <th>License</th>
                              <th>Spatial</th>
+                             <th>Update Frequency</th>
                              <th>Audit Status</th>
                          </tr>
                          </thead>
@@ -1070,10 +1066,10 @@
                              <td><a data-bind="attr: { href: doc.contactPointEmail }, html: doc.contactPoint" target="_blank"></a></td>
                              <td class="truncate" data-bind="text: doc.identifier"></td>
                              <td data-bind="text: doc.accessLevel"></td>
-                             <td data-bind="text: doc.bureauCode"></td>
                              <td data-bind="text: doc.programCode"></td>
                              <td class="truncate" data-bind="text: doc.license"></td>
                              <td class="truncate" data-bind="text: doc.spatial"></td>
+                             <td data-bind="text: doc.accrualPeriodicity"></td>
                              <td data-bind="css: {auditRowPass: doc.auditStatus,auditRowFail: !doc.auditStatus}">
                                  <img class="pass" src="img/greenOK.jpg" alt="Pass" style="width:25px">
                                  <img class="fail" src="img/warning.png" alt="Fail" style="width:25px">
