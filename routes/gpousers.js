@@ -82,7 +82,7 @@ module.exports = function(app) {
     //comment this out just to test with all
     //Super user is not limited by ownerIDs. If admin is finding External
     //User then show all external users
-    var findingExternalUsers = (req.session.user.isAdmin &&
+    var findingExternalUsers = (
       ((req.params.filterType == 'isExternal' && filterValue == true) ||
       query.isExternal === true));
 
