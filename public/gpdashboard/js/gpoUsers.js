@@ -127,14 +127,12 @@ egam.models.gpoUsers.PageModelClass.prototype.init = function() {
       //Set All External Users button to be the active button initially
       self.table.dataTable.buttons(0).active(true);
 
-  //     //Now stop showing loading message that page is load
+      //Now stop showing loading message that page is load
       $('div#loadingMsg').addClass('hidden');
       self.$pageElement.removeClass('hidden');
-  //
-       defer.resolve();
-     });
-  //
-   return defer;
+      defer.resolve();
+    });
+  return defer;
 };
 
 //This is limited model which is used for the table rows. It is condensed so that table loads faster

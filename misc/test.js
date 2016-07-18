@@ -1,3 +1,65 @@
+var Q = require('q');
+
+var asyncLoop = function(items) {
+  var async = require('async');
+
+  var defer = Q.defer();
+
+  var testThrow = function (i) {
+    console.log('throw before ' + i);
+    return Q.fcall(function () {return i})
+      .then(function (i) {
+        console.log("throw i " + i);
+        if (i > 3) throw(new Error('Error on i = ' + i));
+      });
+  };
+
+  var testFn = function (i) {
+    console.log(i);
+    return Q.fcall(function () {return i})
+      .then(function (i) {
+        return Q.fcall(function () {return true})
+          .then(function () {return testThrow(i)});
+      })
+      //.catch(function (err) {
+      //    console.log('catch err ' + err.stack);
+      //})
+      ;
+
+  };
+
+  async.forEachOf(items, function(gpoItem, index, done) {
+      testFn(gpoItem)
+        .catch(function (err) {
+          console.log('catch in for each err ' + err.stack);
+        })
+        .done(function() {
+          console.log('is done ' + gpoItem);
+          done();
+          //          Self.downloadLogs.log('for loop success')
+        });
+    }
+    , function(err) {
+      if (err) console.error('For Each GPO Audit Error :' + err.message);
+      //Resolve this promise
+      //      self.downloadLogs.log('resolve')
+      defer.resolve();
+    });
+
+  //I have to return a promise here for so that chain waits until everything is
+  //done until it runs process.exit in done.
+  //chain was NOT waiting before and process exit was executing and data data
+  //not being retrieved
+  return defer.promise
+};
+
+var items = [1,2,3,4,5,6];
+
+asyncLoop(items).then(function () {
+  console.log('end');
+})
+return;
+
 var utilities=require('../shared/utilities');
 
 var testObj = {a:{},b:{},c:1,d:2};

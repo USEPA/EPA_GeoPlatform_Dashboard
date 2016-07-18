@@ -734,7 +734,7 @@
                                                   </div>
                                               </td>
                                               <td>
-                                                  <div class="reconcileLink"><a class="glyphicon glyphicon-arrow-left" data-bind="click: function () {copyEDGtoGPO('publisher','accessInformation')}" "></a></div>
+                                                  <div class="reconcileLink"><a class="glyphicon glyphicon-arrow-left" data-bind="click: function () {copyEDGtoGPO('publisher','accessInformation')}"></a></div>
                                               </td>
                                               <td>
                                                   <div class="form-group has-success">
@@ -948,7 +948,7 @@
                  </table>
                  <script id="GPOusersRowTemplate" type="text/html">
                      <tr>
-                         <td>
+                         <td data-bind="css: {hidden: egam.communityUser.isAdmin != true}">
                             <div>
                                 <button class="btn btn-primary btn-xs" id="sponsorBtn" data-bind="click: function (item) {return $root.details.select(item)}" data-toggle="modal" data-target="#gpoUsersModal">Sponsor Me!</button>
                             </div>
