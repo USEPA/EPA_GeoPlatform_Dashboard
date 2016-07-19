@@ -23,34 +23,40 @@ egam.models.gpoItemCheckList = {};
 egam.models.gpoItemCheckList.RequestPageModelClass = function() {
   var self = this;
 
-  //self.$tableElement = $('#gpoUsersTable');
+  self.$tableElement = $('#gpoItemsChecklistTable');
   self.$pageElement = $('#checkListModal');
+  
+
   self.sponsoreeAuthGroups = ko.observableArray(
       egam.communityUser.authGroups);
   self.confirm = ko.observable();
 
+  //Testing
+  // var query = null;
+  // var projection = null;
+  // $.ajax({
+  //   type: 'POST',
+  //   url: 'gpochecklists/list',
+  //   dataType: 'json',
+  //   success: function (returnedData) {
+  //     console.log('Endpoint Data Received : ' + new Date());
+  //   },
+  //   error: function(request, status, err) {
+  //     console.log(err);
+  //   }
+  // });
+
   //Only these fields will be returned from gpoItems/list endpoint
-  // self.resultFields = {
-  //   _id: 1,
-  //   username: 1,
-  //   fullName: 1,
-  //   modified: 1,
-  //   created: 1,
-  //   groups: 1,
-  //   authGroups: 1,
-  //   isAdmin: 1,
-  //   isExternal: 1,
-  //   email: 1,
-  //   role: 1,
-  //   provider: 1,
-  //   folders: 1,
-  //   sponsors: 1,
-  // };
+  self.resultFields = {
+    _id: 1,
+    submission: 1,
+    approval: 1,
+  };
 
   //This is instance of the table class that does all the table stuff.
   //Pass empty array of items initially
-   //self.table = new egam.controls.Table([],
-     //self.$tableElement,egam.models.gpoItemCheckList.RowModelClass);
+   self.table = new egam.controls.Table([],
+     self.$tableElement,egam.models.gpoItemCheckList.RowModelClass);
 
   //Have to set authGroups in this context so knockout has access to it from
   //PageModel
@@ -71,6 +77,7 @@ egam.models.gpoItemCheckList.RequestPageModelClass.prototype.init = function() {
     defer.resolve();
     return defer;
   }
+
   //
   // // Leaving this in for now because we will need to add a
   // // loading message once there are more users
@@ -84,29 +91,32 @@ egam.models.gpoItemCheckList.RequestPageModelClass.prototype.init = function() {
   //
   // //Now initialize the table. ie. download data and create table rows
   // //the payload can be reduced if resultFields array was set
-  // var fields = this.resultFields || {};
-  //
-  // var query = {isExternal: true};
+  var fields = this.resultFields || {};
+
+  var query = null;
+  var projection = null;
   // var projection = {
   //   sort: {
   //     modified: -1,
   //   },
   //   fields: fields,};
   //
-  // return self.table.init('gpousers/list', query, projection)
-  //   //After table is loaded we can do other stuff
-  //   .then(function() {
-  //
-  //     //Set All External Users button to be the active button initially
-  //     self.table.dataTable.buttons(0).active(true);
-  //
+  return self.table.init('gpochecklists/list', query, projection)
+    //After table is loaded we can do other stuff
+    .then(function() {
+      
+      egam.adminCheckListRequests = 
+      //Set All External Users button to be the active button initially
+      //self.table.dataTable.buttons(0).active(true);
+
   // //     //Now stop showing loading message that page is load
   //     $('div#loadingMsg').addClass('hidden');
   //     self.$pageElement.removeClass('hidden');
+      console.log('here');
   // //
-  //      defer.resolve();
-  //    });
-  // //
+       defer.resolve();
+     });
+  //
    return defer;
 };
 
@@ -123,17 +133,21 @@ egam.models.gpoItemCheckList.RequestPageModelClass.prototype.update = function()
                                 name: checkListName,
                                 items: egam.pages.gpoItems.table.checkedRows,
                                 authGroup: authGroup}};
+  var updateChck = "updateDocs= " + JSON.stringify(submitPublicRequest);
+  console.log(JSON.stringify(submitPublicRequest));
 
   // Post to mongo
   $.ajax({
     url: 'gpochecklists/update',
-    type: 'POST',
-    data: submitPublicRequest,
+    type: 'GET',
+    data: updateChck,
     cache: false,
     dataType: 'json',
+    processData: false,
+    contentType: false,
     success: function(rdata, textStatus, jqXHR) {
       console.log('Success: Posted new checklist to Mongo');
-      // Alert(JSON.stringify(rdata));
+
     },
     error: function(jqXHR, textStatus, errorThrown) {
       // Handle errors here
@@ -151,21 +165,21 @@ egam.models.gpoItemCheckList.RowModelClass = function(doc, index) {
   var self = this;
   //This is the doc
 
-  this.doc = doc;
+  this.doc = ko.observable(doc);
   //To keep track of this row when selected
   this.index = index;
 
   //Have to return this for latest sponsor when no sponsor because jquery datatables actually wants the field in the first column
-  this.emptySponsor = {username:null,organization:null,authGroup:"",reason:null,description:null,startDate:null,endDate:null};
+  // this.emptySponsor = {username:null,organization:null,authGroup:"",reason:null,description:null,startDate:null,endDate:null};
 
   //Add computed object for Current Sponsor
-  this.latestSponsor = ko.computed(function() {
-    if (this.doc.sponsors && this.doc.sponsors.length > 0) {
-      return this.doc.sponsors[this.doc.sponsors.length - 1];
-    } else {
-      return this.emptySponsor;
-    }
-  },this);
+  // this.latestSponsor = ko.computed(function() {
+  //   if (this.doc.sponsors && this.doc.sponsors.length > 0) {
+  //     return this.doc.sponsors[this.doc.sponsors.length - 1];
+  //   } else {
+  //     return this.emptySponsor;
+  //   }
+  // },this);
 
 };
 
@@ -179,8 +193,8 @@ egam.models.gpoItemCheckList.FullModelClass = function(doc, index, parent) {
   //This is the doc
   this.doc = ko.observable(ko.mapping.fromJS(doc));
 
-  this.sponsoreeAuthGroups = ko.observableArray(
-      egam.communityUser.authGroups);
+  // this.sponsoreeAuthGroups = ko.observableArray(
+  //     egam.communityUser.authGroups);
 
   //Doc of changed fields
   //this.changeDoc = {};

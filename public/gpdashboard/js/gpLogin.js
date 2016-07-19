@@ -138,6 +138,10 @@ require([
           //Uncomment this when done testing
           $('#dropAccess').val('public').change();
         }
+
+        egam.pages.gpoItemCheckList = new egam.models.gpoItemCheckList.RequestPageModelClass;
+        egam.pages.gpoItemCheckList.init();
+
         return true;
       })
       .fail(function(err) {

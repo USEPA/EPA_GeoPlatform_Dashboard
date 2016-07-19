@@ -286,7 +286,7 @@ egam.controls.Table.prototype.runAllClientSideFilters = function() {
 egam.controls.Table.prototype.checkRow = function(item, evt) {
   //Have to get item index in checkRows storage if adding also because don't want to add duplicates
   //This probably won't happen for single manually checking but could occur when checking ALL
-  var itemID = item.doc.id;
+  var itemID = item.doc().id;
   var index = $.inArray(itemID, this.checkedRows);
 
   if (evt.target.checked) {
@@ -316,11 +316,11 @@ egam.controls.Table.prototype.checkAll = function(model, evt) {
   //Note: rows({"search":"applied"}) would just the indices for the displayed rows (after filtering/sorting) but .data() actually gets the row items
   //Also can access the dataTable on this table class instance using self.dataTable
   var displayedItems = self.dataTable.rows({search: 'applied'}).data();
-
   displayedItems.each(function(item) {
+
     //Note isChecked field on row model should be observable for 2 way data binding to work
     //(Actually might not be necessary because of way dataTable rebinds on draw())
-    if(item.doc.owner == egam.portalUser.username){
+    if(item.doc().owner == egam.portalUser.username){
       item.isChecked(evt.target.checked);
       //Just fire the checkRow function for this item
       self.checkRow(item,evt);
@@ -344,21 +344,17 @@ egam.controls.Table.prototype.showGPOCheckList = function(){
     egam.pages.gpoItemCheckList.init();
     console.log('gpoItemCheckList Request Page Model created: ' + new Date());
   }
-
+  //make only request elements show
+  $('#requestElements').show();
+  $('#adminElements').hide();
   $('#checkListModal').modal('toggle');
   return true;
 };
 
 //Show Checklists to be approved
 egam.controls.Table.prototype.adminCheckLists = function(){
-//Create an instance of gpoItemsCheckList
-  if (!egam.pages.gpoItemCheckList) {
-    //Create the new PageModel instance
-    //egam.pages.gpoItemCheckList = new egam.models.gpoItemCheckList.RequestPageModelClass;
-    //egam.pages.gpoItemCheckList.init();
-    //console.log('gpoItemCheckList Request Page Model created: ' + new Date());
-  }
-
-  $('#adminCheckListModal').modal('toggle');
+  $('#requestElements').hide();
+  $('#adminElements').show();
+  $('#checkListModal').modal('toggle');
   return true;
 };
