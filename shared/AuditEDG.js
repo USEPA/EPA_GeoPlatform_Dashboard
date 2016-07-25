@@ -110,11 +110,21 @@ AuditEDG.prototype.createRequiredFields = function(doc) {
 
 AuditEDG.prototype.validate = function(doc, fieldsToValidate) {
   var self = this;
-  var valid = true;
+  //Each EDG record has a record-wide pass/fail flag ("valid") that is used
+  //for highlighting rows in the dashboard, as well as an "errors" array which
+  //contains the field name and reason for the audit failure.
+  var AuditData = {
+    valid: true,
+    errors: []
+  };
   self.fieldsToValidate.forEach(function(validField) {
     //Check if required fields exist
     if (!doc[validField]) {
-      valid = false;
+      AuditData.valid = false;
+      AuditData.errors.push({
+        field: validField,
+        reason: 'Missing required field.'
+      });
     } else {
       //Is the Publisher EPA? If so, do more thorough validation
       if (doc['publisher'] &&
@@ -126,7 +136,11 @@ AuditEDG.prototype.validate = function(doc, fieldsToValidate) {
         //should catch that.
         if (validField == 'identifier' &&
             !(/{?.{8}-.{4}-.{4}-.{4}-.{12}}?/.test(doc[validField]))) {
-          valid = false;
+          AuditData.valid = false;
+          AuditData.errors.push({
+            field: validField,
+            reason: 'Invalid identifier format.'
+          });
         }
 
         if (validField == 'keyword') {
@@ -136,7 +150,11 @@ AuditEDG.prototype.validate = function(doc, fieldsToValidate) {
           });
           //If no intersection, mark as invalid
           if (matchingEPAtags.length == 0) {
-            valid = false;
+            AuditData.valid = false;
+            AuditData.errors.push({
+              field: validField,
+              reason: 'Missing EPA keyword(s).'
+            });
           }
           //Find intersection between valid Place keywords and this record's
           //tags
@@ -145,32 +163,52 @@ AuditEDG.prototype.validate = function(doc, fieldsToValidate) {
           });
           //If no intersection, mark as invalid
           if (matchingPlacetags.length == 0) {
-            valid = false;
+            AuditData.valid = false;
+            AuditData.errors.push({
+              field: validField,
+              reason: 'Missing Place keyword(s).'
+            });
           }
-          //Find intersection between valid Place keywords and this record's
+          //Find intersection between valid Office keywords and this record's
           //tags
           var matchingOfficetags = doc[validField].filter(function(tag) {
             return self.validOffices.indexOf(tag.toLowerCase()) != -1
           });
           //If no intersection, mark as invalid
           if (matchingOfficetags.length == 0) {
-            valid = false;
+            AuditData.valid = false;
+            AuditData.errors.push({
+              field: validField,
+              reason: 'Missing EPA Office/Organization keyword.'
+            });
           }
         }
         //Valid program code?
         if (validField == 'programCode' &&
             self.programCodes.indexOf(doc[validField][0]) == -1) {
-          valid = false;
+          AuditData.valid = false;
+          AuditData.errors.push({
+            field: validField,
+            reason: 'Invalid program code.'
+          });
         }
         //Check date
         if (validField == 'modified' &&
             isNaN(new Date(doc[validField]).getTime())) {
-          valid = false;
+          AuditData.valid = false;
+          AuditData.errors.push({
+            field: validField,
+            reason: 'Invalid date format.'
+          });
         }
         //Check email
         if (validField == 'contactPoint') {
           if (!doc[validField].hasEmail) {
-            valid = false;
+            AuditData.valid = false;
+            AuditData.errors.push({
+              field: validField,
+              reason: 'Missing contact email.'
+            });
           } else {
             //Check if it's a valid email address. The long regex is just a
             //formal email checker (preceeded by mailto). The map/join at the
@@ -184,20 +222,32 @@ AuditEDG.prototype.validate = function(doc, fieldsToValidate) {
               /(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,})$/
             ].map(function(r) {return r.source}).join(''));
             if (!emailRE.test(doc[validField].hasEmail)) {
-              valid = false;
+              AuditData.valid = false;
+              AuditData.errors.push({
+                field: validField,
+                reason: 'Invalid email format.'
+              });
             }
           }
         }
         //Is access level one of the accepted values
         if (validField == 'accessLevel' &&
             self.validAccess.indexOf(doc[validField]) == -1) {
-          valid = false;
+          AuditData.valid = false;
+          AuditData.errors.push({
+            field: validField,
+            reason: 'Invalid access level type.'
+          });
         } else {
           //If restricted, must have rights field
           if (doc[validField] == 'non-public' ||
               doc[validField] == 'restricted public') {
             if (!doc['rights']) {
-              valid = false;
+              AuditData.valid = false;
+              AuditData.errors.push({
+                field: validField,
+                reason: 'Restricted/non-public records require Rights field.'
+              });
             }
           }
         }
@@ -205,19 +255,27 @@ AuditEDG.prototype.validate = function(doc, fieldsToValidate) {
         if (validField == 'license') {
           var licenseRE = new RegExp(urlRegex, 'i');
           if (!licenseRE.test(doc[validField])) {
-            valid = false;
+            AuditData.valid = false;
+            AuditData.errors.push({
+              field: validField,
+              reason: 'Invalid license URL format.'
+            });
           }
         }
         //Check update frequency
         if (validField == 'accrualPeriodicity' &&
             self.validAccrualGeo.indexOf(doc[validField]) == -1 &&
             self.validAccrualNonGeo.indexOf(doc[validField]) == -1) {
-          valid = false;
+          AuditData.valid = false;
+          AuditData.errors.push({
+            field: validField,
+            reason: 'Invalid date format.'
+          });
         }
       }
     }
   });
-  return valid;
+  return AuditData;
 };
 
 if (!(typeof window != 'undefined' && window.document)) {
