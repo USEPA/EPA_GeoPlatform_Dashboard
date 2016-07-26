@@ -19,6 +19,8 @@ egam.controls.Table = function(items,elementSelector,RowModelClass,resultsName) 
   this.resultsName = resultsName || 'results';
   //Set the default timeout. It can also be passed to init
   this.timeOut = 15000;
+  //list of checked row
+  this.checkedRows = [];
 };
 
 egam.controls.Table.prototype.init = function(endpoint, query, projection, resultsName, timeOut) {
@@ -146,15 +148,21 @@ egam.controls.Table.prototype.update = function(index, value, field) {
   //Update the row model items in items array of at least just a field in the
   //row model item in array
   if (field) {
-    self.items[index][field] = value;
+    //If the field value is observable then have to pass the value
+    if (ko.isObservable(self.items[index][field])) {
+      self.items[index][field](value);
+    } else {
+      self.items[index][field] = value;
+    }
+
   }else {
     self.items[index] = value;
   }
 
-  //Have to update the data AND redraw the table/row also. passing false will
-  //not page/sort. Updating data will allow data to be refreshed in regards to
-  //search and sort. draw just changes html
-  self.dataTable.row([index]).data(self.items[index]).draw(false);
+  //Have to update the data AND redraw the table/row also. passing 'page' will
+  //not page/sort/filter. Before I was passing false which wasn't paging but it was sorting/filtering after update and row item was being "lost"
+  // Updating data will allow data to be refreshed in regards to search and sort. draw just changes html
+  self.dataTable.row([index]).data(self.items[index]).draw('page');
 
   console.log('DataTable row end update' + new Date());
 };
@@ -211,18 +219,29 @@ egam.controls.Table.prototype.customizeDataTable = function(refresh,selectColumn
 
       //Empty out all but first option which is "All"
       var selectedValue = select.val();
+      var selectedText = select.find('option:selected').text();
       select.find('option:gt(0)').remove();
 
       //Simply just use data (don't need to use data-search attribute anymore
       //possibly because dataTables binding sets data() different than ko cell
       //contents)
       column.data().unique().sort().each(function(data, index) {
-        if (!select.find('option[text=\'' + data + '\']').length > 0) {
+        //If the value is falsey but not zero then make it empty string
+        if (!data && data != 0) {
+          data = '';
+        }
+        var selOptions = $(select[0].options).filter(function() { return $(this).html() == data; });
+        if (!selOptions.length > 0) {
           select.append('<option value="' + data + '">' + data + '</option>');
         }
       });
       //Reset the selected value
-      select.val(selectedValue);
+      //if sel value is '' then must select by text
+      if (selectedValue == '') {
+        $(select[0].options).filter(function() { return $(this).html() == selectedText; }).attr('selected','selected');
+      }else {
+        select.val(selectedValue);
+      }
       //If the selectedValue doesn't exist then I guess add it and select 8t
       if (select.val() != selectedValue) {
         select.append('<option value="' + selectedValue + '">' +
@@ -244,6 +263,7 @@ egam.controls.Table.prototype.customizeDataTable = function(refresh,selectColumn
         }
       });
     }
+
   }
 
 };
@@ -261,4 +281,45 @@ egam.controls.Table.prototype.runAllClientSideFilters = function() {
       headerInput.trigger('change');
     }
   });
+};
+
+egam.controls.Table.prototype.checkRow = function(item, evt) {
+  //Have to get item index in checkRows storage if adding also because don't want to add duplicates
+  //This probably won't happen for single manually checking but could occur when checking ALL
+  var index = $.inArray(item, this.checkedRows);
+
+  if (evt.target.checked) {
+    //Only add the row to checkRows if it is not in there
+    if (index < 0) {
+      this.checkedRows.push(item);
+    }
+  } else {
+    //Remove the row from checkedRows storage using splice
+    this.checkedRows.splice(index, 1);
+  }
+
+  return true;
+};
+
+egam.controls.Table.prototype.checkAll = function(model, evt) {
+  var self = this;
+  //Note: rows({"search":"applied"}) would just the indices for the displayed rows (after filtering/sorting) but .data() actually gets the row items
+  //Also can access the dataTable on this table class instance using self.dataTable
+  var displayedItems = self.dataTable.rows({search: 'applied'}).data();
+
+  displayedItems.each(function(item) {
+    //Note isChecked field on row model should be observable for 2 way data binding to work
+    //(Actually might not be necessary because of way dataTable rebinds on draw())
+    item.isChecked(evt.target.checked);
+    //Just fire the checkRow function for this item
+    self.checkRow(item,evt);
+
+  });
+
+  //Pass false so that search/paging not reset when redrawn
+  //Actually don't need to redraw table because isChecked field is observable (2 way data binding)
+  //this.dataTable.draw(false);
+  //console.log(self.checkedRows);
+
+  return true;
 };

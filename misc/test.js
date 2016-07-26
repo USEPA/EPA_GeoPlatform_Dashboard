@@ -1,5 +1,197 @@
 var Q = require('q');
 
+var asyncLoop = function(items) {
+  var async = require('async');
+
+  var defer = Q.defer();
+
+  var testThrow = function (i) {
+    console.log('throw before ' + i);
+    return Q.fcall(function () {return i})
+      .then(function (i) {
+        console.log("throw i " + i);
+        if (i > 3) throw(new Error('Error on i = ' + i));
+      });
+  };
+
+  var testFn = function (i) {
+    console.log(i);
+    return Q.fcall(function () {return i})
+      .then(function (i) {
+        return Q.fcall(function () {return true})
+          .then(function () {return testThrow(i)});
+      })
+      //.catch(function (err) {
+      //    console.log('catch err ' + err.stack);
+      //})
+      ;
+
+  };
+
+  async.forEachOf(items, function(gpoItem, index, done) {
+      testFn(gpoItem)
+        .catch(function (err) {
+          console.log('catch in for each err ' + err.stack);
+        })
+        .done(function() {
+          console.log('is done ' + gpoItem);
+          done();
+          //          Self.downloadLogs.log('for loop success')
+        });
+    }
+    , function(err) {
+      if (err) console.error('For Each GPO Audit Error :' + err.message);
+      //Resolve this promise
+      //      self.downloadLogs.log('resolve')
+      defer.resolve();
+    });
+
+  //I have to return a promise here for so that chain waits until everything is
+  //done until it runs process.exit in done.
+  //chain was NOT waiting before and process exit was executing and data data
+  //not being retrieved
+  return defer.promise
+};
+
+var items = [1,2,3,4,5,6];
+
+asyncLoop(items).then(function () {
+  console.log('end');
+})
+return;
+
+var utilities=require('../shared/utilities');
+
+var testObj = {a:{},b:{},c:1,d:2};
+testObj.a = {};
+testObj.a.a2 = {};
+testObj.a.a2.a3 = 100;
+testObj.a.a2.b3 = 200;
+testObj.b = {};
+testObj.b.a2 = 10;
+testObj.b.b2 = 20;
+
+var testSlice = utilities.sliceObject(testObj,['a.a2.a3','b.b2','c']);
+console.log(testSlice);
+
+return;
+
+var MonkClass = require('monk');
+
+var monk = MonkClass('mongodb://localhost:27017/egam');
+var itemsCollection = monk.get('GPOitems');
+var usersCollection = monk.get('GPOusers');
+console.log(new Date());
+
+var items = ['cbac72d48fe84ed2a814e103de4e6f84','507b33c0f4b84c08b6223134eec8f044','ecfe2dcdbc234a0781bd43d2acde2b6a'];
+utilities.getDistinctArrayFromDB(itemsCollection,{id:{$in:items}},'owner')
+  .then(function (owners){
+    console.log(owners);
+  });
+
+console.log(itemsCollection.id("570edd967ed06330369c9033"));
+
+//itemsCollection.find({_id:"570edd967ed06330369c9033"},{},function (e,docs) {
+itemsCollection.findById("570edd967ed06330369c9033",{fields:{'AuditData.compliant':1}},function (e,docs) {
+    console.log(docs);
+    console.log("end")
+  });
+
+return;
+console.log("here");
+
+var uniq = {};
+
+var query = {"authGroups": {$ne: []}, "isAdmin": true};
+
+utilities.getDistinctArrayFromDB(usersCollection, query, "authGroups")
+  .then(function (authGroups) {
+    console.log("done " + authGroups[0]);
+    console.log("done " + authGroups[1]);
+    console.log("done " + authGroups[2]);
+    console.log("done " + authGroups.length);
+    console.log(new Date());
+    return true;
+  });
+
+return;
+
+return utilities.getDistinctArrayFromDB(itemsCollection, {}, "owner")
+  .then(function (ownerIDs) {
+    console.log("done " + ownerIDs.length);
+    console.log(new Date());
+    return true;
+  });
+
+return;
+
+return utilities.getDistinctArrayFromDBaggregate(itemsCollection, {}, "owner")
+  .then(function (ownerIDs) {
+    console.log("done " + ownerIDs.length);
+    console.log(new Date());
+    return true;
+  });
+
+return;
+
+return utilities.getDistinctArrayFromDBaggregate(usersCollection, query, "authGroups")
+  .then(function (authGroups) {
+    console.log("done " + authGroups.length);
+    console.log(new Date());
+    return true;
+  });
+
+return;
+
+
+
+
+itemsCollection.find({}, {fields:{owner:1},limit:null,stream:true})
+  .each(function (doc) {
+    uniq[doc.owner]=1;
+//    console.log(doc.id);
+  })
+  .success(function () {
+    console.log(Object.keys(uniq));
+    console.log("done");
+    console.log(new Date());
+  })
+;
+
+return;
+
+itemsCollection.find({},{fields:{owner:1},limit:null},function (e,docs) {
+
+  console.log(new Date());
+  console.log("end")
+});
+return;
+
+itemsCollection.col.aggregate(
+  [
+    {"$match": {} },
+    {
+      "$group" : {
+        "_id" : "$owner"
+      }
+    },
+    {"$project": {owner:1}}
+  ],function () {console.log(new Date())}
+);
+
+return;
+
+return utilities.getDistinctArrayFromDB(itemsCollection, {}, "owner")
+  .then(function (ownerIDs) {
+    console.log("done " + ownerIDs.length);
+    console.log(new Date());
+    return true;
+  });
+
+return;
+
+var Q = require('q');
+
 var dum1 = function () {
   var defer = Q.defer();
   setTimeout(function () {defer.resolve('dum1');console.log('dum1 done')},3000);
@@ -64,103 +256,6 @@ return Q.fcall(function () {console.log("foo")})
 
 return;
 
-var utilities=require('../shared/utilities');
-var MonkClass = require('monk');
-
-var monk = MonkClass('mongodb://localhost:27017/egam');
-var itemsCollection = monk.get('GPOitems');
-var usersCollection = monk.get('GPOusers');
-console.log(new Date());
-
-var uniq = {};
-
-var query = {"authGroups": {$ne: []}, "isAdmin": true};
-
-return utilities.getDistinctArrayFromDB(usersCollection, query, "authGroups")
-  .then(function (authGroups) {
-    console.log("done " + authGroups[0]);
-    console.log("done " + authGroups[1]);
-    console.log("done " + authGroups[2]);
-    console.log("done " + authGroups.length);
-    console.log(new Date());
-    return true;
-  });
-
-return;
-
-return utilities.getDistinctArrayFromDB(itemsCollection, {}, "owner")
-  .then(function (ownerIDs) {
-    console.log("done " + ownerIDs.length);
-    console.log(new Date());
-    return true;
-  });
-
-return;
-
-return utilities.getDistinctArrayFromDBaggregate(itemsCollection, {}, "owner")
-  .then(function (ownerIDs) {
-    console.log("done " + ownerIDs.length);
-    console.log(new Date());
-    return true;
-  });
-
-return;
-
-return utilities.getDistinctArrayFromDBaggregate(usersCollection, query, "authGroups")
-  .then(function (authGroups) {
-    console.log("done " + authGroups.length);
-    console.log(new Date());
-    return true;
-  });
-
-return;
-
-
-
-
-itemsCollection.find({}, {fields:{owner:1},limit:null,stream:true})
-  .each(function (doc) {
-    uniq[doc.owner]=1;
-//    console.log(doc.id);
-  })
-  .success(function () {
-    console.log(Object.keys(uniq));
-      console.log("done");
-    console.log(new Date());
-    })
-;
-
-return;
-
-itemsCollection.find({},{fields:{owner:1},limit:null},function (docs) {
-
-  console.log(new Date());
-  console.log("end")
-});
-return;
-
-itemsCollection.col.aggregate(
-  [
-    {"$match": {} },
-    {
-      "$group" : {
-        "_id" : "$owner"
-      }
-    },
-    {"$project": {owner:1}}
-  ],function () {console.log(new Date())}
-  );
-
-return;
-
-return utilities.getDistinctArrayFromDB(itemsCollection, {}, "owner")
-  .then(function (ownerIDs) {
-    console.log("done " + ownerIDs.length);
-    console.log(new Date());
-    return true;
-  });
-
-return;
 
 var AuditClass=require('../shared/Audit');
 var audit = new AuditClass();
