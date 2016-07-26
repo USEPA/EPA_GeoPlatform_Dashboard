@@ -256,6 +256,47 @@ module.exports = function(app) {
         })
     }
 
+<<<<<<< Updated upstream
+=======
+    //returns a list of email addresses for users in the auth group requested
+    function streamGPOuserEmails(beginning, end, isCSV) {
+      //This will make streaming output to client
+      projection.stream = true;
+      //Make sure end is a string if null
+      end = end || '';
+      //First have to stream the beginning text. Not sure why i did res.write(beginning) in a promise!
+      return utilities.writeStreamPromise(res, beginning)
+          .then(function() {
+            var defer = Q.defer();
+            var firstCharacter = '[';
+            userscollection.find(query, projection)
+                .each(function(doc) {
+                  res.write(firstCharacter);
+                  //this will write out all email addresses and include duplicates if a user has more than 1 GPO Account
+                  res.write(JSON.stringify(doc.email));
+                  if (firstCharacter == '[') {
+                    firstCharacter = ',';
+                  }
+                })
+                .error(function(err) {
+                  defer.reject('Error streaming GPO users: ' + err);
+                })
+                .success(function() {
+                  //If firstcharacter was not written then write it now
+                  //(if no docs need to write leading [
+                  if (firstCharacter === '[') {
+                    res.write(firstCharacter);
+                  }
+                  res.write(']' + end, function() {
+                    defer.resolve();
+                  });
+                  defer.resolve();
+                });
+            return defer.promise;
+          })
+    }
+
+>>>>>>> Stashed changes
   }
 
   router.use('/update', function(req, res) {
