@@ -218,3 +218,7 @@ a, span, tr, h4:hover {
     overflow: visible;
     white-space: normal;
   }
+  #edgExport {
+    position: absolute;
+    right: 30px;
+  }
