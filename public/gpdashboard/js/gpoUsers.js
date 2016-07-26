@@ -292,3 +292,28 @@ egam.models.gpoUsers.DetailsModel.prototype.update = function() {
 };
 
 
+
+//Query the endpoint for user email list for auth group selected
+egam.models.gpoUsers.buildEmailMyUsersLink = function() {
+  $.ajax({
+    url: 'gpoUsers/emaillist',
+    type: 'GET',
+    cache: false,
+    dataType: 'json',
+    success: function(rdata, textStatus, jqXHR) {
+      //console.log('Success Querying for Email List');
+      //ajax response is an array of email addresses, separate by commas
+      //turn the array into a comma separated string
+      var emailAddresses = rdata.join(";");
+      var mailtourl = 'mailto:' + emailAddresses + '?subject=GeoPlatform%20Information';
+      console.log(mailtourl);
+      window.location.href = mailtourl;
+      return false
+    },
+    error: function(jqXHR, textStatus, errorThrown) {
+      console.log('Errors Building User Email List: ' + textStatus);
+    }
+  });
+};
+
+

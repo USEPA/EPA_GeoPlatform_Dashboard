@@ -371,7 +371,7 @@
                             <select id="dropAuthGroups" class="search form-control input-sm " >
                             </select>
                             <a id="downloadAuthgroupsCSVall" href="gpoUsers/list.csv" class="">Download User List</a></br>
-                            <a id="emailAuthgroupsCSVall" href="gpoUsers/emaillist" class="">Email Users</a>
+                            <a id="emailAuthgroupsCSVall" onclick="egam.models.gpoUsers.buildEmailMyUsersLink();return false">Email Users</a>
                             <a id="downloadAuthgroupsCSVregions" href="gpoUsers/list.csv/authGroups/" class="hidden">download users</a>
                         </div>
                     </div>

@@ -301,6 +301,7 @@ module.exports = function(app) {
                   res.write(']' + end, function() {
                     defer.resolve();
                   });
+                  defer.resolve();
                 });
             return defer.promise;
           })
