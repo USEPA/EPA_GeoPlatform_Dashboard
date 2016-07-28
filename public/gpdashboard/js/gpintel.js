@@ -157,7 +157,11 @@ egam.utilities.formatDate = function(dateTime) {
     'Nov', 'Dec'
   ];
 
-  var modDate = new Date(dateTime);
+  var modDate = dateTime;
+  console.log(typeof(modDate));
+  if (typeof(modDate)!="object") {
+    modDate = new Date(dateTime);
+  }
   return monthNames[modDate.getMonth()] + ' ' + modDate.getDate() + ', ' + modDate.getFullYear();
 };
 

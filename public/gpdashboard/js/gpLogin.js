@@ -138,11 +138,11 @@ require([
           //Uncomment this when done testing
           $('#dropAccess').val('public').change();
         }
-
-        egam.pages.gpoItemCheckList = new egam.models.gpoItemCheckList.RequestPageModelClass;
-        egam.pages.gpoItemCheckList.init();
-
-        return true;
+        egam.pages.gpoItemCheckList = new egam.models.gpoItemCheckList.PageModelClass;
+        return egam.pages.gpoItemCheckList.init()
+            .then(function () {
+//              $('#dropChecklistStatus').val('pending').change();
+            });
       })
       .fail(function(err) {
         console.error(err);

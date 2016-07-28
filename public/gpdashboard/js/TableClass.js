@@ -347,6 +347,7 @@ egam.controls.Table.prototype.showGPOCheckList = function(){
   //make only request elements show
   $('#requestElements').show();
   $('#adminElements').hide();
+  $('#requestConfirm').show();
   $('#checkListModal').modal('toggle');
   return true;
 };
@@ -354,6 +355,7 @@ egam.controls.Table.prototype.showGPOCheckList = function(){
 //Show Checklists to be approved
 egam.controls.Table.prototype.adminCheckLists = function(){
   $('#requestElements').hide();
+  $('#requestConfirm').hide();
   $('#adminElements').show();
   $('#checkListModal').modal('toggle');
   return true;

@@ -20,7 +20,7 @@ egam.models.gpoItemCheckList = {};
 // };
 
 //Data here is the actual array of JSON documents that came back from the REST endpoint
-egam.models.gpoItemCheckList.RequestPageModelClass = function() {
+egam.models.gpoItemCheckList.PageModelClass = function() {
   var self = this;
 
   self.$tableElement = $('#gpoItemsChecklistTable');
@@ -63,10 +63,13 @@ egam.models.gpoItemCheckList.RequestPageModelClass = function() {
 
 
   //Set up the details control now which is part of this Model Class
+  self.details = new egam.models.gpoItemCheckList.DetailsModel(self);
   //self.details = new egam.models.gpoItemCheckList.RequestModel(self);
+
+  self.pendingCount = ko.observable();
 };
 
-egam.models.gpoItemCheckList.RequestPageModelClass.prototype.init = function() {
+egam.models.gpoItemCheckList.PageModelClass.prototype.init = function() {
   console.log("gpoItemCheckList init");
 
   var self = this;
@@ -104,15 +107,14 @@ egam.models.gpoItemCheckList.RequestPageModelClass.prototype.init = function() {
   return self.table.init('gpochecklists/list', query, projection)
     //After table is loaded we can do other stuff
     .then(function() {
-      
-      egam.adminCheckListRequests = 
+      self.numOfChecklists();
+      //egam.adminCheckListRequests =
       //Set All External Users button to be the active button initially
       //self.table.dataTable.buttons(0).active(true);
 
   // //     //Now stop showing loading message that page is load
   //     $('div#loadingMsg').addClass('hidden');
   //     self.$pageElement.removeClass('hidden');
-      console.log('here');
   // //
        defer.resolve();
      });
@@ -120,7 +122,25 @@ egam.models.gpoItemCheckList.RequestPageModelClass.prototype.init = function() {
    return defer;
 };
 
-egam.models.gpoItemCheckList.RequestPageModelClass.prototype.update = function(){
+egam.models.gpoItemCheckList.PageModelClass.prototype.numOfChecklists = function() {
+  var self = this;
+  var data = self.table.data;
+  var checklistCount = 0;
+  //need to loop through data
+  data.forEach(function(doc, index) {
+    if (doc.approval.status == 'pending') {
+      checklistCount++;
+    }
+  });
+  console.log(checklistCount);
+  self.pendingCount(checklistCount);
+
+  //If we want to get count directly from dataTabel
+  //egam.pages.gpoItems.table.dataTable.rows({search:"applied"}).data()
+
+};
+
+egam.models.gpoItemCheckList.PageModelClass.prototype.update = function(){
   var self = this;
   
   var checkListName = $('#requestName').val();
@@ -169,18 +189,6 @@ egam.models.gpoItemCheckList.RowModelClass = function(doc, index) {
   //To keep track of this row when selected
   this.index = index;
 
-  //Have to return this for latest sponsor when no sponsor because jquery datatables actually wants the field in the first column
-  // this.emptySponsor = {username:null,organization:null,authGroup:"",reason:null,description:null,startDate:null,endDate:null};
-
-  //Add computed object for Current Sponsor
-  // this.latestSponsor = ko.computed(function() {
-  //   if (this.doc.sponsors && this.doc.sponsors.length > 0) {
-  //     return this.doc.sponsors[this.doc.sponsors.length - 1];
-  //   } else {
-  //     return this.emptySponsor;
-  //   }
-  // },this);
-
 };
 
 //This is the FULL model which binds to the modal allowing 2 way data binding and updating etc
@@ -191,7 +199,7 @@ egam.models.gpoItemCheckList.FullModelClass = function(doc, index, parent) {
   //The index in array for this item
   this.index = index;
   //This is the doc
-  this.doc = ko.observable(ko.mapping.fromJS(doc));
+  this.doc = ko.observable(ko.mapping.fromJS(ko.utils.unwrapObservable(doc)));
 
   // this.sponsoreeAuthGroups = ko.observableArray(
   //     egam.communityUser.authGroups);
@@ -201,14 +209,14 @@ egam.models.gpoItemCheckList.FullModelClass = function(doc, index, parent) {
 
 };
 
-egam.models.gpoItemCheckList.RequestModel = function(parent) {
-  var self = this;
-  self.parent = parent;
-
-  self.$element = $('#checkListModal');
-  this.bound = false;
-
-};
+// egam.models.gpoItemCheckList.RequestModel = function(parent) {
+//   var self = this;
+//   self.parent = parent;
+//
+//   self.$element = $('#checkListModal');
+//   this.bound = false;
+//
+// };
 
 //Data here is the actual array of JSON documents that came back from the
 //REST endpoint
@@ -216,7 +224,7 @@ egam.models.gpoItemCheckList.DetailsModel = function(parent) {
   var self = this;
   self.parent = parent;
 
-  self.$element = $('gpoUsersModal');
+  self.$element = $('gpoCheckListDetailsModal');
   this.bound = false;
   //A new observable for the selected row storing the FULL gpoItem model
   self.selected = ko.observable();
@@ -228,13 +236,18 @@ egam.models.gpoItemCheckList.DetailsModel = function(parent) {
 egam.models.gpoItemCheckList.DetailsModel.prototype.select = function(item) {
   var self = this;
   //    Var fullRowModel = self.selectedCache[item.index] || new egam.gpoItems.FullModelClass(item.doc,self,item.index) ;
-  var fullRowModel = new egam.models.gpoUsers.FullModelClass(item.doc, item.index, self);
+  var fullRowModel = new egam.models.gpoItemCheckList.FullModelClass(item.doc, item.index, self);
   self.selected(fullRowModel);
 
   if (!self.bound) {
-    ko.applyBindings(self, document.getElementById('gpoUsersModal'));
+    ko.applyBindings(self, document.getElementById('gpoCheckListDetailsModal'));
     self.bound = true;
   }
+};
+
+//Post to mongo to make items public
+egam.models.gpoItemCheckList.DetailsModel.prototype.makeChecklistPublic = function(item) {
+  alert("This will make items public");
 };
 
 //Allows you to select an item based on index, usually index will be coming from row number

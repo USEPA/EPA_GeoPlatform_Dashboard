@@ -380,7 +380,7 @@
                 <div class="btn-group" role="group" style="margin-bottom: 5px">
                     <button type="button" id="makePublic" class="btn btn-default" data-bind="click: function(){return $root.table.showGPOCheckList()}" disabled="true" >Make Public</button>
                     <button class="btn btn-primary" type="button" data-bind="click: function(){return $root.table.adminCheckLists()}, enable: egam.portalUser.role == 'org_admin'">
-                        Requests <span class="badge">4</span>
+                        Requests <span class="badge"></span>
                     </button>
                 </div>
                 <!-- Note: needed to use type:'num' below so that doc.modified was treated like a number '<row <col-sm-6 l><col-sm-6 f>><t><ip>'-->
@@ -630,7 +630,7 @@
                  <div class="modal-dialog modal-lg">
                      <div class="modal-content" >
                          <div class="modal-header">
-                             <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                             <!--<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>-->
                              <h4 class="modal-title">EPA GPO Public Content Checklist</h4>
                          </div>
                          <div class="modal-body">
@@ -676,7 +676,7 @@
                                  </div>
                                  <div class="row" >
                                      <div class="col-sm-offset-2 col-sm-8 text-center">
-                                         <input type="checkbox" data-bind="checked: confirm" style="float: none; margin: 5px"/>I certify the all the above has been completed
+                                         <input type="checkbox" data-bind="checked: confirm" style="float: none; margin: 5px"/>I, <b data-bind="text: egam.portalUser.fullName"></b>, certify the all the above has been completed
                                      </div>
                                  </div>
                              </div>
@@ -692,8 +692,6 @@
                                     {data:null, sortable: false},
                                     {data:'doc().submission.name'},
                                     {data:'doc().submission.owner'},
-                                    {data:'doc().submission.authGroup'},
-                                    {data:'doc().submission.items'},
                                     {data:{_:function (row) {return egam.utilities.formatDate(row.doc().submission.submitDate)},sort:'doc().submission.submitDate'},type:'num'},
                                     {data:'doc().approval.status'}
                                     ]
@@ -702,7 +700,6 @@
                                      <tr>
                                          <th>
                                               <span onclick="event.stopPropagation();">
-                                                   <input type="checkbox"/>
                                               </span>
                                          </th>
                                          <th>Request Name<br>
@@ -713,14 +710,6 @@
                                             <span onclick="event.stopPropagation();" >
                                             </span>
                                          </th>
-                                         <th >AuthGroup<br>
-                                            <span onclick="event.stopPropagation();" >
-                                            </span>
-                                         </th>
-                                         <th >items<br>
-                                            <span onclick="event.stopPropagation();" >
-                                            </span>
-                                        </th>
                                          <th >Submit Date<br>
                                             <span onclick="event.stopPropagation();" >
                                             </span>
@@ -735,16 +724,14 @@
                                      </tfoot>
                                  </table>
                                  <script id="GPOitemsChecklistRowTemplate" type="text/html">
-                                     <tr>
+                                     <tr >
                                          <td>
-                                        <span onclick="event.stopPropagation();">
-                                            <input type="checkbox">
+                                        <span >
+                                            <button class="btn btn-primary btn-xs" id="makePublicBtn" data-bind="click:function(item){return $root.details.select(item)}" data-toggle="modal" data-target="#gpoCheckListDetailsModal">Details</button>
                                         </span>
                                          </td>
                                          <td data-bind="text: doc().submission.name" ></td>
                                          <td data-bind="text: doc().submission.owner"></td>
-                                         <td data-bind="text: doc().submission.authGroup"></td>
-                                         <td data-bind="text: doc().submission.items"></td>
                                          <td data-bind="text: egam.utilities.formatDate(doc().submission.submitDate)"></td>
                                          <td data-bind="text: doc().approval.status"></td>
                                      </tr>
@@ -754,72 +741,59 @@
                          </div>
                          <div class="modal-footer">
                              <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                             <button type="button" class="btn btn-primary" data-bind="click: update, enable: confirm" >Confirm</button>
+                             <button id="requestConfirm" type="button" class="btn btn-primary" data-bind="click: update, enable: confirm" >Confirm</button>
                          </div>
                      </div><!-- /.modal-content -->
                  </div><!-- /.modal-dialog -->
              </div><!-- /.modal -->
             <!-- End Checklist Modal-->
              <!-- Admin Checklist Modal-->
-             <div id="adminCheckListModal" class="modal fade" tabindex="-1" role="dialog">
+             <div id="gpoCheckListDetailsModal" class="modal fade" tabindex="-1" role="dialog">
                  <div class="modal-dialog">
                      <div class="modal-content">
                          <div class="modal-header">
                              <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                             <h4 class="modal-title">EPA GPO Admin Public Content Requests</h4>
+                             <h4 class="modal-title">Checklist Details</h4>
                          </div>
                          <div class="modal-body">
-                             <!--<table id="gpoItemsChecklistTable" class="table table-hover table-bordered table-responsive" data-bind="dataTable:-->
-                                <!--{-->
-                                    <!--deferRender: true,-->
-                                    <!--dataSource: egam.pages.gpoItemCheckList.table.items,-->
-                                    <!--rowTemplate: 'GPOitemsChecklistRowTemplate',-->
-                                    <!--options: {paging: true,-->
-                                              <!--aaSorting: [],-->
-                                            <!--},-->
-                                    <!--columns: [-->
-                                    <!--{data:null},-->
-                                    <!--{data:'doc()._id'},-->
-                                    <!--{data:'doc().submission'},-->
-
-                                    <!--]-->
-                                    <!--}">-->
-                                 <!--<thead>-->
-                                 <!--<tr>-->
-                                     <!--<th>-->
-                                          <!--<span onclick="event.stopPropagation();">-->
-                                               <!--<input type="checkbox"/>-->
-                                          <!--</span>-->
-                                     <!--</th>-->
-                                     <!--<th>Title<br>-->
-                                        <!--<span onclick="event.stopPropagation();" >-->
-                                            <!--<input class="search form-control input-sm" placeholder="Search By Title">-->
-                                        <!--</span>-->
-                                     <!--</th>-->
-                                     <!--<th class="accessColumn">Access<br>-->
-                                        <!--<span onclick="event.stopPropagation();" >-->
-                                        <!--</span>-->
-                                     <!--</th>-->
-                                 <!--</tr>-->
-                                 <!--</thead>-->
-                                 <!--<tfoot>-->
-                                 <!--</tfoot>-->
-                             <!--</table>-->
-                             <!--<script id="GPOitemsChecklistRowTemplate" type="text/html">-->
-                                 <!--<tr>-->
-                                     <!--<td>-->
-                                        <!--<span onclick="event.stopPropagation();">-->
-                                            <!--<input type="checkbox">-->
-                                        <!--</span>-->
-                                     <!--</td>-->
-                                     <!--<td data-bind="text: doc()._id" ></td>-->
-                                     <!--<td data-bind="text: doc().submission"></td>-->
-                                 <!--</tr>-->
-                             <!--</script>-->
+                             <div class="row">
+                                 <div class="col-md-6">
+                                     <label>Checklist Name: </label>
+                                     <span data-bind="text: selected().doc().submission.name"></span>
+                                 </div>
+                                 <div class="col-md-6">
+                                     <label>Status: </label>
+                                     <span data-bind="text: selected().doc().approval.status"></span>
+                                 </div>
+                             </div>
+                             <div class="row">
+                                 <div class="col-md-6">
+                                     <label>Owner: </label>
+                                     <span data-bind="text: selected().doc().submission.owner"></span>
+                                 </div>
+                                 <div class="col-md-6">
+                                     <label>Submit Date: </label>
+                                     <span data-bind="text: egam.utilities.formatDate(selected().doc().submission.submitDate())"></span>
+                                 </div>
+                             </div>
+                             <div class="row">
+                                 <div class="col-md-6">
+                                     <label>Items: </label>
+                                     <div class="list-group" data-bind="foreach: selected().doc().submission.items">
+                                         <a class="list-group-item" data-bind="text: $data, attr: { href:'https://epa.maps.arcgis.com/home/item.html?id=' + $data, target:'_blank'}"></a>
+                                     </div>
+                                 </div>
+                                 <div class="row">
+                                     <div class="col-md-6">
+                                         <label>Auth Group: </label>
+                                         <span data-bind="text: selected().doc().submission.authGroup"></span>
+                                     </div>
+                                 </div>
+                             </div>
                          </div>
                          <div class="modal-footer">
                              <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                             <button type="button" class="btn btn-primary" data-bind="" >Make Public</button>
+                             <button type="button" class="btn btn-primary" data-bind="click: makeChecklistPublic" >Make Items Public</button>
                          </div>
                      </div><!-- /.modal-content -->
                  </div><!-- /.modal-dialog -->
