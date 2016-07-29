@@ -87,14 +87,16 @@ UpdateGPOchecklist.prototype.checkApproval = function() {
   //No need to have admin changing submission info on approval
   delete self.updateDoc.submission;
   //If logged in user is admin and also in authgroup on checklist they have permission
-  if (user.isAdmin) {
+  if (self.user.isAdmin) {
     //hit db to get the authgroup for checklist approving
-    return Q(self.checklistCollection.findById(self.updateDoc["_id"],{fields:{'submission.authgroup':1}}))
+    return Q(self.checklistCollection.findById(self.updateDoc["_id"],{fields:{'submission.authGroup':1}}))
       .then(function (doc) {
+        //Also force the passed admin to correpsond to logged in admin
+        self.updateDoc.approval.admin = self.user.username;
         //Force the approval status date to today
         self.updateDoc.approval.statusDate = new Date();
         //has perms if admin in authgroup on checklist
-        return doc && self.user.authGroups.indexOf(doc.submission.authgroup) > -1 ;
+        return doc && self.user.authGroups.indexOf(doc.submission.authGroup) > -1 ;
       });
   } else {
     return false;

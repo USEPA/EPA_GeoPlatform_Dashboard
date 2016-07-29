@@ -189,7 +189,7 @@ function updateExternalUser(item) {
 
   //Note: need to get "mock" session info because update checks permission to
   //update user (needs to be admin to update external users)
-  var session = {ownerIDs: [],user: {isAdmin: true},token: hr.saved.token};
+  var session = {user: {isAdmin: true,ownerIDs: []},token: hr.saved.token};
 
   var updateInstance = new UpdateGPOclass(usersCollection, extensionsCollection,
                                           session,config);

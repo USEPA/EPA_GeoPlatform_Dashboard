@@ -914,7 +914,7 @@
                                                   </div>
                                               </td>
                                               <td>
-                                                  <div class="reconcileLink"><a class="glyphicon glyphicon-arrow-left" data-bind="click: function () {copyEDGtoGPO('publisher','accessInformation')}" "></a></div>
+                                                  <div class="reconcileLink"><a class="glyphicon glyphicon-arrow-left" data-bind="click: function () {copyEDGtoGPO('publisher','accessInformation')}"></a></div>
                                               </td>
                                               <td>
                                                   <div class="form-group has-success">
@@ -1128,7 +1128,7 @@
                  </table>
                  <script id="GPOusersRowTemplate" type="text/html">
                      <tr>
-                         <td>
+                         <td data-bind="css: {hidden: egam.communityUser.isAdmin != true}">
                             <div>
                                 <button class="btn btn-primary btn-xs" id="sponsorBtn" data-bind="click: function (item) {return $root.details.select(item)}" data-toggle="modal" data-target="#gpoUsersModal">Sponsor Me!</button>
                             </div>
@@ -1192,7 +1192,8 @@
              <!-- userMgmtView  View -->
              <div role="tabpanel" class="tab-pane" id="edgView" >
                  <div id="edgItemsPage">
-                     <h2 class="sub-header">EDG Items</h2>
+                     <h2 class="sub-header">EDG Items
+                     <a id="edgExport" class="btn btn-primary" href="edgitems/list.csv">Export Audit Status</a></h2>
                      <p>Work on this pane is still in progress. When complete, this pane will allow users to review metadata records in the EDG, see which have been linked to GeoPlatform content items, and audit the quality of records for compliance with the EDG Metadata Technical Specification. We also anticipate providing summary statistics and progress metrics.</p>
                      <table id="edgItemsTable" class="table table-hover table-bordered table-responsive" data-bind="dataTable:
                             {
@@ -1213,7 +1214,7 @@
                                     {data:'doc.license'},
                                     {data:'doc.spatial'},
                                     {data:'doc.accrualPeriodicity'},
-                                    {data:'doc.auditStatus'}
+                                    {data:'doc.auditStatus.valid'}
                                     ]
                             }">
                          <thead>
@@ -1237,7 +1238,7 @@
                          </tbody>
                      </table>
                      <script id="EDGitemsRowTemplateFull" type="text/html">
-                         <tr data-bind="css: {danger: !doc.auditStatus}">
+                         <tr data-bind="css: {danger: !doc.auditStatus.valid}">
                              <td data-bind="text: doc.title" ></td>
                              <td class="truncate" data-bind="text: doc.description"></td>
                              <td class="truncate" data-bind="text: doc.keyword"></td>
@@ -1250,7 +1251,7 @@
                              <td class="truncate" data-bind="text: doc.license"></td>
                              <td class="truncate" data-bind="text: doc.spatial"></td>
                              <td data-bind="text: doc.accrualPeriodicity"></td>
-                             <td data-bind="css: {auditRowPass: doc.auditStatus,auditRowFail: !doc.auditStatus}">
+                             <td data-bind="css: {auditRowPass: doc.auditStatus.valid,auditRowFail: !doc.auditStatus.valid}">
                                  <img class="pass" src="img/greenOK.jpg" alt="Pass" style="width:25px">
                                  <img class="fail" src="img/warning.png" alt="Fail" style="width:25px">
                              </td >

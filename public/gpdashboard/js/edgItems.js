@@ -285,7 +285,7 @@ egam.models.edgItems.LinkEDGModel.prototype.linkRecord = function(edgURLs) {
               //self.parent.selected().doc().EDGdata = edgDataObserv;
               self.gpoDocUnWrapped.EDGdata = edgDataObserv;
               //If need EDG change to trigger something later could do this
-              //if (ko.isObservable(self.gpoDoc)) { self.gpoDoc(self.gpoDoc())};
+              if (ko.isObservable(self.gpoDoc)) { self.gpoDoc(self.gpoDocUnWrapped)};
 
               self.$element.modal('hide');
 
@@ -335,7 +335,7 @@ egam.models.edgItems.ReconcilliationModel = function() {
   this.onload = onload;
   this.bound = false;
   this.doc = ko.observable();
-  this.fullDoc = null;
+  this.fullDoc = ko.observable();
 
 };
 
@@ -358,9 +358,10 @@ egam.models.edgItems.ReconcilliationModel.prototype.load = function(fullDoc) {
 //This loads the current fields for item into reconcilliation model
 egam.models.edgItems.ReconcilliationModel.prototype.loadCurrentFields = function(fullDoc) {
   var self = this;
-  this.fullDoc = fullDoc;
-  //FullDoc passed in might not be observable
+  //FullDoc passed in might not be observable. If not, this should still allow
+  //fullDoc() to be called.
   fullDoc = ko.utils.unwrapObservable(fullDoc);
+  this.fullDoc(fullDoc);
   var docSlice = {};
   $.each(this.fields,function(index,field) {
     //UnwrapObservable in case the doc passed does not have observables for
