@@ -153,18 +153,17 @@ egam.models.gpoItemCheckList.PageModelClass.prototype.update = function(){
                                 name: checkListName,
                                 items: egam.pages.gpoItems.table.checkedRows,
                                 authGroup: authGroup}};
-  var updateChck = "updateDocs= " + JSON.stringify(submitPublicRequest);
+  //var updateChck = "updateDocs= " + JSON.stringify(submitPublicRequest);
+  var updateChck = {updateDocs: JSON.stringify(submitPublicRequest)};
   console.log(JSON.stringify(submitPublicRequest));
 
   // Post to mongo
   $.ajax({
     url: 'gpochecklists/update',
-    type: 'GET',
+    type: 'POST',
     data: updateChck,
     cache: false,
     dataType: 'json',
-    processData: false,
-    contentType: false,
     success: function(rdata, textStatus, jqXHR) {
       console.log('Success: Posted new checklist to Mongo');
 
@@ -255,17 +254,15 @@ egam.models.gpoItemCheckList.DetailsModel.prototype.makeChecklistPublic = functi
       IMOemail: 'IMOemail'
     }
   };
-  var publicApproval = "updateDocs=" + JSON.stringify(approvalPost);
+  var publicApproval = {updateDocs:JSON.stringify(approvalPost)};
 
   // Post to mongo
   $.ajax({
     url: 'gpochecklists/update',
-    type: 'GET',
+    type: 'POST',
     data: publicApproval,
     cache: false,
     dataType: 'json',
-    processData: false,
-    contentType: false,
     success: function(rdata, textStatus, jqXHR) {
       console.log('Success: Checklist approved');
     },
