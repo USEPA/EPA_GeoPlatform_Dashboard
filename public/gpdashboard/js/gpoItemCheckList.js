@@ -201,11 +201,9 @@ egam.models.gpoItemCheckList.FullModelClass = function(doc, index, parent) {
   //This is the doc
   this.doc = ko.observable(ko.mapping.fromJS(ko.utils.unwrapObservable(doc)));
 
-  // this.sponsoreeAuthGroups = ko.observableArray(
-  //     egam.communityUser.authGroups);
-
-  //Doc of changed fields
-  //this.changeDoc = {};
+  //Could Add a computed observable to store Checklist item names with the ids
+  //http://localhost:3000/gpdashboard/gpoItems/list?query={%22id%22:{%22$in%22:[%2240894bca74de46d4b92abd8fd0a5160e%22]}}&projection={%22fields%22:{%22id%22:1,%22title%22:1}}
+  //
 
 };
 
@@ -247,7 +245,38 @@ egam.models.gpoItemCheckList.DetailsModel.prototype.select = function(item) {
 
 //Post to mongo to make items public
 egam.models.gpoItemCheckList.DetailsModel.prototype.makeChecklistPublic = function(item) {
-  alert("This will make items public");
+  console.log(item.selected().doc()._id());
+  //localhost/gpdashboard/gpochecklists/update?updateDocs={"_id":"577c3677f54235d82ebbc4b3","approval":{"status":"approved","ISOemail":"iso@test.com","IMOemail":"imo@test.com"}}
+  var approvalPost = {
+    _id: item.selected().doc()._id(),
+    approval: {
+      status: 'approved',
+      ISOemail: 'ISOemail',
+      IMOemail: 'IMOemail'
+    }
+  };
+  var publicApproval = "updateDocs=" + JSON.stringify(approvalPost);
+
+  // Post to mongo
+  $.ajax({
+    url: 'gpochecklists/update',
+    type: 'GET',
+    data: publicApproval,
+    cache: false,
+    dataType: 'json',
+    processData: false,
+    contentType: false,
+    success: function(rdata, textStatus, jqXHR) {
+      console.log('Success: Checklist approved');
+    },
+    error: function(jqXHR, textStatus, errorThrown) {
+      // Handle errors here
+      console.log('ERRORS: ' + textStatus);
+    },
+  });
+
+  $('#gpoCheckListDetailsModal').modal('hide');
+
 };
 
 //Allows you to select an item based on index, usually index will be coming from row number
