@@ -108,6 +108,12 @@ egam.models.gpoItemCheckList.PageModelClass.prototype.init = function() {
     //After table is loaded we can do other stuff
     .then(function() {
       self.numOfChecklists();
+
+      //on close with out clear checkboxes
+      $('#checkListModal').on('hidden.bs.modal', function(e) {
+        self.confirm(false);
+        //gam.pages.gpoItems.table.uncheckAll(e);
+      });
       //egam.adminCheckListRequests =
       //Set All External Users button to be the active button initially
       //self.table.dataTable.buttons(0).active(true);
@@ -132,9 +138,9 @@ egam.models.gpoItemCheckList.PageModelClass.prototype.numOfChecklists = function
       checklistCount++;
     }
   });
-  console.log(checklistCount);
+  //console.log(checklistCount);
   self.pendingCount(checklistCount);
-
+  egam.pages.gpoItems.pendingChecklistCount(self.pendingCount());
   //If we want to get count directly from dataTabel
   //egam.pages.gpoItems.table.dataTable.rows({search:"applied"}).data()
 
@@ -167,10 +173,18 @@ egam.models.gpoItemCheckList.PageModelClass.prototype.update = function(){
     success: function(rdata, textStatus, jqXHR) {
       console.log('Success: Posted new checklist to Mongo');
 
+      //update checklist count
+      var requestCount = self.pendingCount();
+      requestCount++;
+      self.pendingCount(requestCount);
+      egam.pages.gpoItems.pendingChecklistCount(self.pendingCount());
+      //update checklist table
+      
     },
     error: function(jqXHR, textStatus, errorThrown) {
       // Handle errors here
       console.log('ERRORS: ' + textStatus);
+
     },
   });
   $('#checkListModal').modal('hide');
@@ -206,15 +220,6 @@ egam.models.gpoItemCheckList.FullModelClass = function(doc, index, parent) {
 
 };
 
-// egam.models.gpoItemCheckList.RequestModel = function(parent) {
-//   var self = this;
-//   self.parent = parent;
-//
-//   self.$element = $('#checkListModal');
-//   this.bound = false;
-//
-// };
-
 //Data here is the actual array of JSON documents that came back from the
 //REST endpoint
 egam.models.gpoItemCheckList.DetailsModel = function(parent) {
@@ -244,7 +249,9 @@ egam.models.gpoItemCheckList.DetailsModel.prototype.select = function(item) {
 
 //Post to mongo to make items public
 egam.models.gpoItemCheckList.DetailsModel.prototype.makeChecklistPublic = function(item) {
-  console.log(item.selected().doc()._id());
+  var self = this;
+
+  //object to send to endpoint for request to make an checklist public
   //localhost/gpdashboard/gpochecklists/update?updateDocs={"_id":"577c3677f54235d82ebbc4b3","approval":{"status":"approved","ISOemail":"iso@test.com","IMOemail":"imo@test.com"}}
   var approvalPost = {
     _id: item.selected().doc()._id(),
@@ -265,6 +272,17 @@ egam.models.gpoItemCheckList.DetailsModel.prototype.makeChecklistPublic = functi
     dataType: 'json',
     success: function(rdata, textStatus, jqXHR) {
       console.log('Success: Checklist approved');
+
+      //increment request count
+      var requestCount = self.parent.pendingCount();
+      requestCount--;
+      self.parent.pendingCount(requestCount);
+      egam.pages.gpoItems.pendingChecklistCount(self.parent.pendingCount());
+
+      //update checklist table
+      item.selected().doc().approval.status('approved');
+      var jsDoc = ko.mapping.toJS(item.selected().doc());
+      self.parent.table.update(item.selected().index, jsDoc, 'doc');
     },
     error: function(jqXHR, textStatus, errorThrown) {
       // Handle errors here
@@ -283,11 +301,11 @@ egam.models.gpoItemCheckList.DetailsModel.prototype.selectIndex = function(index
 
 //Post CheckList back to Mongo and change local view model
 //Note: Update is called in details model scope so this will be correct
-egam.models.gpoItemCheckList.saveCheckList = function() {
-
-  console.log('Post back updated GPO Users');
-  return true;
-};
+// egam.models.gpoItemCheckList.saveCheckList = function() {
+//
+//   console.log('Post back updated GPO Users');
+//   return true;
+// };
 
 
 

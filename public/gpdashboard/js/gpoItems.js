@@ -61,7 +61,7 @@ egam.models.gpoItems.PageModelClass = function() {
   //Percent passing, Count of personal items should be observable on here
   self.percentPublicPassing = ko.observable();
   self.myItemsCount = ko.observable();
-  //self.pendingChecklistCount
+  self.pendingChecklistCount = ko.observable();
 
 };
 
