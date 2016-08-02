@@ -65,6 +65,7 @@ module.exports = function(app) {
           {
             $project: {
               //Use only these fields
+              _id: 0,
               identifier: 1,
               title: 1,
               publisher: 1,
