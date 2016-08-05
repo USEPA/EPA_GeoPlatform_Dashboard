@@ -87,7 +87,26 @@ module.exports = function(app) {
       query.isExternal === true));
 
     if (!user.isSuperUser && !findingExternalUsers) {
-      query.username = {$in: user.ownerIDs};
+      //Get the current query.username and save to make and AND with $in: user.ownerIDs
+
+      var visibleUsers = user.ownerIDs;
+      //If query username empty string don't consider it
+      if (query.username && typeof (query.username) === 'string') {
+        query.username = {$eq: query.username};
+      }
+      //Null is considered object so make sure query.username is truthy
+      else if (query.username && typeof (query.username) === 'object') {
+        //If they passed an $in for query then just intersect their in with what they can see
+        if ('$in' in query.username) {
+          var arrayExtended = require('array-extended');
+          visibleUsers = arrayExtended.intersect(query.username['$in'],visibleUsers);
+        }
+      }else {
+        //If username query wasn't passed in any form them create object for it to put the $in field on
+        query.username = {};
+      }
+      //Now put the $in field on the query username object
+      query.username['$in'] = visibleUsers;
     }
 
     if (isCSV === true) {
