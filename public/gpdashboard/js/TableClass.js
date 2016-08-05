@@ -335,6 +335,17 @@ egam.controls.Table.prototype.checkAll = function(model, evt) {
   return true;
 };
 
+egam.controls.Table.prototype.uncheckAll = function(){
+  var self = this;
+  var displayedItems = self.dataTable.rows({search: 'applied'}).data();
+  displayedItems.each(function(item) {
+    item.isChecked(false);
+    
+  });
+
+  console.log(this.checkedRows);
+};
+
 //For checklist
 egam.controls.Table.prototype.showGPOCheckList = function(){
 //Create an instance of gpoItemsCheckList

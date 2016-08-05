@@ -158,7 +158,7 @@ egam.utilities.formatDate = function(dateTime) {
   ];
 
   var modDate = dateTime;
-  console.log(typeof(modDate));
+  
   if (typeof(modDate)!="object") {
     modDate = new Date(dateTime);
   }

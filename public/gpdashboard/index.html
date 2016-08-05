@@ -379,7 +379,7 @@
 
                 <div class="btn-group" role="group" style="margin-bottom: 5px">
                     <button type="button" id="makePublic" class="btn btn-default" data-bind="click: function(){return $root.table.showGPOCheckList()}" disabled="true" >Make Public</button>
-                    <button class="btn btn-primary" type="button" data-bind="click: function(){return $root.table.adminCheckLists()}, enable: egam.portalUser.role == 'org_admin'">
+                    <button class="btn btn-primary" type="button" data-bind="click: function(){return $root.table.adminCheckLists()}">
                         Requests <span class="badge" data-bind="text: pendingChecklistCount"></span>
                     </button>
                 </div>
@@ -719,7 +719,7 @@
                                          </th>
                                          <th class="col-xs-1">Approval<br>
                                             <span onclick="event.stopPropagation();" >
-                                                <select class="search form-control"><option value="">All</option></select>
+                                                <select id="dropChecklistStatus" class="search form-control"><option value="">All</option></select>
                                             </span>
                                          </th>
                                      </tr>
@@ -741,7 +741,6 @@
                                      </tr>
                                  </script>
                              </div>
-
                          </div>
                          <div class="modal-footer">
                              <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
@@ -789,15 +788,22 @@
                                  </div>
                                  <div class="row">
                                      <div class="col-md-6">
-                                         <label>Auth Group: </label>
+                                         <label>Auth Group: </label><br>
                                          <span data-bind="text: selected().doc().submission.authGroup"></span>
                                      </div>
                                  </div>
                              </div>
                          </div>
                          <div class="modal-footer">
-                             <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                             <button type="button" class="btn btn-primary" data-bind="click: makeChecklistPublic" >Make Items Public</button>
+                             <div class="row">
+                                 <div class="col-md-7" style="margin-top: 5px">
+                                     <span class="alert alert-warning" role="alert" data-bind="visible: egam.portalUser.role == 'org_admin'" >After approving please email your ISO and IMO</span>
+                                 </div>
+                                 <div class="col-md-5">
+                                     <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                                     <button type="button" class="btn btn-primary" data-bind="click: makeChecklistPublic, visible: egam.portalUser.role == 'org_admin'" >Make Items Public</button>
+                                 </div>
+                             </div>
                          </div>
                      </div><!-- /.modal-content -->
                  </div><!-- /.modal-dialog -->
