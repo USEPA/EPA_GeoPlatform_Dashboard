@@ -377,7 +377,14 @@
                     </div>
                 </div>
              <h3 class="sub-header"></h3>
-                <!-- Note: needed to use type:'num' below so that doc.modified was treated like a number -->
+
+                <div class="btn-group" role="group" style="margin-bottom: 5px">
+                    <button type="button" id="makePublic" class="btn btn-default" data-bind="click: function(){return $root.table.showGPOCheckList()}" disabled="true" >Make Public</button>
+                    <button class="btn btn-primary" type="button" data-bind="click: function(){return $root.table.adminCheckLists()}">
+                        Requests <span class="badge" data-bind="text: pendingChecklistCount"></span>
+                    </button>
+                </div>
+                <!-- Note: needed to use type:'num' below so that doc.modified was treated like a number '<row <col-sm-6 l><col-sm-6 f>><t><ip>'-->
                 <table id="gpoItemsTable" class="table table-hover table-bordered table-responsive" data-bind="dataTable:
                 {
                     deferRender: true,
@@ -465,7 +472,7 @@
                     <tr data-bind="css: {danger: !doc().AuditData.compliant}, click:function(item){return $root.details.select(item)}" data-toggle="modal" data-target="#gpoItemsModal" >
                         <td>
                             <span onclick="event.stopPropagation();">
-                                <input type="checkbox" id="test" data-bind="checked: isChecked, click: function(item, evt){return $root.table.checkRow(item,evt)}">
+                                <input type="checkbox" id="test" data-bind="checked: isChecked, enable:  doc().owner == egam.portalUser.username && doc().AuditData.compliant, click: function(item, evt){return $root.table.checkRow(item,evt)}">
                             </span>
                         </td>
                         <td data-bind="text: doc().title" ></td>
@@ -481,7 +488,6 @@
                         </td >
                         <td data-bind="text: doc().owner" style="display:none"></td>
                     </tr>
-
                 </script>
 
             </div>
@@ -620,6 +626,190 @@
               </div>
             </div>
             <!-- End Modal for Editing-->
+            <!-- Begin Checklist Modal-->
+             <div id="checkListModal" class="modal fade" tabindex="-1" role="dialog">
+                 <div class="modal-dialog modal-lg">
+                     <div class="modal-content" >
+                         <div class="modal-header">
+                             <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                             <h4 class="modal-title">EPA GPO Public Content Checklist</h4>
+                         </div>
+                         <div class="modal-body">
+                             <div id="requestElements">
+                                 <div class="row input-group" >
+                                     <span class="input-group-addon" id="basic-addon1">Project Name</span>
+                                     <input type="text" id="requestName" class="form-control" aria-describedby="basic-addon1">
+                                 </div>
+                                 <div class="row input-group" >
+                                     <span class="input-group-addon" id="basic-addon2">Authoritative Group</span>
+                                     <select class="form-control" id="RequestAuthGroup" aria-describedby="basic-addon2" data-bind="options: sponsoreeAuthGroups" ></select>
+                                 </div>
+                                 <div class="row panel panel-default">
+                                     <div class="panel-body" style="max-height: 300px; overflow-y: scroll">
+                                         <ol>
+                                             <li>I certify that the content does not contain any sensitive data or data that is otherwise inappropriate for sharing with the public.
+                                                 As a reminder, sensitive data is: “any information, the loss, misuse, or unauthorized access to or modification of which could adversely
+                                                 affect the national interest or the conduct of federal programs, or the privacy to which individuals are entitled undersection 552a of title 5,
+                                                 United States Code (the Privacy Act), but which has not been specifically authorized under criteria established by an Executive Order or an Act
+                                                 of Congress to be kept in the interest of national defense or foreign.”</li>
+                                             <li>
+                                                 I certify that this item has been through the appropriate product review process as outlined by my organization. General information about
+                                                 product review is available here: <a href="http://www2.epa.gov/product-review">http://www2.epa.gov/product-review</a>
+                                             </li>
+                                             <li>
+                                                 I certify that metadata on the item’s registration page is complete and consistent with the GeoPlatform metadata best practices guide.
+                                                 Information or links to where the data depicted in the map can be foundare included in the metadata.
+                                                 <a href="https://edg.epa.gov/metadata/webhelp/en/gptlv10/inno/GenericMetadataGuide.pdf#page=38">GenericMetadataGuide</a>
+                                             </li>
+                                             <li>
+                                                 I certify that the item is consistent with established best practices for look and feel.
+                                                 <a href="http://blogs.esri.com/esri/arcgis/2012/05/03/using-a-mapmaking-checklist-for-map-design/">Using a mapmaking checklist for map design</a>
+                                             </li>
+                                             <li>
+                                                 I certify that the item meets all appropriate EPA Privacy Act policy requirements. Information is available here:
+                                                 <a href="http://www.epa.gov/privacy/policy/">http://www.epa.gov/privacy/policy/</a>
+                                             </li>
+                                             <li>
+                                                 I agree that once the item has been made public any subsequent edits to the content item will be consistent with the guidance in this checklist.
+                                             </li>
+                                         </ol>
+                                     </div>
+                                 </div>
+                                 <div class="row" >
+                                     <div class="col-sm-offset-2 col-sm-8 text-center">
+                                         <input type="checkbox" data-bind="checked: confirm" style="float: none; margin: 5px"/>I, <b data-bind="text: egam.portalUser.fullName"></b>, certify the all the above has been completed
+                                     </div>
+                                 </div>
+                             </div>
+                             <div id="adminElements" class="row panel panel-body" >
+                                 <table id="gpoItemsChecklistTable" class="table table-hover table-bordered table-responsive" data-bind="dataTable:
+                                {
+                                    deferRender: true,
+                                    dataSource: egam.pages.gpoItemCheckList.table.items,
+                                    rowTemplate: 'GPOitemsChecklistRowTemplate',
+                                    options: {paging: true,
+                                              aaSorting: []},
+                                    columns: [
+                                    {data:null, sortable: false},
+                                    {data:'doc().submission.name'},
+                                    {data:'doc().submission.owner'},
+                                    {data:{_:function (row) {return egam.utilities.formatDate(row.doc().submission.submitDate)},sort:'doc().submission.submitDate'},type:'num'},
+                                    {data:'doc().approval.status'}
+                                    ]
+                                    }">
+                                     <thead>
+                                     <tr>
+                                         <th class="col-xs-1">
+                                              <span onclick="event.stopPropagation();">
+                                              </span>
+                                         </th>
+                                         <th class="col-xs-3">Request Name<br>
+                                            <span onclick="event.stopPropagation();" >
+                                                <input class="search form-control input-sm" placeholder="Search By Request Name">
+                                            </span>
+                                         </th>
+                                         <th class="col-xs-3">Requested By<br>
+                                            <span onclick="event.stopPropagation();" >
+                                                <select class="search form-control input-sm"><option value="">All</option></select>
+                                            </span>
+                                         </th>
+                                         <th class="col-xs-2">Submit Date<br>
+                                            <span onclick="event.stopPropagation();" >
+                                                <input class="search form-control input-sm" placeholder="Search By Submit Date">
+                                            </span>
+                                         </th>
+                                         <th class="col-xs-1">Approval<br>
+                                            <span onclick="event.stopPropagation();" >
+                                                <select id="dropChecklistStatus" class="search form-control"><option value="">All</option></select>
+                                            </span>
+                                         </th>
+                                     </tr>
+                                     </thead>
+                                     <tfoot>
+                                     </tfoot>
+                                 </table>
+                                 <script id="GPOitemsChecklistRowTemplate" type="text/html">
+                                     <tr >
+                                         <td>
+                                        <span >
+                                            <button class="btn btn-primary btn-xs" id="makePublicBtn" data-bind="click:function(item){return $root.details.select(item)}" data-toggle="modal" data-target="#gpoCheckListDetailsModal">Details</button>
+                                        </span>
+                                         </td>
+                                         <td data-bind="text: doc().submission.name" ></td>
+                                         <td data-bind="text: doc().submission.owner"></td>
+                                         <td data-bind="text: egam.utilities.formatDate(doc().submission.submitDate)"></td>
+                                         <td data-bind="text: doc().approval.status"></td>
+                                     </tr>
+                                 </script>
+                             </div>
+                         </div>
+                         <div class="modal-footer">
+                             <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                             <button id="requestConfirm" type="button" class="btn btn-primary" data-bind="click: update, enable: confirm" >Confirm</button>
+                         </div>
+                     </div><!-- /.modal-content -->
+                 </div><!-- /.modal-dialog -->
+             </div><!-- /.modal -->
+            <!-- End Checklist Modal-->
+             <!-- Admin Checklist Modal-->
+             <div id="gpoCheckListDetailsModal" class="modal fade" tabindex="-1" role="dialog">
+                 <div class="modal-dialog">
+                     <div class="modal-content">
+                         <div class="modal-header">
+                             <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                             <h4 class="modal-title">Checklist Details</h4>
+                         </div>
+                         <div class="modal-body">
+                             <div class="row">
+                                 <div class="col-md-6">
+                                     <label>Checklist Name: </label>
+                                     <span data-bind="text: selected().doc().submission.name"></span>
+                                 </div>
+                                 <div class="col-md-6">
+                                     <label>Status: </label>
+                                     <span data-bind="text: selected().doc().approval.status"></span>
+                                 </div>
+                             </div>
+                             <div class="row">
+                                 <div class="col-md-6">
+                                     <label>Owner: </label>
+                                     <span data-bind="text: selected().doc().submission.owner"></span>
+                                 </div>
+                                 <div class="col-md-6">
+                                     <label>Submit Date: </label>
+                                     <span data-bind="text: egam.utilities.formatDate(selected().doc().submission.submitDate())"></span>
+                                 </div>
+                             </div>
+                             <div class="row">
+                                 <div class="col-md-6">
+                                     <label>Items: </label>
+                                     <div class="list-group" data-bind="foreach: selected().doc().submission.items">
+                                         <a class="list-group-item" data-bind="text: $data, attr: { href:'https://epa.maps.arcgis.com/home/item.html?id=' + $data, target:'_blank'}"></a>
+                                     </div>
+                                 </div>
+                                 <div class="row">
+                                     <div class="col-md-6">
+                                         <label>Auth Group: </label><br>
+                                         <span data-bind="text: selected().doc().submission.authGroup"></span>
+                                     </div>
+                                 </div>
+                             </div>
+                         </div>
+                         <div class="modal-footer">
+                             <div class="row">
+                                 <div class="col-md-7" style="margin-top: 5px">
+                                     <span class="alert alert-warning" role="alert" data-bind="visible: egam.portalUser.role == 'org_admin'" >After approving please email your ISO and IMO</span>
+                                 </div>
+                                 <div class="col-md-5">
+                                     <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                                     <button type="button" class="btn btn-primary" data-bind="click: makeChecklistPublic, visible: egam.portalUser.role == 'org_admin'" >Make Items Public</button>
+                                 </div>
+                             </div>
+                         </div>
+                     </div><!-- /.modal-content -->
+                 </div><!-- /.modal-dialog -->
+             </div><!-- /.modal -->
+             <!-- End Admin Checklist Modal-->
 
               <!-- Modal for Reconciliation -->
               <div class="modal fade" id="reconciliationModal" tabindex="-1" role="dialog" data-keyboard="false" data-backdrop="static" aria-labelledby="myModalLabel">
@@ -1128,6 +1318,7 @@
     <script src="js/gpintel.js"></script>
     <script src="js/gpoItems.js"></script>
     <script src="js/gpoUsers.js"></script>
+    <script src="js/gpoItemCheckList.js"></script>
     <script src="js/edgItems.js"></script>
     <script src="js/Audit.js"></script>
     <!-- Due to some weird timing issues, this order needs to be followed -->
