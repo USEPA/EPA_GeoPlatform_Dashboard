@@ -12,7 +12,6 @@ module.exports = function(app) {
   });
 
   router.use('/list.csv', function(req, res) {
-    var isCSV = false;
     handleGPOitemsListRoute(req, res, true);
   });
 
@@ -120,7 +119,7 @@ module.exports = function(app) {
     } else {
       streamGPOusers()
         .catch(function(err) {
-          console.error('Error streaming GPOusers: ' + err)
+          console.error('Error getting GPOusers Stream: ' + err)
         })
         .done(function() {
           res.end()
@@ -179,7 +178,7 @@ module.exports = function(app) {
       userscollection.find(query, projection)
         .each(function(doc) {
 
-          //Add empty extension fields if they don't exist for firt doc to get the full header
+          //Add empty extension fields if they don't exist for first doc to get the full header
           if (hasCSVColumnTitle) GPOuserExtensions.fields.forEach(function(field) {
             if (!(field in doc)) doc[field] = undefined
           });
@@ -257,7 +256,6 @@ module.exports = function(app) {
           return defer.promise;
         })
     }
-
   }
 
   router.use('/update', function(req, res) {
