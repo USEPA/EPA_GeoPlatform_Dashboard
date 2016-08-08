@@ -208,13 +208,6 @@ egam.models.gpoItemCheckList.DetailsModel.prototype.select = function(item) {
   }
 };
 
-egam.models.gpoItemCheckList.DetailsModel.prototype.getItemTitles = function(item) {
-  console.log("yu");
-  itemTitles = [];
-
-  return itemTitles;
-};
-
 //Post to mongo to make items public
 egam.models.gpoItemCheckList.DetailsModel.prototype.makeChecklistPublic = function(item) {
   var self = this;
