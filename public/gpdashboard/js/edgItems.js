@@ -285,7 +285,7 @@ egam.models.edgItems.LinkEDGModel.prototype.linkRecord = function(edgURLs) {
               //self.parent.selected().doc().EDGdata = edgDataObserv;
               self.gpoDocUnWrapped.EDGdata = edgDataObserv;
               //If need EDG change to trigger something later could do this
-              //if (ko.isObservable(self.gpoDoc)) { self.gpoDoc(self.gpoDoc())};
+              if (ko.isObservable(self.gpoDoc)) { self.gpoDoc(self.gpoDocUnWrapped)};
 
               self.$element.modal('hide');
 

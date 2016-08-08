@@ -12,7 +12,6 @@ module.exports = function(app) {
   });
 
   router.use('/list.csv', function(req, res) {
-    var isCSV = false;
     handleGPOitemsListRoute(req, res, true);
   });
 
@@ -87,7 +86,26 @@ module.exports = function(app) {
       query.isExternal === true));
 
     if (!user.isSuperUser && !findingExternalUsers) {
-      query.username = {$in: user.ownerIDs};
+      //Get the current query.username and save to make and AND with $in: user.ownerIDs
+
+      var visibleUsers = user.ownerIDs;
+      //If query username empty string don't consider it
+      if (query.username && typeof (query.username) === 'string') {
+        query.username = {$eq: query.username};
+      }
+      //Null is considered object so make sure query.username is truthy
+      else if (query.username && typeof (query.username) === 'object') {
+        //If they passed an $in for query then just intersect their in with what they can see
+        if ('$in' in query.username) {
+          var arrayExtended = require('array-extended');
+          visibleUsers = arrayExtended.intersect(query.username['$in'],visibleUsers);
+        }
+      }else {
+        //If username query wasn't passed in any form them create object for it to put the $in field on
+        query.username = {};
+      }
+      //Now put the $in field on the query username object
+      query.username['$in'] = visibleUsers;
     }
 
     if (isCSV === true) {
@@ -101,7 +119,7 @@ module.exports = function(app) {
     } else {
       streamGPOusers()
         .catch(function(err) {
-          console.error('Error streaming GPOusers: ' + err)
+          console.error('Error getting GPOusers Stream: ' + err)
         })
         .done(function() {
           res.end()
@@ -160,7 +178,7 @@ module.exports = function(app) {
       userscollection.find(query, projection)
         .each(function(doc) {
 
-          //Add empty extension fields if they don't exist for firt doc to get the full header
+          //Add empty extension fields if they don't exist for first doc to get the full header
           if (hasCSVColumnTitle) GPOuserExtensions.fields.forEach(function(field) {
             if (!(field in doc)) doc[field] = undefined
           });
@@ -238,7 +256,6 @@ module.exports = function(app) {
           return defer.promise;
         })
     }
-
   }
 
   router.use('/update', function(req, res) {
