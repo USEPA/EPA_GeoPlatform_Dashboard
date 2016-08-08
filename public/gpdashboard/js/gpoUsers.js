@@ -307,7 +307,7 @@ egam.models.gpoUsers.buildEmailMyUsersLink = function(group) {
     success: function(rdata, textStatus, jqXHR) {
       //console.log('Success Querying for Email List');
       //Add email list to the textarea
-      $('#emailList').val(rdata.map(function(a) {return a.email}));
+      $('#emailList').val(rdata.map(function(a) {return a.email}).join(';'));
       //Show email list modal
       $('#emailModal').modal('show');
     },
