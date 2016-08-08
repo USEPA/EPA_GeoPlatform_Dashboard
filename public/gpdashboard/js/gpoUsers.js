@@ -293,26 +293,31 @@ egam.models.gpoUsers.DetailsModel.prototype.update = function() {
 
 
 //Query the endpoint for user email list for auth group selected
-egam.models.gpoUsers.buildEmailMyUsersLink = function() {
+egam.models.gpoUsers.buildEmailMyUsersLink = function(group) {
+  var url =  'gpoUsers/list?projection={"fields":{"email":1}}';
+  if (group) {
+    url = 'gpoUsers/list?query={"authGroups":"' + group + '"}' +
+      '&projection={"fields":{"email":1}}'
+  }
   $.ajax({
-    url: 'gpoUsers/emaillist',
+    url: url,
     type: 'GET',
     cache: false,
     dataType: 'json',
     success: function(rdata, textStatus, jqXHR) {
       //console.log('Success Querying for Email List');
-      //ajax response is an array of email addresses, separate by commas
-      //turn the array into a comma separated string
-      var emailAddresses = rdata.join(";");
-      var mailtourl = 'mailto:' + emailAddresses + '?subject=GeoPlatform%20Information';
-      console.log(mailtourl);
-      window.location.href = mailtourl;
-      return false
+      //Add email list to the textarea
+      $('#emailList').val(rdata.map(function(a) {return a.email}));
+      //Show email list modal
+      $('#emailModal').modal('show');
     },
     error: function(jqXHR, textStatus, errorThrown) {
       console.log('Errors Building User Email List: ' + textStatus);
     }
   });
 };
-
-
+//Copy the emails to the clipboard
+egam.models.gpoUsers.copyEmails = function() {
+  $('#emailList').select();
+  document.execCommand('copy');
+};

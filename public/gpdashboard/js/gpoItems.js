@@ -175,6 +175,10 @@ egam.models.gpoItems.PageModelClass.prototype.setAuthGroupsDropdown = function(o
     }
     // Also set the download link
     var authgroup = this.value;
+    //Pass authgroup to email list function. If no authgroup, pass empty string
+    var emailFunc = $('#emailAuthgroupsCSVall').attr('onclick');
+    $('#emailAuthgroupsCSVall').attr('onclick',
+      emailFunc.replace(/(\(.*\))/, '(\'' + authgroup + '\')'));
     if (authgroup) {
       $('#downloadAuthgroupsCSVall').addClass('hidden');
       $('#downloadAuthgroupsCSVregions').removeClass('hidden');
