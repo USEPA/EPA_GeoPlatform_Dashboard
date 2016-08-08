@@ -142,7 +142,7 @@ require([
         egam.pages.gpoItemCheckList = new egam.models.gpoItemCheckList.PageModelClass;
         return egam.pages.gpoItemCheckList.init()
             .then(function () {
-              $('#dropChecklistStatus').val('pending').change();
+              //$('#dropChecklistStatus').val('pending').change();
             });
       })
       .fail(function(err) {
