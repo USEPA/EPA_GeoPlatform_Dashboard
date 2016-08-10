@@ -194,6 +194,9 @@ a, span, tr, h4:hover {
     width: 225px;
     margin-left: 55px;
   }
+  #customTagInput {
+    width: 225px;
+  }
 
   #edgTitleSearchLabel {
     font-size: 18px;
