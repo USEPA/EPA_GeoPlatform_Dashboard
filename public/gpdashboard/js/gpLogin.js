@@ -143,6 +143,7 @@ require([
         return egam.pages.gpoItemCheckList.init()
             .then(function () {
               //$('#dropChecklistStatus').val('pending').change();
+              if($('#dropChecklistStatus').find('option[value=pending]').length>0)$('#dropChecklistStatus').val('pending').change()
             });
       })
       .fail(function(err) {
