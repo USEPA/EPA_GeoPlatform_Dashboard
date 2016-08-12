@@ -345,29 +345,3 @@ egam.controls.Table.prototype.uncheckAll = function(){
 
   console.log(this.checkedRows);
 };
-
-//For checklist
-egam.controls.Table.prototype.showGPOCheckList = function(){
-//Create an instance of gpoItemsCheckList
-  if (!egam.pages.gpoItemCheckList) {
-    //Create the new PageModel instance
-    egam.pages.gpoItemCheckList = new egam.models.gpoItemCheckList.RequestPageModelClass;
-    egam.pages.gpoItemCheckList.init();
-    console.log('gpoItemCheckList Request Page Model created: ' + new Date());
-  }
-  //make only request elements show
-  $('#requestElements').show();
-  $('#adminElements').hide();
-  $('#requestConfirm').show();
-  $('#checkListModal').modal('toggle');
-  return true;
-};
-
-//Show Checklists to be approved
-egam.controls.Table.prototype.adminCheckLists = function(){
-  $('#requestElements').hide();
-  $('#requestConfirm').hide();
-  $('#adminElements').show();
-  $('#checkListModal').modal('toggle');
-  return true;
-};

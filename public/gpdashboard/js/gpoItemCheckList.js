@@ -258,5 +258,29 @@ egam.models.gpoItemCheckList.DetailsModel.prototype.selectIndex = function(index
   this.select(this.parent.table.items[index]);
 };
 
+egam.models.gpoItemCheckList.PageModelClass.prototype.showGPOCheckList = function() {
+  //Create an instance of gpoItemsCheckList
+  if (!egam.pages.gpoItemCheckList) {
+    //Create the new PageModel instance
+    egam.pages.gpoItemCheckList = new egam.models.gpoItemCheckList.RequestPageModelClass;
+    egam.pages.gpoItemCheckList.init();
+    console.log('gpoItemCheckList Request Page Model created: ' + new Date());
+  }
+  //make only request elements show
+  $('#requestElements').show();
+  $('#adminElements').hide();
+  $('#requestConfirm').show();
+  $('#checkListModal').modal('toggle');
+  return true;
+};
+
+egam.models.gpoItemCheckList.PageModelClass.prototype.adminCheckLists = function() {
+  $('#requestElements').hide();
+  $('#requestConfirm').hide();
+  $('#adminElements').show();
+  $('#checkListModal').modal('toggle');
+  return true;
+};
+
 
 
