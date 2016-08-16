@@ -205,27 +205,37 @@
                                             <div id="collapseThree" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingThree">
                                                 <div class="panel-body">
                                                     <p>The item details for a GPO item in the table can be displayed by clicking on the row. The item details
-                                                        display the following information for an item.</p>
+                                                        display the following information for an item. The validation rules are based on the <a href="https://edg.epa.gov/metadata/webhelp/en/gptlv10/inno/GenericMetadataGuide.pdf" target="_blank">EPA Generic Metadata Styleguide</a>, please read the full guide for additional recommendations.</p>
                                                     <table class="table table-bordered">
+                                                        <tr>
+                                                            <th>Field</th>
+                                                            <th>Description</th>
+                                                            <th>Validation Rule</th>
+                                                        </tr>
                                                         <tr>
                                                             <td>Title</td>
                                                             <td>The title of the item.</td>
+                                                            <td>The title must not be empty.</td>
                                                         </tr>
                                                         <tr>
                                                             <td>Summary</td>
                                                             <td>a short summary description of the item.</td>
+                                                            <td></td>
                                                         </tr>
                                                         <tr>
                                                             <td>Description</td>
                                                             <td>Item description.</td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td>Credits</td>
-                                                            <td>Any license information or restrictions.</td>
+                                                            <td>The description must contain a minimum of 5 words.</td>
                                                         </tr>
                                                         <tr>
                                                             <td>Access and use Constraints</td>
+                                                            <td>Any license information or restrictions.</td>
+                                                            <td>Should point to https://edg.epa.gov/EPA_Data_License.html unless a different license applies.</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>Credits</td>
                                                             <td>Information on the source of the item and its copyright status.</td>
+                                                            <td>Should list U.S. Environmental Protection Agency unless a different entity applies.</td>
                                                         </tr>
                                                         <tr>
                                                             <td>URL</td>
@@ -234,10 +244,12 @@
                                                         <tr>
                                                             <td>Thumbnail</td>
                                                             <td>The URL to the thumbnail used for the item.</td>
+                                                            <td>Thumbnail is required.</td>
                                                         </tr>
                                                         <tr>
                                                             <td>Tags</td>
                                                             <td>User defined tags that describe the item.</td>
+                                                            <td>Select at least one tag from each of the dropdowns (EPA Keywords, Place Keywords, and EPA Organization Names).</td>
                                                         </tr>
                                                     </table>
                                                 </div>
@@ -258,7 +270,7 @@
                                                         navigating to the image that you would like to use as the thumbnail.  For best results, the image should be 200 pixels wide by 133 pixels high.
                                                         Acceptable image formats are: PNG, GIF and JPEG. </p>
                                                     <p>Adding/Removing Tags - Tags can be added and removed from an item. To add a tag an item type the tag that you would like in the text box under
-                                                        the Tags title, then click the Add button. The tage will be added to the list below the Add button. To remove a tag, select the tag in the Tags
+                                                        the Tags title, then click the Add button. The tags will be added to the list below the Add button. To remove a tag, select the tag in the Tags
                                                         List and click the Remove button.
                                                     </p>
                                                 </div>
