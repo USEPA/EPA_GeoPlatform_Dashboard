@@ -259,13 +259,7 @@ egam.models.gpoItemCheckList.DetailsModel.prototype.selectIndex = function(index
 };
 
 egam.models.gpoItemCheckList.PageModelClass.prototype.showGPOCheckList = function() {
-  //Create an instance of gpoItemsCheckList
-  if (!egam.pages.gpoItemCheckList) {
-    //Create the new PageModel instance
-    egam.pages.gpoItemCheckList = new egam.models.gpoItemCheckList.RequestPageModelClass;
-    egam.pages.gpoItemCheckList.init();
-    console.log('gpoItemCheckList Request Page Model created: ' + new Date());
-  }
+
   //make only request elements show
   $('#requestElements').show();
   $('#adminElements').hide();
