@@ -9,4 +9,5 @@ module.exports = [
   'licenseInfo',
   'accessInformation',
   'url',
+  'AuditData'
 ];
