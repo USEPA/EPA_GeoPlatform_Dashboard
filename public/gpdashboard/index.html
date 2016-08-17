@@ -379,7 +379,7 @@
              <h3 class="sub-header"></h3>
 
                 <div class="btn-group" role="group" style="margin-bottom: 5px">
-                    <button type="button" id="makePublic" class="btn btn-default" data-bind="click: function(){return egam.pages.gpoItemCheckList.showGPOCheckList()}" disabled="true" >Make Public</button>
+                    <button type="button" id="makePublic" class="btn btn-default" data-bind="enable: $root.table.checkedRows().length > 0, click: function(){return egam.pages.gpoItemCheckList.showGPOCheckList()}">Make Public</button>
                     <button class="btn btn-primary" type="button" data-bind="click: function(){return egam.pages.gpoItemCheckList.adminCheckLists()}">
                         Requests <span class="badge" data-bind="text: pendingChecklistCount"></span>
                     </button>

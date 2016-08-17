@@ -20,7 +20,8 @@ egam.controls.Table = function(items,elementSelector,RowModelClass,resultsName) 
   //Set the default timeout. It can also be passed to init
   this.timeOut = 15000;
   //list of checked row
-  this.checkedRows = [];
+  this.checkedRows = ko.observableArray();
+
 };
 
 egam.controls.Table.prototype.init = function(endpoint, query, projection, resultsName, timeOut) {
@@ -297,14 +298,6 @@ egam.controls.Table.prototype.checkRow = function(item, evt) {
   } else {
     //Remove the row from checkedRows storage using splice
     this.checkedRows.splice(index, 1);
-  }
-  //if items check show makePublic button else hide
-  if (this.checkedRows.length > 0) {
-    //$('#makePublic').show();
-    $('#makePublic').prop('disabled', false);
-  } else {
-    //$('#makePublic').hide();
-    $('#makePublic').prop('disabled', true);
   }
 
   return true;

@@ -120,7 +120,7 @@ egam.models.gpoItemCheckList.PageModelClass.prototype.update = function(){
   
   var submitPublicRequest = {submission : {
                                 name: checkListName,
-                                items: egam.pages.gpoItems.table.checkedRows,
+                                items: egam.pages.gpoItems.table.checkedRows(),
                                 authGroup: authGroup}};
 
   var updateChck = {updateDocs: JSON.stringify(submitPublicRequest)};
