@@ -156,8 +156,8 @@ module.exports = function(app) {
 
     function updateDBonLogin() {
       //If there was an error with resObject then don't need to do this
-      if (resObject.error !== null) {
-        return true;
+      if (resObject.errors.length > 0) {
+        return false;
       }
 
       var Q = require('q');
@@ -197,7 +197,7 @@ module.exports = function(app) {
       downloadGPOdata.portal = config.portal;
       downloadGPOdata.mongoDBurl = config.mongoDBurl;
       downloadGPOdata.orgID = config.AGOLorgID;
-      downloadGPOdata.ownerIDs = req.session.ownerIDs;
+      downloadGPOdata.ownerIDs = req.session.user.ownerIDs;
       console.log('downloadGPOdata.ownerIDs : ' + downloadGPOdata.ownerIDs);
 
       //The download process will be passed to a queue so that 2 users are not

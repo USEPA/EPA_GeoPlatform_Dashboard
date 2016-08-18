@@ -138,7 +138,7 @@ require([
           //Uncomment this when done testing
           $('#dropAccess').val('public').change();
         }
-        //initialize the gpoItemCheckList
+        //Initialize the gpoItemCheckList
         egam.pages.gpoItemCheckList = new egam.models.gpoItemCheckList.PageModelClass;
         return egam.pages.gpoItemCheckList.init()
             .then(function () {
