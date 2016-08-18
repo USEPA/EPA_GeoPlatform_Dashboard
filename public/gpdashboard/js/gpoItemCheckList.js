@@ -258,6 +258,11 @@ egam.models.gpoItemCheckList.DetailsModel.prototype.selectIndex = function(index
   this.select(this.parent.table.items[index]);
 };
 
+// egam.models.gpoItemCheckList.PageModelClass.prototype.check = function(item, evt) {
+//
+//   console.log(item);
+// };
+
 egam.models.gpoItemCheckList.PageModelClass.prototype.showGPOCheckList = function() {
 
   //make only request elements show

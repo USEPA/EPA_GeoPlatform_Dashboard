@@ -313,7 +313,7 @@ egam.controls.Table.prototype.checkAll = function(model, evt) {
 
     //Note isChecked field on row model should be observable for 2 way data binding to work
     //(Actually might not be necessary because of way dataTable rebinds on draw())
-    if(item.doc().owner == egam.portalUser.username){
+    if(item.doc().owner == egam.portalUser.username && item.doc().AuditData.compliant){
       item.isChecked(evt.target.checked);
       //Just fire the checkRow function for this item
       self.checkRow(item,evt);
@@ -330,6 +330,7 @@ egam.controls.Table.prototype.checkAll = function(model, evt) {
 
 egam.controls.Table.prototype.uncheckAll = function(){
   var self = this;
+
   var displayedItems = self.dataTable.rows({search: 'applied'}).data();
   displayedItems.each(function(item) {
     item.isChecked(false);
