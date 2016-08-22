@@ -516,7 +516,7 @@ egam.models.gpoItems.TagControlsClass = function(parent) {
   //Also storing the Office dropdown value even though it doesn't get acted as
   //a tag but need this to set value of drop. Otherwise Please Select kept
   //getting reset
-  self.tagCategories = ['EPA', 'Place', 'Office', 'Org'];
+  self.tagCategories = ['EPA', 'Place', 'Office', 'Org', 'Custom'];
 
   //These are the selected Tags that we save so they can be removed
   self.selectedTags = ko.observableArray(['']);

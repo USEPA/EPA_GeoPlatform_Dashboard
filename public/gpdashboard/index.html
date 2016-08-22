@@ -552,6 +552,11 @@
                                               <select class="tag-select search form-control" id="officeTagSelect" data-bind="options:egam.dataStash.availableTags.epaOffices,optionsCaption:'Please Select', value: tagControls.tagToAdd['Office'], valueUpdate: 'afterkeydown'"></select>
                                               <select class="tag-select search form-control" id="orgTagSelect" data-bind="options:tagControls.selectedOfficeOrganizations,optionsCaption:'Please Select',, value: tagControls.tagToAdd['Org'], valueUpdate: 'afterkeydown'"></select>
                                           </div>
+                                          <label for="addCustomTag">Custom Tags</label>
+                                          <div class="form-inline">
+                                              <button id="addCustomTag" class="btn btn-default"  type="submit" data-bind="click: tagControls.addTag['Custom']">Add</button>
+                                              <input class="form-control" id="customTagInput" type="text" data-bind="value: tagControls.tagToAdd['Custom'], valueUpdate: 'afterkeydown'"/>
+                                          </div>
                                       </div>
                                       <div class="form-group has-success" data-bind="css: {'has-error': selected().doc().AuditData.errors.tags&&selected().doc().AuditData.errors.tags.compliant()===false}">
                                           <select id="tagsList" class="form-control" multiple="multiple" height="5" data-bind="options: selected().doc().tags, selectedOptions: tagControls.selectedTags"> </select>
