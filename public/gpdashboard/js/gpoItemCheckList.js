@@ -90,6 +90,14 @@ egam.models.gpoItemCheckList.PageModelClass.prototype.init = function() {
 
    return defer;
 };
+//This is for Testing purposes. Will remove later
+egam.models.gpoItemCheckList.PageModelClass.prototype.allItemsCheck = function(item,evt) {
+  var self = this;
+  console.log(self.table);
+  //var displayedItems = self.dataTable.rows({search: 'applied'}).data();
+
+  return true;
+};
 
 egam.models.gpoItemCheckList.PageModelClass.prototype.numOfChecklists = function() {
   var self = this;
