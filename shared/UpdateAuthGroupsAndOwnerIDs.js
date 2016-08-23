@@ -82,9 +82,9 @@ UpdateAuthGroupsAndOwnerIDs.prototype.updateAuthGroupsInner = function(user) {
     isAdmin = true;
   }
   var isExternal = true;
-  //This would find SSO or ArcGIS login need to just look for epa.gov email
+  //This would find SSO or ArcGIS login need to just look for epa.gov email (can also be like @epamail.epa.gov or EPA.gov)
   //  if (user.provider!=='enterprise') isExternal=true;
-  if (/@epa\.gov$/i.test(user.email)) {
+  if (/@[^@]*epa\.gov$/i.test(user.email)) {
     isExternal = false;
   }
 
