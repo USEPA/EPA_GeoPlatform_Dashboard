@@ -415,7 +415,7 @@ egam.models.edgItems.DetailsModel.prototype.select = function(item) {
   var self = this;
   self.selected(item);
   if (!self.bound) {
-    ko.applyBindings(self, document.getElementById('edgItemsModal'));
+    ko.applyBindings(self, self.$element[0]);
     self.bound = true;
   }
 };
