@@ -43,42 +43,46 @@ module.exports = function(app) {
       var json2csv = require('json2csv');
       //Deasync will make json2csv sync so we can stream in order
       var deasync = require('deasync');
-      var syncJson2csv = deasync(json2csv);
+      var merge = require('merge');
 
+      var syncJson2csv = deasync(json2csv);
+      var outArray = [];
       var outFile = 'edgAudit';
 
       outFile += '.csv';
       res.attachment(outFile);
 
-      //First have to stream the beginning text
       var defer = Q.defer();
-
-      //Pre-monk 2.1 way of performing aggregate. If we ever upgrade, can just
-      //do collection.aggregate
-      Q.ninvoke(edgCollection.col,'aggregate',
-        [
-          {
-            //AuditStatus contains an array of error objects. Flatten each
-            //error to its own row
-            $unwind: '$auditStatus.errors'
-          },
-          {
-            $project: {
-              //Use only these fields
-              _id: 0,
-              identifier: 1,
-              title: 1,
-              publisher: 1,
-              contactPoint: 1,
-              field: '$auditStatus.errors.field',
-              reason: '$auditStatus.errors.reason',
-            }
-          }
-        ])
-        .then(function(docs) {
+      //Get fields for output
+      var fields = {
+        identifier: 1,
+        title: 1,
+        publisher: 1,
+        contactPoint: 1,
+        AuditData: 1
+      };
+      edgCollection.find({}, {fields: fields,stream: true})
+        .each(function(doc) {
+          //Push doc.field to the array now
+          Object.keys(doc.AuditData.errors).forEach(function (field) {
+            doc.AuditData.errors[field].messages.forEach(function (reason) {
+              //Use merge to clone the doc
+              var outDoc = merge.recursive({}, doc);
+              delete outDoc.AuditData;
+              //Then add field and reason to the outDoc
+              outDoc.field = field;
+              outDoc.reason = reason;
+              outArray.push(outDoc);
+            });
+          });
+        })
+        .error(function(err) {
+          defer.reject('Error getting Array From DB: ' + err);
+        })
+        .success(function() {
           //Write to CSV
-          res.write(syncJson2csv({data: docs, hasCSVColumnTitle: true}));
-          defer.resolve();
+          res.write(syncJson2csv({data: outArray, hasCSVColumnTitle: true}));
+          defer.resolve(outArray);
         });
       return defer.promise;
     }

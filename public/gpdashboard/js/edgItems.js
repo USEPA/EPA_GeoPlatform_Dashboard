@@ -30,7 +30,8 @@ egam.models.edgItems.PageModelClass = function() {
     license: 1,
     spatial: 1,
     accrualPeriodicity: 1,
-    auditStatus: 1
+    distribution: 1,
+    AuditData: 1
   };
 
   //This is instance of the table class that does all the table stuff.
@@ -39,7 +40,7 @@ egam.models.edgItems.PageModelClass = function() {
     self.$tableElement,egam.models.edgItems.RowModelClass);
 
   ////Set up the details control now which is part of this Model Class
-  //self.details = new egam.models.edgItems.DetailsModel(self);
+  self.details = new egam.models.edgItems.DetailsModel(self);
 };
 
 // Load EDG table on initial click of EDG
@@ -394,4 +395,33 @@ egam.models.edgItems.ReconcilliationModel.prototype.copyEDGtoGPO = function(sour
   var fullDoc = ko.utils.unwrapObservable(this.fullDoc);
   var edgValue = ko.utils.unwrapObservable(fullDoc.EDGdata[source]);
   this.doc()[destination]($.trim(edgValue));
+};
+
+//Data here is the actual array of JSON documents that came back from the
+//REST endpoint
+egam.models.edgItems.DetailsModel = function(parent) {
+  var self = this;
+  self.parent = parent;
+
+  self.$element = $('#edgItemsModal');
+  this.bound = false;
+  //A new observable for the selected row storing the FULL gpoItem model
+  self.selected = ko.observable();
+};
+
+//On the entire table, we need to know which item is selected to use later with
+//modal, etc.
+egam.models.edgItems.DetailsModel.prototype.select = function(item) {
+  var self = this;
+  self.selected(item);
+  if (!self.bound) {
+    ko.applyBindings(self, self.$element[0]);
+    self.bound = true;
+  }
+};
+
+//Allows you to select an item based on index, usually index will be coming from
+//row number
+egam.models.edgItems.DetailsModel.prototype.selectIndex = function(index) {
+  this.select(this.parent.table.items[index]);
 };

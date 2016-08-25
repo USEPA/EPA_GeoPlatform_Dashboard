@@ -28,7 +28,7 @@ Q.nfcall(request, requestPars)
         //If missing required fields, add them (w/ empty strings)
         item = auditInstance.createRequiredFields(item);
         //Validate fields
-        item.auditStatus = auditInstance.validate(item);
+        item.AuditData = auditInstance.validate(item);
         //If publisher is an object, just grab the name
         if (item.publisher && item.publisher.name) {
           item.publisher = item.publisher.name;
