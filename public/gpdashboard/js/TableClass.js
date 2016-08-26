@@ -284,46 +284,55 @@ egam.controls.Table.prototype.runAllClientSideFilters = function() {
   });
 };
 
-egam.controls.Table.prototype.checkRow = function(item, evt) {
+egam.controls.Table.prototype.checkRow = function(itemField, evt) {
   //Have to get item index in checkRows storage if adding also because don't want to add duplicates
   //This probably won't happen for single manually checking but could occur when checking ALL
-  var itemID = item.doc().id;
-  var index = $.inArray(itemID, this.checkedRows);
+  //var itemID = item.doc().id;
+  var index = $.inArray(itemField, this.checkedRows);
 
   if (evt.target.checked) {
     //Only add the row to checkRows if it is not in there
     if (index < 0) {
-      this.checkedRows.push(itemID);
+      this.checkedRows.push(itemField);
+      console.log("Checked :: ", evt);
     }
   } else {
     //Remove the row from checkedRows storage using splice
     this.checkedRows.splice(index, 1);
+    console.log("unChecked :: ", evt);
   }
-
+  //console.log(this.checkedRows());
   return true;
 };
 
-egam.controls.Table.prototype.checkAll = function(model, evt) {
+egam.controls.Table.prototype.checkAll = function(model, evt, field) {
   var self = this;
 
   //Note: rows({"search":"applied"}) would just the indices for the displayed rows (after filtering/sorting) but .data() actually gets the row items
   //Also can access the dataTable on this table class instance using self.dataTable
   var displayedItems = self.dataTable.rows({search: 'applied'}).data();
   displayedItems.each(function(item) {
-
     //Note isChecked field on row model should be observable for 2 way data binding to work
     //(Actually might not be necessary because of way dataTable rebinds on draw())
-    if(item.doc().owner == egam.portalUser.username && item.doc().AuditData.compliant){
-      item.isChecked(evt.target.checked);
-      //Just fire the checkRow function for this item
-      self.checkRow(item,evt);
+    //if(item.doc().owner == egam.portalUser.username && item.doc().AuditData.compliant){
+    var rIndex = item.index;
+    displayNode = self.dataTable.row(rIndex).node();
+    var ckBox = $(displayNode).find(".checkboxClass");
+
+    if (ckBox.prop("disabled") == false) {
+      //check the rows checkbox
+      ckBox.prop('checked', true);
+      //Send to checkRow to be added to the checkRow list
+      self.checkRow(item.doc()[field],evt);
+      //console.log("this is item node :: ", displayNode);
+      //console.log("This is the ITEM :: ", item.doc()[field]);//item.doc()[field]
     }
   });
 
   //Pass false so that search/paging not reset when redrawn
   //Actually don't need to redraw table because isChecked field is observable (2 way data binding)
   //this.dataTable.draw(false);
-  //console.log(self.checkedRows);
+  console.log(self.checkedRows());
 
   return true;
 };
