@@ -320,8 +320,14 @@ egam.controls.Table.prototype.checkAll = function(model, evt, field) {
     var ckBox = $(displayNode).find(".checkboxClass");
 
     if (ckBox.prop("disabled") == false) {
-      //check the rows checkbox
-      ckBox.prop('checked', true);
+      if(ckBox.prop("checked")){
+        //unckeck the row checkbox
+        ckBox.prop('checked', false);
+      }else{
+        //check the rows checkbox
+        ckBox.prop('checked', true);
+
+      }
       //Send to checkRow to be added to the checkRow list
       self.checkRow(item.doc()[field],evt);
       //console.log("this is item node :: ", displayNode);
