@@ -120,7 +120,7 @@ egam.models.gpoItemCheckList.PageModelClass.prototype.update = function(){
   
   var submitPublicRequest = {submission : {
                                 name: checkListName,
-                                items: egam.pages.gpoItems.table.checkedRows,
+                                items: egam.pages.gpoItems.table.checkedRows(),
                                 authGroup: authGroup}};
 
   var updateChck = {updateDocs: JSON.stringify(submitPublicRequest)};
@@ -256,6 +256,29 @@ egam.models.gpoItemCheckList.DetailsModel.prototype.makeChecklistPublic = functi
 //Allows you to select an item based on index, usually index will be coming from row number
 egam.models.gpoItemCheckList.DetailsModel.prototype.selectIndex = function(index) {
   this.select(this.parent.table.items[index]);
+};
+
+// egam.models.gpoItemCheckList.PageModelClass.prototype.check = function(item, evt) {
+//
+//   console.log(item);
+// };
+
+egam.models.gpoItemCheckList.PageModelClass.prototype.showGPOCheckList = function() {
+
+  //make only request elements show
+  $('#requestElements').show();
+  $('#adminElements').hide();
+  $('#requestConfirm').show();
+  $('#checkListModal').modal('toggle');
+  return true;
+};
+
+egam.models.gpoItemCheckList.PageModelClass.prototype.adminCheckLists = function() {
+  $('#requestElements').hide();
+  $('#requestConfirm').hide();
+  $('#adminElements').show();
+  $('#checkListModal').modal('toggle');
+  return true;
 };
 
 
