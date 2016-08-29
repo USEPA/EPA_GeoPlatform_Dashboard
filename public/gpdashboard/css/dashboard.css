@@ -222,6 +222,6 @@ a, span, tr, h4:hover {
     position: absolute;
     right: 30px;
   }
-  #gpoItemsModal{
+  .modalUnder{
     overflow-y:scroll;
   }
