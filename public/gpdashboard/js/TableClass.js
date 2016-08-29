@@ -307,38 +307,25 @@ egam.controls.Table.prototype.checkRow = function(itemField, evt) {
 
 egam.controls.Table.prototype.checkAll = function(model, evt, field) {
   var self = this;
+  var resultRows;
 
-  //Note: rows({"search":"applied"}) would just the indices for the displayed rows (after filtering/sorting) but .data() actually gets the row items
-  //Also can access the dataTable on this table class instance using self.dataTable
-  var displayedItems = self.dataTable.rows({search: 'applied'}).data();
-  displayedItems.each(function(item) {
-    //Note isChecked field on row model should be observable for 2 way data binding to work
-    //(Actually might not be necessary because of way dataTable rebinds on draw())
-    //if(item.doc().owner == egam.portalUser.username && item.doc().AuditData.compliant){
-    var rIndex = item.index;
-    displayNode = self.dataTable.row(rIndex).node();
-    var ckBox = $(displayNode).find(".checkboxClass");
+  if(evt.target.checked){
+    resultRows = self.dataTable.rows({"search":"applied"});
+  }else{
+    resultRows = self.dataTable.rows();
+  }
 
-    if (ckBox.prop("disabled") == false) {
-      if(ckBox.prop("checked")){
-        //unckeck the row checkbox
-        ckBox.prop('checked', false);
-      }else{
-        //check the rows checkbox
-        ckBox.prop('checked', true);
+  resultRows.every(function ( rowIdx, tableLoop, rowLoop ) {
+    var rowData = this.data();
+        var rowNode = this.node();
 
-      }
-      //Send to checkRow to be added to the checkRow list
-      self.checkRow(item.doc()[field],evt);
-      //console.log("this is item node :: ", displayNode);
-      //console.log("This is the ITEM :: ", item.doc()[field]);//item.doc()[field]
-    }
+        var ckBox = $(rowNode).find(".checkboxClass");
+        if (ckBox.prop("disabled") == false) {
+          ckBox.prop('checked', evt.target.checked);
+          self.checkRow(rowData.doc()[field],evt);
+        }
   });
-
-  //Pass false so that search/paging not reset when redrawn
-  //Actually don't need to redraw table because isChecked field is observable (2 way data binding)
-  //this.dataTable.draw(false);
-  console.log(self.checkedRows());
+  //console.log(self.checkedRows());
 
   return true;
 };
