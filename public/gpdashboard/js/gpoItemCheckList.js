@@ -84,6 +84,11 @@ egam.models.gpoItemCheckList.PageModelClass.prototype.init = function() {
         self.confirm(false);
         //egam.pages.gpoItems.table.uncheckAll();
       });
+      //on closing of checklist details modal clear fields
+      $('#gpoCheckListDetailsModal').on('hidden.bs.modal', function(e) {
+        $('#isoInputEmail').val('');
+        $('#imoInputEmail').val('');
+      });
 
        defer.resolve();
      });
@@ -217,8 +222,8 @@ egam.models.gpoItemCheckList.DetailsModel.prototype.makeChecklistPublic = functi
     _id: item.selected().doc()._id(),
     approval: {
       status: 'approved',
-      ISOemail: 'ISOemail',
-      IMOemail: 'IMOemail'
+      ISOemail: $('#isoInputEmail').val(),//'ISOemail',
+      IMOemail: $('#imoInputEmail').val(),// 'IMOemail'
     }
   };
   var publicApproval = {updateDocs:JSON.stringify(approvalPost)};

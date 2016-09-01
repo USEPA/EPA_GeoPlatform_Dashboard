@@ -776,7 +776,7 @@
                              <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
                              <h4 class="modal-title">Checklist Details</h4>
                          </div>
-                         <div class="modal-body">
+                         <div class="modal-body" style="padding-bottom: 0px">
                              <div class="row">
                                  <div class="col-md-6">
                                      <label>Checklist Name: </label>
@@ -811,17 +811,34 @@
                                      </div>
                                  </div>
                              </div>
-                         </div>
-                         <div class="modal-footer">
-                             <div class="row">
-                                 <div class="col-md-7" style="margin-top: 5px">
-                                     <span class="alert alert-warning" role="alert" data-bind="visible: egam.portalUser.role == 'org_admin'" >After approving please email your ISO and IMO</span>
-                                 </div>
-                                 <div class="col-md-5">
-                                     <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                                     <button type="button" class="btn btn-primary" data-bind="click: makeChecklistPublic, visible: egam.portalUser.role == 'org_admin'" >Make Items Public</button>
+                             <div class="row" data-bind="visible: egam.portalUser.role == 'org_admin'" style="margin-bottom: -15px">
+                                 <div class="panel panel-warning">
+                                     <div class="panel-heading">Enter email for IMO and ISO</div>
+                                     <div class="panel-body">
+                                         <div class="form-group">
+                                             <label for="imoInputEmail">IMO Email address</label>
+                                             <input type="email" class="form-control" id="imoInputEmail" placeholder="Email">
+                                             <span id="imohelpBlock" class="help-block"><a href="https://usepa.sharepoint.com/sites/oei_Community/sio/QIC%20Meeting%20Materials/QIC-SIO-SC-IMO%20List%20Official.pdf" target="_blank">Emails for IMO can be found here</a></span>
+                                         </div>
+                                         <div class="form-group">
+                                             <label for="isoInputEmail">ISO Email address</label>
+                                             <input type="email" class="form-control" id="isoInputEmail" placeholder="Email">
+                                             <span id="isohelpBlock" class="help-block"><a href="http://intranet.epa.gov/oei/saiso/ISSO.html" target="_blank">Emails for ISO can be found here</a></span>
+                                         </div>
+                                     </div>
                                  </div>
                              </div>
+                         </div>
+                         <div class="modal-footer">
+                             <!--<div class="row">-->
+                                 <!--<div class="col-md-7" style="margin-top: 5px">-->
+                                     <!--<span class="alert alert-warning" role="alert" data-bind="visible: egam.portalUser.role == 'org_admin'" >After approving please email your ISO and IMO</span>-->
+                                 <!--</div>-->
+                                 <!--<div class="col-md-5">-->
+                                     <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                                     <button type="button" class="btn btn-primary" data-bind="click: makeChecklistPublic, visible: egam.portalUser.role == 'org_admin'" >Make Items Public</button>
+                                 <!--</div>-->
+                             <!--</div>-->
                          </div>
                      </div><!-- /.modal-content -->
                  </div><!-- /.modal-dialog -->
