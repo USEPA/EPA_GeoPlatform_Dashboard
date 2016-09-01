@@ -84,6 +84,11 @@ egam.models.gpoItemCheckList.PageModelClass.prototype.init = function() {
         self.confirm(false);
         //egam.pages.gpoItems.table.uncheckAll();
       });
+      //on closing of checklist details modal clear fields
+      $('#gpoCheckListDetailsModal').on('hidden.bs.modal', function(e) {
+        $('#isoInputEmail').val('');
+        $('#imoInputEmail').val('');
+      });
 
        defer.resolve();
      });
