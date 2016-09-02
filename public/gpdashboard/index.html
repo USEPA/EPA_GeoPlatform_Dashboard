@@ -32,7 +32,7 @@
       ga('require', 'autotrack');
       ga('send', 'pageview');
 	</script>
-    <script src='js/ga/autotrack.js'></script>
+    <script src='js/libs/ga/autotrack.js'></script>
 
     <title>GeoPlatform Dashboard</title>
   </head>
@@ -1256,8 +1256,12 @@
              <div role="tabpanel" class="tab-pane" id="edgView" >
                  <div id="edgItemsPage">
                      <h2 class="sub-header">EDG Items
-                     <a id="edgExport" class="btn btn-primary" href="edgitems/list.csv">Export Audit Status</a></h2>
+                         <a id="edgExport" class="btn btn-primary" href="edgitems/list.csv">Export Audit Status</a>
+                         <a id="metricsToggle" class="btn btn-primary" data-toggle="collapse" data-target="#edgMetrics">View Metrics</a>
+                     </h2>
                      <p>Work on this pane is still in progress. When complete, this pane will allow users to review metadata records in the EDG, see which have been linked to GeoPlatform content items, and audit the quality of records for compliance with the EDG Metadata Technical Specification. We also anticipate providing summary statistics and progress metrics.</p>
+                     <div id="edgMetrics" class="collapse">
+                     </div>
                      <table id="edgItemsTable" class="table table-hover table-bordered table-responsive" data-bind="dataTable:
                             {
                                 deferRender: true,
@@ -1438,15 +1442,16 @@
     </div>
 
 
-    <script src="js/jquery1.11.3/jquery.min.js"></script>
-    <script src="js/jquery1.11.3/jquery.dataTables.min.js"></script>
-    <script src="js/jquery1.11.3/dataTables.buttons.min.js"></script>
-    <script src="js/jquery1.11.3/dataTables.bootstrap.min.js"></script>
+    <script src="js/libs/jquery1.11.3/jquery.min.js"></script>
+    <script src="js/libs/jquery1.11.3/jquery.dataTables.min.js"></script>
+    <script src="js/libs/jquery1.11.3/dataTables.buttons.min.js"></script>
+    <script src="js/libs/jquery1.11.3/dataTables.bootstrap.min.js"></script>
     <script src="bootstrap/js/bootstrap.min.js"></script>
     <script src="bootstrap/js/jasny-bootstrap.min.js"></script>
+    <script src="js/libs/d3/d3.min.js"></script>
 
-    <script src="js/tinymce/tinymce.min.js"></script>
-    <script src="js/tinymce/tinymce.jquery.min.js"></script>
+    <script src="js/libs/tinymce/tinymce.min.js"></script>
+    <script src="js/libs/tinymce/tinymce.jquery.min.js"></script>
     <script src="js/wysiwyg.js"></script>
 
     <script src="js/knockout.bindings.dataTables.cog.js"></script>
@@ -1458,7 +1463,7 @@
     <script src="js/edgItems.js"></script>
     <script src="js/Audit.js"></script>
     <!-- Due to some weird timing issues, this order needs to be followed -->
-    <script src="js/esrijsapi/dojo/dojo.js" data-dojo-config="async: true"></script>
+    <script src="js/libs/esrijsapi/dojo/dojo.js" data-dojo-config="async: true"></script>
     <!--<script src="//js.arcgis.com/3.15compact/"></script>-->
     <script src="js/gpLogin.js"></script>
 
