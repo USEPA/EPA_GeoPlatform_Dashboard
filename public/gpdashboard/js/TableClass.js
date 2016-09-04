@@ -301,7 +301,6 @@ egam.controls.Table.prototype.checkRow = function(itemField, evt) {
     this.checkedRows.splice(index, 1);
     console.log("unChecked :: ", evt);
   }
-  //console.log(this.checkedRows());
   return true;
 };
 
@@ -325,7 +324,6 @@ egam.controls.Table.prototype.checkAll = function(model, evt, field) {
           self.checkRow(rowData.doc()[field],evt);
         }
   });
-  //console.log(self.checkedRows());
 
   return true;
 };

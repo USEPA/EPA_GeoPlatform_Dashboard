@@ -62,18 +62,13 @@ egam.models.gpoItemCheckList.PageModelClass.prototype.init = function() {
   ko.applyBindings(self, self.$pageElement[0]);
   console.log('Bindings Applied: ' + new Date());
 
-  // //Now initialize the table. ie. download data and create table rows
-  // //the payload can be reduced if resultFields array was set
+  //Now initialize the table. ie. download data and create table rows
+  //the payload can be reduced if resultFields array was set
   var fields = this.resultFields || {};
 
   var query = null;
   var projection = null;
-  // var projection = {
-  //   sort: {
-  //     modified: -1,
-  //   },
-  //   fields: fields,};
-  //
+
   return self.table.init('gpochecklists/list', query, projection)
     //After table is loaded we can do other stuff
     .then(function() {
@@ -262,11 +257,6 @@ egam.models.gpoItemCheckList.DetailsModel.prototype.makeChecklistPublic = functi
 egam.models.gpoItemCheckList.DetailsModel.prototype.selectIndex = function(index) {
   this.select(this.parent.table.items[index]);
 };
-
-// egam.models.gpoItemCheckList.PageModelClass.prototype.check = function(item, evt) {
-//
-//   console.log(item);
-// };
 
 egam.models.gpoItemCheckList.PageModelClass.prototype.showGPOCheckList = function() {
 
