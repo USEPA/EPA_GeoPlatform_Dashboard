@@ -220,6 +220,29 @@ utilities.getArrayFromDB = function(collection,query,field) {
   return defer.promise;
 };
 
+utilities.streamDocsFromDB = function(collection,query,projection) {
+  //This should be faster with streaming
+  var Q = require('q');
+
+  var outArray = [];
+  var defer = Q.defer();
+  if (! projection) projection = {};
+  projection.stream = true;
+  collection.find(query, projection)
+    .each(function(doc) {
+      //Push doc.field to the array now
+      outArray.push(doc);
+    })
+    .error(function(err) {
+      defer.reject('Error getting Array of Docs From DB: ' + err);
+    })
+    .success(function() {
+      defer.resolve(outArray);
+    });
+
+  return defer.promise;
+};
+
 utilities.getDistinctArrayFromDBaggregate = function(collection,query,field) {
   //Using Aggregate was VERY slow for 11,000 gpoitems on owner
 

@@ -15,9 +15,13 @@ ScriptLogs.prototype.log = function(log) {
   console.log(log);
 };
 
-ScriptLogs.prototype.error = function(error) {
+ScriptLogs.prototype.error = function(error,ex) {
   if (!error) {
     return;
+  }
+  //Make it easy to log the exception info/stack also by just passing it
+  if (ex) {
+    error += ' ' + ex.stack || ex;
   }
   this.errors.push(error);
   console.error(error);

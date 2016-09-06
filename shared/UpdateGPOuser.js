@@ -8,8 +8,8 @@ utilities.inheritClass(UpdateGPOgenericClass,UpdateGPOuser);
 //Name this function so that class name will come up in debugger, etc.
 function UpdateGPOuser(collection,extensionsCollection,session,config) {
   //Run the parent constructor first
-  //"user" is the updateKey used for updating and "user" is just updateName
-  //which is text used on errors, logging, etc
+  // "username" is the updateKey used for updating
+  // "user" is just updateName which is text used on errors, logging, etc
   this.__parent__.constructor.call(
       this,
       'username',

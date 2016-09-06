@@ -7,23 +7,38 @@ var DownloadGPOdata =  function() {
   //ESRI only allows total = 10,000 in search, we need to get pages of 10,000
   //(or whatever is set here if it changes)
   this.requestQueryRowLimit = 10000;
+//Note: requestQueryRowLimit set to null since ESRI limit was increased to more than 10,000  11/24/2015
   this.requestQueryRowLimit = null;
 
   this.requestItemCount = 100;
 
   this.useSync = false;
+
+  //The AsyncRequestLimit is the number of async requests to ESRI search that are called at once asynchronously
+  //Each search is made up of this.requestItemCount number of rows
+  //set to null to run all at one time
+  //set to 0 or 1 to run synchronously
+  //If you set too many async requests to be run at one time it can cause crashing.
+
   //How many aysnc requests can be run at one time. too many and things crash
   //set to null to run all at one time (can crash for large data sets)
   //setting to 0 or 1 is the same as useSync=true
   this.AsyncRequestLimit = 50;
-  //How many aysnc requests can be run at one time. too many and things crash
-  //set to null to run all at one time (can crash for large data sets)
-  //setting to 0 or 1 is the same as useSync=true
-  this.AsyncRowLimit = 25;
-  //When running audit asynchronously but can only process requestItemCount
-  // total a one time
+
+  //The <Type>RowLimit is the number of async rows that are called at once asynchronously for different <Type> of download
   //set to null to run all at one time
+  //set to 0 or 1 to run synchronously
+  //If you set too many async requests to be run at one time it can cause crashing.
+
+  //this.AsyncRowLimit is for downloading slash data
+  this.AsyncRowLimit = 25;
+
+  //For doing Audit
   this.AsyncAuditRowLimit = 100;
+
+  //For getting Owner Folders
+  this.AsyncOwnerFolderRowLimit = 25;
+
 
   //To only get metadata set to true, usually set to false
   this.onlyGetMetaData = false;
@@ -135,8 +150,6 @@ DownloadGPOdata.prototype.downloadInner = function() {
   //Each AGOL request retrieves a number of rows equal to requestItemCount
   this.hr.saved.currentRequest = 1;
 
-  //ModifiedGPOrow is needed when processing modified items to get slash data
-  this.hr.saved.modifiedGPOrow = 1;
 
   //Place to store ALL the new GPO id's taken from the website with modified
   //data
@@ -147,8 +160,16 @@ DownloadGPOdata.prototype.downloadInner = function() {
   //This will store the modified item owner which is needed to get Folder Name
   //from Folder ID
   this.hr.saved.modifiedItemOwners = {};
-  //This will store thumbnail names for gpoID's
-  this.hr.saved.modifiedThumbnails = {};
+
+//This was for testing/debugging the duplicate issue. remove soon
+//  this.hr.saved.duplicateGPOids = [];
+//  this.hr.saved.duplicateRequestStart = {};
+//END This was for testing/debugging the duplicate issue. remove soon
+
+  //ModifiedSlashDataGPOrow is needed when processing modified items to get slash data
+  this.hr.saved.modifiedSlashDataGPOrow = 1;
+  //This is where the item information for modified slash data to download is stored
+  this.hr.saved.modifiedSlashDataGPOitems = [];
 
   if (this.AsyncRequestLimit === 0 || this.AsyncRequestLimit === 1)  {
     this.useSync = true;
@@ -203,15 +224,40 @@ DownloadGPOdata.prototype.downloadInner = function() {
     .then(self.getSelfInvokedFunction(self.getOrgId))
     .then(self.getSelfInvokedFunction(self.getLocalMaxModifiedDates))
     .then(self.getSelfInvokedFunction(self.getGPOitemsPaging))
+    .then(self.getSelfInvokedFunction(self.getSlashDataMaxModifiedDateItems))
     .then(self.getSelfInvokedFunction(getGPOdata))
 //    .then(self.getSelfInvokedFunction(self.getSingleGridFS))
+    .then(self.getSelfInvokedFunction(self.getAllOwnerFolders))
     .then(self.getSelfInvokedFunction(self.removeLocalGPOitems))
     .catch(function(err) {
-      var errMsg = err.stack || err;
       self.downloadLogs.error(
-        'Error running DownloadGPOdata.download():\n' + errMsg);
+        'Error running DownloadGPOdata.download():\n', err);
     })
     .then(function() {
+//This was for testing/debugging the duplicate issue. remove soon
+//      console.log("this.hr.saved.modifiedGPOids.length " + self.hr.saved.modifiedGPOids.length);
+//      console.log("this.hr.saved.duplicateGPOids " + self.hr.saved.duplicateGPOids);
+//      console.log("this.hr.saved.duplicateRequestStart " + self.hr.saved.duplicateRequestStart);
+
+//      var duplicates = {};
+//      self.hr.saved.modifiedGPOids.forEach(
+//        function (id) {
+//          if (self.hr.saved.duplicateGPOids.indexOf(id) > -1) {
+//            if (!(id in duplicates)) {
+//              duplicates[id] = 0
+//            }
+//            duplicates[id] += 1;
+//          }
+//        }
+//      );
+//      console.log("duplicates " + JSON.stringify(duplicates));
+//      Object.keys(duplicates).forEach(
+//        function (id) {
+//          console.log("duplicate id = " + id + " requestStarts = " + self.hr.saved.duplicateRequestStart[id]);
+//        }
+//      );
+//END This was for testing/debugging the duplicate issue. remove soon
+
       var defer = new self.Q.defer();
       self.db.on('close', function() {
         defer.resolve();
@@ -240,7 +286,7 @@ DownloadGPOdata.prototype.createIndices = function() {
     self.Q(self.historycollection.index({id: -1})),
     self.Q(self.historycollection.index({date: 1})),
     self.Q(self.historycollection.index({date: -1})),
-    self.Q(self.extensionsCollection.index({id: -1})),
+    self.Q(self.extensionsCollection.index({id: -1}))
   ])
 };
 
@@ -306,8 +352,8 @@ DownloadGPOdata.prototype.getOrgId = function() {
 
 //Routines for gettting all the items metadata from AGOL (Have to do this so
 //we know what items to delete from working local copy)
-DownloadGPOdata.prototype.getGPOitemsChunk = function(requestStart,
-                                                      HandleGPOitemsResponse) {
+DownloadGPOdata.prototype.getGPOitemsChunk = function(requestStart, HandleGPOitemsResponse) {
+  var self = this;
   if (!requestStart) {
     requestStart = this.hr.saved.requestStart;
   }
@@ -315,8 +361,13 @@ DownloadGPOdata.prototype.getGPOitemsChunk = function(requestStart,
   var url = this.portal + '/sharing/rest/search';
 
   var query = 'orgid:' + this.hr.saved.orgID;
+  var now = (new Date()).getTime();
   if (Array.isArray(this.ownerIDs) && this.ownerIDs.length > 0) {
-    var ownerQueries = this.ownerIDs.map(function(ownerID) {return 'owner:' + ownerID});
+    var ownerQueries = this.ownerIDs.map(function(ownerID) {
+//will be much faster if we use the max modified date for each owner instead of using the single min max modified date of all owners
+      var maxModDateQuery =  self.getModifiedQueryPart(self.hr.saved.localMaxModifiedDates[ownerID],now);
+      return '(owner:' + ownerID + ' AND ' + maxModDateQuery + ')';
+    });
 
     //    This.downloadLogs.log("ownerQueries length = " + ownerQueries.length);
 
@@ -324,10 +375,12 @@ DownloadGPOdata.prototype.getGPOitemsChunk = function(requestStart,
     //If query length is too long URL will be too large and return error
     //Therefore will have to download all owners at this point so only change
     //query to ownerQuery if within length limit
-    if (ownerQueryString.length < 5000) {
+
+//    if (ownerQueryString.length < 5000) {
       //Don't need orgid if we have owner IDs
-      query = ownerQueryString;
-    }
+//Actually don't need to limit the query now becasue we are passing it via POST
+    query = ownerQueryString;
+//    }
 
     //Just to test how long the query can be
     // this.downloadLogs.log("Full ownerQueryString length " + ownerQueryString.length);
@@ -345,24 +398,12 @@ DownloadGPOdata.prototype.getGPOitemsChunk = function(requestStart,
     //    query=ownerQueryString;
     //    this.downloadLogs.log("ownerQueryString = " + ownerQueryStringCount + ownerQueryString);
 
-  }
-
-  //If not removing local gpo items that have been removed from AGOL then only
-  //need to download modified items
-  //  if (this.dontRemoveGPOitems) {
-  //Also now we have to page by sorting by modified date to have to query using
-  //last max modified date as lower limit
-  if (this.hr.saved.remoteMaxModifiedDate) {
-    //Have to pad modified ms from 1970
-    var now = (new Date()).getTime();
-    //    Query += ' AND modified:[' + this.padNumber(this.hr.saved.localMaxModifiedDate) + ' TO ' + this.padNumber(now) + ']';
-    query += ' AND modified:[' +
-      this.padNumber(this.hr.saved.remoteMaxModifiedDate) +
-      ' TO ' + this.padNumber(now) + ']';
-    //Also don't get the remoteMaxModifiedDate,
-    //the REST API doesn't allow > only >=
-    query += ' AND NOT modified:' +
-      this.padNumber(this.hr.saved.remoteMaxModifiedDate);
+  } else {
+//If getting all owners then just pull from remoteMaxModifiedDate which is the min of the owner max modified (gets lots of stuff can be tweaked later)
+//If remoteMaxModifiedDate wasn't set then just get all. We need to get them all when figuring out which local items to remove
+    if (this.hr.saved.remoteMaxModifiedDate) {
+      query += ' AND ' + self.getModifiedQueryPart(self.hr.saved.remoteMaxModifiedDate, now);
+    }
   }
 
   var parameters = {
@@ -370,7 +411,7 @@ DownloadGPOdata.prototype.getGPOitemsChunk = function(requestStart,
     token: this.hr.saved.token,
     f: 'json',
     start: requestStart,
-    num: this.requestItemCount,
+    num: this.requestItemCount
   };
   //Due to paging of 10,000 item pages in query need to sort by modified date
   //now (also add id in case modified is same. I was losing items)
@@ -380,8 +421,11 @@ DownloadGPOdata.prototype.getGPOitemsChunk = function(requestStart,
   //Testing single ID
   //  var parameters = {'q':'id:e58dcd33a6d4474caf9d0dd7ea75778e','token' : hr.saved.token,'f' : 'json','start':requestStart,'num':requestItemCount };
 
-  var requestPars = {method: 'get', url: url, qs: parameters };
-  //  This.downloadLogs.log(parameters);
+//  var requestPars = {method: 'get', url: url, qs: parameters };
+// Try to post instead of get so that don't have query string limit
+  var requestPars = {method: 'post', url: url, form: parameters };
+
+//  this.downloadLogs.log(JSON.stringify("URL Parameters: " + JSON.stringify(parameters)));
 
   if (!HandleGPOitemsResponse) {
     if (this.useSync) {
@@ -397,6 +441,18 @@ DownloadGPOdata.prototype.getGPOitemsChunk = function(requestStart,
   }
   return this.hr.callAGOL(requestPars)
     .then(this.getSelfInvokedFunction(HandleGPOitemsResponse));
+};
+
+DownloadGPOdata.prototype.getModifiedQueryPart = function(start,end) {
+  //get query to search by modified datetime range
+  var query = 'modified:[' +
+    this.padNumber(start) +
+    ' TO ' + this.padNumber(end) + ']';
+  //Also don't get the start datetime,
+  //the REST API doesn't allow > only >=
+  query += ' AND NOT modified:' +
+    this.padNumber(start);
+  return query;
 };
 
 DownloadGPOdata.prototype.padNumber = function(num, size) {
@@ -419,7 +475,7 @@ DownloadGPOdata.prototype.getGPOitemsPaging = function() {
   //If we are not removing Local then we can use the localMaxModifiedDate for
   //initialization. Don't need to get everything.
   //Note this is actually just the MINIMUM of each owners max modified date.
-  // This is necessary because owners might be downloading indpendently and need
+  // This is necessary because owners might be downloading independently and need
   //to make sure we get all when downloading for all owners later.
   if (this.dontRemoveGPOitems) {
     this.hr.saved.remoteMaxModifiedDate = this.hr.saved.localMinMaxModifiedDate;
@@ -511,6 +567,10 @@ DownloadGPOdata.prototype.HandleGPOitemsResponseSync = function(body) {
 
   //Also find the max modified date for the entire requestQueryRowLimit=10,000
   //row "page" used to page to next 10,000 rows
+
+  this.downloadLogs.log("body.start + this.requestItemCount - 1 " + body.start + this.requestItemCount - 1);
+  this.downloadLogs.log("this.hr.saved.remoteGPOcount " + this.hr.saved.remoteGPOcount);
+
   if (body.start + this.requestItemCount - 1 === this.hr.saved.remoteGPOcount) {
     this.hr.saved.remoteMaxModifiedDate = body.results[body.results.length - 1].modified;
   }
@@ -592,12 +652,24 @@ DownloadGPOdata.prototype.storeModifiedDocs = function(body) {
   self.hr.saved.modifiedGPOids = self.hr.saved.modifiedGPOids
     .concat(modifiedGPOids);
 
+//END This was for testing/debugging the duplicate issue. remove soon
+//  modifiedGPOids.forEach(function(id) {
+//    if (id in self.hr.saved.duplicateRequestStart) {
+//      self.downloadLogs.log("self.hr.saved.duplicateRequestStart id= " + id);
+//      self.downloadLogs.log("self.hr.saved.duplicateRequestStart[id] " + self.hr.saved.duplicateRequestStart[id]);
+//      self.downloadLogs.log("typeof self.hr.saved.duplicateRequestStart[id] " + typeof(self.hr.saved.duplicateRequestStart[id]));
+//      self.hr.saved.duplicateRequestStart[id].push(self.hr.saved.requestStart);
+//    } else {
+//      self.hr.saved.duplicateRequestStart[id] = [self.hr.saved.requestStart];
+//    }
+//  });
+//END This was for testing/debugging the duplicate issue. remove soon
+
   //Save the owner of each item for geting the folder names later.
   //can't just map from item id to folder
   //Save the thumbnail names for downloading later
   modifiedGPOitems.forEach(function(item) {
     self.hr.saved.modifiedItemOwners[item.id] = item.owner;
-    self.hr.saved.modifiedThumbnails[item.id] = item.thumbnail;
   });
 
   //Begin hardcoded test of specific slash data downloads
@@ -651,20 +723,14 @@ DownloadGPOdata.prototype.saveModifiedGPOitems = function(modifiedGPOids,
 
   if (modifiedGPOitems.length > 0) {
     return self.Q(self.itemsCollection.remove({id: {$in: modifiedGPOids}}))
-//    Return self.Q(self.itemsCollection.find( {id:{$in:modifiedGPOids}} ))
-//      .then(function (docs) {console.log("!!!!!!! $in:modifiedGPOids !!!!!!!!!  " + JSON.stringify(docs))})
-//    return self.Q(true)
-//      .then(function () {
-//        var defer = self.Q.defer();
-//        self.Q(self.itemsCollection.remove( {id:{$in:modifiedGPOids}} ,function (err,removed) {
-//          console.log("*#*#*#*# removed modifiedGPOids *#*#*#*#" + removed);
-//          defer.resolve();
-//        } ));
-//        return defer.promise;}
-//    )
-//      .then(function () {return self.Q(self.itemsCollection.remove( {id:{$in:modifiedGPOids}})) })
-//      .then(function () {return self.itemsCollection.remove( {id:{$in:modifiedGPOids}}) })
-      .then(function() {return self.Q(self.itemsCollection.insert(modifiedGPOitems))})
+//This was for testing/debugging the duplicate issue. remove soon
+//    return self.Q(self.itemsCollection.find( {id:{$in:modifiedGPOids}} ))
+//      .then(function (docs) {if (docs.length>0) {self.hr.saved.duplicateGPOids=self.hr.saved.duplicateGPOids.concat(docs.map(function (doc) {return doc.id;}));console.log("!!!!!!! $in:modifiedGPOids !!!!!!!!!  " + docs.length + " " + JSON.stringify(docs))}})
+//END This was for testing/debugging the duplicate issue. remove soon
+      .then(function(value) {return self.Q(self.itemsCollection.insert(modifiedGPOitems))})
+      //This was for testing/debugging the duplicate issue. remove soon
+      //      .then(function(value) {if (value>0) {console.log("remove return value > modifiedGPOids = " + modifiedGPOids)};return self.Q(self.itemsCollection.insert(modifiedGPOitems))})
+      //END This was for testing/debugging the duplicate issue. remove soon
       .then(function() {return self.Q(self.historycollection.insert(historyGPOitems))})
       .then(function() {return self.getGPOaudit(modifiedGPOitems);});
 //      .then(function () {return self.getLocalGPOids()})
@@ -720,34 +786,32 @@ DownloadGPOdata.prototype.getGPOitemsAsyncFromStartArray = function() {
       .slice(self.hr.saved.currentRequest - 1);
   }
 
-  self.downloadLogs.log(this.hr.saved.remoteGPOrow + ' ' +
-    requestStartArray.length);
+  self.downloadLogs.log('remoteGPOrow = ' + this.hr.saved.remoteGPOrow + ' requestStartArray.length = ' + requestStartArray.length);
 
   if (this.hr.saved.remoteGPOcount > 0 && requestStartArray.length === 0) {
     //This is catatrosphic error that should never happen if remote GPO items
     //exist. If this happens then need to make sure hybrid loop will exit and
     //resolve promise.
     //Should probably email this to admin
-    self.downloadLogs.error('Catastrophic Error. No start array probably because AsyncRequestLimit set too high.');
+    self.downloadLogs.error('Catastrophic Error. No start array probably because AsyncRequestLimit set too high. ' + this.hr.saved.remoteGPOrow + ' ' + requestStartArray.length);
     self.hr.saved.remoteGPOrow = self.hr.saved.remoteGPOcount + 1;
     defer.resolve();
   }
 
   async.forEachOf(requestStartArray, function(requestStart, index, done) {
-    //      Self.downloadLogs.log(key+this.hr.saved.modifiedGPOrow)
     self.getGPOitemsChunk(requestStart)
         .then(function() {
           //                Self.downloadLogs.log(String(key+1) + 'done');
         done();})
         .catch(function(err) {
-          self.downloadErrors.error('Error in async.forEachOf while calling getGPOitemsChunk() in DownloadGPOdata.getGPOitemsAsyncFromStartArray:', err.stack);
+          self.downloadLogs.error('Error in async.forEachOf while calling getGPOitemsChunk() in DownloadGPOdata.getGPOitemsAsyncFromStartArray:', err);
         })
         .done(function() {
           //          Self.downloadLogs.log('for loop success')
         });
   }
     , function(err) {
-      if (err) self.downloadErrors.error('Error with async.forEachOf while looping over GPO item chunks in DownloadGPOdata.getGPOitemsAsyncFromStartArray:', err.stack);
+      if (err) self.downloadLogs.error('Error with async.forEachOf while looping over GPO item chunks in DownloadGPOdata.getGPOitemsAsyncFromStartArray:', err);
       //Resolve this promise
       //      self.downloadLogs.log('resolve')
       defer.resolve();
@@ -798,11 +862,13 @@ DownloadGPOdata.prototype.getSingleGPOdata = function(modifiedGPOrow) {
 
   //If async loop then have to pass the row
   if (!modifiedGPOrow) {
-    modifiedGPOrow = self.hr.saved.modifiedGPOrow;
+    modifiedGPOrow = self.hr.saved.modifiedSlashDataGPOrow;
   }
 
-  var currentGPOid = self.hr.saved.modifiedGPOids[modifiedGPOrow - 1];
-  var currentThumbnail = self.hr.saved.modifiedThumbnails[currentGPOid];
+  //get the modified items pertaining to the slash data downloading
+  var currentGPOitem = self.hr.saved.modifiedSlashDataGPOitems[modifiedGPOrow - 1];
+  var currentGPOid = currentGPOitem.id;
+  var currentThumbnail = currentGPOitem.thumbnail;
 
   var urlSlash = self.portal + '/sharing/rest/content/items/' +
     currentGPOid + '/data';
@@ -823,18 +889,19 @@ DownloadGPOdata.prototype.getSingleGPOdata = function(modifiedGPOrow) {
       if (!historyID) {
         //Need to increment the row so that loop based on row count does
         //not get stuck
-        self.hr.saved.modifiedGPOrow += 1;
+        self.hr.saved.modifiedSlashDataGPOrow += 1;
         throw 'History ID not found';
       }
     })
     .then(function() {
+      //Note: passing initial SlashData object so we can attach modified here (and other stuff in future if needed)
       return self.getSingleGPOdataPart(requestParsSlash,
-        self.getHandleGPOslashData,currentGPOid,historyID);
+        self.getHandleGPOslashData,currentGPOitem,historyID);
     })
     .then(function(slashData) {
       if (currentThumbnail) {
         return self.getSingleGPOdataPart(requestParsThumb,
-          self.getHandleGPOthumbnail, currentGPOid, historyID, slashData);
+          self.getHandleGPOthumbnail, currentGPOitem, historyID, slashData);
       }
     })
     .catch(function(error) {
@@ -847,7 +914,7 @@ DownloadGPOdata.prototype.getSingleGPOdata = function(modifiedGPOrow) {
 };
 
 DownloadGPOdata.prototype.getSingleGPOdataPart = function(requestPars,
-                                                          handler,currentGPOid,
+                                                          handler,currentGPOitem,
                                                           historyID,slashData) {
   var self = this;
   var defer = self.Q.defer();
@@ -855,7 +922,7 @@ DownloadGPOdata.prototype.getSingleGPOdataPart = function(requestPars,
   //First get the latest history ID needed to update history slashData
   //Note: Have to use the on('response') event so that we can get a streaming
   //response variable for saving to gridFS
-  var requestHandler = handler.call(self, defer, currentGPOid,
+  var requestHandler = handler.call(self, defer, currentGPOitem,
                                     historyID, slashData);
 
   self.request(requestPars)
@@ -863,7 +930,7 @@ DownloadGPOdata.prototype.getSingleGPOdataPart = function(requestPars,
     requestHandler)
     .on('error', function(err) {
       defer.reject('Error getting single GPO data part for ' +
-        currentGPOid + ' : ' + err);
+        currentGPOitem.id + ' : ' + err);
     });
 
   return defer.promise;
@@ -887,19 +954,28 @@ DownloadGPOdata.prototype.getLatestHistoryID = function(GPOid) {
 };
 
 DownloadGPOdata.prototype.getHandleGPOslashData = function(defer,
-                                                           currentGPOid,
-                                                           historyID) {
+                                                           currentGPOitem,
+                                                           historyID,SlashData) {
   var self = this;
   //Must have access to the defer created for calling request function that
   //produced response so it can be resolved
   return function HandleGPOslashdata(response) {
+    var currentGPOid = currentGPOitem.id;
     //NOte the response sent to here is the readable stream form of response
     //not the object that contains the body
 
     //If response is text then just save to mongo normall on GPOitems
     //Otherwise save to Grid FS collection on mongo
     var contentType = response.headers['content-type'] || '';
-    var SlashData = {text: null,json: null,binaryID: null,type: contentType};
+    //No longer need to save "json" field which was actually js literal object anyway.
+    // "text" is actually just JSON anyway and won't be altered by MONGO so it doesn't match ESRI
+    //Pass slash data now so that you can put other fields on it from calling function if needed
+    //Already passing slash data for thumbnail anyway
+    if (! SlashData) {SlashData={}}
+    SlashData.text = null;
+    SlashData.binaryID = null;
+    SlashData.type = contentType;
+    SlashData.modified = currentGPOitem.modified;
 
     if (contentType.match('^text/')) {
       //If not binary then just read in chunks of data
@@ -946,35 +1022,38 @@ DownloadGPOdata.prototype.getHandleGPOslashData = function(defer,
         }
 
         self.saveStreamToGridFS(response, currentGPOid,
-            historyID, SlashData,filename).catch(function(err) {
+            historyID, SlashData,filename)
+          .catch(function(err) {
           defer.reject('Error updating binary Slash Data to Grid FS : ' + err);
-        }).done(function() {
+          })
+          .done(function() {
           defer.resolve(SlashData);
         });
       }
     }
 
     //Note: this not usd for pure async, for hybrid it only determines
-    //modifiedGPOrow at start of each aysnc foreach loop
-    self.hr.saved.modifiedGPOrow += 1;
+    //modifiedSlashDataGPOrow at start of each aysnc foreach loop
+    self.hr.saved.modifiedSlashDataGPOrow += 1;
 
     return true;
   };
 };
 
 DownloadGPOdata.prototype.getHandleGPOthumbnail = function(defer,
-                                                           currentGPOid,
+                                                           currentGPOitem,
                                                            historyID,
                                                            slashData) {
   var self = this;
   //Must have access to the defer created for calling request function that
   //produced response so it can be resolved
   return function HandleGPOthumbnail(response) {
+    var currentGPOid = currentGPOitem.id;
     //NOte the response sent to here is the readable stream form of response
     //not the object that contains the body
 
-    //Try to get filename from response header
-    var filename = self.hr.saved.modifiedThumbnails[currentGPOid];
+    //BY passing GPOitem we can get field values
+    var filename = currentGPOitem.thumbnail;
 
     self.saveStreamToGridFS(response, currentGPOid, historyID,
         slashData, filename, 'thumbnail').catch(function(err) {
@@ -1008,7 +1087,7 @@ DownloadGPOdata.prototype.saveStreamToGridFS = function(readableStream,id,
   //Use gpo item id as name of file in grid fs
   var writestream = self.gfs.createWriteStream(
     {filename: filename,
-      metadata: {id: id,type: binaryType},}
+      metadata: {id: id,type: binaryType}}
   );
   //When done writing need to resolve the promise
   writestream.on('close', function(file) {
@@ -1044,7 +1123,7 @@ DownloadGPOdata.prototype.updateModifiedGPOdataBinaryID = function(gridDefer,
     this.Q(this.itemsCollection.update({id: id},
       {$set: {SlashData: SlashData}})),
     this.Q(this.historycollection.update({_id: historyID},
-      {$set: {'doc.SlashData': SlashData}})),
+      {$set: {'doc.SlashData': SlashData}}))
   ])
     .catch(function(err) {
       //Don't reject the deferred because it will break the chain need to try
@@ -1069,7 +1148,7 @@ DownloadGPOdata.prototype.updateModifiedGPOdataObjectLiteral = function(defer,
     self.Q(self.itemsCollection.update({id: id},
       {$set: {SlashData: SlashData}})),
     self.Q(self.historycollection.update({_id: historyID},
-      {$set: {'doc.SlashData': SlashData}})),
+      {$set: {'doc.SlashData': SlashData}}))
   ])
     .catch(function(err) {
       //Don't reject the deferred because it will break the chain need to try
@@ -1124,7 +1203,7 @@ DownloadGPOdata.prototype.UpdateModifieGPOdataAsText = function(id, historyID,
     self.Q(this.itemsCollection.update({id: id},
       {$set: {SlashData: SlashData}})),
     self.Q(this.historycollection.update({_id: historyID},
-      {$set: {'doc.SlashData': SlashData}})),
+      {$set: {'doc.SlashData': SlashData}}))
   ])
     .catch(function(err) {
       self.downloadLogs.log('Trying to save as Grid FS, Error updating slash data forced AS Text for ' + id + ' : ' + err);
@@ -1144,17 +1223,17 @@ DownloadGPOdata.prototype.UpdateModifieGPOdataAsText = function(id, historyID,
   return textDefer.promise;
 };
 
-DownloadGPOdata.prototype.getGPOdataSync = function(GPOids) {
+DownloadGPOdata.prototype.getGPOdataSync = function() {
   var self = this;
   return self.hr.promiseWhile(function() {
-    return self.hr.saved.modifiedGPOrow <= self.hr.saved.modifiedGPOcount;
+    return self.hr.saved.modifiedSlashDataGPOrow <= self.hr.saved.modifiedSlashDataGPOitems.length;
   }, self.getSelfInvokedFunction(self.getSingleGPOdata));
 };
 
 DownloadGPOdata.prototype.getGPOdataHybrid = function() {
   var self = this;
   return self.hr.promiseWhile(function() {
-    return self.hr.saved.modifiedGPOrow <= self.hr.saved.modifiedGPOcount;
+    return self.hr.saved.modifiedSlashDataGPOrow <= self.hr.saved.modifiedSlashDataGPOitems.length;
   }, self.getSelfInvokedFunction(self.getGPOdataAsync));
 };
 
@@ -1167,29 +1246,29 @@ DownloadGPOdata.prototype.getGPOdataAsync = function() {
   //  Q.when(getSingleGPOdata,function () {self.downloadLogs.log('resolve');defer.resolve()});
   //  getSingleGPOdata(1).then(function () {self.downloadLogs.log('resolve');defer.resolve()});
 
-  var GPOids;
+  var GPOitems;
   if (self.AsyncRowLimit) {
     //Take slice form current row to async row limit
-    GPOids = self.hr.saved.modifiedGPOids
-      .slice(self.hr.saved.modifiedGPOrow - 1,
-        self.hr.saved.modifiedGPOrow - 1 + self.AsyncRowLimit);
+    GPOitems = self.hr.saved.modifiedSlashDataGPOitems
+      .slice(self.hr.saved.modifiedSlashDataGPOrow - 1,
+        self.hr.saved.modifiedSlashDataGPOrow - 1 + self.AsyncRowLimit);
   }else {
-    GPOids = self.hr.saved.modifiedGPOids;
+    GPOitems = self.hr.saved.modifiedSlashDataGPOitems;
   }
 
-  //Need to get the value of modifiedGPOrow when this function is called
+  //Need to get the value of modifiedSlashDataGPOrow when this function is called
   //because getSingleGPOdata changes it
-  //THis is basically the modifiedGPOrow when the async loop started
-  var asyncStartModifiedGPOrow = self.hr.saved.modifiedGPOrow;
+  //THis is basically the modifiedSlashDataGPOrow when the async loop started
+  var asyncStartModifiedGPOrow = self.hr.saved.modifiedSlashDataGPOrow;
   self.downloadLogs.log('Slash Data download from row ' +
     asyncStartModifiedGPOrow + ' to ' +
-    (asyncStartModifiedGPOrow + GPOids.length - 1));
+    (asyncStartModifiedGPOrow + GPOitems.length - 1));
 
-  async.forEachOf(GPOids, function(value, key, done) {
-    //      Self.downloadLogs.log(key+this.hr.saved.modifiedGPOrow)
+  async.forEachOf(GPOitems, function(value, key, done) {
+    //      Self.downloadLogs.log(key+this.hr.saved.modifiedSlashDataGPOrow)
     self.getSingleGPOdata(key + asyncStartModifiedGPOrow)
         .catch(function(err) {
-          self.downloadLogs.error('Error in async.forEachOf while calling getSingleGPOdata in DownloadGPOdata.getGPOdataAsync:' + err.stack);
+          self.downloadLogs.error('Error in async.forEachOf while calling getSingleGPOdata in DownloadGPOdata.getGPOdataAsync:',err);
         })
         .done(function() {
           done();
@@ -1197,7 +1276,7 @@ DownloadGPOdata.prototype.getGPOdataAsync = function() {
         });
   }
     , function(err) {
-      if (err) self.downloadLogs.error('Error in async.forEachOf while looping over GPO data items in DownloadGPOdata.getGPOdataAsync:' + err.stack);
+      if (err) self.downloadLogs.error('Error in async.forEachOf while looping over GPO data items in DownloadGPOdata.getGPOdataAsync:',err);
       //Resolve this promise
       //      self.downloadLogs.log('resolve')
       defer.resolve();
@@ -1278,28 +1357,83 @@ DownloadGPOdata.prototype.getLocalMaxModifiedDates = function() {
   }
 
   self.hr.saved.localMaxModifiedDates = {};
-  self.hr.saved.localMinMaxModifiedDate = 0;
+  self.hr.saved.localMinMaxModifiedDate = null;
 
   return self.Q.ninvoke(self.itemsCollection.col,'aggregate',
     [
       {$match: query },
       {$group: {
         _id: '$owner',
-        modified:  { $max: '$modified' },
-      },},
+        modified:  { $max: '$modified' }
+      }}
     ]).then(function(docs) {
       docs.forEach(function(doc) {
         self.hr.saved.localMaxModifiedDates[doc._id] = doc.modified;
-        if (doc.modified > self.hr.saved.localMinMaxModifiedDate) {
-          self.hr.saved.localMinMaxModifiedDate = doc.modified;
+        //If localMinMaxModifiedDate hasn't been initialized then set to first max mod date
+        if (self.hr.saved.localMinMaxModifiedDate===null || doc.modified < self.hr.saved.localMinMaxModifiedDate) {
+          //doc.modified shouldn't be falsey but if it is use 0
+          self.hr.saved.localMinMaxModifiedDate = doc.modified || 0;
         }
       });
+      //If localMinMaxModifiedDate is still null then make it 0
+      if (! self.hr.saved.localMinMaxModifiedDate) {
+        self.hr.saved.localMinMaxModifiedDate = 0;
+      }
       self.downloadLogs.log('Min Last Modified Date: ' +
         new Date(self.hr.saved.localMinMaxModifiedDate));
       return self.hr.saved.localMaxModifiedDates;
-    })
+    });
 };
 
+DownloadGPOdata.prototype.getSlashDataMaxModifiedDateItems = function() {
+  //If no local gpo items then need to get all. accomplished if max
+  //modified date is <  min remote mod date
+  //Assume 0 (equal to 1970) is early enough to get everything
+  var self = this;
+
+  //Don't even have to do this if not getting slash data
+  if (self.onlyGetMetaData) {return true};
+
+  return self.getSlashDataMaxModifiedDate()
+    .then(function(maxModifiedDate) {
+      //need to get the thumbnail and modified
+      return self.itemsCollection.find({modified: {$gt: maxModifiedDate}}, {fields:{id: 1, thumbnail: 1, modified: 1},sort:[['modified','asc'],['id','asc']]});
+    })
+    .then(function(docs) {
+      //save the docs item info where modified greater than slash data max modified
+      if (docs.length>0) console.log("last slash mod " + docs[docs.length-1].id);
+      self.hr.saved.modifiedSlashDataGPOitems = docs;
+      return docs;
+    });
+
+};
+
+DownloadGPOdata.prototype.getSlashDataMaxModifiedDate = function() {
+  //Find the max slash data modified date (which corresponds to item modified date when slash data last downloaded)
+
+  //Don't need to get max for each owner because slash is not run at login
+  var self = this;
+
+  var query = {};
+
+  self.hr.saved.localSlashDataMaxModifiedDate = 0;
+
+  return self.Q.ninvoke(self.itemsCollection.col,'aggregate',
+    [
+      {$match: query },
+      {$group: {
+        _id: 1,
+        modified:  { $max: '$SlashData.modified' }
+      }}
+    ]).then(function(docs) {
+    docs.forEach(function(doc) {
+      self.hr.saved.localSlashDataMaxModifiedDate = doc.modified || 0;
+    });
+    self.downloadLogs.log('Slash Data Max Last Modified Date: ' +
+      new Date(self.hr.saved.localSlashDataMaxModifiedDate));
+    return self.hr.saved.localSlashDataMaxModifiedDate;
+  });
+};
 
 DownloadGPOdata.prototype.getLocalGPOids = function() {
   var self = this;
@@ -1380,7 +1514,7 @@ DownloadGPOdata.prototype.getSingleGPOaudit = function(itemsContext,
   }
 
   //Note: this not usd for pure async, for hybrid it only determines
-  //modifiedGPOrow at start of each aysnc foreach loop
+  //item row at start of each aysnc foreach loop
   itemsContext.row += 1;
 
   audit.validate(auditGPOitem);
@@ -1394,7 +1528,10 @@ DownloadGPOdata.prototype.getSingleGPOaudit = function(itemsContext,
     .then(function() {
       //Sometimes might not want to get owner folders since the 2 REST calls
       //take some time. Maybe want to just get Folder IDs in future
-      if (self.dontGetOwnerFolders) return;
+      //Don't so this here any more. folder are retrieved at the end
+      if (self.dontGetOwnerFolders || 1==1) return;
+//These were cases where item was deleted but still in search
+//      if (self.dontGetOwnerFolders || auditGPOitem.id=="f0e3bb78eac74a12881ac3771d1b65f2" || auditGPOitem.id=="8b10a6ba02ca4f3ba616d757a223ca8e") return;
       return self.getLatestHistoryID(auditGPOitem.id)
       .then(function(historyID) {
           if (!historyID) {
@@ -1409,7 +1546,7 @@ DownloadGPOdata.prototype.getSingleGPOaudit = function(itemsContext,
     .catch(function(err) {
       self.downloadLogs.error(
         'Error updating Audit Data, Extensions Data, or Folder Data for ' +
-        auditGPOitem.id + ' : ' + err.stack);
+        auditGPOitem.id + ' : ',err);
     })
 };
 
@@ -1452,14 +1589,12 @@ DownloadGPOdata.prototype.getGPOauditAsync = function(itemsContext) {
     GPOitems = itemsContext.items;
   }
 
-  self.downloadLogs.log('Audit Data download from row ' +
-    itemsContext.row + ' to ' + (itemsContext.row + GPOitems.length - 1));
+//  self.downloadLogs.log('Audit Data download from row ' + itemsContext.row + ' to ' + (itemsContext.row + GPOitems.length - 1));
 
   async.forEachOf(GPOitems, function(gpoItem, index, done) {
       self.getSingleGPOaudit(itemsContext,gpoItem)
         .catch(function(err) {
-          self.downloadLogs.error('For Each Single GPO Audit Error :' +
-            err.stack);
+          self.downloadLogs.error('For Each Single GPO Audit Error :',err);
         })
         .done(function() {
           done();
@@ -1467,8 +1602,7 @@ DownloadGPOdata.prototype.getGPOauditAsync = function(itemsContext) {
         });
     }
     , function(err) {
-      if (err) self.downloadLogs.error('For Each GPO Audit Error :' +
-        err.message);
+      if (err) self.downloadLogs.error('For Each GPO Audit Error :',err);
       //Resolve this promise
       //      self.downloadLogs.log('resolve')
       defer.resolve();
@@ -1482,45 +1616,210 @@ DownloadGPOdata.prototype.getGPOauditAsync = function(itemsContext) {
 };
 //***End of audit stuff ***//
 
+
+//This will get the stuff saved in GPOuserExtensions collection and add
+//to GPOusers
+DownloadGPOdata.prototype.getGPOitemExtensions = function(id) {
+  var self = this;
+
+  return self.Q(self.extensionsCollection.findOne({id: id}, {fields: {_id: 0,id: 0}}))
+    .then(function(doc) {
+      if (!doc) return null;
+      return self.Q(self.itemsCollection.update({id: id},{$set: doc}));
+    });
+};
+
+//Beginning of getting owner Folder after getting everything else
+DownloadGPOdata.prototype.getAllOwnerFolders= function() {
+  //Sometimes might not want to get owner folders since the 2 REST calls
+  //take some time. Maybe want to just get Folder IDs in future
+  if (this.dontGetOwnerFolders ) return;
+//      if (self.dontGetOwnerFolders || auditGPOitem.id=="f0e3bb78eac74a12881ac3771d1b65f2" || auditGPOitem.id=="8b10a6ba02ca4f3ba616d757a223ca8e") return;
+
+  var useSync = false;
+  if (this.AsyncOwnerFolderRowLimit === 0 || this.AsyncOwnerFolderRowLimit === 1) {
+    useSync = true;
+  }
+
+  //Looping over ALL of the ids that were downloaded
+  var modifiedGPOids = this.hr.saved.modifiedGPOids;
+
+  //Need this new object itemsContext since can't use this.hr.saved to save row, count and id info
+  //because multiple getOwnerFolders running called by async getmetadata calls
+  var itemsContext = {};
+  itemsContext.row = 1;
+  itemsContext.count = modifiedGPOids.length;
+  itemsContext.ids = modifiedGPOids;
+
+  //String along aysn function calls to AGOL REST API
+  var getOwnerFoldersVersion = null;
+  if (useSync) {
+    this.downloadLogs.log('Perform getOwnerFolders using Sync');
+    getOwnerFoldersVersion = this.getOwnerFoldersSync;
+  } else {
+    if (this.AsyncOwnerFolderRowLimit === null) {
+      this.downloadLogs.log('Perform getOwnerFolders using Full Async ');
+      getOwnerFoldersVersion = this.getOwnerFoldersAsync;
+    }else {
+      this.downloadLogs.log('Perform getOwnerFolders using Hybrid ');
+      getOwnerFoldersVersion = this.getOwnerFoldersHybrid;
+    }
+  }
+
+  //Call this reference to function needs to have the "this" set to
+  //DownloadGPOdata using .call or else this=global scope in function
+  return getOwnerFoldersVersion.call(this,itemsContext);
+};
+
+DownloadGPOdata.prototype.getSingleOwnerFolder = function(itemsContext,id) {
+  var self = this;
+
+  //If async loop then have to pass the item
+  //for sync don't pass but get from current row
+  if (!id) {
+    id = itemsContext.ids[itemsContext.row - 1];
+  }
+
+  //Note: this not usd for pure async, for hybrid it only determines
+  //item row at start of each aysnc foreach loop
+  itemsContext.row += 1;
+
+//These were cases where item was deleted but still in search
+  return self.getLatestHistoryID(id)
+    .then(function(historyID) {
+      if (!historyID) {
+        throw 'History ID not found for GPO ID = ' + id;
+      }
+      return historyID;
+    })
+    .then(function(historyID) {
+      return self.getOwnerFolder(id, historyID);
+    })
+    .catch(function(err) {
+      self.downloadLogs.error(
+        'Error updating Owner Folder for ' + id + ' : ',err);
+    });
+};
+
+
+DownloadGPOdata.prototype.getOwnerFoldersSync = function(itemsContext) {
+  var self = this;
+  return self.hr.promiseWhile(function() {
+    return itemsContext.row <= itemsContext.count;
+  }, function() {
+    return self.getSingleOwnerFolder(itemsContext);
+  });
+};
+
+DownloadGPOdata.prototype.getOwnerFoldersHybrid = function(itemsContext) {
+  var self = this;
+  return self.hr.promiseWhile(function() {
+    return itemsContext.row <= itemsContext.count;
+  }, function() {
+    return self.getOwnerFoldersAsync(itemsContext);
+  });
+};
+
+DownloadGPOdata.prototype.getOwnerFoldersAsync = function(itemsContext) {
+  var self = this;
+  //ItemsContext is like this.hr.saved but just for this particular chunk of
+  //modified metadata
+  //this.hr.saved can not be used because it would be referenced by multiple
+  //getAudit calls by async getMetaData
+  var async = require('async');
+
+  var defer = self.Q.defer();
+
+  var GPOids;
+  if (self.AsyncOwnerFolderRowLimit) {
+    //Take slice form current row to async row limit
+    GPOids = itemsContext.ids
+      .slice(itemsContext.row - 1,
+        itemsContext.row - 1 + self.AsyncOwnerFolderRowLimit);
+  }else {
+    GPOids = itemsContext.items;
+  }
+
+//  self.downloadLogs.log('Audit Data download from row ' + itemsContext.row + ' to ' + (itemsContext.row + GPOitems.length - 1));
+  self.downloadLogs.log('Owner Folder download from row ' + itemsContext.row + ' to ' + (itemsContext.row + GPOids.length - 1));
+
+  async.forEachOf(GPOids, function(gpoID, index, done) {
+      self.getSingleOwnerFolder(itemsContext,gpoID)
+        .catch(function(err) {
+          self.downloadLogs.error('For Each Single Owner Folder Error :', err);
+        })
+        .done(function() {
+          done();
+          //          Self.downloadLogs.log('for loop success')
+        });
+    }
+    , function(err) {
+      if (err) self.downloadLogs.error('For Each Owner Folder Error :', err);
+      //Resolve this promise
+      //      self.downloadLogs.log('resolve')
+      defer.resolve();
+    });
+
+  //I have to return a promise here for so that chain waits until everything is
+  //done until it runs process.exit in done.
+  //chain was NOT waiting before and process exit was executing and data data
+  //not being retrieved
+  return defer.promise
+};
+
 DownloadGPOdata.prototype.getOwnerFolder = function(id,historyID) {
   var self = this;
 
   return self.Q.all([
-    self.getOwnerFolderID(id),
-    self.getOwnerFolderNames(self.hr.saved.modifiedItemOwners[id]),
-  ])
-  .spread(function(folderID,folderNames) {
-    var ownerFolder = {id: folderID,title: folderNames[folderID]};
-    return self.Q.all([
-      self.Q(self.itemsCollection.update({id: id},
-        {$set: {ownerFolder: ownerFolder}})),
-      self.Q(self.historycollection.update({_id: historyID},
-        {$set: {'doc.ownerFolder': ownerFolder}})),
-    ]);
-  });
+      self.getOwnerFolderID(id),
+      self.getOwnerFolderNames(self.hr.saved.modifiedItemOwners[id]),
+    ])
+    .spread(function(folderID,folderNames) {
+      var ownerFolder = {id: folderID,title: folderNames[folderID]};
+      return self.Q.all([
+        self.Q(self.itemsCollection.update({id: id},
+          {$set: {ownerFolder: ownerFolder}})),
+        self.Q(self.historycollection.update({_id: historyID},
+          {$set: {'doc.ownerFolder': ownerFolder}})),
+      ]);
+    });
 };
 
 DownloadGPOdata.prototype.getOwnerFolderID = function(id) {
   //  Return "";
   var self = this;
-  var itemURL = this.portal + '/sharing/rest/content/items/' + id ;
+  var itemURL = this.portal + '/sharing/rest/content/items/' + id;
 
-  var qs = {token: self.hr.saved.token,f: 'json'};
+  var qs = {token: self.hr.saved.token, f: 'json'};
 
   //Pass parameters via form attribute
-  var requestPars = {method: 'get', url: itemURL, qs: qs };
+  var requestPars = {method: 'get', url: itemURL, qs: qs};
 
   return this.hr.callAGOL(requestPars)
-    .then(function(body) {
+    .then(function (body) {
+      //remove this bad item from mongo. The ESRI search has bug returning old items that no longer exist
+      if (body.error && body.error.code == 400) {
+        self.downloadLogs.error('Removing item with id = ' + id + ' from local Mongo. This item no longer exists but ESRI has a bug which still returns it via their search.');
+        return self.Q(self.itemsCollection.remove({id: id})).then(function () {
+          return body;
+        });
+      } else {
+        return body;
+      }
+    })
+    .then(function (body) {
       //      Var body = JSON.parse(bodyJSON);
       if (body.error) {
-        console.error(body.error);
+        self.downloadLogs.error(body.error);
         throw(new Error('Error getting owner Folder ID: ' +
           JSON.stringify(body.error)));
       }
       //      Console.log(body.ownerFolder);
       return body.ownerFolder;
     })
+    .catch(function (err) {
+      self.downloadLogs.error('Error while getting getting Owner Folder ID for id = ' + id + ':', err);
+    });
 };
 
 //Note have to get the folder name via another endpoint if we don't have
@@ -1558,19 +1857,10 @@ DownloadGPOdata.prototype.getOwnerFolderNames = function(owner) {
       //      console.log( self.folderNames[owner]);
       return self.folderNames[owner];
     })
+    .catch(function (err) {console.error("Onwer Folder Names get error " + err)});
 
 };
 
-//This will get the stuff saved in GPOuserExtensions collection and add
-//to GPOusers
-DownloadGPOdata.prototype.getGPOitemExtensions = function(id) {
-  var self = this;
-
-  return self.Q(self.extensionsCollection.findOne({id: id}, {fields: {_id: 0,id: 0}}))
-    .then(function(doc) {
-      if (!doc) return null;
-      return self.Q(self.itemsCollection.update({id: id},{$set: doc}));
-    });
-};
+//***End of owner folder stuff ***//
 
 module.exports = DownloadGPOdata;

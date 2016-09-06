@@ -10,8 +10,8 @@ utilities.inheritClass(UpdateGPOgenericClass,UpdateGPOchecklist);
 //Also need itemsCollections to check for owners of items
 function UpdateGPOchecklist(checklistCollection,itemsCollection,session,config) {
   //Run the parent constructor first
-  //"user" is the updateKey used for updating and "user" is just updateName
-  //which is text used on errors, logging, etc
+  // "_id" is the updateKey used for updating checklists
+  // "checklist" is just updateName which is text used on errors, logging, etc
   this.__parent__.constructor.call(
       this,
       '_id',
