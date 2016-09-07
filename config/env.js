@@ -13,6 +13,9 @@ if (!env) {
   env = 'local';
 }
 
+//save the environment to put the config object at end. env variable changes as we are inheriting diff envs below
+var saveEnv = env;
+
 //If local environment then start with full staging config and merge in local
 //config (local config overrides)
 var localconfig = null;
@@ -62,5 +65,8 @@ if (stgconfig) {
 if (localconfig) {
   merge.recursive(config, localconfig);
 }
+
+//save the environment on the config object also in case caller needs to reference it
+config.env = saveEnv;
 
 module.exports = config;
