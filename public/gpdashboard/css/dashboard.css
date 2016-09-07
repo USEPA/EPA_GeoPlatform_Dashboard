@@ -274,4 +274,11 @@ a, span, tr, h4:hover {
     align:right;
     width:50px;
   }
+  #org-chart {
+    float:left;
+  }
+  #accesslev-chart {
+    float: left;
+  }
+
 

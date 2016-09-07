@@ -7,6 +7,8 @@ egam.models.edgItems = {};
 
 
 
+var organizationChart = dc.pieChart('#org-chart');
+var accessLevChart = dc.pieChart('#accesslev-chart');
 //Data here is the actual array of JSON documents that came back from the REST
 //endpoint
 egam.models.edgItems.PageModelClass = function() {
@@ -436,267 +438,74 @@ egam.models.edgItems.DetailsModel.prototype.selectIndex = function(index) {
 egam.models.edgItems.MetricsModel = function(data) {
   var self = this;
   var metricsDiv = '#edgMetrics';
-  //Object for storing frequency data
-  var fData = [
-    {org: 'EPA', freq: {pub: 0, nonpub: 0, respub: 0}},
-    {org: 'External', freq: {pub: 0, nonpub: 0, respub: 0}}
-  ];
-  //Assoc array for looking up access level names
-  var accessLevels = {
-    pub: 'public',
-    nonpub: 'non-public',
-    respub: 'restricted public'
-  };
+  // Create chart objects associated with the container elements identified by the css selector.
 
-  //Function to determine if a record is EPA owned or not
-  var getOrg = function(org) {
-    var orgObj = {};
-    if (org.match(/(EPA|Environmental Protection Agency)/)) {
-      //Return fData row associated w/ EPA
-      orgObj = $.grep(fData, function(e) { return e.org == 'EPA'; })[0];
+  var edgCross = crossfilter(data);
+  var all = edgCross.groupAll();
+
+  // Create categorical dimension
+  var accessLev = edgCross.dimension(function(d) {
+    return d.accessLevel;
+  });
+  // Produce counts records in the dimension
+  var accessLevGroup = accessLev.group();
+
+  // Summarize volume by quarter
+  var organization = edgCross.dimension(function(d) {
+    var org = '';
+    if (d.publisher.match(/(EPA|Environmental Protection Agency)/)) {
+      org = 'EPA';
     } else {
-      //Return fData row associated w/ external agency
-      orgObj = $.grep(fData, function(e) { return e.org == 'External'; })[0];
+      org = 'External';
     }
-    return orgObj;
-  };
-  //Loop through each row of EDG data
-  data.forEach(function(row) {
-    //Get the fData row for this EDG record's publisher
-    var orgObj = getOrg(row.publisher);
-    //Increment count for associated access level
-    switch (row.accessLevel) {
-      case 'public': {
-        orgObj.freq.pub += 1;
-        break;
-      }
-      case 'non-public': {
-        orgObj.freq.nonpub += 1;
-        break;
-      }
-      case 'restricted public': {
-        orgObj.freq.respub += 1;
-        break;
-      }
-    }
+    return org;
   });
+  var organizationGroup = organization.group();
 
-  //d3 code modified from: http://bl.ocks.org/NPashaP/96447623ef4d342ee09b
-  var barColor = 'steelblue';
-  function segColor(c) {
-    return {
-      pub: '#807dba',
-      nonpub: '#e08214',
-      respub: '#41ab5d'}[c];
-  }
-
-  //Compute total for each org.
-  fData.forEach(function(d) {
-    d.total = d.freq.pub + d.freq.nonpub + d.freq.respub;
-  });
-
-  //Function to handle histogram.
-  function histoGram(fD) {
-    var hG = {};
-    var hGDim = {t: 60, r: 0, b: 30, l: 0};
-    hGDim.w = 500 - hGDim.l - hGDim.r;
-    hGDim.h = 300 - hGDim.t - hGDim.b;
-
-    //Create svg for histogram.
-    var hGsvg = d3.select(metricsDiv).append('svg')
-      .attr('width', hGDim.w + hGDim.l + hGDim.r)
-      .attr('height', hGDim.h + hGDim.t + hGDim.b).append('g')
-      .attr('transform', 'translate(' + hGDim.l + ',' + hGDim.t + ')');
-
-    //Create function for x-axis mapping.
-    var x = d3.scaleBand().rangeRound([0, hGDim.w])
-      .domain(fD.map(function(d) { return d[0]; }));
-
-    //Add x-axis to the histogram svg.
-    hGsvg.append('g').attr('class', 'x axis')
-      .attr('transform', 'translate(0,' + hGDim.h + ')')
-      .call(d3.axisBottom(x));
-
-    //Create function for y-axis map.
-    var y = d3.scaleLinear().range([hGDim.h, 0])
-      .domain([0, d3.max(fD, function(d) { return d[1]; })]);
-
-    //Create bars for histogram to contain rectangles and freq labels.
-    var bars = hGsvg.selectAll('.bar').data(fD).enter()
-      .append('g').attr('class', 'bar');
-
-    //Create the rectangles.
-    bars.append('rect')
-      .attr('x', function(d) { return x(d[0]); })
-      .attr('y', function(d) { return y(d[1]); })
-      .attr('width', x.bandwidth())
-      .attr('height', function(d) { return hGDim.h - y(d[1]); })
-      .attr('fill',barColor)
-      .on('mouseover',mouseover)
-      .on('mouseout',mouseout);
-
-    //Create the frequency labels above the rectangles.
-    bars.append('text').text(function(d) { return d3.format(',')(d[1])})
-      .attr('x', function(d) { return x(d[0]) + x.bandwidth() / 2; })
-      .attr('y', function(d) { return y(d[1]) - 5; })
-      .attr('text-anchor', 'middle');
-
-    //Utility function to be called on mouseover.
-    function mouseover(d) {
-      //Filter for selected org.
-      var st = fData.filter(function(s) { return s.org == d[0];})[0];
-      var nD = d3.keys(st.freq)
-          .map(function(s) { return {type: s, freq: st.freq[s]};});
-
-      //Call update functions of pie-chart and legend.
-      pC.update(nD);
-      leg.update(nD);
-    }
-    //Utility function to be called on mouseout.
-    function mouseout(d) {
-      //Reset the pie-chart and legend.
-      pC.update(tF);
-      leg.update(tF);
-    }
-
-    //Create function to update the bars. This will be used by pie-chart.
-    hG.update = function(nD, color) {
-      //Update the domain of the y-axis map to reflect change in frequencies.
-      y.domain([0, d3.max(nD, function(d) { return d[1]; })]);
-
-      //Attach the new data to the bars.
-      var bars = hGsvg.selectAll('.bar').data(nD);
-
-      //Transition the height and color of rectangles.
-      bars.select('rect').transition().duration(500)
-        .attr('y', function(d) {return y(d[1]); })
-        .attr('height', function(d) { return hGDim.h - y(d[1]); })
-        .attr('fill', color);
-
-      //Transition the frequency labels location and change value.
-      bars.select('text').transition().duration(500)
-        .text(function(d) { return d3.format(',')(d[1])})
-        .attr('y', function(d) {return y(d[1]) - 5; });
-    };
-    return hG;
-  }
-
-  //Function to handle pieChart.
-  function pieChart(pD) {
-    var pC = {};
-    var pieDim = {w: 250, h: 250};
-    pieDim.r = Math.min(pieDim.w, pieDim.h) / 2;
-
-    //Create svg for pie chart.
-    var piesvg = d3.select(metricsDiv).append('svg')
-      .attr('width', pieDim.w).attr('height', pieDim.h).append('g')
-      .attr('transform',
-        'translate(' + pieDim.w / 2 + ',' + pieDim.h / 2 + ')');
-
-    //Create function to draw the arcs of the pie slices.
-    var arc = d3.arc().outerRadius(pieDim.r - 10).innerRadius(0);
-
-    //Create a function to compute the pie slice angles.
-    var pie = d3.pie().sort(null).value(function(d) { return d.freq; });
-
-    //Draw the pie slices.
-    piesvg.selectAll('path').data(pie(pD)).enter().append('path').attr('d', arc)
-      .each(function(d) { this._current = d; })
-      .style('fill', function(d) { return segColor(d.data.type); })
-      .on('mouseover',mouseover).on('mouseout',mouseout);
-
-    //Create function to update pie-chart. This will be used by histogram.
-    pC.update = function(nD) {
-      piesvg.selectAll('path').data(pie(nD)).transition().duration(500)
-        .attrTween('d', arcTween);
-    };
-    //Utility function to be called on mouseover a pie slice.
-    function mouseover(d) {
-      //Call the update function of histogram with new data.
-      hG.update(fData.map(function(v) {
-        return [v.org,v.freq[d.data.type]];}),segColor(d.data.type));
-    }
-    //Utility function to be called on mouseout a pie slice.
-    function mouseout(d) {
-      //Call the update function of histogram with all data.
-      hG.update(fData.map(function(v) {
-        return [v.org,v.total];}), barColor);
-    }
-    //Animating the pie-slice requiring a custom function which specifies
-    //how the intermediate paths should be drawn.
-    function arcTween(a) {
-      var i = d3.interpolate(this._current, a);
-      this._current = i(0);
-      return function(t) { return arc(i(t));    };
-    }
-    return pC;
-  }
-
-  //Function to handle legend.
-  function legend(lD) {
-    var leg = {};
-
-    //Create table for legend.
-    var legend = d3.select(metricsDiv).append('table').attr('class','legend');
-
-    //Create one row per segment.
-    var tr = legend.append('tbody').selectAll('tr')
-      .data(lD).enter().append('tr');
-
-    //Create the first column for each segment.
-    tr.append('td').append('svg').attr('width', '16')
-      .attr('height', '16').append('rect')
-      .attr('width', '16').attr('height', '16')
-      .attr('fill',function(d) { return segColor(d.type); });
-
-    //Create the second column for each segment.
-    tr.append('td').text(function(d) {
-      return accessLevels[d.type];
+  // #### Pie/Donut Charts
+  accessLevChart /* Dc.pieChart('#gain-loss-chart', 'chartGroup') */
+  // (_optional_) define chart width, `default = 200`
+    .width(180)
+    // (optional) define chart height, `default = 200`
+    .height(180)
+    // Define pie radius
+    .radius(80)
+    // Set dimension
+    .dimension(accessLev)
+    // Set group
+    .group(accessLevGroup)
+    // (_optional_) by default pie chart will use `group.key` as its label but you can overwrite it with a closure.
+    .label(function(d) {
+      if (accessLevChart.hasFilter() && !accessLevChart.hasFilter(d.key)) {
+        return d.key + '(0%)';
+      }
+      var label = d.key;
+      if (all.value()) {
+        label += '(' + Math.floor(d.value / all.value() * 100) + '%)';
+      }
+      return label;
     });
 
-    //Create the third column for each segment.
-    tr.append('td').attr('class','legendFreq')
-      .text(function(d) { return d3.format(',')(d.freq);});
+  organizationChart /* Dc.pieChart('#quarter-chart', 'chartGroup') */
+    .width(180)
+    .height(180)
+    .radius(80)
+    .dimension(organization)
+    .group(organizationGroup)
+    // (_optional_) by default pie chart will use `group.key` as its label but you can overwrite it with a closure.
+    .label(function(d) {
+      if (organizationChart.hasFilter() && !organizationChart.hasFilter(d.key)) {
+        return d.key + '(0%)';
+      }
+      var label = d.key;
+      if (all.value()) {
+        label += '(' + Math.floor(d.value / all.value() * 100) + '%)';
+      }
+      return label;
+    });
 
-    //Create the fourth column for each segment.
-    tr.append('td').attr('class','legendPerc')
-      .text(function(d) { return getLegend(d,lD);});
+  //#### Rendering
 
-    //Utility function to be used to update the legend.
-    leg.update = function(nD) {
-      //Update the data attached to the row elements.
-      var l = legend.select('tbody').selectAll('tr').data(nD);
-
-      //Update the frequencies.
-      l.select('.legendFreq').text(function(d) {
-        return d3.format(',')(d.freq);
-      });
-
-      //Update the percentage column.
-      l.select('.legendPerc').text(function(d) {
-        return getLegend(d,nD);
-      });
-    };
-
-    //Utility function to compute percentage.
-    function getLegend(d,aD) {
-      return d3.format('%')(d.freq / d3.sum(aD.map(function(v) { return v.freq; })));
-    }
-
-    return leg;
-  }
-
-  //Calculate total frequency by segment for all orgs.
-  var tF = ['pub','nonpub','respub'].map(function(d) {
-    return {type: d, freq: d3.sum(fData.map(function(t) { return t.freq[d];}))};
-  });
-
-  //Calculate total frequency by org for all segment.
-  var sF = fData.map(function(d) {return [d.org, d.total];});
-  //Create the histogram.
-  var hG = histoGram(sF);
-  //Create the pie-chart.
-  var pC = pieChart(tF);
-  //Create the legend.
-  var leg = legend(tF);
+  //Simply call `.renderAll()` to render all charts on the page
+  dc.renderAll();
 };

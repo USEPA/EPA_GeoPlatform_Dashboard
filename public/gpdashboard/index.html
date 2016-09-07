@@ -1254,6 +1254,23 @@
                      </h2>
                      <p>Work on this pane is still in progress. When complete, this pane will allow users to review metadata records in the EDG, see which have been linked to GeoPlatform content items, and audit the quality of records for compliance with the EDG Metadata Technical Specification. We also anticipate providing summary statistics and progress metrics.</p>
                      <div id="edgMetrics" class="collapse">
+                         <div class="row">
+                             <div id="org-chart">
+                                 <strong>Organization</strong>
+                                 <a class="reset" href="javascript:organizationChart.filterAll();dc.redrawAll();" style="display: none;">reset</a>
+                                 <div class="clearfix"></div>
+                             </div>
+                             <div id="accesslev-chart">
+                                 <strong>Access Level</strong>
+                                 <a class="reset" href="javascript:accessLevChart.filterAll();dc.redrawAll();" style="display: none;">reset</a>
+                                 <div class="clearfix"></div>
+                             </div>
+                             <div>
+                                 <div class="dc-data-count">
+                                     <a href="javascript:dc.filterAll(); dc.renderAll();">Reset All</a>
+                                 </div>
+                             </div>
+                         </div>
                      </div>
                      <table id="edgItemsTable" class="table table-hover table-bordered table-responsive" data-bind="dataTable:
                             {
@@ -1441,7 +1458,10 @@
     <script src="js/libs/jquery1.11.3/dataTables.bootstrap.min.js"></script>
     <script src="bootstrap/js/bootstrap.min.js"></script>
     <script src="bootstrap/js/jasny-bootstrap.min.js"></script>
-    <script src="js/libs/d3/d3.min.js"></script>
+    <script src="js/d3.js"></script>
+    <script type="text/javascript" src="js/crossfilter.js"></script>
+    <script type="text/javascript" src="js/dc.js"></script>
+    <script type="text/javascript" src="js/colorbrewer.js"></script>
 
     <script src="js/libs/tinymce/tinymce.min.js"></script>
     <script src="js/libs/tinymce/tinymce.jquery.min.js"></script>
@@ -1454,7 +1474,6 @@
     <script src="js/gpoUsers.js"></script>
     <script src="js/gpoItemCheckList.js"></script>
     <script src="js/edgItems.js"></script>
-    <script src="js/Audit.js"></script>
     <!-- Due to some weird timing issues, this order needs to be followed -->
     <script src="js/libs/esrijsapi/dojo/dojo.js" data-dojo-config="async: true"></script>
     <!--<script src="//js.arcgis.com/3.15compact/"></script>-->
