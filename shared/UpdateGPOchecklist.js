@@ -133,4 +133,42 @@ UpdateGPOchecklist.prototype.getExistingItems = function(items) {
   return self.utilities.getDistinctArrayFromDB(self.itemsCollection,{id:{$in:items}},'id');
 };
 
+UpdateGPOchecklist.prototype.onUpdateSuccess = function(){
+  var self = this;
+  var Q = require('q');
+
+  if(self.updateDoc.approval.status == 'approved'){
+
+    return Q(self.checklistCollection.findById(self.updateDoc["_id"],{fields:{'submission':1}}))
+        .then(function (doc) {
+          console.log(doc);
+
+          self.utilities.getArrayFromDB(self.itemsCollection,{id:{$in:doc.submission.items}},'title').then(function(titles){
+
+            //CreateEmailObject
+            var sendEmail = require(appRoot+'/shared/sendEmail');
+
+            var fromAddress = 'dyarnell@innovateteam.com';//FromAddress
+            var toAddress = self.updateDoc.approval.IMOemail + ',' + self.updateDoc.approval.ISOemail;
+            var emailSubject = 'Request for GPO Item to be made Public';//EmailsSubject
+            var emailBody = 'The following items have been approved to be public: ';//EmailBody - maybe read in from file
+            var html = 'The following items have been approved to be public: <br>'
+
+            titles.forEach(function(title){
+              emailBody = emailBody + ' ' + title;
+              html = html + ' ' + title + '<br>';
+            });
+
+            return sendEmail.send(fromAddress,toAddress, emailSubject, emailBody, html)
+                .catch(function(error){
+                  console.error('this is an error');
+                  self.utilities.getHandleError(self.resObject,'UpdateError')(err);
+                })
+          });
+          //console.log(itemTitle);
+    });
+  }
+};
+
+
 module.exports = UpdateGPOchecklist;
