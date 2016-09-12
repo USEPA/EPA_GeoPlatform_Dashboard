@@ -39,7 +39,8 @@
     "require-reload": "~0.2.2",
     "json2csv": "~3.0.1",
     "deasync": "~0.1.4",
-    "sanitize-html": "~1.11.3"
+    "sanitize-html": "~1.11.3",
+    "mustache":"~2.2.1"
   },
   "devDependencies": {
     "grunt": "~0.4.5",

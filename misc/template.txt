@@ -1,0 +1,3 @@
+GPO project {{name}}
+{{#items}} <a href='https://epa.maps.arcgis.com/home/item.html?id={{id}}'>{{title}}</a>
+{{/items}}

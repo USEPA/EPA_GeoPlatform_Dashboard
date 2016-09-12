@@ -45,6 +45,9 @@ sendEmail.send = function(from,to,subject,body,html) {
   return Q.fcall(function() {
     var defer = Q.defer();
 
+    //Add the env to the subject
+    subject = config.env + ' server: ' + subject;
+
     if (to && config.email.disabled !== true) {
 
       sendEmail.transporter.sendMail({
