@@ -3,6 +3,7 @@ var UpdateGPOgeneric =  function(updateKey, updateName, collection,
   //Key for updating the doc could id, username, etc.
   this.updateKey = updateKey;
   //This is just name of the type of item being updated. eg. GPOitem, GPOuser, etc...
+  //It is just used for display messages and errors etc
   this.updateName = updateName;
   //The collection to update
   this.collection = collection;

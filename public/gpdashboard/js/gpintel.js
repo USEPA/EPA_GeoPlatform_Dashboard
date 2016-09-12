@@ -2,6 +2,9 @@
 if (typeof egam == 'undefined') {
   var egam = {};
 }
+if (typeof egam.pages == 'undefined') {
+  egam.pages = {};
+}
 if (typeof egam.models == 'undefined') {
   egam.models = {};
 }
@@ -10,8 +13,8 @@ if (typeof egam.utilities == 'undefined') {
   egam.utilities = {};
 }
 //Place for shared instances of controls/models
-if (typeof egam.utilities == 'undefined') {
-  egam.utilities = {};
+if (typeof egam.shared == 'undefined') {
+  egam.shared = {};
 }
 
 //For now i'm using .(dot) namespacing categorized by model, utility and control
