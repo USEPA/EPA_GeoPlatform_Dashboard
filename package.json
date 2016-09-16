@@ -10,7 +10,8 @@
     "foreverStop": "forever stop egam",
     "debug": "node-debug ./bin/www",
     "install-local": "npm install -g mocha & npm install",
-    "test": "mocha"
+    "test": "mocha",
+    "download": "node scripts/downloadGPOdata && node scripts/downloadGPOusers &&  node scripts/downloadEDGitems && node scripts/runAudit"
   },
   "dependencies": {
     "body-parser": "~1.13.1",
