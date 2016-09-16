@@ -146,7 +146,6 @@ UpdateGPOchecklist.prototype.onUpdateSuccess = function(){
             return self.usersCollection.find({username:{$in:[doc.submission.owner, self.updateDoc.approval.admin]}},{fields:{'fullName':1, 'email':1}}).then(function(fullnames){
 
               var mustache = require('mustache');
-
               //create object with fields and arrays to render in email
               var templateFields = {
                 'ContentOwner': fullnames[0].fullName,
@@ -161,13 +160,11 @@ UpdateGPOchecklist.prototype.onUpdateSuccess = function(){
               var fs = require('fs');
               Q.ninvoke(fs,'readFile',appRoot + '\\templates\\emails\\ISO_IMO_approval.txt','utf8')
                   .then(function (template){
-
                     mustache.parse(template);
                     body = mustache.render(template,templateFields);
                     return body;
                   })
                   .then(function (body){
-
                     //CreateEmailObject
                     var sendEmail = require(appRoot+'/shared/sendEmail');
 

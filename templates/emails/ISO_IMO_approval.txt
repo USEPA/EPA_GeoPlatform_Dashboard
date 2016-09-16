@@ -1,4 +1,4 @@
-You are receiving this email because you have been designated as the primary {{ISOIMO}} for {{AuthGroup}}.<br>
+You are receiving this email because you have been designated as the primary ISO/IMO for {{AuthGroup}}.<br>
 <br>
 This email serves as notification to you that {{ContentOwner}} ({{contentOwnerEmail}}) requested that 
 the following GeoPlatform Content items be made available to the public, and {{geoPlatformAdmin}} ({{geoplatformAdminEmail}})
