@@ -8,7 +8,8 @@ var DownloadGPOdata =  function() {
   //(or whatever is set here if it changes)
   this.requestQueryRowLimit = 10000;
 //Note: requestQueryRowLimit set to null since ESRI limit was increased to more than 10,000  11/24/2015
-  this.requestQueryRowLimit = null;
+//Now ESRI decided to go back to the 10,000 item limit in the search on 9/15/2016. loco.
+//  this.requestQueryRowLimit = null;
 
   this.requestItemCount = 100;
 
@@ -222,6 +223,7 @@ DownloadGPOdata.prototype.downloadInner = function() {
 //    .delay(30000)
     .then(self.getSelfInvokedFunction(self.getToken))
     .then(self.getSelfInvokedFunction(self.getOrgId))
+    .then(self.getSelfInvokedFunction(self.createIndices))
     .then(self.getSelfInvokedFunction(self.getLocalMaxModifiedDates))
     .then(self.getSelfInvokedFunction(self.getGPOitemsPaging))
     .then(self.getSelfInvokedFunction(self.getSlashDataMaxModifiedDateItems))
@@ -277,9 +279,15 @@ DownloadGPOdata.prototype.getSelfInvokedFunction = function(f) {
 };
 
 DownloadGPOdata.prototype.createIndices = function() {
+  var self = this;
+  //If doing full download create indices. if just doing for individual owners at login for example don't need to keep doing this
+  if (self.ownerIDs !==null) return false;
+
   return self.Q.all([
     self.Q(self.itemsCollection.index({id: 1})),
     self.Q(self.itemsCollection.index({modified: -1})),
+    self.Q(self.itemsCollection.index({modified: 1})),
+    self.Q(self.itemsCollection.index({modified: 1,id: 1})),
     self.Q(self.itemsCollection.index({access: 1})),
     self.Q(self.itemsCollection.index({owner: 1})),
     self.Q(self.itemsCollection.index({owner: -1})),
