@@ -8,7 +8,8 @@ var DownloadGPOdata =  function() {
   //(or whatever is set here if it changes)
   this.requestQueryRowLimit = 10000;
 //Note: requestQueryRowLimit set to null since ESRI limit was increased to more than 10,000  11/24/2015
-  this.requestQueryRowLimit = null;
+//Now ESRI decided to go back to the 10,000 item limit in the search on 9/15/2016. loco.
+//  this.requestQueryRowLimit = null;
 
   this.requestItemCount = 100;
 
@@ -91,6 +92,8 @@ var DownloadGPOdata =  function() {
   this.itemsCollection = null;
   this.historycollection = null;
   this.extensionsCollection = null;
+  //Save history of GPO access field changing
+  this.accessCollection = null;
 
   this.url = require('url');
 
@@ -110,6 +113,7 @@ var DownloadGPOdata =  function() {
 
 //Using this will return promise if there is exception in downloadInner
 DownloadGPOdata.prototype.download = function() {
+  this.startTime = (new Date()).getTime();
   return this.Q.fcall(this.getSelfInvokedFunction(this.downloadInner));
 };
 
@@ -131,6 +135,9 @@ DownloadGPOdata.prototype.downloadInner = function() {
   }
   if (!this.extensionsCollection) {
     this.extensionsCollection = this.monk.get('GPOitemExtensions');
+  }
+  if (!this.accessCollection) {
+    this.accessCollection = this.monk.get('GPOaccess');
   }
 
   if (!this.db) {
@@ -222,6 +229,7 @@ DownloadGPOdata.prototype.downloadInner = function() {
 //    .delay(30000)
     .then(self.getSelfInvokedFunction(self.getToken))
     .then(self.getSelfInvokedFunction(self.getOrgId))
+    .then(self.getSelfInvokedFunction(self.createIndices))
     .then(self.getSelfInvokedFunction(self.getLocalMaxModifiedDates))
     .then(self.getSelfInvokedFunction(self.getGPOitemsPaging))
     .then(self.getSelfInvokedFunction(self.getSlashDataMaxModifiedDateItems))
@@ -277,9 +285,15 @@ DownloadGPOdata.prototype.getSelfInvokedFunction = function(f) {
 };
 
 DownloadGPOdata.prototype.createIndices = function() {
+  var self = this;
+  //If doing full download create indices. if just doing for individual owners at login for example don't need to keep doing this
+  if (self.ownerIDs !==null) return false;
+
   return self.Q.all([
     self.Q(self.itemsCollection.index({id: 1})),
     self.Q(self.itemsCollection.index({modified: -1})),
+    self.Q(self.itemsCollection.index({modified: 1})),
+    self.Q(self.itemsCollection.index({modified: 1,id: 1})),
     self.Q(self.itemsCollection.index({access: 1})),
     self.Q(self.itemsCollection.index({owner: 1})),
     self.Q(self.itemsCollection.index({owner: -1})),
@@ -690,16 +704,70 @@ DownloadGPOdata.prototype.storeModifiedDocs = function(body) {
 
 
   //This returns a promise which is resolved when database records are inserted
-  return self.saveModifiedGPOitems(modifiedGPOids,modifiedGPOitems)
+  //Update the access fields first because I want to find old value before it changes
+  return self.updateAccessFields(remoteGPOaccessFields)
     .then(function() {
-      self.updateAccessFields(remoteGPOaccessFields);
+      return self.saveModifiedGPOitems(modifiedGPOids,modifiedGPOitems);
     });
+
 };
 
 DownloadGPOdata.prototype.updateAccessFields = function(docs) {
-  return this.utilities.batchUpdateDB(this.itemsCollection,docs,'id');
-};
+  var Q = require('q');
+  var self = this;
+  var async = require('async');
 
+  var defer = Q.defer();
+
+  async.forEachOf(docs, function(doc, index, done) {
+      //      This.downloadLogs.log(key+this.hr.saved.modifiedGPOrow)
+      var query = {};
+      query.id = doc.id;
+      var update = {$set: doc};
+
+      // Console.log("**** query, update = " + JSON.stringify(query) +  JSON.stringify(update));
+      Q(self.itemsCollection.findOne(query, {fields:{access:1}}))
+        .then(function (oldDoc) {
+          //If the access in the db is different then the new acess being updated then save the change in acess history collection
+          if (!oldDoc || oldDoc.access !== doc.access) {
+            //Use the startTime of the script. if for some reason missing get date time right now
+            //Might be easier if access history inserted has same datetime for each download
+            var startTime = self.startTime || (new Date()).getTime();
+            //If doc doesn't exist (new doc) then put null for old in access history
+            var oldAccess = null;
+            if (oldDoc) oldAccess = oldDoc.access;
+            var accessDoc = {id:doc.id,datetime:startTime,old:oldAccess,new:doc.access};
+            return Q(self.accessCollection.insert(accessDoc));
+          }else {
+            return false;
+          }
+        })
+        .then(function () {
+          return Q(self.itemsCollection.update(query, update));
+        })
+        .then(function() {
+          done();})
+        .catch(function(err) {
+          console.log(err.stack);
+          defer.reject(err);
+        })
+        .done(function() {
+        });
+    }
+    , function(err) {
+      if (err) {
+        console.log(err.stack);
+      }
+
+      if (err) {
+        defer.reject(err);
+      }
+      //Resolve this promise
+      defer.resolve();
+    });
+
+  return defer.promise;
+};
 
 DownloadGPOdata.prototype.saveModifiedGPOitems = function(modifiedGPOids,
                                                           modifiedGPOitems) {
