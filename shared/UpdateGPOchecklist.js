@@ -8,7 +8,7 @@ utilities.inheritClass(UpdateGPOgenericClass,UpdateGPOchecklist);
 //Name this function so that class name will come up in debugger, etc.
 //Note the checklistCollection will be passed for extensionCollection into parent so it can do upserts
 //Also need itemsCollections to check for owners of items
-function UpdateGPOchecklist(checklistCollection,itemsCollection,session,config) {
+function UpdateGPOchecklist(collections,session,config) {
   //Run the parent constructor first
   //"user" is the updateKey used for updating and "user" is just updateName
   //which is text used on errors, logging, etc
@@ -18,14 +18,15 @@ function UpdateGPOchecklist(checklistCollection,itemsCollection,session,config) 
       'checklist',
       //Don't need to pass collection because checklist collection passed as extensions collection for upserts
       null,
-      checklistCollection,
+      collections.checklists,
       session,
       config
   );
 
   //Have access to these here for checking permissions, getting ObjectID etc
-  this.checklistCollection = checklistCollection;
-  this.itemsCollection = itemsCollection;
+  this.checklistCollection = collections.checklists;
+  this.itemsCollection = collections.items;
+  this.usersCollection = collections.users;
 }
 
 UpdateGPOchecklist.prototype.checkPermission = function() {
@@ -141,34 +142,50 @@ UpdateGPOchecklist.prototype.onUpdateSuccess = function(){
 
     return Q(self.checklistCollection.findById(self.updateDoc["_id"],{fields:{'submission':1}}))
         .then(function (doc) {
-          console.log(doc);
+          return self.itemsCollection.find({id:{$in:doc.submission.items}}, {fields:{'title':1, 'id': 1}}).then(function(titles){
+            return self.usersCollection.find({username:{$in:[doc.submission.owner, self.updateDoc.approval.admin]}},{fields:{'fullName':1, 'email':1}}).then(function(fullnames){
 
-          return self.utilities.getArrayFromDB(self.itemsCollection,{id:{$in:doc.submission.items}},'title').then(function(titles){
+              var mustache = require('mustache');
 
-            //CreateEmailObject
-            var sendEmail = require(appRoot+'/shared/sendEmail');
+              //create object with fields and arrays to render in email
+              var templateFields = {
+                'ContentOwner': fullnames[0].fullName,
+                'contentOwnerEmail': fullnames[0].email,
+                'geoPlatformAdmin': fullnames[1].fullName,
+                'geoplatformAdminEmail': fullnames[1].email,
+                'AuthGroup': doc.submission.authGroup,
+                'titles' : titles,
+              }
 
-            var fromAddress = 'dyarnell@innovateteam.com';//FromAddress
-            var toAddress = self.updateDoc.approval.IMOemail + ',' + self.updateDoc.approval.ISOemail;
-            var emailSubject = 'Request for GPO Item to be made Public';//EmailsSubject
-            var emailBody = 'The following items have been approved to be public: ';//EmailBody - maybe read in from file later
-            var html = 'The following items have been approved to be public: <br>'
+              //read the template from file.
+              var fs = require('fs');
+              Q.ninvoke(fs,'readFile',appRoot + '\\templates\\emails\\ISO_IMO_approval.txt','utf8')
+                  .then(function (template){
 
-            titles.forEach(function(title){
-              emailBody = emailBody + ' ' + title;
-              html = html + ' ' + title + '<br>';
+                    mustache.parse(template);
+                    body = mustache.render(template,templateFields);
+                    return body;
+                  })
+                  .then(function (body){
+
+                    //CreateEmailObject
+                    var sendEmail = require(appRoot+'/shared/sendEmail');
+
+                    var fromAddress = 'dyarnell@innovateteam.com';//FromAddress
+                    var toAddress = self.updateDoc.approval.IMOemail + ',' + self.updateDoc.approval.ISOemail;
+                    var emailSubject = 'Request for GPO Item to be made Public';//EmailsSubject
+                    var emailBody = body;
+                    var html = body;
+
+                    return sendEmail.send(fromAddress,toAddress, emailSubject, emailBody, html)
+                  });
             });
-
-            return sendEmail.send(fromAddress,toAddress, emailSubject, emailBody, html)
-
           }).catch(function(error){
             console.error('Error Sending Email');
             self.utilities.getHandleError(self.resObject,'UpdateError')(err);
           });
-
   });
   }
 };
-
 
 module.exports = UpdateGPOchecklist;
