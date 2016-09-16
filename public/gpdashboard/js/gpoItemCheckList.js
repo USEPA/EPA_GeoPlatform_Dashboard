@@ -62,18 +62,13 @@ egam.models.gpoItemCheckList.PageModelClass.prototype.init = function() {
   ko.applyBindings(self, self.$pageElement[0]);
   console.log('Bindings Applied: ' + new Date());
 
-  // //Now initialize the table. ie. download data and create table rows
-  // //the payload can be reduced if resultFields array was set
+  //Now initialize the table. ie. download data and create table rows
+  //the payload can be reduced if resultFields array was set
   var fields = this.resultFields || {};
 
   var query = null;
   var projection = null;
-  // var projection = {
-  //   sort: {
-  //     modified: -1,
-  //   },
-  //   fields: fields,};
-  //
+
   return self.table.init('gpochecklists/list', query, projection)
     //After table is loaded we can do other stuff
     .then(function() {
@@ -83,6 +78,11 @@ egam.models.gpoItemCheckList.PageModelClass.prototype.init = function() {
       $('#checkListModal').on('hidden.bs.modal', function(e) {
         self.confirm(false);
         //egam.pages.gpoItems.table.uncheckAll();
+      });
+      //on closing of checklist details modal clear fields
+      $('#gpoCheckListDetailsModal').on('hidden.bs.modal', function(e) {
+        $('#isoInputEmail').val('');
+        $('#imoInputEmail').val('');
       });
 
        defer.resolve();
@@ -120,7 +120,7 @@ egam.models.gpoItemCheckList.PageModelClass.prototype.update = function(){
   
   var submitPublicRequest = {submission : {
                                 name: checkListName,
-                                items: egam.pages.gpoItems.table.checkedRows,
+                                items: egam.pages.gpoItems.table.checkedRows(),
                                 authGroup: authGroup}};
 
   var updateChck = {updateDocs: JSON.stringify(submitPublicRequest)};
@@ -217,8 +217,8 @@ egam.models.gpoItemCheckList.DetailsModel.prototype.makeChecklistPublic = functi
     _id: item.selected().doc()._id(),
     approval: {
       status: 'approved',
-      ISOemail: 'ISOemail',
-      IMOemail: 'IMOemail'
+      ISOemail: $('#isoInputEmail').val(),//'ISOemail',
+      IMOemail: $('#imoInputEmail').val(),// 'IMOemail'
     }
   };
   var publicApproval = {updateDocs:JSON.stringify(approvalPost)};
@@ -256,6 +256,24 @@ egam.models.gpoItemCheckList.DetailsModel.prototype.makeChecklistPublic = functi
 //Allows you to select an item based on index, usually index will be coming from row number
 egam.models.gpoItemCheckList.DetailsModel.prototype.selectIndex = function(index) {
   this.select(this.parent.table.items[index]);
+};
+
+egam.models.gpoItemCheckList.PageModelClass.prototype.showGPOCheckList = function() {
+
+  //make only request elements show
+  $('#requestElements').show();
+  $('#adminElements').hide();
+  $('#requestConfirm').show();
+  $('#checkListModal').modal('toggle');
+  return true;
+};
+
+egam.models.gpoItemCheckList.PageModelClass.prototype.adminCheckLists = function() {
+  $('#requestElements').hide();
+  $('#requestConfirm').hide();
+  $('#adminElements').show();
+  $('#checkListModal').modal('toggle');
+  return true;
 };
 
 

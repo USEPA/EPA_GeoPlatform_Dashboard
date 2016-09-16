@@ -40,10 +40,13 @@ if (config.email.disabled !== true) {
   sendEmail.transporter = nodemailer.createTransport(smtpPool(transportOptions));
 }
 
-sendEmail.send = function(from,to,subject,body) {
+sendEmail.send = function(from,to,subject,body,html) {
   var Q = require('q');
   return Q.fcall(function() {
     var defer = Q.defer();
+
+    //Add the env to the subject
+    subject = config.env + ' server: ' + subject;
 
     if (to && config.email.disabled !== true) {
 
@@ -52,6 +55,7 @@ sendEmail.send = function(from,to,subject,body) {
         to: to,
         subject: subject,
         text: body,
+        html: html
       },function(error) {
         if (error) {
           defer.reject('Error sending email: ' + error.stack);

@@ -1,5 +1,31 @@
 var Q = require('q');
 
+var fs = require('fs');
+
+var mustache = require('mustache');
+
+//var templateString = "GPO project {{name}} submitted by {{submittedBy}} on {{submitDate}} was made public by {{approvedBy}} on {{approveDate}}{{#each items}} <a href='https://epa.maps.arcgis.com/home/item.html?id={{}}'>{{title}}</a>{{/each}}";
+
+//fs.readFile('template.txt','utf8',renderTemplate);
+
+Q.ninvoke(fs,'readFile','template.txt','utf8')
+.then(renderTemplate);
+
+//var template = "GPO project {{name}}\n{{#items}} <a href='https://epa.maps.arcgis.com/home/item.html?id={{id}}'>{{title}}</a>\n{{/items}}";
+//var template = "GPO project {{name}}{{#items}} {{id}} {{title}}{{/items}}";
+
+
+function renderTemplate(template) {
+  mustache.parse(template);
+
+  var locals = {name:"Test",items:[{id:1,title:"hi"},
+    {id:2,title:"next"}
+  ]};
+  var result = mustache.render(template,locals);
+  console.log(result);
+}
+return;
+
 var asyncLoop = function(items) {
   var async = require('async');
 

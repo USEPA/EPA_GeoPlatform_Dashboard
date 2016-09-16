@@ -32,7 +32,7 @@
       ga('require', 'autotrack');
       ga('send', 'pageview');
 	</script>
-    <script src='js/ga/autotrack.js'></script>
+    <script src='js/libs/ga/autotrack.js'></script>
 
     <title>GeoPlatform Dashboard</title>
   </head>
@@ -49,7 +49,7 @@
           </button>
           <a class="navbar-brand" href="#" >
             <img src="img/epa1.png" style="width:40px; margin:-10px 5px 0px 0px; display:inline-block;"/>
-            GeoPlatform Dashboard (Beta)
+            GeoPlatform Dashboard
           </a>
         </div>
         <div id="navbar" class="navbar-collapse collapse">
@@ -205,27 +205,37 @@
                                             <div id="collapseThree" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingThree">
                                                 <div class="panel-body">
                                                     <p>The item details for a GPO item in the table can be displayed by clicking on the row. The item details
-                                                        display the following information for an item.</p>
+                                                        display the following information for an item. The validation rules are based on the <a href="https://edg.epa.gov/metadata/webhelp/en/gptlv10/inno/GenericMetadataGuide.pdf" target="_blank">EPA Generic Metadata Styleguide</a>, please read the full guide for additional recommendations.</p>
                                                     <table class="table table-bordered">
+                                                        <tr>
+                                                            <th>Field</th>
+                                                            <th>Description</th>
+                                                            <th>Validation Rule</th>
+                                                        </tr>
                                                         <tr>
                                                             <td>Title</td>
                                                             <td>The title of the item.</td>
+                                                            <td>The title must not be empty.</td>
                                                         </tr>
                                                         <tr>
                                                             <td>Summary</td>
                                                             <td>a short summary description of the item.</td>
+                                                            <td></td>
                                                         </tr>
                                                         <tr>
                                                             <td>Description</td>
                                                             <td>Item description.</td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td>Credits</td>
-                                                            <td>Any license information or restrictions.</td>
+                                                            <td>The description must contain a minimum of 5 words.</td>
                                                         </tr>
                                                         <tr>
                                                             <td>Access and use Constraints</td>
+                                                            <td>Any license information or restrictions.</td>
+                                                            <td>Should point to https://edg.epa.gov/EPA_Data_License.html unless a different license applies.</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>Credits</td>
                                                             <td>Information on the source of the item and its copyright status.</td>
+                                                            <td>Should list U.S. Environmental Protection Agency unless a different entity applies.</td>
                                                         </tr>
                                                         <tr>
                                                             <td>URL</td>
@@ -234,10 +244,12 @@
                                                         <tr>
                                                             <td>Thumbnail</td>
                                                             <td>The URL to the thumbnail used for the item.</td>
+                                                            <td>Thumbnail is required.</td>
                                                         </tr>
                                                         <tr>
                                                             <td>Tags</td>
                                                             <td>User defined tags that describe the item.</td>
+                                                            <td>Select at least one tag from each of the dropdowns (EPA Keywords, Place Keywords, and EPA Organization Names).</td>
                                                         </tr>
                                                     </table>
                                                 </div>
@@ -258,7 +270,7 @@
                                                         navigating to the image that you would like to use as the thumbnail.  For best results, the image should be 200 pixels wide by 133 pixels high.
                                                         Acceptable image formats are: PNG, GIF and JPEG. </p>
                                                     <p>Adding/Removing Tags - Tags can be added and removed from an item. To add a tag an item type the tag that you would like in the text box under
-                                                        the Tags title, then click the Add button. The tage will be added to the list below the Add button. To remove a tag, select the tag in the Tags
+                                                        the Tags title, then click the Add button. The tags will be added to the list below the Add button. To remove a tag, select the tag in the Tags
                                                         List and click the Remove button.
                                                     </p>
                                                 </div>
@@ -379,8 +391,8 @@
              <h3 class="sub-header"></h3>
 
                 <div class="btn-group" role="group" style="margin-bottom: 5px">
-                    <button type="button" id="makePublic" class="btn btn-default" data-bind="click: function(){return $root.table.showGPOCheckList()}" disabled="true" >Make Public</button>
-                    <button class="btn btn-primary" type="button" data-bind="click: function(){return $root.table.adminCheckLists()}">
+                    <button type="button" id="makePublic" class="btn btn-default" data-bind="enable: $root.table.checkedRows().length > 0, click: function(){return egam.pages.gpoItemCheckList.showGPOCheckList()}">Make Public</button>
+                    <button class="btn btn-primary" type="button" data-bind="click: function(){return egam.pages.gpoItemCheckList.adminCheckLists()}">
                         Requests <span class="badge" data-bind="text: pendingChecklistCount"></span>
                     </button>
                 </div>
@@ -410,7 +422,7 @@
                   <tr>
                       <th>
                           <span onclick="event.stopPropagation();">
-                               <input type="checkbox" data-bind="click: function(e, ex){return $root.table.checkAll(e,ex)}"/>
+                               <input type="checkbox" data-bind="click: function(e,ex){return $root.table.checkAll(e,ex,'id')}"/>
                           </span>
                       </th>
                     <th>Title<br>
@@ -472,7 +484,7 @@
                     <tr data-bind="css: {danger: !doc().AuditData.compliant}, click:function(item){return $root.details.select(item)}" data-toggle="modal" data-target="#gpoItemsModal" >
                         <td>
                             <span onclick="event.stopPropagation();">
-                                <input type="checkbox" id="test" data-bind="checked: isChecked, enable:  doc().owner == egam.portalUser.username && doc().AuditData.compliant, click: function(item, evt){return $root.table.checkRow(item,evt)}">
+                                <input type="checkbox" id="test" class="checkboxClass" data-bind="enable:  doc().owner == egam.portalUser.username && doc().AuditData.compliant, click: function(item, evt){ return $root.table.checkRow(item.doc().id,evt)}">
                             </span>
                         </td>
                         <td data-bind="text: doc().title" ></td>
@@ -493,7 +505,7 @@
             </div>
 
             <!-- Modal for Editing -->
-            <div class="modal fade" id="gpoItemsModal" tabindex="-1" role="dialog" data-keyboard="false" data-backdrop="static" aria-labelledby="myModalLabel">
+            <div class="bottomModal modal fade" id="gpoItemsModal" tabindex="-1" role="dialog" data-keyboard="false" data-backdrop="static" aria-labelledby="myModalLabel">
               <div class="modal-dialog modal-lg" role="document">
                   <div class="modal-content">
                       <div class="modal-header">
@@ -539,6 +551,11 @@
                                               <button id="addOrgTag" class="btn btn-default"  type="submit" data-bind="click: tagControls.addTag['Org']">Add</button>
                                               <select class="tag-select search form-control" id="officeTagSelect" data-bind="options:egam.dataStash.availableTags.epaOffices,optionsCaption:'Please Select', value: tagControls.tagToAdd['Office'], valueUpdate: 'afterkeydown'"></select>
                                               <select class="tag-select search form-control" id="orgTagSelect" data-bind="options:tagControls.selectedOfficeOrganizations,optionsCaption:'Please Select',, value: tagControls.tagToAdd['Org'], valueUpdate: 'afterkeydown'"></select>
+                                          </div>
+                                          <label for="addCustomTag">Custom Tags</label>
+                                          <div class="form-inline">
+                                              <button id="addCustomTag" class="btn btn-default"  type="submit" data-bind="click: tagControls.addTag['Custom']">Add</button>
+                                              <input class="form-control" id="customTagInput" type="text" data-bind="value: tagControls.tagToAdd['Custom'], valueUpdate: 'afterkeydown'"/>
                                           </div>
                                       </div>
                                       <div class="form-group has-success" data-bind="css: {'has-error': selected().doc().AuditData.errors.tags&&selected().doc().AuditData.errors.tags.compliant()===false}">
@@ -759,7 +776,7 @@
                              <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
                              <h4 class="modal-title">Checklist Details</h4>
                          </div>
-                         <div class="modal-body">
+                         <div class="modal-body" style="padding-bottom: 0px">
                              <div class="row">
                                  <div class="col-md-6">
                                      <label>Checklist Name: </label>
@@ -794,17 +811,27 @@
                                      </div>
                                  </div>
                              </div>
-                         </div>
-                         <div class="modal-footer">
-                             <div class="row">
-                                 <div class="col-md-7" style="margin-top: 5px">
-                                     <span class="alert alert-warning" role="alert" data-bind="visible: egam.portalUser.role == 'org_admin'" >After approving please email your ISO and IMO</span>
-                                 </div>
-                                 <div class="col-md-5">
-                                     <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                                     <button type="button" class="btn btn-primary" data-bind="click: makeChecklistPublic, visible: egam.portalUser.role == 'org_admin'" >Make Items Public</button>
+                             <div class="row" data-bind="visible: egam.portalUser.role == 'org_admin'" style="margin-bottom: -15px">
+                                 <div class="panel panel-warning">
+                                     <div class="panel-heading">Enter email for IMO and ISO</div>
+                                     <div class="panel-body">
+                                         <div class="form-group">
+                                             <label for="imoInputEmail">IMO Email address</label>
+                                             <input type="email" class="form-control" id="imoInputEmail" placeholder="Email">
+                                             <span id="imohelpBlock" class="help-block"><a href="https://usepa.sharepoint.com/sites/oei_Community/sio/QIC%20Meeting%20Materials/QIC-SIO-SC-IMO%20List%20Official.pdf" target="_blank">Emails for IMO can be found here</a></span>
+                                         </div>
+                                         <div class="form-group">
+                                             <label for="isoInputEmail">ISO Email address</label>
+                                             <input type="email" class="form-control" id="isoInputEmail" placeholder="Email">
+                                             <span id="isohelpBlock" class="help-block"><a href="http://intranet.epa.gov/oei/saiso/ISSO.html" target="_blank">Emails for ISO can be found here</a></span>
+                                         </div>
+                                     </div>
                                  </div>
                              </div>
+                         </div>
+                         <div class="modal-footer">
+                             <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                             <button type="button" class="btn btn-primary" data-bind="click: makeChecklistPublic, visible: egam.portalUser.role == 'org_admin'" >Make Items Public</button>
                          </div>
                      </div><!-- /.modal-content -->
                  </div><!-- /.modal-dialog -->
@@ -1218,14 +1245,16 @@
                  </div>
              </div>
              <!-- End userMgmtView  modal -->
-
-             <!-- End userMgmtView  View -->
-             <!-- userMgmtView  View -->
+             <!-- EDG  View -->
              <div role="tabpanel" class="tab-pane" id="edgView" >
                  <div id="edgItemsPage">
                      <h2 class="sub-header">EDG Items
-                     <a id="edgExport" class="btn btn-primary" href="edgitems/list.csv">Export Audit Status</a></h2>
+                         <a id="edgExport" class="btn btn-primary" href="edgitems/list.csv">Export Audit Status</a>
+                         <a id="metricsToggle" class="btn btn-primary" data-toggle="collapse" data-target="#edgMetrics">View Metrics</a>
+                     </h2>
                      <p>Work on this pane is still in progress. When complete, this pane will allow users to review metadata records in the EDG, see which have been linked to GeoPlatform content items, and audit the quality of records for compliance with the EDG Metadata Technical Specification. We also anticipate providing summary statistics and progress metrics.</p>
+                     <div id="edgMetrics" class="collapse">
+                     </div>
                      <table id="edgItemsTable" class="table table-hover table-bordered table-responsive" data-bind="dataTable:
                             {
                                 deferRender: true,
@@ -1234,34 +1263,20 @@
                                 options: {paging: true},
                                 columns: [
                                     {data:'doc.title'},
-                                    {data:'doc.description'},
-                                    {data:'doc.keyword'},
-                                    {data:'doc.modified'},
                                     {data:'doc.publisher'},
                                     {data:'doc.contactPoint'},
-                                    {data:'doc.identifier'},
                                     {data:'doc.accessLevel'},
-                                    {data:'doc.programCode'},
-                                    {data:'doc.license'},
-                                    {data:'doc.spatial'},
-                                    {data:'doc.accrualPeriodicity'},
-                                    {data:'doc.auditStatus.valid'}
+                                    {data:'doc.modified'},
+                                    {data:'doc.AuditData.compliant'}
                                     ]
                             }">
                          <thead>
                          <tr>
                              <th>Title</th>
-                             <th>Description</th>
-                             <th>Keyword</th>
-                             <th>Modified</th>
                              <th>Publisher</th>
                              <th>Contact Point</th>
-                             <th>Identifier</th>
                              <th>Access Level</th>
-                             <th>Program Code</th>
-                             <th>License</th>
-                             <th>Spatial</th>
-                             <th>Update Frequency</th>
+                             <th>Modified</th>
                              <th>Audit Status</th>
                          </tr>
                          </thead>
@@ -1269,28 +1284,146 @@
                          </tbody>
                      </table>
                      <script id="EDGitemsRowTemplateFull" type="text/html">
-                         <tr data-bind="css: {danger: !doc.auditStatus.valid}">
+                         <tr data-bind="css: {danger: !doc.AuditData.compliant },  click:function(item){return $root.details.select(item)}" data-toggle="modal" data-target="#edgItemsModal">
                              <td data-bind="text: doc.title" ></td>
-                             <td class="truncate" data-bind="text: doc.description"></td>
-                             <td class="truncate" data-bind="text: doc.keyword"></td>
-                             <td data-bind="text: doc.modified"></td>
-                             <td class="truncate" data-bind="text: doc.publisher"></td>
+                             <td data-bind="text: doc.publisher"></td>
                              <td><a data-bind="attr: { href: doc.contactPointEmail }, html: doc.contactPoint" target="_blank"></a></td>
-                             <td class="truncate" data-bind="text: doc.identifier"></td>
                              <td data-bind="text: doc.accessLevel"></td>
-                             <td data-bind="text: doc.programCode"></td>
-                             <td class="truncate" data-bind="text: doc.license"></td>
-                             <td class="truncate" data-bind="text: doc.spatial"></td>
-                             <td data-bind="text: doc.accrualPeriodicity"></td>
-                             <td data-bind="css: {auditRowPass: doc.auditStatus.valid,auditRowFail: !doc.auditStatus.valid}">
+                             <td data-bind="text: doc.modified"></td>
+                             <td data-bind="css: {auditRowPass: doc.AuditData.compliant,auditRowFail: !doc.AuditData.compliant}">
                                  <img class="pass" src="img/greenOK.jpg" alt="Pass" style="width:25px">
                                  <img class="fail" src="img/warning.png" alt="Fail" style="width:25px">
                              </td >
                          </tr>
                      </script>
                  </div>
+                 <!-- EDG Detail Modal -->
+                 <div class="modal fade" id="edgItemsModal" tabindex="-1" role="dialog" data-keyboard="false" data-backdrop="static" aria-labelledby="myModalLabel">
+                     <div class="modal-dialog modal-lg" role="document">
+                         <div class="modal-content">
+                             <div class="modal-header">
+                                 <button type="button" class="close" data-dismiss="modal" aria-label="Close" data-bind="" ><span aria-hidden="true">&times;</span></button>
+                                 <h4 class="modal-title" id="edgDetailModalLabel">Item Details
+                                     <span><a class="glyphicon glyphicon-link" data-bind="attr: {href: selected().gpoLink}" target="_blank" aria-hidden="true" data-toggle="tooltip" data-placement="right" title="Go to Item in EDG"></a></span></h4>
+                             </div>
+                             <div class="modal-body">
+                                 <form id="edgDetailModalForm" role="form" data-toggle="validator" data-disable="false" enctype="multipart/form-data" method="post">
+                                     <div class="row form-group">
+                                         <div class="col-md-12" >
+                                             <div class="form-group has-success" data-bind="css: {'has-error': selected().doc.AuditData.errors.title&&selected().doc.AuditData.errors.title.compliant===false}">
+                                                 <label for="edgDetailsTitle">Title</label>
+                                                 <input readonly class="form-control"  id="edgDetailsTitle" data-bind="value: selected().doc.title" type="text">
+                                                 <!-- ko if: selected().doc.AuditData.errors.title -->
+                                                 <span class="help-block" data-bind="text: selected().doc.AuditData.errors.title.messages"></span>
+                                                 <!-- /ko -->
+                                             </div>
+                                             <div class="form-group has-success" data-bind="css: {'has-error': selected().doc.AuditData.errors.description&&selected().doc.AuditData.errors.description.compliant===false}">
+                                                 <label>Description</label>
+                                                 <textarea readonly  class="form-control" id="edgDetailsDesc" rows="6" data-bind="value: selected().doc.description" placeholder="Description"></textarea>
+                                                 <!-- ko if: selected().doc.AuditData.errors.description -->
+                                                 <span class="help-block" data-bind="text: selected().doc.AuditData.errors.description.messages"></span>
+                                                 <!-- /ko -->
+                                             </div>
+                                             <div class="form-group has-success" data-bind="css: {'has-error': selected().doc.AuditData.errors.keyword&&selected().doc.AuditData.errors.keyword.compliant===false}">
+                                                 <label for="edgDetailsTagsList">Keywords</label>
+                                                 <select readonly id="edgDetailsTagsList" class="form-control" multiple="multiple" height="5" data-bind="options: selected().doc.keyword"> </select>
+                                                 <span class="help-block" data-bind="style: {display: !selected().doc.AuditData.errors.keyword.compliant ? 'block' : 'none'}, text: selected().doc.AuditData.errors.keyword.messages"></span>
+                                             </div>
+                                             <div class="form-group has-success" data-bind="css: {'has-error': selected().doc.AuditData.errors.modified&&selected().doc.AuditData.errors.modified.compliant===false}">
+                                                 <label for="edgDetailsModified">Last Update</label>
+                                                 <input readonly class="form-control"  id="edgDetailsModified" data-bind="value: selected().doc.modified" type="text">
+                                                 <!-- ko if: selected().doc.AuditData.errors.modified -->
+                                                 <span class="help-block" data-bind="text: selected().doc.AuditData.errors.modified.messages"></span>
+                                                 <!-- /ko -->
+                                             </div>
+                                             <div class="form-group has-success" data-bind="css: {'has-error': selected().doc.AuditData.errors.publisher&&selected().doc.AuditData.errors.publisher.compliant===false}">
+                                                 <label for="edgDetailsPublisher">Publishing Organization</label>
+                                                 <input readonly class="form-control"  id="edgDetailsPublisher" data-bind="value: selected().doc.publisher" type="text">
+                                                 <!-- ko if: selected().doc.AuditData.errors.publisher -->
+                                                 <span class="help-block" data-bind="text: selected().doc.AuditData.errors.publisher.messages"></span>
+                                                 <!-- /ko -->
+                                             </div>
+                                             <div class="form-group has-success" data-bind="css: {'has-error': selected().doc.AuditData.errors.contactPoint&&selected().doc.AuditData.errors.contactPoint.compliant===false}">
+                                                 <label for="edgDetailsContact">Publisher</label>
+                                                 <input readonly class="form-control"  id="edgDetailsContact" data-bind="value: selected().doc.contactPoint" type="text">
+                                                 <!-- ko if: selected().doc.AuditData.errors.contactPoint -->
+                                                 <span class="help-block" data-bind="text: selected().doc.AuditData.errors.contactPoint.messages"></span>
+                                                 <!-- /ko -->
+                                             </div>
+                                             <div class="form-group has-success" data-bind="css: {'has-error': selected().doc.AuditData.errors.contactPointEmail&&selected().doc.AuditData.errors.contactPointEmail.compliant===false}">
+                                                 <label for="edgDetailsContactEmail">Publisher Email</label>
+                                                 <input readonly class="form-control"  id="edgDetailsContactEmail" data-bind="value: selected().doc.contactPointEmail" type="text">
+                                                 <!-- ko if: selected().doc.AuditData.errors.contactPointEmail -->
+                                                 <span class="help-block" data-bind="text: selected().doc.AuditData.errors.contactPointEmail.messages"></span>
+                                                 <!-- /ko -->
+                                             </div>
+                                             <div class="form-group has-success" data-bind="css: {'has-error': selected().doc.AuditData.errors.identifier&&selected().doc.AuditData.errors.identifier.compliant===false}">
+                                                 <label for="edgDetailsIdentifier">Identifier</label>
+                                                 <input readonly class="form-control"  id="edgDetailsIdentifier" data-bind="value: selected().doc.identifier" type="text">
+                                                 <!-- ko if: selected().doc.AuditData.errors.identifier -->
+                                                 <span class="help-block" data-bind="text: selected().doc.AuditData.errors.identifier.messages"></span>
+                                                 <!-- /ko -->
+                                             </div>
+                                             <div class="form-group has-success" data-bind="css: {'has-error': selected().doc.AuditData.errors.accessLevel&&selected().doc.AuditData.errors.accessLevel.compliant===false}">
+                                                 <label for="edgDetailsAccessLevel">Access Level</label>
+                                                 <input readonly class="form-control"  id="edgDetailsAccessLevel" data-bind="value: selected().doc.accessLevel" type="text">
+                                                 <!-- ko if: selected().doc.AuditData.errors.accessLevel -->
+                                                 <span class="help-block" data-bind="text: selected().doc.AuditData.errors.accessLevel.messages"></span>
+                                                 <!-- /ko -->
+                                             </div>
+                                             <div class="form-group has-success" data-bind="css: {'has-error': selected().doc.AuditData.errors.license&&selected().doc.AuditData.errors.license.compliant===false}">
+                                                 <label for="edgDetailsLicense">Data License</label>
+                                                 <input readonly class="form-control"  id="edgDetailsLicense" data-bind="value: selected().doc.license" type="text">
+                                                 <!-- ko if: selected().doc.AuditData.errors.license -->
+                                                 <span class="help-block" data-bind="text: selected().doc.AuditData.errors.license.messages"></span>
+                                                 <!-- /ko -->
+                                             </div>
+                                             <div class="form-group has-success" data-bind="css: {'has-error': selected().doc.AuditData.errors.spatial&&selected().doc.AuditData.errors.spatial.compliant===false}">
+                                                 <label for="edgDetailsSpatial">Spatial Extent</label>
+                                                 <input readonly class="form-control"  id="edgDetailsSpatial" data-bind="value: selected().doc.spatial" type="text">
+                                                 <!-- ko if: selected().doc.AuditData.errors.spatial -->
+                                                 <span class="help-block" data-bind="text: selected().doc.AuditData.errors.spatial.messages"></span>
+                                                 <!-- /ko -->
+                                             </div>
+                                             <div class="form-group has-success" data-bind="css: {'has-error': selected().doc.AuditData.errors.programCode&&selected().doc.AuditData.errors.programCode.compliant===false}">
+                                                 <label for="title">Program Code</label>
+                                                 <input readonly class="form-control"  id="edgDetailsPC" data-bind="value: selected().doc.programCode" type="text">
+                                                 <!-- ko if: selected().doc.AuditData.errors.programCode -->
+                                                 <span class="help-block" data-bind="text: selected().doc.AuditData.errors.programCode.messages"></span>
+                                                 <!-- /ko -->
+                                             </div>
+                                             <div class="form-group has-success" data-bind="css: {'has-error': selected().doc.AuditData.errors.accrualPeriodicity&&selected().doc.AuditData.errors.accrualPeriodicity.compliant===false}">
+                                                 <label for="edgDetailsAccrual">Update Frequency</label>
+                                                 <input readonly class="form-control"  id="edgDetailsAccrual" data-bind="value: selected().doc.accrualPeriodicity" type="text">
+                                                 <!-- ko if: selected().doc.AuditData.errors.accrualPeriodicity -->
+                                                 <span class="help-block" data-bind="text: selected().doc.AuditData.errors.accrualPeriodicity.messages"></span>
+                                                 <!-- /ko -->
+                                             </div>
+                                             <div class="form-group has-success" data-bind="css: {'has-error': selected().doc.AuditData.errors.distribution&&selected().doc.AuditData.errors.distribution.compliant===false}">
+                                                 <label for="edgDetailsDistribution">Distribution</label>
+                                                 <!-- ko if: selected().doc.distribution -->
+                                                 <textarea readonly id="edgDetailsDistribution" class="form-control" rows="3" data-bind="value: selected().doc.distribution.join('\n')"> </textarea>
+                                                 <!-- /ko -->
+                                                 <!-- ko ifnot: selected().doc.distribution -->
+                                                 <textarea readonly class="form-control" rows="3"> </textarea>
+                                                 <!-- /ko -->
+                                                 <!-- ko if: selected().doc.AuditData.errors.distribution -->
+                                                 <span class="help-block" data-bind="text: selected().doc.AuditData.errors.distribution.messages"></span>
+                                                 <!-- /ko -->
+                                             </div>
+                                         </div>
+                                     </div>
+
+                                 </form>
+                             </div>
+                             <div class="modal-footer">
+                                 <button type="button" id="closeEDGDetailsBtn" class="btn btn-default" data-dismiss="modal" >Close</button>
+                             </div>
+                         </div>
+                     </div>
+                 </div>
              </div>
-             <!-- End userMgmtView  View -->
+             <!-- End EDG  View -->
 
          </div>
 
@@ -1302,15 +1435,16 @@
     </div>
 
 
-    <script src="js/jquery1.11.3/jquery.min.js"></script>
-    <script src="js/jquery1.11.3/jquery.dataTables.min.js"></script>
-    <script src="js/jquery1.11.3/dataTables.buttons.min.js"></script>
-    <script src="js/jquery1.11.3/dataTables.bootstrap.min.js"></script>
+    <script src="js/libs/jquery1.11.3/jquery.min.js"></script>
+    <script src="js/libs/jquery1.11.3/jquery.dataTables.min.js"></script>
+    <script src="js/libs/jquery1.11.3/dataTables.buttons.min.js"></script>
+    <script src="js/libs/jquery1.11.3/dataTables.bootstrap.min.js"></script>
     <script src="bootstrap/js/bootstrap.min.js"></script>
     <script src="bootstrap/js/jasny-bootstrap.min.js"></script>
+    <script src="js/libs/d3/d3.min.js"></script>
 
-    <script src="js/tinymce/tinymce.min.js"></script>
-    <script src="js/tinymce/tinymce.jquery.min.js"></script>
+    <script src="js/libs/tinymce/tinymce.min.js"></script>
+    <script src="js/libs/tinymce/tinymce.jquery.min.js"></script>
     <script src="js/wysiwyg.js"></script>
 
     <script src="js/knockout.bindings.dataTables.cog.js"></script>
@@ -1322,7 +1456,7 @@
     <script src="js/edgItems.js"></script>
     <script src="js/Audit.js"></script>
     <!-- Due to some weird timing issues, this order needs to be followed -->
-    <script src="js/esrijsapi/dojo/dojo.js" data-dojo-config="async: true"></script>
+    <script src="js/libs/esrijsapi/dojo/dojo.js" data-dojo-config="async: true"></script>
     <!--<script src="//js.arcgis.com/3.15compact/"></script>-->
     <script src="js/gpLogin.js"></script>
 

@@ -2,6 +2,9 @@
 if (typeof egam == 'undefined') {
   var egam = {};
 }
+if (typeof egam.pages == 'undefined') {
+  egam.pages = {};
+}
 if (typeof egam.models == 'undefined') {
   egam.models = {};
 }
@@ -10,8 +13,8 @@ if (typeof egam.utilities == 'undefined') {
   egam.utilities = {};
 }
 //Place for shared instances of controls/models
-if (typeof egam.utilities == 'undefined') {
-  egam.utilities = {};
+if (typeof egam.shared == 'undefined') {
+  egam.shared = {};
 }
 
 //For now i'm using .(dot) namespacing categorized by model, utility and control
@@ -149,7 +152,9 @@ egam.utilities.loadSharedControl = function(name,constructor,args) {
 };
 
 egam.utilities.formatDate = function(dateTime) {
-  if (! dateTime) return null;
+  if (!dateTime) {
+    return null;
+  }
   var monthNames = [
     'Jan', 'Feb', 'Mar',
     'Apr', 'May', 'Jun', 'Jul',
@@ -158,11 +163,11 @@ egam.utilities.formatDate = function(dateTime) {
   ];
 
   var modDate = dateTime;
-  
-  if (typeof(modDate)!="object") {
+  if (typeof modDate != 'object') {
     modDate = new Date(dateTime);
   }
-  return monthNames[modDate.getMonth()] + ' ' + modDate.getDate() + ', ' + modDate.getFullYear();
+  return monthNames[modDate.getMonth()] + ' ' +
+    modDate.getDate() + ', ' + modDate.getFullYear();
 };
 
 
@@ -176,10 +181,11 @@ function loadEDGitemsPage() {
     //want to see on login
 
     egam.pages.edgItems.init()
-      .then(function () {
+      .then(function() {
+        egam.models.edgItems.MetricsModel(egam.pages.edgItems.table.data);
         return true;
       })
-      .fail(function (err) {
+      .fail(function(err) {
         console.error(err);
       });
   }

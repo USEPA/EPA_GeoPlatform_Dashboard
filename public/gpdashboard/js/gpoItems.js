@@ -99,22 +99,6 @@ egam.models.gpoItems.PageModelClass.prototype.init = function() {
     .then(function() {
       self.calculateStats();
 
-      //Switch view for image upload
-      $('.fileinput').on('change.bs.fileinput', function(e) {
-        $('#agoThumb').toggle();
-        $('#imageUpload').toggle();
-      });
-      //On modal close with out saving change thumbnail view clear thumbnail
-      //form
-      $('#gpoItemsModal').on('hidden.bs.modal', function(e) {
-        var thumbnailFile = $('#thumbnail')[0].files[0];
-        if (thumbnailFile !== undefined) {
-          $('#agoThumb').toggle();
-          $('#imageUpload').toggle();
-          $('.fileinput').fileinput('clear');
-        }
-      });
-
       //Now stop showing loading message that page is load
       $('div#loadingMsg').addClass('hidden');
       self.$pageElement.removeClass('hidden');
@@ -240,7 +224,7 @@ egam.models.gpoItems.RowModelClass = function(doc, index) {
     return this.doc().ownerFolder.title;
   }, this);
 
-  this.isChecked = ko.observable(false);
+  //this.isChecked = ko.observable(false);
 };
 
 //This is the FULL model which binds to the modal allowing 2 way data binding and updating etc
@@ -254,11 +238,14 @@ egam.models.gpoItems.FullModelClass = function(doc, index, parent) {
   this.doc = ko.observable(ko.mapping.fromJS(doc));
 
   //Computed thumbnail url
+  //Note the actual thumbnail in the GPO that this.thumbnailURL is dipslaying
+  this.GPOthumbnail = ko.observable(self.doc().thumbnail());
+
   this.thumbnailURL = ko.computed(function() {
-    if (self.doc().thumbnail() == null) {
+    if (self.GPOthumbnail() == null) {
       return 'img/noImage.png';
     } else {
-      return 'https://epa.maps.arcgis.com/sharing/rest/content/items/' + self.doc().id() + '/info/' + self.doc().thumbnail() + '?token=' + egam.portalUser.credential.token;
+      return 'https://epa.maps.arcgis.com/sharing/rest/content/items/' + self.doc().id() + '/info/' + self.GPOthumbnail() + '?token=' + egam.portalUser.credential.token;
     }
   }, this);
 
@@ -314,7 +301,7 @@ egam.models.gpoItems.DetailsModel = function(parent) {
   var self = this;
   self.parent = parent;
 
-  self.$element = $('gpoItemsModal');
+  self.$element = $('#gpoItemsModal');
   this.bound = false;
   //A new observable for the selected row storing the FULL gpoItem model
   self.selected = ko.observable();
@@ -325,7 +312,63 @@ egam.models.gpoItems.DetailsModel = function(parent) {
   //It is not actually created until somebody hits reconcilliation modal for first time
   self.reconcillation = null;
   self.linkEDG = null;
+  //place to store the thumbnail file object
+  self.thumbnailFile = null;
+  //set up the listners that handle thumbnail changing so image showing changes, ko model changes and audit performed
+  self.setupThumbnailFileHandlers();
+};
 
+egam.models.gpoItems.DetailsModel.prototype.setupThumbnailFileHandlers = function() {
+  var self = this;
+  // Maybe need to make this image stuff more knockout somehow. not sure how to
+  //Switch view for image upload
+  $('.fileinput').on('change.bs.fileinput', function(e) {
+    //Use hide/show not toggle more robust
+    $('#agoThumb').hide();
+    $('#imageUpload').show();
+    //Have to do the thumbnail audit/require thing and change thumbnail observable value
+    self.handleThumbnailChange();
+  });
+  //On modal close with out saving change thumbnail view clear thumbnail
+  //form
+  self.$element.on('hidden.bs.modal', function(e) {
+//    var thumbnailFile = self.getThumbnailFileObject();
+
+//    if (thumbnailFile !== undefined) {
+      $('#agoThumb').show();
+      $('#imageUpload').hide();
+      $('.fileinput').fileinput('clear');
+//    }
+  });
+};
+
+egam.models.gpoItems.DetailsModel.prototype.handleThumbnailChange = function(index) {
+  var self = this;
+
+  //Get the thumbnail object with file name on it
+  var thumbnailFile = self.getThumbnailFileObject();
+
+  if (!thumbnailFile) {
+    console.log('No thumbnail to post');
+  } else {
+    //update thumbnail on selected doc and change doc. Note: Don't know how to two way databind thumbnail because don't know what element to databind to
+    //Set thumbnail to pass the audit. If they don't update then when modal open again this will revert to original thumbnail next time detail modal opened
+    //Don't change thumbnail used to img src to GPO image until after update is complete
+    self.selected().doc().thumbnail('thumbnail/' + thumbnailFile.name);
+    self.selected().addFieldChange('thumbnail', self.selected().doc().thumbnail());
+  }
+  //Now trigger an audit to reflect change
+  self.selected().execAudit('thumbnail');
+};
+
+egam.models.gpoItems.DetailsModel.prototype.getThumbnailFileObject = function(index) {
+  var self = this;
+  var thumbnailFile = null;
+  try {
+    thumbnailFile= $('#thumbnail')[0].files[0];
+  } catch (ex) {
+  }
+  return thumbnailFile;
 };
 
 //On the entire table, we need to know which item is selected to use later with
@@ -390,26 +433,13 @@ egam.models.gpoItems.DetailsModel.prototype.selectIndex = function(index) {
   this.select(this.parent.table.items[index]);
 };
 
+
 //Post updated docs back to Mongo and change local view model
 //Note: Update is called in details model scope so this will be correct
 egam.models.gpoItems.DetailsModel.prototype.update = function() {
   var self = this;
-  //Need to add thumbnail name to document before auditing
-  var thumbnailFile = null;
-  try {
-    thumbnailFile = $('#thumbnail')[0].files[0];
-  } catch (ex) {
-  }
-  if (!thumbnailFile) {
-    console.log('No thumbnail to post');
-  } else {
-    //Add to to change doc
-    self.selected().doc().thumbnail('thumbnail/' + thumbnailFile.name);
-    self.selected().addFieldChange('thumbnail', 
-      self.selected().doc().thumbnail());
-  }
-  //Var thumbnail = $('#thumbnail')[0].files[0];
-  //if (thumbnail && thumbnail.name) unmappedDoc.thumbnail = "thumbnail/" + thumbnail.name;
+  //Need to get thumbnail object to add to FormData for uploading thumbnail
+  var thumbnailFile = self.getThumbnailFileObject();
 
   var updateDocsJSON = JSON.stringify(self.selected().changeDoc);
   //Don't try to update if there is nothing to update
@@ -440,6 +470,8 @@ egam.models.gpoItems.DetailsModel.prototype.update = function() {
         //Success so call function to process the form
         console.log('success: ' + data);
 
+        //update the thumbnail now on the selected doc now. If we did it before update the img tag is referencing non existent image on GPO
+        self.selected().GPOthumbnail(self.selected().doc().thumbnail());
         //Refresh the data table now that save went through
         //convert the full model observable doc to the simple JS doc.
         //Only update the doc field in row model item
@@ -484,7 +516,7 @@ egam.models.gpoItems.TagControlsClass = function(parent) {
   //Also storing the Office dropdown value even though it doesn't get acted as
   //a tag but need this to set value of drop. Otherwise Please Select kept
   //getting reset
-  self.tagCategories = ['EPA', 'Place', 'Office', 'Org'];
+  self.tagCategories = ['EPA', 'Place', 'Office', 'Org', 'Custom'];
 
   //These are the selected Tags that we save so they can be removed
   self.selectedTags = ko.observableArray(['']);

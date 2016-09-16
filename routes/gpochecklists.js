@@ -44,9 +44,10 @@ module.exports = function(app) {
     var config = app.get('config');
     var gfs = app.get('gfs');
 
-    var itemsCollection = monk.get('GPOitems');
-    var checklistsCollection = monk.get('GPOchecklists');
-
+    var collections = {};
+    collections.items = monk.get('GPOitems');
+    collections.checklists = monk.get('GPOchecklists');
+    collections.users = monk.get('GPOusers');
     //This function gets input for both post and get for now
     var updateDocs = utilities.getRequestInputs(req).updateDocs;
     try {
@@ -71,7 +72,7 @@ module.exports = function(app) {
     var getUpdateClassInstance = function(row) {
       //Id is the key used for updating and "item" is just text for display on
       //errors, logging, etc because
-      return new UpdateGPOclass(checklistsCollection,itemsCollection,req.session, config);
+      return new UpdateGPOclass(collections,req.session, config);
     };
 
     //This function handles the batch update process and is reusable

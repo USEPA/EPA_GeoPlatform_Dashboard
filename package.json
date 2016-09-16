@@ -10,7 +10,8 @@
     "foreverStop": "forever stop egam",
     "debug": "node-debug ./bin/www",
     "install-local": "npm install -g mocha & npm install",
-    "test": "mocha"
+    "test": "mocha",
+    "download": "node scripts/downloadGPOdata && node scripts/downloadGPOusers &&  node scripts/downloadEDGitems && node scripts/runAudit"
   },
   "dependencies": {
     "body-parser": "~1.13.1",
@@ -39,7 +40,8 @@
     "require-reload": "~0.2.2",
     "json2csv": "~3.0.1",
     "deasync": "~0.1.4",
-    "sanitize-html": "~1.11.3"
+    "sanitize-html": "~1.11.3",
+    "mustache":"~2.2.1"
   },
   "devDependencies": {
     "grunt": "~0.4.5",
