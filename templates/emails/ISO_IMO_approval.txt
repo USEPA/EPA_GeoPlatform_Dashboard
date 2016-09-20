@@ -1,7 +1,7 @@
 You are receiving this email because you have been designated as the primary ISO/IMO for {{AuthGroup}}.<br>
 <br>
-This email serves as notification to you that {{ContentOwner}} ({{contentOwnerEmail}}) requested that 
-the following GeoPlatform Content items be made available to the public, and {{geoPlatformAdmin}} ({{geoplatformAdminEmail}})
+This email serves as notification to you that {{owner.fullName}} ({{owner.email}}) requested that
+the following GeoPlatform Content items be made available to the public, and {{admin.fullName}} ({{admin.email}})
  has reviewed the items for compliance with the policies listed below and made the items available to the public. If you have any questions or concerns
  about this action, please contact these individuals and/or the EPA GeoPlatform support team (epageoplatform@epa.gov). If you have no concerns, no 
 additional action on your behalf is necessary at this time.<br>

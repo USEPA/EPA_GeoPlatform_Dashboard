@@ -110,10 +110,12 @@ function populateUserMngntTable() {
 
 //This is basically generic way to hit endopint get dataset and store it
 //Example datasets are available authgroups and available tags
-egam.utilities.getDataStash = function(name,endpoint) {
+egam.utilities.getDataStash = function(name,endpoint,data,type) {
   var self = this;
   var defer = $.Deferred();
 
+  type = type || 'GET';
+  data = data || null;
   //If already got avail tags just return don't ajax them again
   if (egam.dataStash[name]) {
     defer.resolve(egam.dataStash[name]);
@@ -122,6 +124,8 @@ egam.utilities.getDataStash = function(name,endpoint) {
 
   $.ajax({
     url: endpoint,
+    data: data,
+    type: type,
     dataType: 'json',
     success: function(data, textStatus, jqXHR) {
       if (data.errors > 0) {
@@ -140,6 +144,38 @@ egam.utilities.getDataStash = function(name,endpoint) {
 
   return defer;
 };
+
+egam.utilities.queryEndpoint = function(endpoint,query,projection) {
+  var self = this;
+  var defer = $.Deferred();
+
+  var data = {
+    query:JSON.stringify(query),
+    projection:JSON.stringify(projection)
+  };
+
+  $.ajax({
+    url: endpoint,
+    data: data,
+    type: 'POST',
+    dataType: 'json',
+    success: function(data, textStatus, jqXHR) {
+      if (data.errors > 0) {
+        defer.reject(data.errors);
+      }
+      defer.resolve(data);
+    },
+    error: function(jqXHR, textStatus, errorThrown) {
+      defer.reject('Error getting Data Stash with status ' +
+        textStatus + ': ' + errorThrown);
+      console.error('ERRORS: ' + errorThrown);
+    }
+  });
+
+  return defer;
+};
+
+egam.dataStash.test=null;egam.utilities.getDataStash("test","http://localhost/gpdashboard/gpoItems/list").then(function () {console.log(egam.dataStash.test)})
 
 egam.utilities.loadSharedControl = function(name,constructor,args) {
   if (egam.shared[name]) {
