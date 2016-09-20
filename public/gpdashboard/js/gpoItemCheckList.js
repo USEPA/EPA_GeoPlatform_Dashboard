@@ -175,7 +175,9 @@ egam.models.gpoItemCheckList.FullModelClass = function(doc, index, parent) {
   this.index = index;
   //This is the doc
   this.doc = ko.observable(ko.mapping.fromJS(ko.utils.unwrapObservable(doc)));
-
+  //This is where to store full info about keyed by id
+  this.itemDocs = null;
+  
   //Could Add a computed observable to store Checklist item names with the ids
   //http://localhost:3000/gpdashboard/gpoItems/list?query={%22id%22:{%22$in%22:[%2240894bca74de46d4b92abd8fd0a5160e%22]}}&projection={%22fields%22:{%22id%22:1,%22title%22:1}}
 
@@ -200,13 +202,31 @@ egam.models.gpoItemCheckList.DetailsModel.prototype.select = function(item) {
   var self = this;
 
   var fullRowModel = new egam.models.gpoItemCheckList.FullModelClass(item.doc, item.index, self);
-  self.selected(fullRowModel);
 
-  if (!self.bound) {
-    ko.applyBindings(self, document.getElementById('gpoCheckListDetailsModal'));
-    self.bound = true;
-  }
+  //Get the titles before is bound
+  return self.getItemDocs(fullRowModel.doc().submission.items)
+    .then(function (itemDocs) {
+//Let the array of item docs just be a field on the full model that can be used
+      fullRowModel.itemDocs = itemDocs;
+//Now set the selected field on the details model with the full row model that includes itemDocs
+      self.selected(fullRowModel);
+
+      if (!self.bound) {
+        ko.applyBindings(self, document.getElementById('gpoCheckListDetailsModal'));
+        self.bound = true;
+      }
+    });
 };
+
+egam.models.gpoItemCheckList.DetailsModel.prototype.getItemDocs = function(ids) {
+  ids = ko.utils.unwrapObservable(ids);
+  var query = {id:{$in:ids}};
+  var projection = {"fields":{"id":1,"title":1}};
+
+  return egam.utilities.queryEndpoint("gpoItems/list",query,projection)
+};
+
+
 
 //Post to mongo to make items public
 egam.models.gpoItemCheckList.DetailsModel.prototype.makeChecklistPublic = function(item) {
