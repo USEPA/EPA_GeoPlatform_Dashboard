@@ -137,51 +137,56 @@ UpdateGPOchecklist.prototype.getExistingItems = function(items) {
 UpdateGPOchecklist.prototype.onUpdateSuccess = function(){
   var self = this;
   var Q = require('q');
+  var fs = require('fs');
+  var mustache = require('mustache');
+  var sendEmail = require(appRoot+'/shared/sendEmail');
+
+  //create object with fields and arrays to render in email
+  //add date as it is read in from mongo through promise chain
+  var templateFields = {};
 
   if(self.updateDoc.approval.status == 'approved'){
 
     return Q(self.checklistCollection.findById(self.updateDoc["_id"],{fields:{'submission':1}}))
-        .then(function (doc) {
-          return self.itemsCollection.find({id:{$in:doc.submission.items}}, {fields:{'title':1, 'id': 1}}).then(function(titles){
-            return self.usersCollection.find({username:{$in:[doc.submission.owner, self.updateDoc.approval.admin]}},{fields:{'fullName':1, 'email':1}}).then(function(fullnames){
+      .then(function (doc) {
+        templateFields.AuthGroup = doc.submission.authGroup;
+        templateFields.owner = doc.submission.owner;
+        return self.itemsCollection.find({id: {$in: doc.submission.items}}, {fields: {'title': 1, 'id': 1}})
+      })
+      .then(function(titles){
+          templateFields.titles = titles;
+          return self.usersCollection.find({username:{$in:[templateFields.owner, self.updateDoc.approval.admin]}},{fields:{'username':1, 'fullName':1, 'email':1}})
+      })
+      .then(function(users) {
+        //Not sure what order the owner and admin will be in so have to determin which user object is which
+        if (users[0].username == templateFields.owner) {
+          templateFields.owner = users[0];
+          //If submitter and approver is same person then users.length=1
+          templateFields.admin = users[1] || users[0];
+        } else {
+          templateFields.owner = users[1];
+          templateFields.admin = users[0];
+        }
 
-              var mustache = require('mustache');
-              //create object with fields and arrays to render in email
-              var templateFields = {
-                'ContentOwner': fullnames[0].fullName,
-                'contentOwnerEmail': fullnames[0].email,
-                'geoPlatformAdmin': fullnames[1].fullName,
-                'geoplatformAdminEmail': fullnames[1].email,
-                'AuthGroup': doc.submission.authGroup,
-                'titles' : titles,
-              }
+        //read the template from file.
+        return Q.ninvoke(fs, 'readFile', appRoot + '\\templates\\emails\\ISO_IMO_approval.txt', 'utf8')
+      })
+      .then(function (template){
+        mustache.parse(template);
+        var emailBody = mustache.render(template,templateFields);
+        //CreateEmailObject
 
-              //read the template from file.
-              var fs = require('fs');
-              Q.ninvoke(fs,'readFile',appRoot + '\\templates\\emails\\ISO_IMO_approval.txt','utf8')
-                  .then(function (template){
-                    mustache.parse(template);
-                    body = mustache.render(template,templateFields);
-                    return body;
-                  })
-                  .then(function (body){
-                    //CreateEmailObject
-                    var sendEmail = require(appRoot+'/shared/sendEmail');
+        var fromAddress = self.config.email.defaultFrom;//FromAddress in config file
+        var toAddress = self.updateDoc.approval.IMOemail + ',' + self.updateDoc.approval.ISOemail;
+        var emailSubject = 'Request for GPO Item to be made Public';//EmailsSubject
+        var html = emailBody;
 
-                    var fromAddress = 'dyarnell@innovateteam.com';//FromAddress
-                    var toAddress = self.updateDoc.approval.IMOemail + ',' + self.updateDoc.approval.ISOemail;
-                    var emailSubject = 'Request for GPO Item to be made Public';//EmailsSubject
-                    var emailBody = body;
-                    var html = body;
-
-                    return sendEmail.send(fromAddress,toAddress, emailSubject, emailBody, html)
-                  });
-            });
-          }).catch(function(error){
-            console.error('Error Sending Email');
-            self.utilities.getHandleError(self.resObject,'UpdateError')(err);
-          });
-  });
+        return sendEmail.send(fromAddress,toAddress, emailSubject, emailBody, html)
+      })
+      .catch(function(error){
+        console.error('Error Sending Checklist IMO/ISO Email');
+        self.utilities.getHandleError(self.resObject,'UpdateError')(err);
+      });
   }
 };
 
