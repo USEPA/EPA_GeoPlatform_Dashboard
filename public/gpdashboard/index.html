@@ -831,7 +831,7 @@
                          </div>
                          <div class="modal-footer">
                              <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                             <button type="button" class="btn btn-primary" data-bind="click: makeChecklistPublic, visible: egam.portalUser.role == 'org_admin'" >Make Items Public</button>
+                             <button type="button" class="btn btn-primary" data-bind="click: makeChecklistPublic, visible: egam.portalUser.role == 'org_admin',enable: selected().doc().approval.status()!='approved'" >Make Items Public</button>
                          </div>
                      </div><!-- /.modal-content -->
                  </div><!-- /.modal-dialog -->
