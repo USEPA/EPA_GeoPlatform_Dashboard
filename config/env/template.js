@@ -20,8 +20,12 @@ module.exports = {
       ,admins: "aaron.evans@cgi.com;brett.gaines@cgi.com;bryan.chastain@cgi.com;dyarnell@innovateteam.com;Hultgren.Torrin@epa.gov",defaultFrom: "egam@epa.gov"
       ,disabled: true},
     superUserGroup: "",
-    maxRowLimit:null,
     scripts:
     {downloadGPOdata:
     {onlyGetMetaData:true}}
+    //Primary backup location for mongodump
+    backupPath: '../backup',
+    //Secondary backup for copying contents of primary backup to secondary
+    //location. Really only needed for production.
+    secondaryBackupPath: ''
 };
