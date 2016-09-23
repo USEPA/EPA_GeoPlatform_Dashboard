@@ -175,8 +175,6 @@ egam.utilities.queryEndpoint = function(endpoint,query,projection) {
   return defer;
 };
 
-egam.dataStash.test=null;egam.utilities.getDataStash("test","http://localhost/gpdashboard/gpoItems/list").then(function () {console.log(egam.dataStash.test)})
-
 egam.utilities.loadSharedControl = function(name,constructor,args) {
   if (egam.shared[name]) {
     return egam.shared[name];
