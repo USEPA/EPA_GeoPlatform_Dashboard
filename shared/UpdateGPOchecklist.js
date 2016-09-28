@@ -23,6 +23,7 @@ function UpdateGPOchecklist(collections,session,config) {
       config
   );
 
+  this.collections = collections;
   //Have access to these here for checking permissions, getting ObjectID etc
   this.checklistCollection = collections.checklists;
   this.itemsCollection = collections.items;
@@ -137,6 +138,59 @@ UpdateGPOchecklist.prototype.getExistingItems = function(items) {
 UpdateGPOchecklist.prototype.onUpdateSuccess = function(){
   var self = this;
   var Q = require('q');
+
+  //This is the full version of the doc in the DB. the UpdateDoc could just be partial as for approval
+  var dbDoc = null;
+  if(self.updateDoc.approval.status == 'approved'){
+
+    return Q(self.checklistCollection.findById(self.updateDoc["_id"],{}))
+      .catch(function(error){
+        throw(new Error('Error Getting Full Doc From DB When Approving'));
+      })
+      .then(function (doc) {
+        dbDoc = doc;
+//Actually make the thing public first and then send the email if it goes through
+        return self.makePublic(dbDoc)
+      })
+      .then(function () {
+        return self.sendIsoImoEmail(dbDoc);
+      })
+      .catch(function(error){
+        console.error('Error UpdateGPOChecklist.onUpdateSuccess');
+        self.utilities.getHandleError(self.resObject,'UpdateError')(error);
+      });
+  }
+};
+UpdateGPOchecklist.prototype.makePublic = function(dbDoc){
+  var self = this;
+  var Q = require('q');
+
+  //create object with fields and arrays to render in email
+  //add date as it is read in from mongo through promise chain
+  var templateFields = {};
+
+  if(self.updateDoc.approval.status == 'approved'){
+
+    var UpdateGPOclass = require(appRoot + '/shared/UpdateGPOitemAccess');
+
+    //This function will get the Update Class Instance needed to run .update
+    var updateAccess = new UpdateGPOclass(self.collections, self.session, self.config);
+
+    //Just need to supply the checkListID so that all items on that checklist will be made public
+    return updateAccess.update({checkListID:self.updateDoc["_id"]})
+      .then(function() {
+        //If error in the class then throw it to be caught
+        if (updateAccess.resObject.errors.length>0) throw(updateAccess.resObject.errors);
+      })
+      .catch(function(error){
+        throw(new Error('Error Making Items Public on GPO'));
+      })
+  }
+};
+
+UpdateGPOchecklist.prototype.sendIsoImoEmail = function(){
+  var self = this;
+  var Q = require('q');
   var fs = require('fs');
   var mustache = require('mustache');
   var sendEmail = require(appRoot+'/shared/sendEmail');
@@ -145,8 +199,11 @@ UpdateGPOchecklist.prototype.onUpdateSuccess = function(){
   //add date as it is read in from mongo through promise chain
   var templateFields = {};
 
-  if(self.updateDoc.approval.status == 'approved'){
+  //Don't try to send email if emails aren't supplied
+  if (! self.updateDoc.approval.IMOemail && ! self.updateDoc.approval.ISOemail) return;
 
+  if(self.updateDoc.approval.status == 'approved'){
+//Actually make the thing public first and then send the email if it goes through
     return Q(self.checklistCollection.findById(self.updateDoc["_id"],{fields:{'submission':1}}))
       .then(function (doc) {
         templateFields.AuthGroup = doc.submission.authGroup;
@@ -154,8 +211,8 @@ UpdateGPOchecklist.prototype.onUpdateSuccess = function(){
         return self.itemsCollection.find({id: {$in: doc.submission.items}}, {fields: {'title': 1, 'id': 1}})
       })
       .then(function(titles){
-          templateFields.titles = titles;
-          return self.usersCollection.find({username:{$in:[templateFields.owner, self.updateDoc.approval.admin]}},{fields:{'username':1, 'fullName':1, 'email':1}})
+        templateFields.titles = titles;
+        return self.usersCollection.find({username:{$in:[templateFields.owner, self.updateDoc.approval.admin]}},{fields:{'username':1, 'fullName':1, 'email':1}})
       })
       .then(function(users) {
         //Not sure what order the owner and admin will be in so have to determin which user object is which
@@ -184,8 +241,7 @@ UpdateGPOchecklist.prototype.onUpdateSuccess = function(){
         return sendEmail.send(fromAddress,toAddress, emailSubject, emailBody, html)
       })
       .catch(function(error){
-        console.error('Error Sending Checklist IMO/ISO Email');
-        self.utilities.getHandleError(self.resObject,'UpdateError')(err);
+        throw(new Error('Error Sending Checklist IMO/ISO Email'));
       });
   }
 };

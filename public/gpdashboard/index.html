@@ -484,7 +484,7 @@
                     <tr data-bind="css: {danger: !doc().AuditData.compliant}, click:function(item){return $root.details.select(item)}" data-toggle="modal" data-target="#gpoItemsModal" >
                         <td>
                             <span onclick="event.stopPropagation();">
-                                <input type="checkbox" id="test" class="checkboxClass" data-bind="enable:  doc().owner == egam.portalUser.username && doc().AuditData.compliant, click: function(item, evt){ return $root.table.checkRow(item.doc().id,evt)}">
+                                <input type="checkbox" id="test" class="checkboxClass" data-bind="enable:  doc().owner == egam.portalUser.username && doc().AuditData.compliant, click: function(item, evt){ return $root.table.checkRow(item.doc().id,item.index,evt)}">
                             </span>
                         </td>
                         <td data-bind="text: doc().title" ></td>

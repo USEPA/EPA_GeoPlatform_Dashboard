@@ -21,7 +21,8 @@ egam.controls.Table = function(items,elementSelector,RowModelClass,resultsName) 
   this.timeOut = 15000;
   //list of checked row
   this.checkedRows = ko.observableArray();
-
+  //This is the index of rows checked
+  this.checkedIndices = [];
 };
 
 egam.controls.Table.prototype.init = function(endpoint, query, projection, resultsName, timeOut) {
@@ -284,22 +285,29 @@ egam.controls.Table.prototype.runAllClientSideFilters = function() {
   });
 };
 
-egam.controls.Table.prototype.checkRow = function(itemField, evt) {
+egam.controls.Table.prototype.checkRow = function(itemField, itemIndex, evt) {
   //Have to get item index in checkRows storage if adding also because don't want to add duplicates
   //This probably won't happen for single manually checking but could occur when checking ALL
   //var itemID = item.doc().id;
-  var index = $.inArray(itemField, this.checkedRows);
+  var FieldIndex = $.inArray(itemField, this.checkedRows);
+
+  var IndexIndex = $.inArray(itemIndex, this.checkedIndices);
+
 
   if (evt.target.checked) {
     //Only add the row to checkRows if it is not in there
-    if (index < 0) {
+    if (FieldIndex < 0) {
       this.checkedRows.push(itemField);
       console.log("Checked :: ", evt);
     }
+    if (IndexIndex < 0) {
+      this.checkedIndices.push(itemIndex);
+    }
   } else {
     //Remove the row from checkedRows storage using splice
-    this.checkedRows.splice(index, 1);
+    this.checkedRows.splice(FieldIndex, 1);
     console.log("unChecked :: ", evt);
+    this.checkedIndices.splice(IndexIndex, 1);
   }
   return true;
 };

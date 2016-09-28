@@ -48,6 +48,7 @@ module.exports = function(app) {
     collections.items = monk.get('GPOitems');
     collections.checklists = monk.get('GPOchecklists');
     collections.users = monk.get('GPOusers');
+    collections.access = monk.get('GPOaccess');
     //This function gets input for both post and get for now
     var updateDocs = utilities.getRequestInputs(req).updateDocs;
     try {

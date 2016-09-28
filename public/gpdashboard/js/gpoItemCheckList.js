@@ -263,11 +263,17 @@ egam.models.gpoItemCheckList.DetailsModel.prototype.makeChecklistPublic = functi
       item.selected().doc().approval.status('approved');
       var jsDoc = ko.mapping.toJS(item.selected().doc());
       self.parent.table.update(item.selected().index, jsDoc, 'doc');
+//Now update the gpoItem table also
+      egam.pages.gpoItems.table.checkedIndices.forEach(function (i) {
+        var jsDoc = egam.pages.gpoItems.table.items[i].doc();
+        jsDoc.access='public';
+        egam.pages.gpoItems.table.update(i,jsDoc,'doc')
+      });
     },
     error: function(jqXHR, textStatus, errorThrown) {
       // Handle errors here
       console.log('ERRORS: ' + textStatus);
-    },
+    }
   });
 
   $('#gpoCheckListDetailsModal').modal('hide');
