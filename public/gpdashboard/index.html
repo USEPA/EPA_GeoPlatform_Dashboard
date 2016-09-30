@@ -422,7 +422,7 @@
                   <tr>
                       <th>
                           <span onclick="event.stopPropagation();">
-                               <input type="checkbox" data-bind="click: function(e,ex){return $root.table.checkAll(e,ex,'id')}"/>
+                               <input type="checkbox" data-bind="click: function(e,evt){return $root.table.checkAll('id',evt.target.checked)}"/>
                           </span>
                       </th>
                     <th>Title<br>
@@ -484,7 +484,7 @@
                     <tr data-bind="css: {danger: !doc().AuditData.compliant}, click:function(item){return $root.details.select(item)}" data-toggle="modal" data-target="#gpoItemsModal" >
                         <td>
                             <span onclick="event.stopPropagation();">
-                                <input type="checkbox" id="test" class="checkboxClass" data-bind="enable:  doc().owner == egam.portalUser.username && doc().AuditData.compliant, click: function(item, evt){ return $root.table.checkRow(item.doc().id,evt)}">
+                                <input type="checkbox" id="test" class="checkboxClass" data-bind="enable:  doc().owner == egam.portalUser.username && doc().AuditData.compliant, click: function(item, evt){ return $root.table.checkRow(item.doc().id,item.index,evt.target.checked)}">
                             </span>
                         </td>
                         <td data-bind="text: doc().title" ></td>
@@ -818,7 +818,7 @@
                                          <div class="form-group">
                                              <label for="imoInputEmail">IMO Email address</label>
                                              <input type="email" class="form-control" id="imoInputEmail" placeholder="Email">
-                                             <span id="imohelpBlock" class="help-block"><a href="https://usepa.sharepoint.com/sites/oei_Community/sio/QIC%20Meeting%20Materials/QIC-SIO-SC-IMO%20List%20Official.pdf" target="_blank">Emails for IMO can be found here</a></span>
+                                             <span id="imohelpBlock" class="help-block"><a href="https://usepa.sharepoint.com/sites/oei_Community/sio/QIC%20Meeting%20Materials/SIO%20IMO%20List%20Official.pdf" target="_blank">Emails for IMO can be found here</a></span>
                                          </div>
                                          <div class="form-group">
                                              <label for="isoInputEmail">ISO Email address</label>
