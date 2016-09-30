@@ -736,7 +736,7 @@ DownloadGPOdata.prototype.updateAccessFields = function(docs) {
             //If doc doesn't exist (new doc) then put null for old in access history
             var oldAccess = null;
             if (oldDoc) oldAccess = oldDoc.access;
-            var accessDoc = {id:doc.id,datetime:startTime,old:oldAccess,new:doc.access};
+            var accessDoc = {id:doc.id,datetime:startTime,old:oldAccess,new:doc.access,type:'download'};
             return Q(self.accessCollection.insert(accessDoc));
           }else {
             return false;
