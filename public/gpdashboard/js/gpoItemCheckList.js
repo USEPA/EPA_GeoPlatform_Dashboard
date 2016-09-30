@@ -145,7 +145,8 @@ egam.models.gpoItemCheckList.PageModelClass.prototype.update = function(){
       var query = null;
       var projection = null;
       self.table.init('gpochecklists/list', query, projection);
-      
+//Clear out the checked items
+      egam.pages.gpoItems.table.checkAll('id',false);
     },
     error: function(jqXHR, textStatus, errorThrown) {
       // Handle errors here
@@ -267,8 +268,10 @@ egam.models.gpoItemCheckList.DetailsModel.prototype.makeChecklistPublic = functi
       egam.pages.gpoItems.table.checkedIndices.forEach(function (i) {
         var jsDoc = egam.pages.gpoItems.table.items[i].doc();
         jsDoc.access='public';
-        egam.pages.gpoItems.table.update(i,jsDoc,'doc')
+        egam.pages.gpoItems.table.update(i,jsDoc,'doc');
       });
+//Clear out the checked items in case something is checked
+      egam.pages.gpoItems.table.checkAll('id',false);
     },
     error: function(jqXHR, textStatus, errorThrown) {
       // Handle errors here
