@@ -1,0 +1,27 @@
+<script id="globalNavigationBar" type="text/html">
+<div class="container-fluid">
+    <div class="navbar-header">
+        <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="#">
+            <img src="img/epa1.png" style="width:40px; margin:-10px 5px 0px 0px; display:inline-block;" /> GeoPlatform Dashboard
+        </a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+        <ul class="nav navbar-nav navbar-right">
+            <li id="userId" style="display:none">
+                <a>Welcome <span data-bind="text: communityUser.fullName"></span>
+                    <span data-bind="css: {hidden: communityUser.isAdmin}">(Non-Administrator)</span>
+                    <span data-bind="css: {hidden: communityUser.isAdmin != true}">(GPO Administrator)</span></a>
+            </li>
+            <li id="personalizedPanel" style="display: none; "><a id="sign-out" href="#">Sign Out</a></li>
+            <li id="anonymousPanel" style="display: block"><a href="#" id="sign-in-navbar">Sign In</a></li>
+            <li><a id="egamHelp" href="#">Help</a></li>
+        </ul>
+    </div>
+</div>
+</script>

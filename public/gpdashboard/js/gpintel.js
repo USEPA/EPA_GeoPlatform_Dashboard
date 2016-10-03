@@ -17,6 +17,28 @@ if (typeof egam.shared == 'undefined') {
   egam.shared = {};
 }
 
+//Place for mustache templates
+if (typeof egam.templates == 'undefined') {
+  egam.templates = [
+    'globalNavigationBar',
+    'helpModal',
+    'gpoItemsPage',
+    'gpoItemsModal',
+    'checkListModal',
+    'gpoCheckListDetailsModal',
+    'reconciliationModal',
+    'edgModal',
+    'emailModal',
+    'metricsView',
+    'environmentView',
+    'userMgmtView',
+    'gpoUsersModal',
+    'edgItemsPage',
+    'edgItemsModal',
+  ];
+}
+
+
 //For now i'm using .(dot) namespacing categorized by model, utility and control
 //classes. Most classes are models but reusable ones like Table class are
 //controls. When AMD is implemented we won't need so much .(dot) namespacing.
@@ -34,8 +56,41 @@ egam.dataStash = {};
 //   isLoaded: false,
 // };
 
+egam.templates.load = function(divID) {
+  var templateFile = 'templates/main_page/' + divID + '.mst';
+  //If in production just use single template file.
+  //Set useSingleTemplateFile='path to production single template file'
+  if (egam.templates.useSingleTemplateFile) {
+    templateFile = egam.templates.useSingleTemplateFile;
+  }
+  //Don't reload if already in cache
+  if (!(templateFile in egam.templates.cache)) {
+    $.get(templateFile, function(template) {
+      egam.templates.cache[templateFile] = $(template).filter('#' + divID).html();
+      render();
+    });
+  } else {
+    render();
+  }
+
+  function render() {
+    $('#' + divID).append(Mustache.render(egam.templates.cache[templateFile], {}));
+  }
+
+};
+
+egam.templates.loadArray = function() {
+  this.forEach(function(divID) {
+    egam.templates.load(divID);
+  })
+};
+
+egam.templates.cache = {};
+
 $(document).ready(function() {
 
+  //Load templates
+  egam.templates.loadArray();
 
   $(document).on('click', '.nav li', function(e) {
     $('.nav-sidebar li').removeClass('active');
