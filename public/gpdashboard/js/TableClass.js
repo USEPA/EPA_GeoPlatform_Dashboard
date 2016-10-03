@@ -21,7 +21,8 @@ egam.controls.Table = function(items,elementSelector,RowModelClass,resultsName) 
   this.timeOut = 15000;
   //list of checked row
   this.checkedRows = ko.observableArray();
-
+  //This is the index of rows checked
+  this.checkedIndices = [];
 };
 
 egam.controls.Table.prototype.init = function(endpoint, query, projection, resultsName, timeOut) {
@@ -284,31 +285,38 @@ egam.controls.Table.prototype.runAllClientSideFilters = function() {
   });
 };
 
-egam.controls.Table.prototype.checkRow = function(itemField, evt) {
+egam.controls.Table.prototype.checkRow = function(itemField, itemIndex, checked) {
   //Have to get item index in checkRows storage if adding also because don't want to add duplicates
   //This probably won't happen for single manually checking but could occur when checking ALL
   //var itemID = item.doc().id;
-  var index = $.inArray(itemField, this.checkedRows);
+  var FieldIndex = $.inArray(itemField, this.checkedRows);
 
-  if (evt.target.checked) {
+  var IndexIndex = $.inArray(itemIndex, this.checkedIndices);
+
+
+  if (checked) {
     //Only add the row to checkRows if it is not in there
-    if (index < 0) {
+    if (FieldIndex < 0) {
       this.checkedRows.push(itemField);
-      console.log("Checked :: ", evt);
+      console.log("Checked :: ", checked);
+    }
+    if (IndexIndex < 0) {
+      this.checkedIndices.push(itemIndex);
     }
   } else {
     //Remove the row from checkedRows storage using splice
-    this.checkedRows.splice(index, 1);
-    console.log("unChecked :: ", evt);
+    this.checkedRows.splice(FieldIndex, 1);
+    console.log("unChecked :: ", checked);
+    this.checkedIndices.splice(IndexIndex, 1);
   }
   return true;
 };
 
-egam.controls.Table.prototype.checkAll = function(model, evt, field) {
+egam.controls.Table.prototype.checkAll = function(field,checked) {
   var self = this;
   var resultRows;
 
-  if(evt.target.checked){
+  if(checked){
     resultRows = self.dataTable.rows({"search":"applied"});
   }else{
     resultRows = self.dataTable.rows();
@@ -316,14 +324,15 @@ egam.controls.Table.prototype.checkAll = function(model, evt, field) {
 
   resultRows.every(function ( rowIdx, tableLoop, rowLoop ) {
     var rowData = this.data();
-        var rowNode = this.node();
+    var rowNode = this.node();
 
-        var ckBox = $(rowNode).find(".checkboxClass");
-        if (ckBox.prop("disabled") == false) {
-          ckBox.prop('checked', evt.target.checked);
-          self.checkRow(rowData.doc()[field],evt);
-        }
+    var ckBox = $(rowNode).find(".checkboxClass");
+    if (ckBox.prop("disabled") == false) {
+      ckBox.prop('checked', checked);
+      self.checkRow(rowData.doc()[field],rowData.index,checked);
+    }
   });
 
   return true;
 };
+
