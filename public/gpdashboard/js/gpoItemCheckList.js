@@ -77,6 +77,7 @@ egam.models.gpoItemCheckList.PageModelClass.prototype.init = function() {
       //on close with out clear checkboxes
       $('#checkListModal').on('hidden.bs.modal', function(e) {
         self.confirm(false);
+        self.checklistName("");
         //egam.pages.gpoItems.table.uncheckAll();
       });
       //on closing of checklist details modal clear fields
