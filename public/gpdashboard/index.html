@@ -653,9 +653,9 @@
                          </div>
                          <div class="modal-body">
                              <div id="requestElements">
-                                 <div class="row input-group" >
+                                 <div class="row input-group" data-bind="css:{'has-error': !checklistName()}">
                                      <span class="input-group-addon" id="basic-addon1">Project Name</span>
-                                     <input type="text" id="requestName" class="form-control" aria-describedby="basic-addon1">
+                                     <input type="text" id="requestName" class="form-control" data-bind="value:checklistName, valueUpdate:'afterkeydown'" aria-describedby="basic-addon1">
                                  </div>
                                  <div class="row input-group" >
                                      <span class="input-group-addon" id="basic-addon2">Authoritative Group</span>
@@ -762,7 +762,7 @@
                          </div>
                          <div class="modal-footer">
                              <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                             <button id="requestConfirm" type="button" class="btn btn-primary" data-bind="click: update, enable: confirm" >Confirm</button>
+                             <button id="requestConfirm" type="button" class="btn btn-primary" data-bind="click: update, enable: (checklistName() && confirm())" >Confirm</button>
                          </div>
                      </div><!-- /.modal-content -->
                  </div><!-- /.modal-dialog -->

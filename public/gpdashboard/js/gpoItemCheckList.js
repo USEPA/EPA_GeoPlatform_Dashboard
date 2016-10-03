@@ -26,7 +26,7 @@ egam.models.gpoItemCheckList.PageModelClass = function() {
   self.sponsoreeAuthGroups = ko.observableArray(
       egam.communityUser.authGroups);
   self.confirm = ko.observable();
-
+  self.checklistName = ko.observable();
   //Only these fields will be returned from gpoItems/list endpoint
   self.resultFields = {
     _id: 1,
