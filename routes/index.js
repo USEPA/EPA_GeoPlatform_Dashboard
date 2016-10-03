@@ -290,7 +290,6 @@ module.exports = function(app) {
 
   router.use('/nodeEnv', function(req, res) {
     var env = require(app.get('appRoot') + 'config/nodeEnv');
-    env = 'production';
     res.write(env);
     res.end();
   });
