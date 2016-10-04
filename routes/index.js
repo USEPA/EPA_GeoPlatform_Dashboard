@@ -288,5 +288,11 @@ module.exports = function(app) {
     readStream.pipe(res);
   });
 
+  router.use('/nodeEnv', function(req, res) {
+    var env = require(app.get('appRoot') + 'config/nodeEnv');
+    res.write(env);
+    res.end();
+  });
+
   return router;
 };
