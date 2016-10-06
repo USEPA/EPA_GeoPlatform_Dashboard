@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en" xmlns="http://www.w3.org/1999/html" xmlns="http://www.w3.org/1999/html">
-  <head>
+
+<head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -12,7 +13,7 @@
     <link href="bootstrap/css/bootstrap.min.css" rel="stylesheet">
     <link href="bootstrap/css/jasny-bootstrap.min.css" rel="stylesheet">
     <link href="bootstrap/css/dataTables.bootstrap.min.css" rel="stylesheet">
-      <link href="bootstrap/css/buttons.dataTables.min.css" rel="stylesheet">
+    <link href="bootstrap/css/buttons.dataTables.min.css" rel="stylesheet">
     <link href="css/dashboard.css" rel="stylesheet">
 
     <!--[if lt IE 9]>
@@ -23,320 +24,54 @@
     <script src="bootstrap/js/knockout.mapping-latest.js"></script>
 
 
-	<script>
-	  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
-	  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-	  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-	  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
-	  ga('create', 'UA-73331985-1', 'auto');
-      ga('require', 'autotrack');
-      ga('send', 'pageview');
-	</script>
+    <script>
+        (function (i, s, o, g, r, a, m) {
+            i['GoogleAnalyticsObject'] = r;
+            i[r] = i[r] || function () {
+                        (i[r].q = i[r].q || []).push(arguments)
+                    }, i[r].l = 1 * new Date();
+            a = s.createElement(o),
+                    m = s.getElementsByTagName(o)[0];
+            a.async = 1;
+            a.src = g;
+            m.parentNode.insertBefore(a, m)
+        })(window, document, 'script', '//www.google-analytics.com/analytics.js', 'ga');
+        ga('create', 'UA-73331985-1', 'auto');
+        ga('require', 'autotrack');
+        ga('send', 'pageview');
+    </script>
     <script src='js/libs/ga/autotrack.js'></script>
 
     <title>GeoPlatform Dashboard</title>
-  </head>
+</head>
 
-  <body>
-    <nav id="globalNavigationBar" class="navbar navbar-inverse navbar-fixed-top">
-      <div class="container-fluid">
-        <div class="navbar-header">
-          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
-            <span class="sr-only">Toggle navigation</span>
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-          </button>
-          <a class="navbar-brand" href="#" >
-            <img src="img/epa1.png" style="width:40px; margin:-10px 5px 0px 0px; display:inline-block;"/>
-            GeoPlatform Dashboard
-          </a>
-        </div>
-        <div id="navbar" class="navbar-collapse collapse">
-          <ul class="nav navbar-nav navbar-right">
-            <li id="userId" style="display:none">
-                <a>Welcome <span data-bind="text: communityUser.fullName"></span>
-                <span data-bind="css: {hidden: communityUser.isAdmin}">(Non-Administrator)</span>
-                <span data-bind="css: {hidden: communityUser.isAdmin != true}">(GPO Administrator)</span></a>
-            </li>
-            <li id="personalizedPanel" style="display: none; "><a id="sign-out" href="#">Sign Out</a></li>
-            <li id="anonymousPanel" style="display: block"><a href="#" id="sign-in-navbar" >Sign In</a></li>
-            <li><a id="egamHelp" href="#">Help</a></li>
-          </ul>
-        </div>
-      </div>
-    </nav>
+<body>
+<nav id="globalNavigationBar" class="navbar navbar-inverse navbar-fixed-top">
+</nav>
 
-    <!--Help Modal-->
-    <div class="modal fade" id="helpModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
-        <div class="modal-dialog modal-lg" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close" ><span aria-hidden="true">&times;</span></button>
-                    <h4 class="modal-title" id="helpModalLabel">GeoPlatform Dashboard Help</h4>
-                </div>
-                <div class="modal-body">
-                    <div class="row">
-                        <div class="col-md-2">
-                            <!-- Nav tabs -->
-                            <ul class="nav nav-pills nav-stacked" role="tablist">
-                                <li role="presentation" class="active"><a href="#about" aria-controls="About" role="tab" data-toggle="tab">About</a></li>
-                                <li role="presentation"><a href="#SignInOut" aria-controls="SignInOut" role="tab" data-toggle="tab">Signing In/Out</a></li>
-                                <li role="presentation"><a href="#InitialView" aria-controls="InitialView" role="tab"
-                                                           data-toggle="tab">Initial View</a></li>
-                                <li role="presentation"><a href="#DashboardUse" aria-controls="DashboardUse" role="tab" data-toggle="tab">GeoPlatform Online Content</a></li>
-                                <li role="presentation"><a href="#UserManagement" aria-controls="UserManagement" role="tab" data-toggle="tab">User Management</a></li>
-                                <li role="presentation"><a href="#Email" aria-controls="ContactUs" role="tab" data-toggle="tab">Contact Us</a></li>
-                                <!--<li role="presentation"><a href="#settings" aria-controls="settings" role="tab" data-toggle="tab">Settings</a></li>-->
-                            </ul>
-                        </div>
+<!--Help Modal-->
+<div class="modal fade" id="helpModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+</div>
+<!--End Help Modal-->
 
-                        <!-- Tab panes -->
-                        <div class="col-md-10">
-                            <div class="tab-content">
-                                <div role="tabpanel" class="tab-pane active" id="about">
-                                    <h4>What's this app for?</h4>
-                                    <p>The EPA GeoPlatform Dashboard provides information on GeoPlatform items.
-                                        It allows the user to audit and edit this information in order to comply with EPA guidelines.</p>
-                                    <p>This guide will walk you through using the Dashboard. These instructions
-                                        will step through the navigation menu on the left side of the screen
-                                        beginning with GeoPlatform Online (GPO) Content.
-                                        More content is currently being added to this application and help documentation will continually be added as more
-                                        functionality is added.</p>
-                                </div>
-                                <div role="tabpanel" class="tab-pane" id="SignInOut">
-                                    <h4>Signing In/Out</h4>
-                                    <p>The navigation bar in the top right corner of the application has two buttons, Sign In/Sign Out,
-                                        and Help. Clicking the Sign In button will prompt the user for sign-in
-                                        credentials for the GeoPlatform Online (GPO).
-                                        Either Esri-based GPO credentials or your EPA Enterprise Single Sign-On
-                                        credentials can be used. Once you have signed in, the sign in
-                                        button will display your user name and your GPO Role (eg. User, Admin, etc.)
-                                        next to the Sign Out button.</p>
-                                </div>
-                                <div role="tabpanel" class="tab-pane" id="InitialView">
-                                    <h4>Initial View</h4>
-                                    <p>The initial view displays a few key items across the
-                                        top of the screen above the data table (Public Items Audit Result, My Items, My
-                                        Groups, Auth Groups). 'Public Items Audit Result' displays
-                                        the percentage of public items that have passed the Audit. The audit is run throughout the life cycle of the
-                                        application, so this number will reflect what is current. 'My Items' displays
-                                        the number of Items associated with your
-                                        GPO account. 'My Groups' displays the number of groups associated with your account. 'Auth Groups' display the number of
-                                        Authoritative groups that your account is associated with. The names of those groups can be displayed when the number
-                                        is clicked. When clicked, either the authoritative group you are associated
-                                        with will display or, if your GPO account is
-                                        associated with multiple authoritative groups, then a dropdown will display
-                                        with a list of the Authoritative groups.
-                                        By choosing one of these groups it will refresh the table below with the content from the chosen group.</p>
-                                </div>
-
-                                <div role="tabpanel" class="tab-pane" id="DashboardUse">
-                                    <h4>GeoPlatform Online Content</h4>
-                                    <!--Accordion-->
-                                    <div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">
-                                        <div class="panel panel-default">
-                                            <div class="panel-heading" role="tab" id="headingOne">
-                                                <h4 class="panel-title">
-                                                    <a role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
-                                                        GeoPlatform Online Content Table
-                                                    </a>
-                                                </h4>
-                                            </div>
-                                            <div id="collapseOne" class="panel-collapse collapse in" role="tabpanel" aria-labelledby="headingOne">
-                                                <div class="panel-body">
-                                                    <p>The GPO Content table displays the GPO items. The columns of the table are defined below:</p>
-                                                    <table class="table table-bordered">
-                                                        <tr>
-                                                            <td>Title</td>
-                                                            <td>The title of the item. This is the name that's displayed to users and by which they refer to the item. Every item must have a title.</td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td>Access</td>
-                                                            <td>Indicates the level of access to this item: private, shared, org or public.</td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td>Type</td>
-                                                            <td>The GIS content type of this item. Examples include Web Map, Map Service, Shapefile, and Web Mapping Application.
-                                                                To see all the available types see <a
-                                                                        href="http://resources.arcgis.com/en/help/arcgis-rest-api/index.html#//02r3000000ms000000">ArcGIS Resources</a>.</td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td>Views</td>
-                                                            <td>Number of views of the item.</td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td>Owner</td>
-                                                            <td>The username of the user who owns this item.</td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td>Audit</td>
-                                                            <td>This field indicates if the item pass for failed the audit.</td>
-                                                        </tr>
-                                                    </table>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="panel panel-default">
-                                            <div class="panel-heading" role="tab" id="headingTwo">
-                                                <h4 class="panel-title">
-                                                    <a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
-                                                        Searching and Filtering Table
-                                                    </a>
-                                                </h4>
-                                            </div>
-                                            <div id="collapseTwo" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingTwo">
-                                                <div class="panel-body">
-                                                    <p>Searching - You can search the GPO content table by entering a word or phrase to search by in the search text box in
-                                                        the top right corner of the table. This will search all items and columns.</p>
-                                                    <p>Filter - You can filter what is displayed in the GPO content table by clicking on the dropdown menus under the title
-                                                        for each column. For the title column you must type in text to filter the table.</p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="panel panel-default">
-                                            <div class="panel-heading" role="tab" id="headingThree">
-                                                <h4 class="panel-title">
-                                                    <a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
-                                                        Item Details
-                                                    </a>
-                                                </h4>
-                                            </div>
-                                            <div id="collapseThree" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingThree">
-                                                <div class="panel-body">
-                                                    <p>The item details for a GPO item in the table can be displayed by clicking on the row. The item details
-                                                        display the following information for an item. The validation rules are based on the <a href="https://edg.epa.gov/metadata/webhelp/en/gptlv10/inno/GenericMetadataGuide.pdf" target="_blank">EPA Generic Metadata Styleguide</a>, please read the full guide for additional recommendations.</p>
-                                                    <table class="table table-bordered">
-                                                        <tr>
-                                                            <th>Field</th>
-                                                            <th>Description</th>
-                                                            <th>Validation Rule</th>
-                                                        </tr>
-                                                        <tr>
-                                                            <td>Title</td>
-                                                            <td>The title of the item.</td>
-                                                            <td>The title must not be empty.</td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td>Summary</td>
-                                                            <td>a short summary description of the item.</td>
-                                                            <td></td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td>Description</td>
-                                                            <td>Item description.</td>
-                                                            <td>The description must contain a minimum of 5 words.</td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td>Access and use Constraints</td>
-                                                            <td>Any license information or restrictions.</td>
-                                                            <td>Should point to https://edg.epa.gov/EPA_Data_License.html unless a different license applies.</td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td>Credits</td>
-                                                            <td>Information on the source of the item and its copyright status.</td>
-                                                            <td>Should list U.S. Environmental Protection Agency unless a different entity applies.</td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td>URL</td>
-                                                            <td>The URL for the resource represented by the item. Applies only to items that represent web-accessible resources such as map services.</td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td>Thumbnail</td>
-                                                            <td>The URL to the thumbnail used for the item.</td>
-                                                            <td>Thumbnail is required.</td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td>Tags</td>
-                                                            <td>User defined tags that describe the item.</td>
-                                                            <td>Select at least one tag from each of the dropdowns (EPA Keywords, Place Keywords, and EPA Organization Names).</td>
-                                                        </tr>
-                                                    </table>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="panel panel-default">
-                                            <div class="panel-heading" role="tab" id="headingFour">
-                                                <h4 class="panel-title">
-                                                    <a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseFour" aria-expanded="false" aria-controls="collapseFour">
-                                                        Editing Item Details
-                                                    </a>
-                                                </h4>
-                                            </div>
-                                            <div id="collapseFour" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingFour">
-                                                <div class="panel-body">
-                                                    <p>Editing Item Details - An items details can be edited by changing the value in the textbox next to the item detail that you wish to change.</p>
-                                                    <p>Changing Item Thumbnail - The thumbnail for an item can also be changed by clicking the change button under the thumbnail preview and
-                                                        navigating to the image that you would like to use as the thumbnail.  For best results, the image should be 200 pixels wide by 133 pixels high.
-                                                        Acceptable image formats are: PNG, GIF and JPEG. </p>
-                                                    <p>Adding/Removing Tags - Tags can be added and removed from an item. To add a tag an item type the tag that you would like in the text box under
-                                                        the Tags title, then click the Add button. The tags will be added to the list below the Add button. To remove a tag, select the tag in the Tags
-                                                        List and click the Remove button.
-                                                    </p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <!--end Accordion-->
-                                    <div>
-                                    </div>
-                                </div>
-                                
-                                <div role="tabpanel" class="tab-pane" id="UserManagement">
-                                    <h4>User Management</h4>
-                                    <p>This page allows administrators to manage the sponsorship of external (non-single-sign-on) accounts. Every external account must have a sponsor, and accounts must be reviewed and renewed every 90 days, or the account will be automatically disabled. Disabled accounts will be cleaned up periodically with their content items transferred to the most recent sponsor. The table shows the status of each account, when their account was last renewed, and when they are due for renewal. Any administrator may sponsor or renew the sponsorship of any external account.</p>
-                                    <p>When sponsoring an external account, please select a reason for the sponsorship from the dropdown, enter the name of the external account holder's organization and an optional short description of the context, and select an authoritative group that member should be a part of for auditing purposes. If an account is subsequently sponsored by a different group, they will remain a member of all sponsoring authoritative groups until the account is disabled or they are manually removed from a group.</p>
-                                </div>
-                                <div role="tabpanel" class="tab-pane" id="Email">
-                                    <h4>Contact Us</h4>
-                                    <p>Send Questions and Comments to <a
-                                            href="mailto:epageoplatform@epa.gov?subject=EPA GeoPlatform Dashboard">
-                                        epageoplatform@epa.gov</a></p>
-                                    <!--<form action="mailto: dyarnell@innovateteam.com" method="post">-->
-                                        <!--<div class="form-group">-->
-                                            <!--<label for="EmailSubject">Email address</label>-->
-                                            <!--<input type="text" class="form-control" id="EmailSubject" placeholder="Subject">-->
-                                        <!--</div>-->
-                                        <!--<div class="form-group">-->
-                                            <!--<label for="EmailText">Email address</label>-->
-                                            <!--<textarea class="form-control col-lg" id="EmailText" placeholder="Text input" rows="4"></textarea>-->
-                                        <!--</div>-->
-                                        <!--<button type="submit" class="btn btn-default"></button>-->
-                                    <!--</form>-->
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-default" data-dismiss="modal" >Close</button>
-                </div>
-            </div>
-        </div>
-    </div>
-    <!--End Help Modal-->
-
-    <div class="container-fluid">
-      <div class="row">
+<div class="container-fluid">
+    <div class="row">
         <div class="col-sm-3 col-md-2 sidebar" id="sideNav" style="display: none; ">
             <ul class="nav nav-pills nav-stacked" role="tablist">
                 <li role="presentation" class="active">
                     <a href="#gpoItemsView" role="tab" aria-controls="gpoItemsView" data-toggle="tab">GeoPlatform Online Content</a>
                 </li>
                 <li role="presentation">
-                    <a href="#metricsView" role="tab" aria-controls="metricsView"
-                                           data-toggle="tab">GeoPlatform Online Metrics (Future)</a>
+                    <a href="#metricsView" role="tab" aria-controls="metricsView" data-toggle="tab">GeoPlatform Online Metrics (Future)</a>
                 </li>
                 <li role="presentation">
                     <a href="#environmentView" role="tab" aria-controls="environmentView" data-toggle="tab">GeoPlatform Hosting Environment</a>
                 </li>
                 <li role="presentation">
-                    <a href="#userMgmtView" role="tab" aria-controls="userMgmtView"
-                                           data-toggle="tab">User Management</a>
+                    <a href="#userMgmtView" role="tab" aria-controls="userMgmtView" data-toggle="tab">User Management</a>
                 </li>
                 <li role="presentation">
-                    <a href="#edgView" role="tab" aria-controls="edgView"
-                                           data-toggle="tab">EDG Items</a>
+                    <a href="#edgView" role="tab" aria-controls="edgView" data-toggle="tab">EDG Items</a>
                 </li>
             </ul>
         </div>
@@ -349,1116 +84,114 @@
             </div>
         </div>
 
-        <div id="mainWindow" style="display: none; "
-             class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
+        <div id="mainWindow" style="display: none; " class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
 
-         <div class="tab-content">
-              <!-- Begin overview class="view collapse in"-->
-             <div id="loadingMsg" class="jumbotron hidden">
-                 <h2 id="loadingMsgText" class="text-center">Just one moment, fetching the latest GeoPlatform content for you...</h2>
-                 <h3 id="loadingMsgCountContainer" class="text-center hidden"><span id="loadingMsgCount"></span> <span id="loadingMsgTotalCount"></span> items are loading</h3>
-                 <img id="loadingGraphic" src="img/loading.gif" class="img-responsive center-block" alt="now loading" />
-             </div>
+            <div class="tab-content">
+                <!-- Begin overview class="view collapse in"-->
+                <div id="loadingMsg" class="jumbotron hidden">
+                    <h2 id="loadingMsgText" class="text-center">Just one moment, fetching the latest GeoPlatform content for you...</h2>
+                    <h3 id="loadingMsgCountContainer" class="text-center hidden"><span id="loadingMsgCount"></span> <span id="loadingMsgTotalCount"></span> items are loading</h3>
+                    <img id="loadingGraphic" src="img/loading.gif" class="img-responsive center-block" alt="now loading" />
+                </div>
 
-             <div role="tabpanel" class="tab-pane active" id="gpoItemsView" >
-            <div id="gpoItemsPage" class="hidden">
-                <div id="gpoContentHeader" class="row placeholders">
-                    <div class="col-xs-6 col-sm-3">
-                        <h4>Public Items Audit Result</h4>
-                        <span id="percPublicPassingAudit" class="text-muted" data-bind="text:percentPublicPassing"></span> % Passing
+                <div role="tabpanel" class="tab-pane active" id="gpoItemsView">
+                    <!-- GPO Items Page-->
+                    <div id="gpoItemsPage" class="hidden">
                     </div>
-                    <div class="col-xs-6 col-sm-3">
-                        <h4>My Items</h4>
-                        <span id="agoItems" class="text-muted" data-bind="text:myItemsCount"></span>
+                    <!-- End  GPO Items Page-->
+
+                    <!-- Modal for Editing -->
+                    <div class="bottomModal modal fade" id="gpoItemsModal" tabindex="-1" role="dialog" data-keyboard="false" data-backdrop="static" aria-labelledby="myModalLabel">
                     </div>
-                    <div class="col-xs-6 col-sm-3">
-                        <h4>My Groups</h4>
-                        <span id="agoGroups" class="text-muted" data-bind="text:egam.communityUser.groups.length"></span>
+                    <!-- End Modal for Editing-->
+                    <!-- Begin Checklist Modal-->
+                    <div id="checkListModal" class="modal fade" tabindex="-1" role="dialog">
                     </div>
-                    <div class="col-xs-6 col-sm-3">
-                        <h4 style="white-space:nowrap;">Auth Groups
-                        </h4>
-                        <a data-toggle="tooltip" data-placement="left" title="Show/Hide Auth Groups"><span id="authGroupsCount" class="text-muted" data-toggle="collapse" href="#collapseExample" aria-expanded="false" aria-controls="collapseExample" data-bind="text:Object.keys(egam.communityUser.ownerIDsByAuthGroup).length"></span></a>
-                        <div class="collapse" id="collapseExample">
-                            <select id="dropAuthGroups" class="search form-control input-sm " >
-                            </select>
-                            <a id="downloadAuthgroupsCSVall" href="gpoUsers/list.csv" class="">Download User List</a></br>
-                            <a id="emailAuthgroupsCSVall" onclick="egam.models.gpoUsers.buildEmailMyUsersLink()">Email Users</a>
-                            <a id="downloadAuthgroupsCSVregions" href="gpoUsers/list.csv/authGroups/" class="hidden">download users</a>
-                        </div>
+                    <!-- /.modal -->
+                    <!-- End Checklist Modal-->
+                    <!-- Admin Checklist Modal-->
+                    <div id="gpoCheckListDetailsModal" class="modal fade" tabindex="-1" role="dialog">
+                    </div>
+                    <!-- /.modal -->
+                    <!-- End Admin Checklist Modal-->
+
+                    <!-- Modal for Reconciliation -->
+                    <div class="modal fade" id="reconciliationModal" tabindex="-1" role="dialog" data-keyboard="false" data-backdrop="static" aria-labelledby="myModalLabel">
+                    </div>
+                    <!-- End Modal for Editing-->
+                </div>
+                <!-- End Overview -->
+
+                <!-- EDG Modal -->
+                <div class="modal fade" id="edgModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+                </div>
+                <!-- End EDG Modal -->
+                <!--Email Modal-->
+                <div class="modal fade" id="emailModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+                </div>
+                <!--End Email Modal-->
+                <!-- Metrics View -->
+                <div role="tabpanel" class="tab-pane" id="metricsView">
+                </div>
+                <!-- End  Metrics View -->
+
+                <!--  GPHE View -->
+                <div role="tabpanel" class="tab-pane" id="environmentView">
+                </div>
+                <!-- End GPHE View -->
+
+                <!-- userMgmtView  View -->
+                <div role="tabpanel" class="tab-pane" id="userMgmtView">
+                </div>
+                <div class="modal fade" id="gpoUsersModal" tabindex="-1" role="dialog" data-keyboard="false" data-backdrop="static" aria-labelledby="userMgmtModalLabel">
+                </div>
+                <!-- End userMgmtView  modal -->
+
+                <!-- EDG  View -->
+                <div role="tabpanel" class="tab-pane" id="edgView">
+                    <div id="edgItemsPage">
+                    </div>
+                    <!-- EDG Detail Modal -->
+                    <div class="modal fade" id="edgItemsModal" tabindex="-1" role="dialog" data-keyboard="false" data-backdrop="static" aria-labelledby="myModalLabel">
                     </div>
                 </div>
-             <h3 class="sub-header"></h3>
-
-                <div class="btn-group" role="group" style="margin-bottom: 5px">
-                    <button type="button" id="makePublic" class="btn btn-default" data-bind="enable: $root.table.checkedRows().length > 0, click: function(){return egam.pages.gpoItemCheckList.showGPOCheckList()}">Make Public</button>
-                    <button class="btn btn-primary" type="button" data-bind="click: function(){return egam.pages.gpoItemCheckList.adminCheckLists()}">
-                        Requests <span class="badge" data-bind="text: pendingChecklistCount"></span>
-                    </button>
-                </div>
-                <!-- Note: needed to use type:'num' below so that doc.modified was treated like a number '<row <col-sm-6 l><col-sm-6 f>><t><ip>'-->
-                <table id="gpoItemsTable" class="table table-hover table-bordered table-responsive" data-bind="dataTable:
-                {
-                    deferRender: true,
-                    dataSource: egam.pages.gpoItems.table.items,
-                    rowTemplate: 'GPOitemsRowTemplate',
-                    options: {paging: true,
-                              aaSorting: [],
-                            },
-                    columns: [
-                    {data:null, sortable: false},
-                    {data:'doc().title'},
-                    {data:'doc().access'},
-                    {data:'doc().type'},
-                    {data:'ownerFolderTitle'},
-                    {data:'doc().numViews'},
-                    {data:'doc().owner'},
-                    {data:{_:function (row) {return egam.utilities.formatDate(row.doc().modified)},sort:'doc().modified'},type:'num'},
-                    {data:'complianceStatus'},
-                    {data:'doc().owner', sortable: false}
-                    ]
-                    }">
-                    <thead>
-                  <tr>
-                      <th>
-                          <span onclick="event.stopPropagation();">
-                               <input type="checkbox" data-bind="click: function(e,evt){return $root.table.checkAll('id',evt.target.checked)}"/>
-                          </span>
-                      </th>
-                    <th>Title<br>
-                        <span onclick="event.stopPropagation();" >
-                            <input class="search form-control input-sm" placeholder="Search By Title">
-                        </span>
-                    </th>
-                    <th class="accessColumn">Access<br>
-                        <span onclick="event.stopPropagation();" >
-                            <select id="dropAccess" class="search form-control input-sm">
-                                <option value="">All</option>
-                                <option value="public">public</option>
-                                <option value="org">org</option>
-                                <option value="shared">shared</option>
-                                <option value="private">private</option>
-                            </select>
-                        </span>
-                    </th>
-                    <th>Type<br>
-                        <span onclick="event.stopPropagation();" >
-                            <select class="search form-control input-sm" style="width:18em"><option value="">All</option></select>
-                        </span>
-                    </th>
-                    <th>Folder<br>
-                        <span onclick="event.stopPropagation();" >
-                            <select class="search form-control input-sm" style="width:18em"><option value="">All</option></select>
-                        </span>
-                    </th>
-                    <th>Views</th>
-                    <th >Owner<br>
-                        <span onclick="event.stopPropagation();" >
-                            <select class="search form-control input-sm" style="width:18em"><option value="">All</option></select>
-                        </span>
-                    </th>
-                      <th>Modified<br>
-                        <span onclick="event.stopPropagation();" >
-                            <input class="search form-control input-sm" placeholder="Search By Modified Date">
-                        </span>
-                      </th>
-                    <th>Audit Status<br>
-                        <span onclick="event.stopPropagation();" >
-                            <select id="dropAuditStatus" class="search form-control input-sm">
-                                <option value="">All</option>
-                                <option value="Fail">Fail</option>
-                                <option value="Pass">Pass</option>
-                            </select>
-                        </span>
-                    </th>
-                      <th class="ownerColumnForAuthGroupSearch" style="display:none"></th>
-                  </tr>
-                </thead>
-                <tfoot>
-
-                </tfoot>
-
-              </table>
-
-                <script id="GPOitemsRowTemplate" type="text/html">
-                    <tr data-bind="css: {danger: !doc().AuditData.compliant}, click:function(item){return $root.details.select(item)}" data-toggle="modal" data-target="#gpoItemsModal" >
-                        <td>
-                            <span onclick="event.stopPropagation();">
-                                <input type="checkbox" id="test" class="checkboxClass" data-bind="enable:  doc().owner == egam.portalUser.username && doc().AuditData.compliant, click: function(item, evt){ return $root.table.checkRow(item.doc().id,item.index,evt.target.checked)}">
-                            </span>
-                        </td>
-                        <td data-bind="text: doc().title" ></td>
-                        <td data-bind="text: doc().access"></td>
-                        <td data-bind="text: doc().type"></td>
-                        <td data-bind="text: ownerFolderTitle"></td>
-                        <td data-bind="text: doc().numViews"></td>
-                        <td data-bind="text: doc().owner"></td>
-                        <td data-bind="text: egam.utilities.formatDate(doc().modified)"></td>
-                        <td data-bind="css: {auditRowPass: doc().AuditData.compliant,auditRowFail: !doc().AuditData.compliant}">
-                            <img class="pass" src="img/greenOK.jpg" alt="Pass" style="width:25px">
-                            <img class="fail" src="img/warning.png" alt="Fail" style="width:25px">
-                        </td >
-                        <td data-bind="text: doc().owner" style="display:none"></td>
-                    </tr>
-                </script>
+                <!-- End EDG  View -->
 
             </div>
-
-            <!-- Modal for Editing -->
-            <div class="bottomModal modal fade" id="gpoItemsModal" tabindex="-1" role="dialog" data-keyboard="false" data-backdrop="static" aria-labelledby="myModalLabel">
-              <div class="modal-dialog modal-lg" role="document">
-                  <div class="modal-content">
-                      <div class="modal-header">
-                          <button type="button" class="close" data-dismiss="modal" aria-label="Close" data-bind="" ><span aria-hidden="true">&times;</span></button>
-                          <h4 class="modal-title" id="myModalLabel">Item Details
-                              <span><a class="glyphicon glyphicon-link" data-bind="attr: {href: selected().gpoLink}" target="_blank" aria-hidden="true" data-toggle="tooltip" data-placement="right" title="Go to Item in GPO"></a></span></h4>
-                      </div>
-                      <div class="modal-body">
-                          <form id="modalForm" role="form" data-toggle="validator" data-disable="false" enctype="multipart/form-data" method="post">
-                              <div class="row form-group">
-                                  <div class="col-md-4">
-                                      <div class="form-group has-success" data-bind="css: {'has-error': (selected()) ? selected().doc().AuditData.errors.thumbnail&&selected().doc().AuditData.errors.thumbnail.compliant()===false : false}">
-                                          <label>For best results, the image should be 200 pixels wide by 133 pixels high. Other sizes will be adjusted to fit. Acceptable image formats are: PNG, GIF and JPEG.</label>
-                                          <div class="fileinput fileinput-new" data-provides="fileinput">
-                                              <div id="agoThumb" class="thumbnail" style="width: 200px; height: 135px;">
-                                                  <img id="agoThumbImg" data-bind="attr: {src: selected().thumbnailURL}">
-                                              </div>
-                                              <div id="imageUpload" class="fileinput-preview thumbnail" data-trigger="fileinput" style="width: 200px; height: 135px; Display: none">
-                                              </div>
-                                              <span class="help-block" data-bind="text: selected().doc().AuditData.errors.thumbnail.messages">Requried</span>
-                                              <div>
-                                                  <span class="btn btn-default btn-file"><span class="fileinput-new">change</span><span class="fileinput-exists">Change</span><input id="thumbnail" type="file" name="..."></span>
-                                              </div>
-                                          </div>
-                                      </div>
-
-                                      <div class="form-group">
-
-                                      </div>
-                                      <div class="form-group">
-                                          <label for="addEPATag">EPA Keywords</label>
-                                          <div class="form-inline">
-                                              <button id="addEPATag" class="btn btn-default"  type="submit" data-bind="click: tagControls.addTag['EPA']">Add</button>
-                                              <select class="tag-select search form-control" id="epaTagSelect" data-bind="options:egam.dataStash.availableTags.epaKeywords,optionsCaption:'Please Select', value: tagControls.tagToAdd['EPA'], valueUpdate: 'afterkeydown'"></select>
-                                          </div>
-                                          <label for="addPlaceTag">Place Keywords</label>
-                                          <div class="form-inline">
-                                              <button id="addPlaceTag" class="btn btn-default"  type="submit" data-bind="click: tagControls.addTag['Place']">Add</button>
-                                              <select class="tag-select search form-control" id="placeTagSelect" data-bind="options:egam.dataStash.availableTags.placeKeywords,optionsCaption:'Please Select',value: tagControls.tagToAdd['Place'], valueUpdate: 'afterkeydown'"></select>
-                                          </div>
-                                          <label for="addOrgTag">EPA Organization Names</label>
-                                          <div class="form-inline">
-                                              <button id="addOrgTag" class="btn btn-default"  type="submit" data-bind="click: tagControls.addTag['Org']">Add</button>
-                                              <select class="tag-select search form-control" id="officeTagSelect" data-bind="options:egam.dataStash.availableTags.epaOffices,optionsCaption:'Please Select', value: tagControls.tagToAdd['Office'], valueUpdate: 'afterkeydown'"></select>
-                                              <select class="tag-select search form-control" id="orgTagSelect" data-bind="options:tagControls.selectedOfficeOrganizations,optionsCaption:'Please Select',, value: tagControls.tagToAdd['Org'], valueUpdate: 'afterkeydown'"></select>
-                                          </div>
-                                          <label for="addCustomTag">Custom Tags</label>
-                                          <div class="form-inline">
-                                              <button id="addCustomTag" class="btn btn-default"  type="submit" data-bind="click: tagControls.addTag['Custom']">Add</button>
-                                              <input class="form-control" id="customTagInput" type="text" data-bind="value: tagControls.tagToAdd['Custom'], valueUpdate: 'afterkeydown'"/>
-                                          </div>
-                                      </div>
-                                      <div class="form-group has-success" data-bind="css: {'has-error': selected().doc().AuditData.errors.tags&&selected().doc().AuditData.errors.tags.compliant()===false}">
-                                          <select id="tagsList" class="form-control" multiple="multiple" height="5" data-bind="options: selected().doc().tags, selectedOptions: tagControls.selectedTags"> </select>
-                                          <span class="help-block" data-bind="style: {display: !selected().doc().AuditData.errors.tags.compliant() ? 'block' : 'none'}, text: selected().doc().AuditData.errors.tags.messages"></span>
-                                      </div>
-                                      <div class="form-group">
-                                          <button class="btn btn-default" data-bind="click: function () {return tagControls.removeSelected()}, enable: tagControls.selectedTags().length > 0">Remove</button>
-                                      </div>
-                                      <div class="id_holder" data-bind="attr: {id: selected().doc().id}"></div>
-                                      <div class="form-group">
-                                          <label>EDG Link</label>
-                                          <button type="button" id="edgBtn" class="btn btn-default" data-bind="click: loadLinkEDG">Search for matching EDG record.</button>
-                                      </div>
-                                      <div class="form-group">
-                                          <!-- ko if: selected().doc().EDGdata -->
-                                          <label>EDG Reconciliation</label><br />
-                                          <button type="button" id="reconcileBtn" class="btn btn-default" data-bind="click: loadReconcile">Reconcile with EDG</button>
-                                          <!-- /ko -->
-                                      </div>
-                                      <!--</form>-->
-                                  </div>
-                                  <div class="col-md-8" >
-                                      <div class="form-group has-success" data-bind="css: {'has-error': selected().doc().AuditData.errors.title&&selected().doc().AuditData.errors.title.compliant()===false}">
-                                          <label for="title">Title</label>
-                                          <input class="form-control"  id="title" data-bind="value: selected().doc().title, valueUpdate: 'afterkeydown'" type="text">
-                                          <!-- ko if: selected().doc().AuditData.errors.title -->
-                                          <span class="help-block" data-bind="text: selected().doc().AuditData.errors.title.messages"></span>
-                                          <!-- /ko -->
-                                      </div>
-                                      <div class="form-group has-success" data-bind="css: {'has-error': selected().doc().AuditData.errors.snippet&&selected().doc().AuditData.errors.snippet.compliant()===false}">
-                                          <label for="inputSnippet">Summary</label>
-                                          <input class="form-control"  id="inputSnippet" data-bind="value: selected().doc().snippet, valueUpdate: 'afterkeydown'" type="text">
-                                          <!-- ko if: selected().doc().AuditData.errors.snippet -->
-                                          <span class="help-block" data-bind="text: selected().doc().AuditData.errors.snippet.messages"></span>
-                                          <!-- /ko -->
-                                      </div>
-                                      <div class="form-group has-success" data-bind="css: {'has-error': selected().doc().AuditData.errors.description&&selected().doc().AuditData.errors.description.compliant()===false}">
-                                          <label>Description</label>
-                                        <textarea class="form-control" id="inputDesc"
-                                                  data-bind="wysiwyg: selected().doc().description, valueUpdate:
-                                        'afterkeydown'" rows="6" placeholder="Description"></textarea>
-                                          <!-- ko if: selected().doc().AuditData.errors.description -->
-                                          <span class="help-block" data-bind="text: selected().doc().AuditData.errors.description.messages"></span>
-                                          <!-- /ko -->
-                                      </div>
-
-                                      <div class="form-group has-success" data-bind="css: {'has-error': selected().doc().AuditData.errors.licenseInfo && selected().doc().AuditData.errors.licenseInfo.compliant()===false}">
-                                          <label>Access and Use Constraints</label>
-                                        <textarea class="form-control" id="inputAccessUse"
-                                                  data-bind="wysiwyg: selected().doc().licenseInfo, valueUpdate:
-                                        'afterkeydown'" rows="6"
-                                                  placeholder="Access and Use Constraints"></textarea>
-                                          <!-- ko if: selected().doc().AuditData.errors.licenseInfo -->
-                                          <span class="help-block" data-bind="text: selected().doc().AuditData.errors.licenseInfo.messages"></span>
-                                          <!-- /ko -->
-                                      </div>
-                                      <div class="form-group has-success" data-bind="css: {'has-error': selected().doc().AuditData.errors.accessInformation&&selected().doc().AuditData.errors.accessInformation.compliant()===false}">
-                                          <label for="inputAccessInfo">Credits</label>
-                                          <input class="form-control" id="inputAccessInfo" data-bind="value: selected().doc().accessInformation, valueUpdate: 'afterkeydown'" type="text">
-                                          <!-- ko if: selected().doc().AuditData.errors.accessInformation -->
-                                          <span class="help-block" data-bind="text: selected().doc().AuditData.errors.accessInformation.messages"></span>
-                                          <!-- /ko -->
-                                      </div>
-                                      <!-- ko ifnot: selected().doc().type() === 'Web Map' -->
-                                      <div class="form-group has-success"
-                                           data-bind="css: {'has-error': selected().doc().AuditData.errors.url&&selected().doc().AuditData.errors.url.compliant()===false}">
-                                          <label for="inputUrl">Url</label>
-                                          <input class="form-control" id="inputUrl" data-bind="value: selected().doc().url, valueUpdate: 'afterkeydown'" type="url">
-                                          <!-- ko if: selected().doc().AuditData.errors.url -->
-                                          <span class="help-block" data-bind="text: selected().doc().AuditData.errors.url.messages"></span>
-                                          <!-- /ko -->
-                                      </div>
-                                      <!-- /ko -->
-                                  </div>
-                              </div>
-
-                          </form>
-                      </div>
-                      <div class="modal-footer">
-                          <button type="button" id="closeBtn" class="btn btn-default" data-dismiss="modal" >Close</button>
-                          <button type="button" class="btn btn-primary" data-bind="click: update" data-dismiss="modal">Save changes</button>
-                      </div>
-                  </div>
-              </div>
-            </div>
-            <!-- End Modal for Editing-->
-            <!-- Begin Checklist Modal-->
-             <div id="checkListModal" class="modal fade" tabindex="-1" role="dialog">
-                 <div class="modal-dialog modal-lg">
-                     <div class="modal-content" >
-                         <div class="modal-header">
-                             <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                             <h4 class="modal-title">EPA GPO Public Content Checklist</h4>
-                         </div>
-                         <div class="modal-body">
-                             <div id="requestElements">
-                                 <div class="row input-group" data-bind="css:{'has-error': !checklistName()}">
-                                     <span class="input-group-addon" id="projectName">Project Name</span>
-                                     <input type="text" id="requestName" class="form-control" data-bind="value:checklistName, valueUpdate:'afterkeydown'" aria-describedby="projectName">
-                                 </div>
-                                 <div class="row input-group" >
-                                     <span class="input-group-addon" id="basic-addon2">Authoritative Group</span>
-                                     <select class="form-control" id="RequestAuthGroup" aria-describedby="basic-addon2" data-bind="options: sponsoreeAuthGroups" ></select>
-                                 </div>
-                                 <div class="row panel panel-default">
-                                     <div class="panel-body" style="max-height: 300px; overflow-y: scroll">
-                                         <ol>
-                                             <li>I certify that the content does not contain any sensitive data or data that is otherwise inappropriate for sharing with the public.
-                                                 As a reminder, sensitive data is: “any information, the loss, misuse, or unauthorized access to or modification of which could adversely
-                                                 affect the national interest or the conduct of federal programs, or the privacy to which individuals are entitled undersection 552a of title 5,
-                                                 United States Code (the Privacy Act), but which has not been specifically authorized under criteria established by an Executive Order or an Act
-                                                 of Congress to be kept in the interest of national defense or foreign.”</li>
-                                             <li>
-                                                 I certify that this item has been through the appropriate product review process as outlined by my organization. General information about
-                                                 product review is available here: <a href="http://www2.epa.gov/product-review">http://www2.epa.gov/product-review</a>
-                                             </li>
-                                             <li>
-                                                 I certify that metadata on the item’s registration page is complete and consistent with the GeoPlatform metadata best practices guide.
-                                                 Information or links to where the data depicted in the map can be foundare included in the metadata.
-                                                 <a href="https://edg.epa.gov/metadata/webhelp/en/gptlv10/inno/GenericMetadataGuide.pdf#page=38">GenericMetadataGuide</a>
-                                             </li>
-                                             <li>
-                                                 I certify that the item is consistent with established best practices for look and feel.
-                                                 <a href="http://blogs.esri.com/esri/arcgis/2012/05/03/using-a-mapmaking-checklist-for-map-design/">Using a mapmaking checklist for map design</a>
-                                             </li>
-                                             <li>
-                                                 I certify that the item meets all appropriate EPA Privacy Act policy requirements. Information is available here:
-                                                 <a href="http://www.epa.gov/privacy/policy/">http://www.epa.gov/privacy/policy/</a>
-                                             </li>
-                                             <li>
-                                                 I agree that once the item has been made public any subsequent edits to the content item will be consistent with the guidance in this checklist.
-                                             </li>
-                                         </ol>
-                                     </div>
-                                 </div>
-                                 <div class="row" >
-                                     <div class="col-sm-offset-2 col-sm-8 text-center">
-                                         <input type="checkbox" data-bind="checked: confirm" style="float: none; margin: 5px"/>I, <b data-bind="text: egam.portalUser.fullName"></b>, certify the all the above has been completed
-                                     </div>
-                                 </div>
-                             </div>
-                             <div id="adminElements" class="row panel panel-body" >
-                                 <table id="gpoItemsChecklistTable" class="table table-hover table-bordered table-responsive" data-bind="dataTable:
-                                {
-                                    deferRender: true,
-                                    dataSource: egam.pages.gpoItemCheckList.table.items,
-                                    rowTemplate: 'GPOitemsChecklistRowTemplate',
-                                    options: {paging: true,
-                                              aaSorting: []},
-                                    columns: [
-                                    {data:null, sortable: false},
-                                    {data:'doc().submission.name'},
-                                    {data:'doc().submission.owner'},
-                                    {data:{_:function (row) {return egam.utilities.formatDate(row.doc().submission.submitDate)},sort:'doc().submission.submitDate'},type:'num'},
-                                    {data:'doc().approval.status'}
-                                    ]
-                                    }">
-                                     <thead>
-                                     <tr>
-                                         <th class="col-xs-1">
-                                              <span onclick="event.stopPropagation();">
-                                              </span>
-                                         </th>
-                                         <th class="col-xs-3">Request Name<br>
-                                            <span onclick="event.stopPropagation();" >
-                                                <input class="search form-control input-sm" placeholder="Search By Request Name">
-                                            </span>
-                                         </th>
-                                         <th class="col-xs-3">Requested By<br>
-                                            <span onclick="event.stopPropagation();" >
-                                                <select class="search form-control input-sm"><option value="">All</option></select>
-                                            </span>
-                                         </th>
-                                         <th class="col-xs-2">Submit Date<br>
-                                            <span onclick="event.stopPropagation();" >
-                                                <input class="search form-control input-sm" placeholder="Search By Submit Date">
-                                            </span>
-                                         </th>
-                                         <th class="col-xs-1">Approval<br>
-                                            <span onclick="event.stopPropagation();" >
-                                                <select id="dropChecklistStatus" class="search form-control"><option value="">All</option></select>
-                                            </span>
-                                         </th>
-                                     </tr>
-                                     </thead>
-                                     <tfoot>
-                                     </tfoot>
-                                 </table>
-                                 <script id="GPOitemsChecklistRowTemplate" type="text/html">
-                                     <tr >
-                                         <td>
-                                        <span >
-                                            <button class="btn btn-primary btn-xs" id="makePublicBtn" data-bind="click:function(item){return $root.details.select(item)}" data-toggle="modal" data-target="#gpoCheckListDetailsModal">Details</button>
-                                        </span>
-                                         </td>
-                                         <td data-bind="text: doc().submission.name" ></td>
-                                         <td data-bind="text: doc().submission.owner"></td>
-                                         <td data-bind="text: egam.utilities.formatDate(doc().submission.submitDate)"></td>
-                                         <td data-bind="text: doc().approval.status"></td>
-                                     </tr>
-                                 </script>
-                             </div>
-                         </div>
-                         <div class="modal-footer">
-                             <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                             <button id="requestConfirm" type="button" class="btn btn-primary" data-bind="click: update, enable: (checklistName() && confirm())" >Confirm</button>
-                         </div>
-                     </div><!-- /.modal-content -->
-                 </div><!-- /.modal-dialog -->
-             </div><!-- /.modal -->
-            <!-- End Checklist Modal-->
-             <!-- Admin Checklist Modal-->
-             <div id="gpoCheckListDetailsModal" class="modal fade" tabindex="-1" role="dialog">
-                 <div class="modal-dialog">
-                     <div class="modal-content">
-                         <div class="modal-header">
-                             <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                             <h4 class="modal-title">Checklist Details</h4>
-                         </div>
-                         <div class="modal-body" style="padding-bottom: 0px">
-                             <div class="row">
-                                 <div class="col-md-6">
-                                     <label>Checklist Name: </label>
-                                     <span data-bind="text: selected().doc().submission.name"></span>
-                                 </div>
-                                 <div class="col-md-6">
-                                     <label>Status: </label>
-                                     <span data-bind="text: selected().doc().approval.status"></span>
-                                 </div>
-                             </div>
-                             <div class="row">
-                                 <div class="col-md-6">
-                                     <label>Owner: </label>
-                                     <span data-bind="text: selected().doc().submission.owner"></span>
-                                 </div>
-                                 <div class="col-md-6">
-                                     <label>Submit Date: </label>
-                                     <span data-bind="text: egam.utilities.formatDate(selected().doc().submission.submitDate())"></span>
-                                 </div>
-                             </div>
-                             <div class="row">
-                                 <div class="col-md-6">
-                                     <label>Items: </label>
-                                     <div class="list-group" data-bind="foreach: selected().itemDocs">
-                                         <a class="list-group-item" data-bind="text: $data.title, attr: { href:'https://epa.maps.arcgis.com/home/item.html?id=' + $data.id, target:'_blank'}"></a>
-                                     </div>
-                                 </div>
-                                 <div class="row">
-                                     <div class="col-md-6">
-                                         <label>Auth Group: </label><br>
-                                         <span data-bind="text: selected().doc().submission.authGroup"></span>
-                                     </div>
-                                 </div>
-                             </div>
-                             <div class="row" data-bind="visible: egam.portalUser.role == 'org_admin'" style="margin-bottom: -15px">
-                                 <div class="panel panel-warning">
-                                     <div class="panel-heading">Enter email for IMO and ISO</div>
-                                     <div class="panel-body">
-                                         <div class="form-group">
-                                             <label for="imoInputEmail">IMO Email address</label>
-                                             <input type="email" class="form-control" id="imoInputEmail" placeholder="Email">
-                                             <span id="imohelpBlock" class="help-block"><a href="https://usepa.sharepoint.com/sites/oei_Community/sio/QIC%20Meeting%20Materials/SIO%20IMO%20List%20Official.pdf" target="_blank">Emails for IMO can be found here</a></span>
-                                         </div>
-                                         <div class="form-group">
-                                             <label for="isoInputEmail">ISO Email address</label>
-                                             <input type="email" class="form-control" id="isoInputEmail" placeholder="Email">
-                                             <span id="isohelpBlock" class="help-block"><a href="http://intranet.epa.gov/oei/saiso/ISSO.html" target="_blank">Emails for ISO can be found here</a></span>
-                                         </div>
-                                     </div>
-                                 </div>
-                             </div>
-                         </div>
-                         <div class="modal-footer">
-                             <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                             <button type="button" class="btn btn-primary" data-bind="click: makeChecklistPublic, visible: egam.portalUser.role == 'org_admin',enable: selected().doc().approval.status()!='approved'" >Make Items Public</button>
-                         </div>
-                     </div><!-- /.modal-content -->
-                 </div><!-- /.modal-dialog -->
-             </div><!-- /.modal -->
-             <!-- End Admin Checklist Modal-->
-
-              <!-- Modal for Reconciliation -->
-              <div class="modal fade" id="reconciliationModal" tabindex="-1" role="dialog" data-keyboard="false" data-backdrop="static" aria-labelledby="myModalLabel">
-                  <div class="modal-dialog modal-lg" role="document">
-                      <div class="modal-content">
-                          <div class="modal-header">
-                              <button type="button" class="close" data-dismiss="modal" aria-label="Close" data-bind="" ><span aria-hidden="true">&times;</span></button>
-                              <h4 class="modal-title" id="myModalLabel">Item Reconciliation
-                          </div>
-                          <div class="modal-body">
-                              <form id="modalForm" role="form" data-toggle="validator" data-disable="false" enctype="multipart/form-data" method="post">
-                                  <div class="row form-group">
-                                      <table id="reconcileTable">
-                                          <col class="col-md-5">
-                                          <col class="col-md-1" style="text-align:center">
-                                          <col class="col-md-5">
-                                          <tr>
-                                              <td>
-                                                  <div class="form-group"><label>Current GPO Item Metadata</label></div>
-                                              </td>
-                                              <td>
-                                              </td>
-                                              <td>
-                                                  <div class="form-group"><label>EDG Item Metadata</label></div>
-                                              </td>
-                                          </tr>
-                                          <tr>
-                                              <td>
-                                                  <div class="form-group has-success">
-                                                      <label for="GPOtitle">Title</label>
-                                                      <input class="form-control"  id="GPOtitle" data-bind="value: doc().title, valueUpdate: 'afterkeydown'" type="text">
-                                                  </div>
-                                              </td>
-                                              <td>
-                                                  <div class="reconcileLink"><a class="glyphicon glyphicon-arrow-left" data-bind="click: function () {copyEDGtoGPO('title')}" ></a></div>
-                                              </td>
-                                              <td>
-                                                  <div class="form-group has-success">
-                                                      <label for="EDGtitle">Title</label>
-                                                      <!-- ko if: fullDoc().EDGdata -->
-                                                      <input readonly class="form-control"  id="EDGtitle" data-bind="value: fullDoc().EDGdata.title" type="text">
-                                                      <!-- /ko -->
-                                                  </div>
-                                              </td>
-                                          </tr>
-                                          <tr>
-                                              <td>
-                                                  <div class="form-group has-success">
-                                                      <label for="GPOinputSnippet">Summary</label>
-                                                      <input class="form-control"  id="GPOinputSnippet" data-bind="value: doc().snippet, valueUpdate: 'afterkeydown'" type="text">
-                                                  </div>
-                                              </td>
-                                              <td>
-                                                  <div class="reconcileLink"><a class="glyphicon glyphicon-arrow-left" data-bind="click: function () {copyEDGtoGPO('purpose','snippet')}"></a></div>
-                                              </td>
-                                              <td>
-                                                  <div class="form-group has-success">
-                                                      <label for="EDGinputSnippet">Summary</label>
-                                                      <!-- ko if: fullDoc().EDGdata -->
-                                                      <input readonly class="form-control"  id="EDGinputSnippet" data-bind="value: fullDoc().EDGdata.purpose" type="text">
-                                                      <!-- /ko -->
-                                                  </div>
-                                              </td>
-                                          </tr>
-                                          <tr>
-                                              <td>
-                                                  <div class="form-group has-success">
-                                                      <label>Description</label>
-                                        <textarea class="form-control" id="GPOinputDesc"
-                                                  data-bind="wysiwyg: doc().description, valueUpdate:
-                                        'afterkeydown'" rows="6" placeholder="Description"></textarea>
-                                                  </div>
-                                              </td>
-                                              <td>
-                                                  <div class="reconcileLink"><a class="glyphicon glyphicon-arrow-left"  data-bind="click: function () {copyEDGtoGPO('abstract','description')}" ></a></div>
-                                              </td>
-                                              <td>
-                                                  <div class="form-group has-success">
-                                                      <label for="EDGinputDesc">Description</label>
-                                                      <!-- ko if: fullDoc().EDGdata -->
-                                                      <textarea readonly class="form-control" id="EDGinputDesc" data-bind="value: fullDoc().EDGdata.abstract" rows="7"></textarea>
-                                                      <!-- /ko -->
-                                                  </div>
-                                              </td>
-                                          </tr>
-                                          <tr>
-                                              <td>
-                                                  <div class="form-group has-success">
-                                                      <label>Access and Use Constraints</label>
-                                        <textarea class="form-control" id="GPOinputAccessUse"
-                                                  data-bind="wysiwyg: doc().licenseInfo, valueUpdate:
-                                        'afterkeydown'" rows="6"
-                                                  placeholder="Access and Use Constraints"></textarea>
-                                                  </div>
-                                              </td>
-                                              <td>
-                                                  <div class="reconcileLink"><a class="glyphicon glyphicon-arrow-left" data-bind="click: function () {copyEDGtoGPO('useconst','licenseInfo')}" ></a></div>
-                                              </td>
-                                              <td>
-                                                  <div class="form-group has-success">
-                                                      <label for="EDGinputAccessUse">Access and Use Constraints</label>
-                                                      <!-- ko if: fullDoc().EDGdata -->
-                                                      <textarea readonly class="form-control" id="EDGinputAccessUse" data-bind="value: fullDoc().EDGdata.useconst" rows="7"></textarea>
-                                                      <!-- /ko -->
-                                                  </div>
-                                              </td>
-                                          </tr>
-                                          <tr>
-                                              <td>
-                                                  <div class="form-group has-success">
-                                                      <label for="GPOinputAccessInfo">Credits</label>
-                                                      <input class="form-control" id="GPOinputAccessInfo" data-bind="value: doc().accessInformation, valueUpdate: 'afterkeydown'" type="text">
-                                                  </div>
-                                              </td>
-                                              <td>
-                                                  <div class="reconcileLink"><a class="glyphicon glyphicon-arrow-left" data-bind="click: function () {copyEDGtoGPO('publisher','accessInformation')}"></a></div>
-                                              </td>
-                                              <td>
-                                                  <div class="form-group has-success">
-                                                      <label for="EDGinputAccessInfo">Credits</label>
-                                                      <!-- ko if: fullDoc().EDGdata -->
-                                                      <input readonly class="form-control" id="EDGinputAccessInfo" data-bind="value: fullDoc().EDGdata.publisher" type="text">
-                                                      <!-- /ko -->
-                                                  </div>
-                                              </td>
-                                          </tr>
-                                      </table>
-                                  </div>
-
-                              </form>
-                          </div>
-                          <div class="modal-footer">
-                              <button type="button" id="closeReconcileBtn" class="btn btn-default" data-bind="click: function() {}" data-dismiss="modal" >Close</button>
-                              <button type="button" class="btn btn-primary" data-bind="click: loadReconciledFields(egam.pages.gpoItems.details.selected().doc); $('#gpoItemsModal').modal('show');" data-dismiss="modal">Load reconciled values</button>
-                          </div>
-                      </div>
-                  </div>
-              </div>
-              <!-- End Modal for Editing-->
-         </div>
-              <!-- End Overview -->
-
-             <!-- EDG Modal -->
-             <div class="modal fade" id="edgModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
-                 <div class="modal-dialog modal-lg" role="document">
-                     <div class="modal-content">
-                         <div class="modal-header">
-                             <button type="button" class="close" data-dismiss="modal" aria-label="Close" ><span aria-hidden="true">&times;</span></button>
-                             <div class="form-group">
-                                 <label id="edgTitleSearchLabel" for="edgTitleSearch">Search EDG by Title:</label>
-                                 <span class="edgTitleSearchBlock">
-                                    <input class="form-control" id="edgTitleSearch" >
-                                    <button type="button" id="edgBtnModal" class="btn btn-primary" data-bind="click:customSearch">Search</button>
-                                 </span>
-                             </div>
-                         </div>
-                         <div class="modal-body">
-
-                             <div id="edgModalViewTable">
-                                 <table id="edgModalItemsTable" class="table table-hover table-bordered table-responsive" data-bind="dataTable:
-                                    {
-                                        deferRender: true,
-                                        dataSource: egam.pages.gpoItems.details.linkEDG.table.items,
-                                        rowTemplate: 'EDGitemsRowTemplate',
-                                        options: {
-                                            paging: true,
-                                            aaSorting: [],
-                                            oLanguage: {
-                                              sSearch: 'Filter: ',
-                                            },
-                                        },
-                                        columns: [
-                                            {data:'doc.title'},
-                                            {data:'doc.contactPoint.fn'},
-                                            {data:null}
-                                            ]
-                                    }">
-                                     <thead>
-                                     <tr>
-                                         <th>Title</th>
-                                         <th>Owner</th>
-                                         <th>Link Record</th>
-                                     </tr>
-                                     </thead>
-                                     <tbody>
-                                     </tbody>
-                                 </table>
-
-
-                                 <script id="EDGitemsRowTemplate" type="text/html">
-                                     <tr data-toggle="modal" data-target="#edgItemsModal" >
-                                         <td><a data-bind="attr: { href: doc.references[0] }, html: doc.title" target="_blank"></a></td>
-                                         <td><a data-bind="attr: { href: doc.contactPoint.hasEmail }, html: doc.contactPoint.fn" target="_blank"></a></td>
-                                         <td><button class="btn btn-primary btn-xs" id="edgLinkBtn" data-bind="click: function () {return $root.linkRecord(doc.references) }">Link EDG Record</button></td>
-                                     </tr>
-
-                                 </script>
-                             </div>
-                         </div>
-                         <div class="modal-footer">
-                             <button id="closeEDGSearchBtn" type="button" class="btn btn-default" onclick="$('#myModal').modal('show');" data-dismiss="modal">Close</button>
-                         </div>
-                     </div>
-                 </div>
-             </div>
-             <!-- End EDG Modal -->
-             <!--Email Modal-->
-             <div class="modal fade" id="emailModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
-                 <div class="modal-dialog modal-lg" role="document">
-                     <div class="modal-content">
-                         <div class="modal-header">
-                             <button type="button" class="close" data-dismiss="modal" aria-label="Close" ><span aria-hidden="true">&times;</span></button>
-                             <h4 class="modal-title" id="helpModalLabel">Auth Group Email Addresses</h4>
-                         </div>
-                         <div class="modal-body">
-                             <label>Copy & paste into your email client</label>
-                             <textarea id="emailList" class="form-control" rows="6" placeholder="Description"></textarea>
-                             <button id="copyEmails" class="btn btn-primary btn-xs" onclick="egam.models.gpoUsers.copyEmails()" >Copy this email list to clipboard</button>
-                         </div>
-                         <div class="modal-footer">
-                             <button type="button" class="btn btn-default" data-dismiss="modal" >Close</button>
-                         </div>
-                     </div>
-                 </div>
-             </div>
-             <!--End Email Modal-->
-            <!-- Metrics View -->
-            <div role="tabpanel" class="tab-pane" id="metricsView" >
-                <div id="metricsTable" class="table-responsive" >
-                    <h2 class="sub-header">GPO Metrics</h2>
-                    <div class="jumbotron vertical-center">
-                        <div class="text-center">
-                            <h1 class="alert alert-warning">Site Under Construction</h1>
-                            <p>We are currently building something awesome that will be available soon!</p>
-                        </div>
-
-                    </div>
-                </div>
-            </div>
-            <!-- End  Metrics View -->
-
-            <!--  GPHE View -->
-            <div role="tabpanel" class="tab-pane" id="environmentView" >
-                <h2 class="sub-header">GeoPlatform Hosting Environment (GPHE) - ArcGIS Servers</h2>
-                <p>Work on this pane is still in progress. When complete, this pane will allow administrators to review all of the map services hosted in the GeoPlatform Hosting Environment and conduct audit checks for metadata, life cycle management, and uptime.</p>
-                <table id="environmentTable" class="table table-hover table-bordered table-responsive"></table>
-            </div>
-            <!-- End GPHE View -->
-
-
-             <!-- userMgmtView  View -->
-             <div role="tabpanel" class="tab-pane" id="userMgmtView" >
-                 <h2 class="sub-header">User Management</h2>
-                 <p>Work on this pane is still in progress. This page allows administrators to manage the sponsorship of external accounts. Please view the help for additional guidance.</p>
-                 <table id="gpoUsersTable" class="table table-hover table-bordered table-responsive" data-bind="dataTable:
-                {
-                    deferRender: true,
-                    dataSource: egam.pages.gpoUsers.table.items,
-                    rowTemplate: 'GPOusersRowTemplate',
-                    options: {paging: true,
-                        dom: 'Bfrtip',
-                        buttons: [
-                        {
-                            extend: 'userTableFilter',
-                            text: 'All External Users',
-                        },
-                          {
-                            extend: 'userTableFilter',
-                            text: 'Sponsored',
-                          },
-                          {
-                            extend: 'userTableFilter',
-                            text: 'Unsponsored',
-                          },
-                        ],
-                        order: [
-                          [1, 'asc'],
-                        ],},
-                    columns: [
-                        {data:'doc().isExternal'},
-                        {data:'doc().fullName'},
-                        {data:'doc().email'},
-                        {data:'latestSponsor().username'},
-                        {data:'latestSponsor().authGroup'},
-                        {data:'latestSponsor().organization'},
-                        {data:'latestSponsor().description'},
-                        {data:'latestSponsor().reason'},
-                        {data:{_:function (row) {return egam.utilities.formatDate(row.latestSponsor().startDate)},sort:'latestSponsor().startDate'},type:'num'},
-                        {data:{_:function (row) {return egam.utilities.formatDate(row.latestSponsor().endDate)},sort:'latestSponsor().endDate'},type:'num'},
-                    ]
-                    }">
-                     <thead>
-                     <tr>
-                         <th>Sponsored</th>
-                         <th>Name
-                            <span onclick="event.stopPropagation();" >
-                                <input class="search form-control input-sm" style="width:9em" placeholder="Search By Name">
-                            </span>
-                         </th>
-                         <th>E-mail<br />
-                            <span onclick="event.stopPropagation();" >
-                                <input class="search form-control input-sm" style="width:9em" placeholder="Search By Email">
-                            </span>
-                         </th>
-                         <th>Sponsor
-                            <span onclick="event.stopPropagation();" >
-                                <input class="search form-control input-sm" style="width:9em" placeholder="Search By Sponsor">
-                            </span>
-                         </th>
-                         <th>Auth Group
-                            <span onclick="event.stopPropagation();" >
-                                <select class="search form-control input-sm" style="width:9em"><option value="">All</option></select>
-                            </span>
-                         </th>
-                         <th>Organization
-                            <span onclick="event.stopPropagation();" >
-                                <select class="search form-control input-sm" style="width:9em"><option value="">All</option></select>
-                            </span>
-                         </th>
-                         <th>Description
-                            <span onclick="event.stopPropagation();" >
-                                <input class="search form-control input-sm" style="width:9em" placeholder="Search By Description">
-                            </span>
-                         </th>
-                         <th>Reason
-                            <span onclick="event.stopPropagation();" >
-                                <select class="search form-control input-sm" style="width:9em"><option value="">All</option></select>
-                            </span>
-                         </th>
-                         <th>Start Date
-                            <span onclick="event.stopPropagation();" >
-                                <input class="search form-control input-sm" style="width:9em" placeholder="Search By Start Date">
-                            </span>
-                         </th>
-                         <th>End Date
-                            <span onclick="event.stopPropagation();" >
-                                <input class="search form-control input-sm" style="width:9em" placeholder="Search By End Date">
-                            </span>
-                         </th>
-                     </tr>
-                     </thead>
-                     <tbody>
-
-                     </tbody>
-                     <tfoot>
-                     </tfoot>
-                 </table>
-                 <script id="GPOusersRowTemplate" type="text/html">
-                     <tr>
-                         <td data-bind="css: {hidden: egam.communityUser.isAdmin != true}">
-                            <div>
-                                <button class="btn btn-primary btn-xs" id="sponsorBtn" data-bind="click: function (item) {return $root.details.select(item)}" data-toggle="modal" data-target="#gpoUsersModal">Sponsor Me!</button>
-                            </div>
-                         </td>
-                         <td data-bind="text: doc().fullName"></td>
-                         <td data-bind="text: doc().email"></td>
-                         <td data-bind="text: latestSponsor().username"></td>
-                         <td data-bind="text: latestSponsor().authGroup"></td>
-                         <td data-bind="text: latestSponsor().organization"></td>
-                         <td data-bind="text: latestSponsor().description"></td>
-                         <td data-bind="text: latestSponsor().reason"></td>
-                         <td data-bind="text: egam.utilities.formatDate(latestSponsor().startDate)"></td>
-                         <td data-bind="text: egam.utilities.formatDate(latestSponsor().endDate)"></td>
-                     </tr>
-                 </script>
-             </div>
-             <div class="modal fade" id="gpoUsersModal" tabindex="-1" role="dialog" data-keyboard="false" data-backdrop="static" aria-labelledby="userMgmtModalLabel">
-                 <div class="modal-dialog modal-sm" role="document">
-                     <div class="modal-content">
-                         <div class="modal-header">
-                             <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                             <h4 class="modal-title" id="userMgmtModalLabel">Confirm Sponsorship</h4>
-                         </div>
-                         <div class="modal-body" >
-                             <div class="form-group">
-                                 <label for="SponsoredOrg" data-bind="text: selected().doc().fullName"></label>
-                             </div>
-                             <div class="form-group">
-                                 <label for="spPurpose">Reason:</label>
-                                 <select class="form-control" id="spPurpose">
-                                     <option value="Emergency Response">Emergency Response</option>
-                                     <option value="Other Federal Agency">Other Federal Agency</option>
-                                     <option value="State Agency">State Agency</option>
-                                     <option value="University">University</option>
-                                     <option value="Long Term GIS Support">Long Term GIS Support</option>
-                                 </select>
-                             </div>
-                             <div class="form-group">
-                                 <label for="SponsoredOrg">Organization:</label>
-                                 <input class="form-control" id="SponsoredOrg" type="text" style="width: 100%">
-                             </div>
-                             <div class="form-group">
-                                 <label for="spDescription">Description:</label>
-                                 <textarea class="form-control" rows="5" id="spDescription" style="min-width: 100%"></textarea>
-                             </div>
-                             <div class="form-group" id="updateAuth">
-                                 <label for="UserAuthDrop">Choose an Authoritative Group:</label>
-                                 <select class="form-control" id="UserAuthDrop" data-bind="options: selected().sponsoreeAuthGroups" style="width: 100%"></select>
-                             </div>
-                         </div>
-                         <div class="modal-footer">
-                             <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                             <button type="button" id="userSponorSave" class="btn btn-primary" data-bind="click: update">Confirm</button>
-                         </div>
-                     </div>
-                 </div>
-             </div>
-             <!-- End userMgmtView  modal -->
-             <!-- EDG  View -->
-             <div role="tabpanel" class="tab-pane" id="edgView" >
-                 <div id="edgItemsPage">
-                     <h2 class="sub-header">EDG Items
-                         <a id="edgExport" class="btn btn-primary" href="edgitems/list.csv">Export Audit Status</a>
-                         <a id="metricsToggle" class="btn btn-primary" data-toggle="collapse" data-target="#edgMetrics">View Metrics</a>
-                     </h2>
-                     <p>Work on this pane is still in progress. When complete, this pane will allow users to review metadata records in the EDG, see which have been linked to GeoPlatform content items, and audit the quality of records for compliance with the EDG Metadata Technical Specification. We also anticipate providing summary statistics and progress metrics.</p>
-                     <div id="edgMetrics" class="collapse">
-                     </div>
-                     <table id="edgItemsTable" class="table table-hover table-bordered table-responsive" data-bind="dataTable:
-                            {
-                                deferRender: true,
-                                dataSource: egam.pages.edgItems.table.items,
-                                rowTemplate: 'EDGitemsRowTemplateFull',
-                                options: {paging: true},
-                                columns: [
-                                    {data:'doc.title'},
-                                    {data:'doc.publisher'},
-                                    {data:'doc.contactPoint'},
-                                    {data:'doc.accessLevel'},
-                                    {data:'doc.modified'},
-                                    {data:'doc.AuditData.compliant'}
-                                    ]
-                            }">
-                         <thead>
-                         <tr>
-                             <th>Title</th>
-                             <th>Publisher</th>
-                             <th>Contact Point</th>
-                             <th>Access Level</th>
-                             <th>Modified</th>
-                             <th>Audit Status</th>
-                         </tr>
-                         </thead>
-                         <tbody>
-                         </tbody>
-                     </table>
-                     <script id="EDGitemsRowTemplateFull" type="text/html">
-                         <tr data-bind="css: {danger: !doc.AuditData.compliant },  click:function(item){return $root.details.select(item)}" data-toggle="modal" data-target="#edgItemsModal">
-                             <td data-bind="text: doc.title" ></td>
-                             <td data-bind="text: doc.publisher"></td>
-                             <td><a data-bind="attr: { href: doc.contactPointEmail }, html: doc.contactPoint" target="_blank"></a></td>
-                             <td data-bind="text: doc.accessLevel"></td>
-                             <td data-bind="text: doc.modified"></td>
-                             <td data-bind="css: {auditRowPass: doc.AuditData.compliant,auditRowFail: !doc.AuditData.compliant}">
-                                 <img class="pass" src="img/greenOK.jpg" alt="Pass" style="width:25px">
-                                 <img class="fail" src="img/warning.png" alt="Fail" style="width:25px">
-                             </td >
-                         </tr>
-                     </script>
-                 </div>
-                 <!-- EDG Detail Modal -->
-                 <div class="modal fade" id="edgItemsModal" tabindex="-1" role="dialog" data-keyboard="false" data-backdrop="static" aria-labelledby="myModalLabel">
-                     <div class="modal-dialog modal-lg" role="document">
-                         <div class="modal-content">
-                             <div class="modal-header">
-                                 <button type="button" class="close" data-dismiss="modal" aria-label="Close" data-bind="" ><span aria-hidden="true">&times;</span></button>
-                                 <h4 class="modal-title" id="edgDetailModalLabel">Item Details
-                                     <span><a class="glyphicon glyphicon-link" data-bind="attr: {href: selected().gpoLink}" target="_blank" aria-hidden="true" data-toggle="tooltip" data-placement="right" title="Go to Item in EDG"></a></span></h4>
-                             </div>
-                             <div class="modal-body">
-                                 <form id="edgDetailModalForm" role="form" data-toggle="validator" data-disable="false" enctype="multipart/form-data" method="post">
-                                     <div class="row form-group">
-                                         <div class="col-md-12" >
-                                             <div class="form-group has-success" data-bind="css: {'has-error': selected().doc.AuditData.errors.title&&selected().doc.AuditData.errors.title.compliant===false}">
-                                                 <label for="edgDetailsTitle">Title</label>
-                                                 <input readonly class="form-control"  id="edgDetailsTitle" data-bind="value: selected().doc.title" type="text">
-                                                 <!-- ko if: selected().doc.AuditData.errors.title -->
-                                                 <span class="help-block" data-bind="text: selected().doc.AuditData.errors.title.messages"></span>
-                                                 <!-- /ko -->
-                                             </div>
-                                             <div class="form-group has-success" data-bind="css: {'has-error': selected().doc.AuditData.errors.description&&selected().doc.AuditData.errors.description.compliant===false}">
-                                                 <label>Description</label>
-                                                 <textarea readonly  class="form-control" id="edgDetailsDesc" rows="6" data-bind="value: selected().doc.description" placeholder="Description"></textarea>
-                                                 <!-- ko if: selected().doc.AuditData.errors.description -->
-                                                 <span class="help-block" data-bind="text: selected().doc.AuditData.errors.description.messages"></span>
-                                                 <!-- /ko -->
-                                             </div>
-                                             <div class="form-group has-success" data-bind="css: {'has-error': selected().doc.AuditData.errors.keyword&&selected().doc.AuditData.errors.keyword.compliant===false}">
-                                                 <label for="edgDetailsTagsList">Keywords</label>
-                                                 <select readonly id="edgDetailsTagsList" class="form-control" multiple="multiple" height="5" data-bind="options: selected().doc.keyword"> </select>
-                                                 <span class="help-block" data-bind="style: {display: !selected().doc.AuditData.errors.keyword.compliant ? 'block' : 'none'}, text: selected().doc.AuditData.errors.keyword.messages"></span>
-                                             </div>
-                                             <div class="form-group has-success" data-bind="css: {'has-error': selected().doc.AuditData.errors.modified&&selected().doc.AuditData.errors.modified.compliant===false}">
-                                                 <label for="edgDetailsModified">Last Update</label>
-                                                 <input readonly class="form-control"  id="edgDetailsModified" data-bind="value: selected().doc.modified" type="text">
-                                                 <!-- ko if: selected().doc.AuditData.errors.modified -->
-                                                 <span class="help-block" data-bind="text: selected().doc.AuditData.errors.modified.messages"></span>
-                                                 <!-- /ko -->
-                                             </div>
-                                             <div class="form-group has-success" data-bind="css: {'has-error': selected().doc.AuditData.errors.publisher&&selected().doc.AuditData.errors.publisher.compliant===false}">
-                                                 <label for="edgDetailsPublisher">Publishing Organization</label>
-                                                 <input readonly class="form-control"  id="edgDetailsPublisher" data-bind="value: selected().doc.publisher" type="text">
-                                                 <!-- ko if: selected().doc.AuditData.errors.publisher -->
-                                                 <span class="help-block" data-bind="text: selected().doc.AuditData.errors.publisher.messages"></span>
-                                                 <!-- /ko -->
-                                             </div>
-                                             <div class="form-group has-success" data-bind="css: {'has-error': selected().doc.AuditData.errors.contactPoint&&selected().doc.AuditData.errors.contactPoint.compliant===false}">
-                                                 <label for="edgDetailsContact">Publisher</label>
-                                                 <input readonly class="form-control"  id="edgDetailsContact" data-bind="value: selected().doc.contactPoint" type="text">
-                                                 <!-- ko if: selected().doc.AuditData.errors.contactPoint -->
-                                                 <span class="help-block" data-bind="text: selected().doc.AuditData.errors.contactPoint.messages"></span>
-                                                 <!-- /ko -->
-                                             </div>
-                                             <div class="form-group has-success" data-bind="css: {'has-error': selected().doc.AuditData.errors.contactPointEmail&&selected().doc.AuditData.errors.contactPointEmail.compliant===false}">
-                                                 <label for="edgDetailsContactEmail">Publisher Email</label>
-                                                 <input readonly class="form-control"  id="edgDetailsContactEmail" data-bind="value: selected().doc.contactPointEmail" type="text">
-                                                 <!-- ko if: selected().doc.AuditData.errors.contactPointEmail -->
-                                                 <span class="help-block" data-bind="text: selected().doc.AuditData.errors.contactPointEmail.messages"></span>
-                                                 <!-- /ko -->
-                                             </div>
-                                             <div class="form-group has-success" data-bind="css: {'has-error': selected().doc.AuditData.errors.identifier&&selected().doc.AuditData.errors.identifier.compliant===false}">
-                                                 <label for="edgDetailsIdentifier">Identifier</label>
-                                                 <input readonly class="form-control"  id="edgDetailsIdentifier" data-bind="value: selected().doc.identifier" type="text">
-                                                 <!-- ko if: selected().doc.AuditData.errors.identifier -->
-                                                 <span class="help-block" data-bind="text: selected().doc.AuditData.errors.identifier.messages"></span>
-                                                 <!-- /ko -->
-                                             </div>
-                                             <div class="form-group has-success" data-bind="css: {'has-error': selected().doc.AuditData.errors.accessLevel&&selected().doc.AuditData.errors.accessLevel.compliant===false}">
-                                                 <label for="edgDetailsAccessLevel">Access Level</label>
-                                                 <input readonly class="form-control"  id="edgDetailsAccessLevel" data-bind="value: selected().doc.accessLevel" type="text">
-                                                 <!-- ko if: selected().doc.AuditData.errors.accessLevel -->
-                                                 <span class="help-block" data-bind="text: selected().doc.AuditData.errors.accessLevel.messages"></span>
-                                                 <!-- /ko -->
-                                             </div>
-                                             <div class="form-group has-success" data-bind="css: {'has-error': selected().doc.AuditData.errors.license&&selected().doc.AuditData.errors.license.compliant===false}">
-                                                 <label for="edgDetailsLicense">Data License</label>
-                                                 <input readonly class="form-control"  id="edgDetailsLicense" data-bind="value: selected().doc.license" type="text">
-                                                 <!-- ko if: selected().doc.AuditData.errors.license -->
-                                                 <span class="help-block" data-bind="text: selected().doc.AuditData.errors.license.messages"></span>
-                                                 <!-- /ko -->
-                                             </div>
-                                             <div class="form-group has-success" data-bind="css: {'has-error': selected().doc.AuditData.errors.spatial&&selected().doc.AuditData.errors.spatial.compliant===false}">
-                                                 <label for="edgDetailsSpatial">Spatial Extent</label>
-                                                 <input readonly class="form-control"  id="edgDetailsSpatial" data-bind="value: selected().doc.spatial" type="text">
-                                                 <!-- ko if: selected().doc.AuditData.errors.spatial -->
-                                                 <span class="help-block" data-bind="text: selected().doc.AuditData.errors.spatial.messages"></span>
-                                                 <!-- /ko -->
-                                             </div>
-                                             <div class="form-group has-success" data-bind="css: {'has-error': selected().doc.AuditData.errors.programCode&&selected().doc.AuditData.errors.programCode.compliant===false}">
-                                                 <label for="title">Program Code</label>
-                                                 <input readonly class="form-control"  id="edgDetailsPC" data-bind="value: selected().doc.programCode" type="text">
-                                                 <!-- ko if: selected().doc.AuditData.errors.programCode -->
-                                                 <span class="help-block" data-bind="text: selected().doc.AuditData.errors.programCode.messages"></span>
-                                                 <!-- /ko -->
-                                             </div>
-                                             <div class="form-group has-success" data-bind="css: {'has-error': selected().doc.AuditData.errors.accrualPeriodicity&&selected().doc.AuditData.errors.accrualPeriodicity.compliant===false}">
-                                                 <label for="edgDetailsAccrual">Update Frequency</label>
-                                                 <input readonly class="form-control"  id="edgDetailsAccrual" data-bind="value: selected().doc.accrualPeriodicity" type="text">
-                                                 <!-- ko if: selected().doc.AuditData.errors.accrualPeriodicity -->
-                                                 <span class="help-block" data-bind="text: selected().doc.AuditData.errors.accrualPeriodicity.messages"></span>
-                                                 <!-- /ko -->
-                                             </div>
-                                             <div class="form-group has-success" data-bind="css: {'has-error': selected().doc.AuditData.errors.distribution&&selected().doc.AuditData.errors.distribution.compliant===false}">
-                                                 <label for="edgDetailsDistribution">Distribution</label>
-                                                 <!-- ko if: selected().doc.distribution -->
-                                                 <textarea readonly id="edgDetailsDistribution" class="form-control" rows="3" data-bind="value: selected().doc.distribution.join('\n')"> </textarea>
-                                                 <!-- /ko -->
-                                                 <!-- ko ifnot: selected().doc.distribution -->
-                                                 <textarea readonly class="form-control" rows="3"> </textarea>
-                                                 <!-- /ko -->
-                                                 <!-- ko if: selected().doc.AuditData.errors.distribution -->
-                                                 <span class="help-block" data-bind="text: selected().doc.AuditData.errors.distribution.messages"></span>
-                                                 <!-- /ko -->
-                                             </div>
-                                         </div>
-                                     </div>
-
-                                 </form>
-                             </div>
-                             <div class="modal-footer">
-                                 <button type="button" id="closeEDGDetailsBtn" class="btn btn-default" data-dismiss="modal" >Close</button>
-                             </div>
-                         </div>
-                     </div>
-                 </div>
-             </div>
-             <!-- End EDG  View -->
-
-         </div>
 
         </div>
-          <!-- End main -->
-
-
-      </div>
+        <!-- End main -->
     </div>
+</div>
 
 
-    <script src="js/libs/jquery1.11.3/jquery.min.js"></script>
-    <script src="js/libs/jquery1.11.3/jquery.dataTables.min.js"></script>
-    <script src="js/libs/jquery1.11.3/dataTables.buttons.min.js"></script>
-    <script src="js/libs/jquery1.11.3/dataTables.bootstrap.min.js"></script>
-    <script src="bootstrap/js/bootstrap.min.js"></script>
-    <script src="bootstrap/js/jasny-bootstrap.min.js"></script>
-    <script src="js/libs/d3/d3.min.js"></script>
+<script src="js/libs/jquery1.11.3/jquery.min.js"></script>
+<script src="js/libs/jquery1.11.3/jquery.dataTables.min.js"></script>
+<script src="js/libs/jquery1.11.3/dataTables.buttons.min.js"></script>
+<script src="js/libs/jquery1.11.3/dataTables.bootstrap.min.js"></script>
+<script src="bootstrap/js/bootstrap.min.js"></script>
+<script src="bootstrap/js/jasny-bootstrap.min.js"></script>
+<script src="js/libs/d3/d3.min.js"></script>
 
-    <script src="js/libs/tinymce/tinymce.min.js"></script>
-    <script src="js/libs/tinymce/tinymce.jquery.min.js"></script>
-    <script src="js/wysiwyg.js"></script>
+<script src="js/libs/tinymce/tinymce.min.js"></script>
+<script src="js/libs/tinymce/tinymce.jquery.min.js"></script>
+<script src="js/wysiwyg.js"></script>
 
-    <script src="js/knockout.bindings.dataTables.cog.js"></script>
-    <script src="js/TableClass.js"></script>
-    <script src="js/gpintel.js"></script>
-    <script src="js/gpoItems.js"></script>
-    <script src="js/gpoUsers.js"></script>
-    <script src="js/gpoItemCheckList.js"></script>
-    <script src="js/edgItems.js"></script>
-    <script src="js/Audit.js"></script>
-    <!-- Due to some weird timing issues, this order needs to be followed -->
-    <script src="js/libs/esrijsapi/dojo/dojo.js" data-dojo-config="async: true"></script>
-    <!--<script src="//js.arcgis.com/3.15compact/"></script>-->
-    <script src="js/gpLogin.js"></script>
+<script src="js/libs/mustache/mustache.min.js"></script>
 
-  </body>
+<script src="js/knockout.bindings.dataTables.cog.js"></script>
+<script src="js/TableClass.js"></script>
+<script src="js/gpintel.js"></script>
+<script src="js/gpoItems.js"></script>
+<script src="js/gpoUsers.js"></script>
+<script src="js/gpoItemCheckList.js"></script>
+<script src="js/edgItems.js"></script>
+<script src="js/Audit.js"></script>
+<!-- Due to some weird timing issues, this order needs to be followed -->
+<script src="js/libs/esrijsapi/dojo/dojo.js" data-dojo-config="async: true"></script>
+<!--<script src="//js.arcgis.com/3.15compact/"></script>-->
+<script src="js/gpLogin.js"></script>
+
+</body>
+
 </html>

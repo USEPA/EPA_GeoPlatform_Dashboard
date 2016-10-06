@@ -1,0 +1,115 @@
+<script id="userMgmtView" type="text/html">
+<h2 class="sub-header">User Management</h2>
+<p>Work on this pane is still in progress. This page allows administrators to manage the sponsorship of external accounts. Please view the help for additional guidance.</p>
+<table id="gpoUsersTable" class="table table-hover table-bordered table-responsive" data-bind="dataTable:
+                {
+                    deferRender: true,
+                    dataSource: egam.pages.gpoUsers.table.items,
+                    rowTemplate: 'GPOusersRowTemplate',
+                    options: {paging: true,
+                        dom: 'Bfrtip',
+                        buttons: [
+                        {
+                            extend: 'userTableFilter',
+                            text: 'All External Users',
+                        },
+                          {
+                            extend: 'userTableFilter',
+                            text: 'Sponsored',
+                          },
+                          {
+                            extend: 'userTableFilter',
+                            text: 'Unsponsored',
+                          },
+                        ],
+                        order: [
+                          [1, 'asc'],
+                        ],},
+                    columns: [
+                        {data:'doc().isExternal'},
+                        {data:'doc().fullName'},
+                        {data:'doc().email'},
+                        {data:'latestSponsor().username'},
+                        {data:'latestSponsor().authGroup'},
+                        {data:'latestSponsor().organization'},
+                        {data:'latestSponsor().description'},
+                        {data:'latestSponsor().reason'},
+                        {data:{_:function (row) {return egam.utilities.formatDate(row.latestSponsor().startDate)},sort:'latestSponsor().startDate'},type:'num'},
+                        {data:{_:function (row) {return egam.utilities.formatDate(row.latestSponsor().endDate)},sort:'latestSponsor().endDate'},type:'num'},
+                    ]
+                    }">
+    <thead>
+    <tr>
+        <th>Sponsored</th>
+        <th>Name
+            <span onclick="event.stopPropagation();">
+                                <input class="search form-control input-sm" style="width:9em" placeholder="Search By Name">
+                            </span>
+        </th>
+        <th>E-mail<br />
+            <span onclick="event.stopPropagation();">
+                                <input class="search form-control input-sm" style="width:9em" placeholder="Search By Email">
+                            </span>
+        </th>
+        <th>Sponsor
+            <span onclick="event.stopPropagation();">
+                                <input class="search form-control input-sm" style="width:9em" placeholder="Search By Sponsor">
+                            </span>
+        </th>
+        <th>Auth Group
+            <span onclick="event.stopPropagation();">
+                                <select class="search form-control input-sm" style="width:9em"><option value="">All</option></select>
+                            </span>
+        </th>
+        <th>Organization
+            <span onclick="event.stopPropagation();">
+                                <select class="search form-control input-sm" style="width:9em"><option value="">All</option></select>
+                            </span>
+        </th>
+        <th>Description
+            <span onclick="event.stopPropagation();">
+                                <input class="search form-control input-sm" style="width:9em" placeholder="Search By Description">
+                            </span>
+        </th>
+        <th>Reason
+            <span onclick="event.stopPropagation();">
+                                <select class="search form-control input-sm" style="width:9em"><option value="">All</option></select>
+                            </span>
+        </th>
+        <th>Start Date
+            <span onclick="event.stopPropagation();">
+                                <input class="search form-control input-sm" style="width:9em" placeholder="Search By Start Date">
+                            </span>
+        </th>
+        <th>End Date
+            <span onclick="event.stopPropagation();">
+                                <input class="search form-control input-sm" style="width:9em" placeholder="Search By End Date">
+                            </span>
+        </th>
+    </tr>
+    </thead>
+    <tbody>
+
+    </tbody>
+    <tfoot>
+    </tfoot>
+</table>
+<script id="GPOusersRowTemplate" type="text/html">
+    <tr>
+        <td data-bind="css: {hidden: egam.communityUser.isAdmin != true}">
+            <div>
+                <button class="btn btn-primary btn-xs" id="sponsorBtn" data-bind="click: function (item) {return $root.details.select(item)}" data-toggle="modal" data-target="#gpoUsersModal">Sponsor Me!</button>
+            </div>
+        </td>
+        <td data-bind="text: doc().fullName"></td>
+        <td data-bind="text: doc().email"></td>
+        <td data-bind="text: latestSponsor().username"></td>
+        <td data-bind="text: latestSponsor().authGroup"></td>
+        <td data-bind="text: latestSponsor().organization"></td>
+        <td data-bind="text: latestSponsor().description"></td>
+        <td data-bind="text: latestSponsor().reason"></td>
+        <td data-bind="text: egam.utilities.formatDate(latestSponsor().startDate)"></td>
+        <td data-bind="text: egam.utilities.formatDate(latestSponsor().endDate)"></td>
+    </tr>
+</script>
+</script>

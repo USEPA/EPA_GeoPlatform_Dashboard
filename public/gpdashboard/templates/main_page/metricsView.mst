@@ -1,0 +1,11 @@
+<script id="metricsView" type="text/html">
+<div id="metricsTable" class="table-responsive">
+    <h2 class="sub-header">GPO Metrics</h2>
+    <div class="jumbotron vertical-center">
+        <div class="text-center">
+            <h1 class="alert alert-warning">Site Under Construction</h1>
+            <p>We are currently building something awesome that will be available soon!</p>
+        </div>
+    </div>
+</div>
+</script>
