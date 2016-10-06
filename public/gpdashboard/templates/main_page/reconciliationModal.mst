@@ -136,7 +136,7 @@
         </div>
         <div class="modal-footer">
             <button type="button" id="closeReconcileBtn" class="btn btn-default" data-bind="click: function() {}" data-dismiss="modal">Close</button>
-            <button type="button" class="btn btn-primary" data-bind="click: loadReconciledFields(egam.pages.gpoItems.details.selected().doc); $('#gpoItemsModal').modal('show');" data-dismiss="modal">Load reconciled values</button>
+            <button type="button" class="btn btn-primary" data-bind="click: function() {loadReconciledFields(egam.pages.gpoItems.details.selected().doc); $('#gpoItemsModal').modal('show');}" data-dismiss="modal">Load reconciled values</button>
         </div>
     </div>
 </div>
