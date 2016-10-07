@@ -57,6 +57,7 @@ egam.dataStash = {};
 // };
 
 egam.templates.load = function(divID) {
+  var deferred = $.Deferred();
   var templateFile = 'templates/main_page/' + divID + '.mst';
   //If in production just use single template file.
   //Set useSingleTemplateFile='path to production single template file'
@@ -68,21 +69,31 @@ egam.templates.load = function(divID) {
     $.get(templateFile, function(template) {
       egam.templates.cache[templateFile] = $(template).filter('#' + divID).html();
       render();
+      deferred.resolve();
     });
   } else {
     render();
+    deferred.resolve();
   }
 
   function render() {
     $('#' + divID).append(Mustache.render(egam.templates.cache[templateFile], {}));
   }
 
+
+  return deferred.promise();
 };
 
 egam.templates.loadArray = function() {
+  var deferred = $.Deferred();
   this.forEach(function(divID) {
-    egam.templates.load(divID);
-  })
+    egam.templates.load(divID).then(function() {
+      if (divID == egam.templates[egam.templates.length - 1]) {
+        deferred.resolve();
+      }
+    });
+  });
+  return deferred.promise();
 };
 
 egam.templates.cache = {};
@@ -90,7 +101,43 @@ egam.templates.cache = {};
 $(document).ready(function() {
 
   //Load templates
-  egam.templates.loadArray();
+  egam.templates.loadArray().then(function() {
+    // Wait until templates are loaded before doing the following:
+    // Click event for Help Modal
+    $('#egamHelp').on('click', function(e) {
+      $('#helpModal').modal('show');
+    });
+
+    // Add tooltips
+    var options = {delay: { show: 500, hide: 100 }};
+    $('[data-toggle="tooltip"]').tooltip(options);
+
+    ko.bindingHandlers['wysiwyg'].defaults = {
+      plugins: [ 'link textcolor colorpicker' ],
+      toolbar: 'bold italic underline forecolor backcolor | ' +
+      'alignleft aligncenter alignright alignjustify | ' +
+      'numlist bullist indent outdent | link image | undo redo | ' +
+      'fontsizeselect ',
+      menubar: false,
+      statusbar: false,
+      toolbar_items_size: 'small',
+      body_class: 'form-group has-success form-control',
+    };
+
+    // Load the GPHE table
+    $.getScript('js/gphedata.js')
+      .done(function(script, textStatus) {
+        $('#environmentTable').DataTable({
+          data: GPHEdata,
+          columns: [
+            { title: 'Folder'},
+            { title: 'Service Name'},
+            { title: 'Service Type'},
+            { title: 'Service Description'},
+          ],
+        });
+      });
+  });
 
   $(document).on('click', '.nav li', function(e) {
     $('.nav-sidebar li').removeClass('active');
@@ -110,40 +157,6 @@ $(document).ready(function() {
     }
   });
 
-  // Click event for Help Modal
-  $('#egamHelp').on('click', function(e) {
-    $('#helpModal').modal('show');
-  });
-
-  // Add tooltips
-  var options = {delay: { show: 500, hide: 100 }};
-  $('[data-toggle="tooltip"]').tooltip(options);
-
-  ko.bindingHandlers['wysiwyg'].defaults = {
-    plugins: [ 'link textcolor colorpicker' ],
-    toolbar: 'bold italic underline forecolor backcolor | ' +
-      'alignleft aligncenter alignright alignjustify | ' +
-      'numlist bullist indent outdent | link image | undo redo | ' +
-      'fontsizeselect ',
-    menubar: false,
-    statusbar: false,
-    toolbar_items_size: 'small',
-    body_class: 'form-group has-success form-control',
-  };
-
-  // Load the GPHE table
-  $.getScript('js/gphedata.js')
-      .done(function(script, textStatus) {
-        $('#environmentTable').DataTable({
-          data: GPHEdata,
-          columns: [
-          { title: 'Folder'},
-          { title: 'Service Name'},
-          { title: 'Service Type'},
-          { title: 'Service Description'},
-          ],
-        });
-      });
 
 });
 

@@ -10,18 +10,18 @@
     <!--[AE-DY-TH-BC-BG]-->
     <link rel="icon" href="img/favicon.png">
 
-    <link href="bootstrap/css/bootstrap.min.css" rel="stylesheet">
-    <link href="bootstrap/css/jasny-bootstrap.min.css" rel="stylesheet">
-    <link href="bootstrap/css/dataTables.bootstrap.min.css" rel="stylesheet">
-    <link href="bootstrap/css/buttons.dataTables.min.css" rel="stylesheet">
+    <link href="bower_components/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="bower_components/jasny-bootstrap/dist/css/jasny-bootstrap.min.css" rel="stylesheet">
+    <link href="bower_components/datatables.net-bs/css/dataTables.bootstrap.min.css" rel="stylesheet">
+    <link href="bower_components/datatables.net-buttons-dt/css/buttons.dataTables.min.css" rel="stylesheet">
     <link href="css/dashboard.css" rel="stylesheet">
 
     <!--[if lt IE 9]>
-    <script src="bootstrap/js/html5shiv.min.js"></script>
-    <script src="bootstrap/js/respond.min.js"></script>
+    <script src="bower_components/html5shiv/dist/html5shiv.min.js"></script>
+    <script src="bower_components/respond/dest/respond.min.js"></script>
     <![endif]-->
-    <script src="bootstrap/js/knockout3.3.0-min.js"></script>
-    <script src="bootstrap/js/knockout.mapping-latest.js"></script>
+    <script src="bower_components/knockoutjs/dist/knockout.js"></script>
+    <script src="bower_components/knockout-mapping/knockout.mapping.js"></script>
 
 
     <script>
@@ -40,7 +40,7 @@
         ga('require', 'autotrack');
         ga('send', 'pageview');
     </script>
-    <script src='js/libs/ga/autotrack.js'></script>
+    <script src='bower_components/autotrack/autotrack.js'></script>
 
     <title>GeoPlatform Dashboard</title>
 </head>
@@ -165,19 +165,19 @@
 </div>
 
 
-<script src="js/libs/jquery1.11.3/jquery.min.js"></script>
-<script src="js/libs/jquery1.11.3/jquery.dataTables.min.js"></script>
-<script src="js/libs/jquery1.11.3/dataTables.buttons.min.js"></script>
-<script src="js/libs/jquery1.11.3/dataTables.bootstrap.min.js"></script>
-<script src="bootstrap/js/bootstrap.min.js"></script>
-<script src="bootstrap/js/jasny-bootstrap.min.js"></script>
-<script src="js/libs/d3/d3.min.js"></script>
+<script src="bower_components/jquery/dist/jquery.min.js"></script>
+<script src="bower_components/datatables.net/js/jquery.dataTables.min.js"></script>
+<script src="bower_components/datatables.net-buttons/js/dataTables.buttons.js"></script>
+<script src="bower_components/datatables.net-bs/js/dataTables.bootstrap.min.js"></script>
+<script src="bower_components/bootstrap/dist/js/bootstrap.min.js"></script>
+<script src="bower_components/jasny-bootstrap/dist/js/jasny-bootstrap.min.js"></script>
+<script src="bower_components/d3/d3.min.js"></script>
 
-<script src="js/libs/tinymce/tinymce.min.js"></script>
-<script src="js/libs/tinymce/tinymce.jquery.min.js"></script>
+<script src="bower_components/tinymce/tinymce.min.js"></script>
+<script src="bower_components/tinymce/jquery.tinymce.min.js"></script>
 <script src="js/wysiwyg.js"></script>
 
-<script src="js/libs/mustache/mustache.min.js"></script>
+<script src="bower_components/mustache/mustache.min.js"></script>
 
 <script src="js/knockout.bindings.dataTables.cog.js"></script>
 <script src="js/TableClass.js"></script>
@@ -188,7 +188,7 @@
 <script src="js/edgItems.js"></script>
 <script src="js/Audit.js"></script>
 <!-- Due to some weird timing issues, this order needs to be followed -->
-<script src="js/libs/esrijsapi/dojo/dojo.js" data-dojo-config="async: true"></script>
+<script src="bower_components/dojo/dojo.js" data-dojo-config="async: true"></script>
 <!--<script src="//js.arcgis.com/3.15compact/"></script>-->
 <script src="js/gpLogin.js"></script>
 
