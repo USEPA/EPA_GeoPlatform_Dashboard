@@ -175,8 +175,19 @@ egam.models.gpoItemCheckList.FullModelClass = function(doc, index, parent) {
   this.parent = parent;
   //The index in array for this item
   this.index = index;
+
+  if(!doc().approval['IMOemail']){
+    doc().approval['IMOemail'] = null;
+  }
+  if(!doc().approval['ISOemail']){
+    doc().approval['ISOemail'] = null;
+  }
+
   //This is the doc
   this.doc = ko.observable(ko.mapping.fromJS(ko.utils.unwrapObservable(doc)));
+
+
+
   //This is where to store full info about keyed by id
   this.itemDocs = null;
   
@@ -239,8 +250,8 @@ egam.models.gpoItemCheckList.DetailsModel.prototype.makeChecklistPublic = functi
     _id: item.selected().doc()._id(),
     approval: {
       status: 'approved',
-      ISOemail: $('#isoInputEmail').val(),//'ISOemail',
-      IMOemail: $('#imoInputEmail').val(),// 'IMOemail'
+      ISOemail: item.selected().doc().approval.ISOemail, //'ISOemail',
+      IMOemail: item.selected().doc().approval.IMOemail, // 'IMOemail'
     }
   };
   var publicApproval = {updateDocs:JSON.stringify(approvalPost)};
