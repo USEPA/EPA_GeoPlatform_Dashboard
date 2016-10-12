@@ -19,7 +19,8 @@ module.exports = function(app) {
     //Super user is not limited by ownerIDs though
     if (!user.isSuperUser) {
       if (user.isAdmin) {
-        query['submission.authGroup'] = {$in: user.authGroups};
+//Actually let Admins see them all now
+//        query['submission.authGroup'] = {$in: user.authGroups};
       } else {
         query['submission.owner'] = {$in: user.ownerIDs};
       }
