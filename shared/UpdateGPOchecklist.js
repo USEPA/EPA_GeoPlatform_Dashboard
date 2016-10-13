@@ -226,7 +226,7 @@ UpdateGPOchecklist.prototype.sendIsoImoEmail = function(){
         }
 
         //read the template from file.
-        return Q.ninvoke(fs, 'readFile', appRoot + '\\templates\\emails\\ISO_IMO_approval.txt', 'utf8')
+        return Q.ninvoke(fs, 'readFile', appRoot + '\\public\\gpdashboard\\templates\\emails\\ISO_IMO_approval.mst', 'utf8')
       })
       .then(function (template){
         mustache.parse(template);

@@ -1,0 +1,66 @@
+<script id="edgModal" type="text/html">
+<div class="modal-dialog modal-lg" role="document">
+    <div class="modal-content">
+        <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <div class="form-group">
+                <label id="edgTitleSearchLabel" for="edgTitleSearch">Search EDG by Title:</label>
+                <span class="edgTitleSearchBlock">
+                                    <input class="form-control" id="edgTitleSearch" >
+                                    <button type="button" id="edgBtnModal" class="btn btn-primary" data-bind="click:customSearch">Search</button>
+                                 </span>
+            </div>
+        </div>
+        <div class="modal-body">
+
+            <div id="edgModalViewTable">
+                <table id="edgModalItemsTable" class="table table-hover table-bordered table-responsive" data-bind="dataTable:
+                                    {
+                                        deferRender: true,
+                                        dataSource: egam.pages.gpoItems.details.linkEDG.table.items,
+                                        rowTemplate: 'EDGitemsRowTemplate',
+                                        options: {
+                                            paging: true,
+                                            aaSorting: [],
+                                            oLanguage: {
+                                              sSearch: 'Filter: ',
+                                            },
+                                        },
+                                        columns: [
+                                            {data:'doc.title'},
+                                            {data:'doc.contactPoint.fn'},
+                                            {data:null}
+                                            ]
+                                    }">
+                    <thead>
+                    <tr>
+                        <th>Title</th>
+                        <th>Owner</th>
+                        <th>Link Record</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+
+
+                <script id="EDGitemsRowTemplate" type="text/html">
+                    <tr data-toggle="modal" data-target="#edgItemsModal">
+                        <td>
+                            <a data-bind="attr: { href: doc.references[0] }, html: doc.title" target="_blank"></a>
+                        </td>
+                        <td>
+                            <a data-bind="attr: { href: doc.contactPoint.hasEmail }, html: doc.contactPoint.fn" target="_blank"></a>
+                        </td>
+                        <td><button class="btn btn-primary btn-xs" id="edgLinkBtn" data-bind="click: function () {return $root.linkRecord(doc.references) }">Link EDG Record</button></td>
+                    </tr>
+
+                </script>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button id="closeEDGSearchBtn" type="button" class="btn btn-default" onclick="$('#myModal').modal('show');" data-dismiss="modal">Close</button>
+        </div>
+    </div>
+</div>
+</script>

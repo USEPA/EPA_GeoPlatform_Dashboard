@@ -1,0 +1,69 @@
+<script id="gpoCheckListDetailsModal" type="text/html">
+<div class="modal-dialog">
+    <div class="modal-content">
+        <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <h4 class="modal-title">Checklist Details</h4>
+        </div>
+        <div class="modal-body" style="padding-bottom: 0px">
+            <div class="row">
+                <div class="col-md-6">
+                    <label>Checklist Name: </label>
+                    <span data-bind="text: selected().doc().submission.name"></span>
+                </div>
+                <div class="col-md-6">
+                    <label>Status: </label>
+                    <span data-bind="text: selected().doc().approval.status"></span>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6">
+                    <label>Owner: </label>
+                    <span data-bind="text: selected().doc().submission.owner"></span>
+                </div>
+                <div class="col-md-6">
+                    <label>Submit Date: </label>
+                    <span data-bind="text: egam.utilities.formatDate(selected().doc().submission.submitDate())"></span>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6">
+                    <label>Items: </label>
+                    <div class="list-group" data-bind="foreach: selected().itemDocs">
+                        <a class="list-group-item" data-bind="text: $data.title, attr: { href:'https://epa.maps.arcgis.com/home/item.html?id=' + $data.id, target:'_blank'}"></a>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <label>Auth Group: </label><br>
+                        <span data-bind="text: selected().doc().submission.authGroup"></span>
+                    </div>
+                </div>
+            </div>
+            <div class="row" data-bind="visible: egam.portalUser.role == 'org_admin'" style="margin-bottom: -15px">
+                <div class="panel panel-warning">
+                    <div class="panel-heading">Enter email for IMO and ISO</div>
+                    <div class="panel-body">
+                        <div class="form-group">
+                            <label for="imoInputEmail">IMO Email address</label>
+                            <input type="email" class="form-control" id="imoInputEmail" placeholder="Email">
+                            <span id="imohelpBlock" class="help-block"><a href="https://usepa.sharepoint.com/sites/oei_Community/sio/QIC%20Meeting%20Materials/SIO%20IMO%20List%20Official.pdf" target="_blank">Emails for IMO can be found here</a></span>
+                        </div>
+                        <div class="form-group">
+                            <label for="isoInputEmail">ISO Email address</label>
+                            <input type="email" class="form-control" id="isoInputEmail" placeholder="Email">
+                            <span id="isohelpBlock" class="help-block"><a href="http://intranet.epa.gov/oei/saiso/ISSO.html" target="_blank">Emails for ISO can be found here</a></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            <button type="button" class="btn btn-primary" data-bind="click: makeChecklistPublic, visible: egam.portalUser.role == 'org_admin',enable: selected().doc().approval.status()!='approved'">Make Items Public</button>
+        </div>
+    </div>
+    <!-- /.modal-content -->
+</div>
+<!-- /.modal-dialog -->
+</script>
