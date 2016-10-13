@@ -9,7 +9,7 @@
             <div id="requestElements">
                 <div class="row input-group" data-bind="css:{'has-error': !checklistName()}">
                     <span class="input-group-addon" id="projectName">Project Name</span>
-                    <input type="text" id="requestName" class="form-control" data-bind="value:checklistName, valueUpdate:'afterkeydown'" aria-describedby="projectName">
+                    <input type="text" id="requestName" class="form-control" data-bind="value:checklistName, valueUpdate:'afterkeydown'" aria-describedby="projectName"/>
                 </div>
                 <div class="row input-group">
                     <span class="input-group-addon" id="basic-addon2">Authoritative Group</span>
@@ -96,16 +96,16 @@
                 <script id="GPOitemsChecklistRowTemplate" type="text/html">
                     <tr>
                         <td>
-              <span>
-                                            <button class="btn btn-primary btn-xs" id="makePublicBtn" data-bind="click:function(item){return $root.details.select(item)}" data-toggle="modal" data-target="#gpoCheckListDetailsModal">Details</button>
-                                        </span>
+                            <span>
+                                <button class="btn btn-primary btn-xs" id="makePublicBtn" data-bind="click:function(item){return $root.details.select(item)}" data-toggle="modal" data-target="#gpoCheckListDetailsModal">Details</button>
+                            </span>
                         </td>
                         <td data-bind="text: doc().submission.name"></td>
                         <td data-bind="text: doc().submission.owner"></td>
                         <td data-bind="text: egam.utilities.formatDate(doc().submission.submitDate)"></td>
                         <td data-bind="text: doc().approval.status"></td>
                     </tr>
-                </script>
+                <{{!}}/script>
             </div>
         </div>
         <div class="modal-footer">
