@@ -41,26 +41,26 @@
                 </div>
             </div>
             <div class="row" data-bind="visible: egam.portalUser.role == 'org_admin'" style="margin-bottom: -15px">
-                <div class="panel panel-warning">
-                    <div class="panel-heading">Enter email for IMO and ISO</div>
+                <div class="panel" data-bind="css: {'panel-warning': selected().doc().approval.status()!='approved'}">
+                    <div class="panel-heading" data-bind="visible: selected().doc().approval.status()!='approved'">Enter email for IMO and ISO</div>
                     <div class="panel-body">
-                        <div class="form-group">
-                            <label for="imoInputEmail">IMO Email address</label>
-                            <input type="email" class="form-control" id="imoInputEmail" placeholder="Email">
-                            <span id="imohelpBlock" class="help-block"><a href="https://usepa.sharepoint.com/sites/oei_Community/sio/QIC%20Meeting%20Materials/SIO%20IMO%20List%20Official.pdf" target="_blank">Emails for IMO can be found here</a></span>
+                        <div class="input-group" data-bind="css:{'has-error': !selected().IMOaudit() && selected().doc().approval.status()!='approved'}">
+                            <span class="input-group-addon" id="IMOemail">IMO email</span>
+                            <input type="text" id="imoInputEmail" class="form-control" data-bind="value: selected().doc().approval.IMOemail, disable: selected().doc().approval.status()==='approved', valueUpdate:'afterkeydown'" aria-describedby="IMOemail">
                         </div>
-                        <div class="form-group">
-                            <label for="isoInputEmail">ISO Email address</label>
-                            <input type="email" class="form-control" id="isoInputEmail" placeholder="Email">
-                            <span id="isohelpBlock" class="help-block"><a href="http://intranet.epa.gov/oei/saiso/ISSO.html" target="_blank">Emails for ISO can be found here</a></span>
+                        <span id="imohelpBlock" class="help-block"><a href="https://usepa.sharepoint.com/sites/oei_Community/sio/QIC%20Meeting%20Materials/SIO%20IMO%20List%20Official.pdf" target="_blank">Emails for IMO can be found here</a></span>
+                        <div class="input-group" data-bind="css:{'has-error': !selected().ISOaudit() && selected().doc().approval.status()!='approved'}">
+                            <span class="input-group-addon" id="ISOemail">ISO email</span>
+                            <input type="text" id="isoInputEmail" class="form-control" data-bind="value: selected().doc().approval.ISOemail, disable: selected().doc().approval.status()==='approved', valueUpdate:'afterkeydown'" aria-describedby="ISOemail">
                         </div>
+                        <span id="isohelpBlock" class="help-block"><a href="http://intranet.epa.gov/oei/saiso/ISSO.html" target="_blank">Emails for ISO can be found here</a></span>
                     </div>
                 </div>
             </div>
         </div>
         <div class="modal-footer">
             <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-            <button type="button" class="btn btn-primary" data-bind="click: makeChecklistPublic, visible: egam.portalUser.role == 'org_admin',enable: selected().doc().approval.status()!='approved'">Make Items Public</button>
+            <button type="button" class="btn btn-primary" data-bind="click: makeChecklistPublic, visible: egam.portalUser.role == 'org_admin', disable: selected().doc().approval.status()=='approved' || !selected().IMOaudit() || !selected().ISOaudit()" >Make Items Public</button>
         </div>
     </div>
     <!-- /.modal-content -->
