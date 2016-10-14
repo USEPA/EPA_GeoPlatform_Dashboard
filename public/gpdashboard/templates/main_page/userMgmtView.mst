@@ -95,7 +95,7 @@
     </tfoot>
 </table>
 <script id="GPOusersRowTemplate" type="text/html">
-    <tr>
+    <tr data-bind="css: {danger: !latestSponsor().username}">
         <td data-bind="css: {hidden: egam.communityUser.isAdmin != true}">
             <div>
                 <button class="btn btn-primary btn-xs" id="sponsorBtn" data-bind="click: function (item) {return $root.details.select(item)}" data-toggle="modal" data-target="#gpoUsersModal">Sponsor Me!</button>
