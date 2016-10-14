@@ -275,3 +275,7 @@ a, span, tr, h4:hover {
     width:50px;
   }
 
+.col-md-4, .col-sm-6 {
+  padding-right: 5px;
+  padding-left: 5px;
+}
