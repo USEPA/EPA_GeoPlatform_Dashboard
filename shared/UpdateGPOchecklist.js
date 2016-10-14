@@ -98,7 +98,9 @@ UpdateGPOchecklist.prototype.checkApproval = function() {
         //Force the approval status date to today
         self.updateDoc.approval.statusDate = new Date();
         //has perms if admin in authgroup on checklist
-        return doc && self.user.authGroups.indexOf(doc.submission.authGroup) > -1 ;
+//        return doc && self.user.authGroups.indexOf(doc.submission.authGroup) > -1 ;
+        //Actually just let any admin approve as long as the _id exists (a doc is returned)
+        return doc && 1==1;
       });
   } else {
     return false;
