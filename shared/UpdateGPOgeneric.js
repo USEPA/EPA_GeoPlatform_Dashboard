@@ -3,6 +3,7 @@ var UpdateGPOgeneric =  function(updateKey, updateName, collection,
   //Key for updating the doc could id, username, etc.
   this.updateKey = updateKey;
   //This is just name of the type of item being updated. eg. GPOitem, GPOuser, etc...
+  //It is just used for display messages and errors etc
   this.updateName = updateName;
   //The collection to update
   this.collection = collection;
@@ -32,14 +33,14 @@ var UpdateGPOgeneric =  function(updateKey, updateName, collection,
   //These are fields on doc we can possibly update
   //Note: have to check if collection was pass to constructor.
   //Don't want to crash when inheriting from this
+  this.updateFields=[];
   if (collection) {
-    this.updateFields = require(this.appRoot +
-      '/config/updateFields/' + collection.name);
+    this.updateFields = require(this.appRoot + '/config/updateFields/' + collection.name);
   }
   //These are the extension fields on doc we can possibly update
+  this.updateExtensionFields=[];
   if (extensionsCollection) {
-    this.updateExtensionFields = require(this.appRoot +
-      '/config/updateFields/' + extensionsCollection.name);
+    this.updateExtensionFields = require(this.appRoot + '/config/updateFields/' + extensionsCollection.name);
   }
 
   //Module to deal with requests easier
@@ -191,7 +192,12 @@ UpdateGPOgeneric.prototype.updateLocal = function() {
 
   //Need username as key for updating
   var updateQueryCommand = {};
-  updateQueryCommand[self.updateKey] = self.updateDoc[self.updateKey];
+  //If the updateKey is an array then use $in for the query
+  if (Array.isArray(self.updateDoc[self.updateKey])) {
+    updateQueryCommand[self.updateKey] = {$in:self.updateDoc[self.updateKey]};
+  }else {
+    updateQueryCommand[self.updateKey] = self.updateDoc[self.updateKey];
+  }
 
   //Ge update command for normal GPO user fields and the extensions that both
   //will be saved in Extensions collection
@@ -211,7 +217,7 @@ UpdateGPOgeneric.prototype.updateLocal = function() {
       if (!UpdateCommand || !self.collection) {
         return false;
       }
-      return Q(self.collection.update(updateQueryCommand,UpdateCommand));
+      return Q(self.collection.update(updateQueryCommand,UpdateCommand,{multi: true}));
     }(),
 //This will upsert only the extensions collection
     function() {
@@ -221,7 +227,7 @@ UpdateGPOgeneric.prototype.updateLocal = function() {
       console.log(updateQueryCommand);
       console.log(ExtensionsUpdateCommand);
       return Q(self.extensionsCollection.update(updateQueryCommand,
-        ExtensionsUpdateCommand,{upsert: true}));
+        ExtensionsUpdateCommand,{upsert: true,multi: true}));
     }(),
   ])
     .then(function() {return true});

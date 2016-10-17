@@ -47,7 +47,7 @@ var externalUsers = [];
 //Now run the promise chain using desired getGPOheaders
 //(sync vs async vs hybrid)
 getToken()
-  .then(function() {return getExternalUser(sponsorsFile)})
+  .then(function() {return getExternalUsers(sponsorsFile)})
   .then(addSponsorsHybrid)
   .catch(function(err) {
     console.error('Error received:', err.stack);
@@ -88,7 +88,7 @@ function getToken() {
     });
 }
 
-function getExternalUser(inputFile) {
+function getExternalUsers(inputFile) {
   var defer = Q.defer();
   var lineReader = readline.createInterface({
     terminal: false,
@@ -189,7 +189,7 @@ function updateExternalUser(item) {
 
   //Note: need to get "mock" session info because update checks permission to
   //update user (needs to be admin to update external users)
-  var session = {ownerIDs: [],user: {isAdmin: true},token: hr.saved.token};
+  var session = {user: {isAdmin: true,ownerIDs: []},token: hr.saved.token};
 
   var updateInstance = new UpdateGPOclass(usersCollection, extensionsCollection,
                                           session,config);

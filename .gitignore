@@ -1,7 +1,8 @@
 # https://github.com/github/gitignore/blob/master/Node.gitignore
-# Logs
-logs
-*.log
+# Don't show the log files
+logs/*
+#gitignore just in here as placeholder so that log folder created when cloning
+!logs/.gitignore
 
 # Runtime data
 pids
@@ -44,3 +45,6 @@ config/nodeEnv.js
 
 #temp directory
 /tmp/
+
+#bower components
+public/gpdashboard/bower_components/

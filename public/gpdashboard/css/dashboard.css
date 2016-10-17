@@ -194,6 +194,9 @@ a, span, tr, h4:hover {
     width: 225px;
     margin-left: 55px;
   }
+  #customTagInput {
+    width: 225px;
+  }
 
   #edgTitleSearchLabel {
     font-size: 18px;
@@ -218,3 +221,61 @@ a, span, tr, h4:hover {
     overflow: visible;
     white-space: normal;
   }
+  #edgExport {
+    float: right;
+    margin-left: 5px;
+  }
+  #metricsToggle {
+    float: right;
+    margin-left: 5px;
+  }
+
+  .bottomModal {
+    overflow-y:scroll;
+  }
+  #edgMetrics path {
+    stroke: #fff;
+  }
+  #edgMetrics path:hover {
+    opacity:0.9;
+  }
+  #edgMetrics rect:hover {
+    fill:blue;
+  }
+  #edgMetrics .axis {
+    font: 10px sans-serif;
+  }
+  #edgMetrics .legend tr{
+    border-bottom:1px solid grey;
+  }
+  #edgMetrics .legend tr:first-child{
+    border-top:1px solid grey;
+  }
+  #edgMetrics .axis path,
+  #edgMetrics .axis line {
+    fill: none;
+    stroke: #000;
+    shape-rendering: crispEdges;
+  }
+  #edgMetrics .x.axis path {
+    display: none;
+  }
+  #edgMetrics .legend{
+    margin-bottom:76px;
+    display:inline-block;
+    border-collapse: collapse;
+    border-spacing: 0px;
+  }
+  #edgMetrics .legend td{
+    padding:4px 5px;
+    vertical-align:bottom;
+  }
+  #edgMetrics .legendFreq, .legendPerc{
+    align:right;
+    width:50px;
+  }
+
+.col-md-4, .col-sm-6 {
+  padding-right: 5px;
+  padding-left: 5px;
+}

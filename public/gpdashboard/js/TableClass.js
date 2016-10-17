@@ -20,7 +20,9 @@ egam.controls.Table = function(items,elementSelector,RowModelClass,resultsName) 
   //Set the default timeout. It can also be passed to init
   this.timeOut = 15000;
   //list of checked row
-  this.checkedRows = [];
+  this.checkedRows = ko.observableArray();
+  //This is the index of rows checked
+  this.checkedIndices = [];
 };
 
 egam.controls.Table.prototype.init = function(endpoint, query, projection, resultsName, timeOut) {
@@ -283,43 +285,54 @@ egam.controls.Table.prototype.runAllClientSideFilters = function() {
   });
 };
 
-egam.controls.Table.prototype.checkRow = function(item, evt) {
+egam.controls.Table.prototype.checkRow = function(itemField, itemIndex, checked) {
   //Have to get item index in checkRows storage if adding also because don't want to add duplicates
   //This probably won't happen for single manually checking but could occur when checking ALL
-  var index = $.inArray(item, this.checkedRows);
+  //var itemID = item.doc().id;
+  var FieldIndex = $.inArray(itemField, this.checkedRows);
 
-  if (evt.target.checked) {
+  var IndexIndex = $.inArray(itemIndex, this.checkedIndices);
+
+
+  if (checked) {
     //Only add the row to checkRows if it is not in there
-    if (index < 0) {
-      this.checkedRows.push(item);
+    if (FieldIndex < 0) {
+      this.checkedRows.push(itemField);
+      console.log("Checked :: ", checked);
+    }
+    if (IndexIndex < 0) {
+      this.checkedIndices.push(itemIndex);
     }
   } else {
     //Remove the row from checkedRows storage using splice
-    this.checkedRows.splice(index, 1);
+    this.checkedRows.splice(FieldIndex, 1);
+    console.log("unChecked :: ", checked);
+    this.checkedIndices.splice(IndexIndex, 1);
+  }
+  return true;
+};
+
+egam.controls.Table.prototype.checkAll = function(field,checked) {
+  var self = this;
+  var resultRows;
+
+  if(checked){
+    resultRows = self.dataTable.rows({"search":"applied"});
+  }else{
+    resultRows = self.dataTable.rows();
   }
 
-  return true;
-};
+  resultRows.every(function ( rowIdx, tableLoop, rowLoop ) {
+    var rowData = this.data();
+    var rowNode = this.node();
 
-egam.controls.Table.prototype.checkAll = function(model, evt) {
-  var self = this;
-  //Note: rows({"search":"applied"}) would just the indices for the displayed rows (after filtering/sorting) but .data() actually gets the row items
-  //Also can access the dataTable on this table class instance using self.dataTable
-  var displayedItems = self.dataTable.rows({search: 'applied'}).data();
-
-  displayedItems.each(function(item) {
-    //Note isChecked field on row model should be observable for 2 way data binding to work
-    //(Actually might not be necessary because of way dataTable rebinds on draw())
-    item.isChecked(evt.target.checked);
-    //Just fire the checkRow function for this item
-    self.checkRow(item,evt);
-
+    var ckBox = $(rowNode).find(".checkboxClass");
+    if (ckBox.prop("disabled") == false) {
+      ckBox.prop('checked', checked);
+      self.checkRow(rowData.doc()[field],rowData.index,checked);
+    }
   });
 
-  //Pass false so that search/paging not reset when redrawn
-  //Actually don't need to redraw table because isChecked field is observable (2 way data binding)
-  //this.dataTable.draw(false);
-  //console.log(self.checkedRows);
-
   return true;
 };
+

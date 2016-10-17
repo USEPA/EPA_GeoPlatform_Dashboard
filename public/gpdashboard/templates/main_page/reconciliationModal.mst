@@ -1,0 +1,143 @@
+<script id="reconciliationModal" type="text/html">
+<div class="modal-dialog modal-lg" role="document">
+    <div class="modal-content">
+        <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close" data-bind=""><span aria-hidden="true">&times;</span></button>
+            <h4 class="modal-title" id="myModalLabel">Item Reconciliation
+        </div>
+        <div class="modal-body">
+            <form id="modalForm" role="form" data-toggle="validator" data-disable="false" enctype="multipart/form-data" method="post">
+                <div class="row form-group">
+                    <table id="reconcileTable">
+                        <col class="col-md-5">
+                        <col class="col-md-1" style="text-align:center">
+                        <col class="col-md-5">
+                        <tr>
+                            <td>
+                                <div class="form-group"><label>Current GPO Item Metadata</label></div>
+                            </td>
+                            <td>
+                            </td>
+                            <td>
+                                <div class="form-group"><label>EDG Item Metadata</label></div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div class="form-group has-success">
+                                    <label for="GPOtitle">Title</label>
+                                    <input class="form-control" id="GPOtitle" data-bind="value: doc().title, valueUpdate: 'afterkeydown'" type="text">
+                                </div>
+                            </td>
+                            <td>
+                                <div class="reconcileLink">
+                                    <a class="glyphicon glyphicon-arrow-left" data-bind="click: function () {copyEDGtoGPO('title')}"></a>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="form-group has-success">
+                                    <label for="EDGtitle">Title</label>
+                                    <!-- ko if: fullDoc().EDGdata -->
+                                    <input readonly class="form-control" id="EDGtitle" data-bind="value: fullDoc().EDGdata.title" type="text">
+                                    <!-- /ko -->
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div class="form-group has-success">
+                                    <label for="GPOinputSnippet">Summary</label>
+                                    <input class="form-control" id="GPOinputSnippet" data-bind="value: doc().snippet, valueUpdate: 'afterkeydown'" type="text">
+                                </div>
+                            </td>
+                            <td>
+                                <div class="reconcileLink">
+                                    <a class="glyphicon glyphicon-arrow-left" data-bind="click: function () {copyEDGtoGPO('purpose','snippet')}"></a>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="form-group has-success">
+                                    <label for="EDGinputSnippet">Summary</label>
+                                    <!-- ko if: fullDoc().EDGdata -->
+                                    <input readonly class="form-control" id="EDGinputSnippet" data-bind="value: fullDoc().EDGdata.purpose" type="text">
+                                    <!-- /ko -->
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div class="form-group has-success">
+                                    <label>Description</label>
+                                    <textarea class="form-control" id="GPOinputDesc" data-bind="wysiwyg: doc().description, valueUpdate:
+                                        'afterkeydown'" rows="6" placeholder="Description"></textarea>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="reconcileLink">
+                                    <a class="glyphicon glyphicon-arrow-left" data-bind="click: function () {copyEDGtoGPO('abstract','description')}"></a>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="form-group has-success">
+                                    <label for="EDGinputDesc">Description</label>
+                                    <!-- ko if: fullDoc().EDGdata -->
+                                    <textarea readonly class="form-control" id="EDGinputDesc" data-bind="value: fullDoc().EDGdata.abstract" rows="7"></textarea>
+                                    <!-- /ko -->
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div class="form-group has-success">
+                                    <label>Access and Use Constraints</label>
+                                    <textarea class="form-control" id="GPOinputAccessUse" data-bind="wysiwyg: doc().licenseInfo, valueUpdate:
+                                        'afterkeydown'" rows="6" placeholder="Access and Use Constraints"></textarea>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="reconcileLink">
+                                    <a class="glyphicon glyphicon-arrow-left" data-bind="click: function () {copyEDGtoGPO('useconst','licenseInfo')}"></a>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="form-group has-success">
+                                    <label for="EDGinputAccessUse">Access and Use Constraints</label>
+                                    <!-- ko if: fullDoc().EDGdata -->
+                                    <textarea readonly class="form-control" id="EDGinputAccessUse" data-bind="value: fullDoc().EDGdata.useconst" rows="7"></textarea>
+                                    <!-- /ko -->
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div class="form-group has-success">
+                                    <label for="GPOinputAccessInfo">Credits</label>
+                                    <input class="form-control" id="GPOinputAccessInfo" data-bind="value: doc().accessInformation, valueUpdate: 'afterkeydown'" type="text">
+                                </div>
+                            </td>
+                            <td>
+                                <div class="reconcileLink">
+                                    <a class="glyphicon glyphicon-arrow-left" data-bind="click: function () {copyEDGtoGPO('publisher','accessInformation')}"></a>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="form-group has-success">
+                                    <label for="EDGinputAccessInfo">Credits</label>
+                                    <!-- ko if: fullDoc().EDGdata -->
+                                    <input readonly class="form-control" id="EDGinputAccessInfo" data-bind="value: fullDoc().EDGdata.publisher" type="text">
+                                    <!-- /ko -->
+                                </div>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button type="button" id="closeReconcileBtn" class="btn btn-default" data-bind="click: function() {}" data-dismiss="modal">Close</button>
+            <button type="button" class="btn btn-primary" data-bind="click: function() {loadReconciledFields(egam.pages.gpoItems.details.selected().doc); $('#gpoItemsModal').modal('show');}" data-dismiss="modal">Load reconciled values</button>
+        </div>
+    </div>
+</div>
+</script>

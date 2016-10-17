@@ -110,23 +110,71 @@ AuditEDG.prototype.createRequiredFields = function(doc) {
 
 AuditEDG.prototype.validate = function(doc, fieldsToValidate) {
   var self = this;
-  var valid = true;
+  //Each EDG record has a record-wide pass/fail flag ("valid") that is used
+  //for highlighting rows in the dashboard, as well as "errors" which
+  //contains the field name and message(s) for the audit failure.
+  var fieldErrorLists = {};
+  self.fieldsToValidate.forEach(function(validField) {
+    fieldErrorLists[validField] = {
+      compliant: true,
+      messages: []
+    };
+  });
+  var AuditData = {
+    compliant: true,
+    errors: fieldErrorLists
+  };
   self.fieldsToValidate.forEach(function(validField) {
     //Check if required fields exist
     if (!doc[validField]) {
-      valid = false;
+      AuditData.compliant = false;
+      AuditData.errors[validField].compliant = false;
+      AuditData.errors[validField].messages.push(
+        'Missing required field.'
+      );
     } else {
+      //Extract URLs from distribution field
+      if (validField == 'distribution') {
+        var urlList = [];
+        var licenseRE = new RegExp(urlRegex, 'i');
+        doc[validField].forEach(function(dist) {
+          if (dist.downloadURL) {
+            if (!licenseRE.test(dist.downloadURL)) {
+              AuditData.compliant = false;
+              AuditData.errors[validField].compliant = false;
+              AuditData.errors[validField].messages.push(
+                'Invalid distribution URL format.'
+              );
+            }
+            urlList.push(dist.downloadURL);
+          } else if (dist.accessURL) {
+            if (!licenseRE.test(dist.accessURL)) {
+              AuditData.compliant = false;
+              AuditData.errors[validField].compliant = false;
+              AuditData.errors[validField].messages.push(
+                'Invalid distribution URL format.'
+              );
+            }
+            urlList.push(dist.accessURL);
+          }
+        });
+        doc[validField] = urlList;
+      }
       //Is the Publisher EPA? If so, do more thorough validation
       if (doc['publisher'] &&
-          (/Environmental Protection Agency/i.exec(doc['publisher'].name)) ||
-           /U\.?S\.? ?E\.?P\.?A/.exec(doc['publisher'].name)) {
+        (/Environmental Protection Agency/i.exec(doc['publisher'].name)) ||
+        /U\.?S\.? ?E\.?P\.?A/.exec(doc['publisher'].name)) {
         //Check if identifier is formatted correctly
         //(8 digits-4 digits-4 digits-4 digits-12 digits)
         //There are several EDG records that have malformed identifiers so this
         //should catch that.
         if (validField == 'identifier' &&
-            !(/{?.{8}-.{4}-.{4}-.{4}-.{12}}?/.test(doc[validField]))) {
-          valid = false;
+          !(/{?.{8}-.{4}-.{4}-.{4}-.{12}}?/.test(doc[validField]))) {
+          AuditData.compliant = false;
+          AuditData.errors[validField].compliant = false;
+          AuditData.errors[validField].messages.push(
+            'Invalid identifier format.'
+          );
         }
 
         if (validField == 'keyword') {
@@ -136,7 +184,11 @@ AuditEDG.prototype.validate = function(doc, fieldsToValidate) {
           });
           //If no intersection, mark as invalid
           if (matchingEPAtags.length == 0) {
-            valid = false;
+            AuditData.compliant = false;
+            AuditData.errors[validField].compliant = false;
+            AuditData.errors[validField].messages.push(
+              'Missing EPA keyword(s).'
+            );
           }
           //Find intersection between valid Place keywords and this record's
           //tags
@@ -145,32 +197,52 @@ AuditEDG.prototype.validate = function(doc, fieldsToValidate) {
           });
           //If no intersection, mark as invalid
           if (matchingPlacetags.length == 0) {
-            valid = false;
+            AuditData.compliant = false;
+            AuditData.errors[validField].compliant = false;
+            AuditData.errors[validField].messages.push(
+              'Missing Place keyword(s).'
+            );
           }
-          //Find intersection between valid Place keywords and this record's
+          //Find intersection between valid Office keywords and this record's
           //tags
           var matchingOfficetags = doc[validField].filter(function(tag) {
             return self.validOffices.indexOf(tag.toLowerCase()) != -1
           });
           //If no intersection, mark as invalid
           if (matchingOfficetags.length == 0) {
-            valid = false;
+            AuditData.compliant = false;
+            AuditData.errors[validField].compliant = false;
+            AuditData.errors[validField].messages.push(
+              'Missing EPA Office/Organization keyword.'
+            );
           }
         }
         //Valid program code?
         if (validField == 'programCode' &&
-            self.programCodes.indexOf(doc[validField][0]) == -1) {
-          valid = false;
+          self.programCodes.indexOf(doc[validField][0]) == -1) {
+          AuditData.compliant = false;
+          AuditData.errors[validField].compliant = false;
+          AuditData.errors[validField].messages.push(
+            'Invalid program code.'
+          );
         }
         //Check date
         if (validField == 'modified' &&
-            isNaN(new Date(doc[validField]).getTime())) {
-          valid = false;
+          isNaN(new Date(doc[validField]).getTime())) {
+          AuditData.compliant = false;
+          AuditData.errors[validField].compliant = false;
+          AuditData.errors[validField].messages.push(
+            'Invalid date format.'
+          );
         }
         //Check email
         if (validField == 'contactPoint') {
           if (!doc[validField].hasEmail) {
-            valid = false;
+            AuditData.compliant = false;
+            AuditData.errors[validField].compliant = false;
+            AuditData.errors[validField].messages.push(
+              'Missing contact email.'
+            );
           } else {
             //Check if it's a valid email address. The long regex is just a
             //formal email checker (preceeded by mailto). The map/join at the
@@ -184,20 +256,32 @@ AuditEDG.prototype.validate = function(doc, fieldsToValidate) {
               /(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,})$/
             ].map(function(r) {return r.source}).join(''));
             if (!emailRE.test(doc[validField].hasEmail)) {
-              valid = false;
+              AuditData.compliant = false;
+              AuditData.errors[validField].compliant = false;
+              AuditData.errors[validField].messages.push(
+                'Invalid email format.'
+              );
             }
           }
         }
         //Is access level one of the accepted values
         if (validField == 'accessLevel' &&
-            self.validAccess.indexOf(doc[validField]) == -1) {
-          valid = false;
+          self.validAccess.indexOf(doc[validField]) == -1) {
+          AuditData.compliant = false;
+          AuditData.errors[validField].compliant = false;
+          AuditData.errors[validField].messages.push(
+            'Invalid access level type.'
+          );
         } else {
           //If restricted, must have rights field
           if (doc[validField] == 'non-public' ||
-              doc[validField] == 'restricted public') {
+            doc[validField] == 'restricted public') {
             if (!doc['rights']) {
-              valid = false;
+              AuditData.compliant = false;
+              AuditData.errors[validField].compliant = false;
+              AuditData.errors[validField].messages.push(
+                'Restricted/non-public records require Rights field.'
+              );
             }
           }
         }
@@ -205,19 +289,29 @@ AuditEDG.prototype.validate = function(doc, fieldsToValidate) {
         if (validField == 'license') {
           var licenseRE = new RegExp(urlRegex, 'i');
           if (!licenseRE.test(doc[validField])) {
-            valid = false;
+            AuditData.compliant = false;
+            AuditData.errors[validField].compliant = false;
+            AuditData.errors[validField].messages.push(
+              'Invalid license URL format.'
+            );
           }
         }
         //Check update frequency
         if (validField == 'accrualPeriodicity' &&
-            self.validAccrualGeo.indexOf(doc[validField]) == -1 &&
-            self.validAccrualNonGeo.indexOf(doc[validField]) == -1) {
-          valid = false;
+          self.validAccrualGeo.indexOf(doc[validField]) == -1 &&
+          self.validAccrualNonGeo.indexOf(doc[validField]) == -1) {
+          AuditData.compliant = false;
+          AuditData.errors[validField].compliant = false;
+          AuditData.errors[validField].messages.push(
+            'Invalid date format.'
+          );
         }
+
+
       }
     }
   });
-  return valid;
+  return AuditData;
 };
 
 if (!(typeof window != 'undefined' && window.document)) {

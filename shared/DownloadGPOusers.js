@@ -181,6 +181,7 @@ DownloadGPOusers.prototype.downloadInner = function() {
     //For testing simultaneous log ins
     //.delay(30000)
     .then(self.getSelfInvokedFunction(self.getOrgId))
+    .then(self.getSelfInvokedFunction(self.createIndices))
     .then(self.getSelfInvokedFunction(self.removeAllUserInfo))
     .then(self.getSelfInvokedFunction(self.getLocalGPOids))
     .then(self.getSelfInvokedFunction(getGPOusers))
@@ -205,6 +206,14 @@ DownloadGPOusers.prototype.getSelfInvokedFunction = function(f) {
   }
 };
 
+DownloadGPOusers.prototype.createIndices = function() {
+  var self = this;
+  return self.Q.all([
+    self.Q(self.usersCollection.index({username: 1})),
+    self.Q(self.usersCollection.index({username: 1}))
+  ])
+};
+
 //Have to do this because when the function in .then is called it is called from
 //global scope
 DownloadGPOusers.prototype.removeAllUserInfo = function() {
@@ -216,7 +225,7 @@ DownloadGPOusers.prototype.removeAllUserInfo = function() {
     .then(function() {
       return self.Q.all([
         self.Q(self.usersCollection.index({username: 1})),
-        self.Q(self.extensionsCollection.index({username: 1})),
+        self.Q(self.extensionsCollection.index({username: 1}))
       ])
     });
 };
@@ -442,7 +451,7 @@ DownloadGPOusers.prototype.storeModifiedDocs = function(body) {
       'fullName',
       'email',
       'modified',
-      'created',])
+      'created'])
   });
 
   modifiedGPOitems = modifiedGPOitems.filter(function(doc) {
@@ -697,7 +706,8 @@ DownloadGPOusers.prototype.getGPOuserExtensions = function(username) {
   return self.Q(this.extensionsCollection.findOne({username: username},
       {fields: {_id: 0,username: 0}}))
     .then(function(doc) {
-      if (!doc) {
+//If there is doc but it doesn't have anything in it then don't try to update either
+      if (!doc || (typeof doc !== "object") || Object.keys(doc).length==0) {
         return null;
       }
       return self.Q(self.usersCollection.update({username: username},
@@ -749,9 +759,8 @@ DownloadGPOusers.prototype.getGPOgroupsAsync = function() {
     //      Self.downloadLogs.log(key+this.hr.saved.modifiedGPOrow)
     self.getSingleGPOgroup(key + asyncStartModifiedGPOrow)
         .catch(function(err) {
-          self.downloadLogs.error('Error in async.forEachOf ' +
-            'while calling getSingleGPOgroup() in ' +
-            'DownloadGPOusers.getGPOgroupsAsync:' + err.stack);
+          self.downloadLogs.error('Error in async.forEachOf while calling getSingleGPOgroup() in ' +
+            'DownloadGPOusers.getGPOgroupsAsync for username = ' + value + ' :' + err.stack);
         })
         .done(function() {
           done();

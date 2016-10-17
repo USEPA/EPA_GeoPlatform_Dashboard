@@ -156,8 +156,8 @@ module.exports = function(app) {
 
     function updateDBonLogin() {
       //If there was an error with resObject then don't need to do this
-      if (resObject.error !== null) {
-        return true;
+      if (resObject.errors.length > 0) {
+        return false;
       }
 
       var Q = require('q');
@@ -197,7 +197,7 @@ module.exports = function(app) {
       downloadGPOdata.portal = config.portal;
       downloadGPOdata.mongoDBurl = config.mongoDBurl;
       downloadGPOdata.orgID = config.AGOLorgID;
-      downloadGPOdata.ownerIDs = req.session.ownerIDs;
+      downloadGPOdata.ownerIDs = req.session.user.ownerIDs;
       console.log('downloadGPOdata.ownerIDs : ' + downloadGPOdata.ownerIDs);
 
       //The download process will be passed to a queue so that 2 users are not
@@ -286,6 +286,12 @@ module.exports = function(app) {
     var readStream = fs.createReadStream(filePath);
     //We replaced all the event handlers with a simple call to readStream.pipe()
     readStream.pipe(res);
+  });
+
+  router.use('/nodeEnv', function(req, res) {
+    var env = require(app.get('appRoot') + 'config/nodeEnv');
+    res.write(env);
+    res.end();
   });
 
   return router;

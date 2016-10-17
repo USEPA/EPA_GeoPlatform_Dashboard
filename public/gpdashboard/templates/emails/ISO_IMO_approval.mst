@@ -1,0 +1,22 @@
+You are receiving this email because you have been designated as the primary ISO/IMO for {{AuthGroup}}.<br>
+<br>
+This email serves as notification to you that {{owner.fullName}} ({{owner.email}}) requested that
+the following GeoPlatform Content items be made available to the public, and {{admin.fullName}} ({{admin.email}})
+ has reviewed the items for compliance with the policies listed below and made the items available to the public. If you have any questions or concerns
+ about this action, please contact these individuals and/or the EPA GeoPlatform support team (epageoplatform@epa.gov). If you have no concerns, no 
+additional action on your behalf is necessary at this time.<br>
+<br>
+Content Items:<br>
+<ul>
+{{#titles}}<li><a href='https://epa.maps.arcgis.com/home/item.html?id={{id}}'>{{title}}</a></li>{{/titles}}
+</ul>
+<br>
+EPA GeoPlatform Online Public Content Policies:<br>
+<ul>
+<li>The content does not contain any sensitive data or data that is otherwise inappropriate for sharing with the public. As a reminder, sensitive data is: "any information, the loss, misuse, or unauthorized access to or modification of which could adversely affect the national interest or the conduct of federal programs, or the privacy to which individuals are entitled under section 552a of title 5, United States Code (the Privacy Act), but which has not been specifically authorized under criteria established by an Executive Order or an Act of Congress to be kept in the interest of national defense or foreign." </li>
+<li>These items have been through the appropriate product review process as outlined by my organization. General information about product review is available here: <a href="http://www2.epa.gov/product-review">http://www2.epa.gov/product-review</a></li>
+<li>Metadata on the items' registration pages are complete and consistent with the GeoPlatform metadata best practices guide. Information or links to where the data depicted in the map can be found are included in the metadata. https://edg.epa.gov/metadata/webhelp/en/gptlv10/inno/GenericMetadataGuide.pdf#page=38</li>
+<li>The items are consistent with established best practices for look and feel. http://blogs.esri.com/esri/arcgis/2012/05/03/using-a-mapmaking-checklist-for-map-design/</li>
+<li>The items meet all appropriate EPA Privacy Act policy requirements. Information is available here: http://www.epa.gov/privacy/policy/</li>
+<li>Once the items have been made public any subsequent edits to the content item will be consistent with the guidance in this checklist.</li>
+</ul>
