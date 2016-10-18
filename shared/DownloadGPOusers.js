@@ -790,6 +790,7 @@ DownloadGPOusers.prototype.getGPOgroupsAsync = function() {
 DownloadGPOusers.prototype.getGPOentitlements = function() {
   var self = this;
   var entitlementCollection = self.monk.get('GPOuserEntitlements');
+  var userscollection = self.monk.get('GPOusers');
   var url = this.portal + '/sharing/rest/content/listings/' +
     this.hr.saved.listingId + '/userEntitlements';
 
@@ -803,11 +804,21 @@ DownloadGPOusers.prototype.getGPOentitlements = function() {
   return this.Q.nfcall(this.request, requestPars)
     .then(function(response) {
       if (response[0].statusCode == 200) {
+        var ctr = 0;
+        var defer = self.Q.defer();
         entitlements = JSON.parse(response[0].body)['userEntitlements'];
         entitlements.forEach(function(item) {
           item['date'] = Date.now();
+          //Push doc.field to the array now
+          userscollection.findOne({username: item['username']}).then(function(user) {
+            item['authGroups'] = user.authGroups;
+            ctr++;
+            if (ctr == entitlements.length) {
+              defer.resolve(entitlementCollection.insert(entitlements));
+            }
+          });
         });
-        return entitlementCollection.insert(entitlements);
+        return defer.promise;
       }
     })
 };
