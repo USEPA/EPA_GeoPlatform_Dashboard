@@ -168,18 +168,16 @@ function getGPOheadersAsync() {
   console.log(hr.saved.currentGPOrow + ' ' + GPOids.length);
 
   async.forEachOf(GPOids, function(value, key, done) {
-    //      Console.log(key+hr.saved.currentGPOrow)
-    getSingleGPOheader(key + asyncStartCurrentGPOrow)
-        .then(function() {
-          //                Console.log(String(key+1) + 'done');
-        done();})
+      //      Console.log(key+hr.saved.currentGPOrow)
+      getSingleGPOheader(key + asyncStartCurrentGPOrow)
         .catch(function(err) {
-          console.error('single gpo header Error received:', err);
+          console.error('single gpo header Error received for id = ' + hr.saved.GPOids[currentGPOrow - 1] + ' : ' + err);
+          hr.saved.currentGPOrow += 1;
         })
         .done(function() {
-          //          Console.log('for loop success')
-        });
-  }
+          done();}
+        );
+    }
     , function(err) {
       if (err) console.error('for each error :' + err.message);
       //Resolve this promise
