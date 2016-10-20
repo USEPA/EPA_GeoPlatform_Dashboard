@@ -786,11 +786,13 @@ DownloadGPOusers.prototype.getGPOgroupsAsync = function() {
 
 
 
-
+//Function for downloading licensing information from AGOL
 DownloadGPOusers.prototype.getGPOentitlements = function() {
   var self = this;
+  var arrayExtended = require('array-extended');
   var entitlementCollection = self.monk.get('GPOuserEntitlements');
   var userscollection = self.monk.get('GPOusers');
+  //Need to get the listing ID for ArcGIS Pro. In the future may have more.
   var url = this.portal + '/sharing/rest/content/listings/' +
     this.hr.saved.listingId + '/userEntitlements';
 
@@ -801,22 +803,53 @@ DownloadGPOusers.prototype.getGPOentitlements = function() {
 
   var requestPars = {method: 'get', url: url, qs: parameters};
   var entitlements = [];
+  //Get entitlements
   return this.Q.nfcall(this.request, requestPars)
     .then(function(response) {
       if (response[0].statusCode == 200) {
         var ctr = 0;
+        //Flag for detecting changes
+        var diff = false;
+        //Set up defer to wait to insert until all entitlements have been
+        //processed.
         var defer = self.Q.defer();
         entitlements = JSON.parse(response[0].body)['userEntitlements'];
+        //Loop through the entitlements, one user at a time.
         entitlements.forEach(function(item) {
+          //Create a new field for download date
           item['date'] = Date.now();
-          //Push doc.field to the array now
-          userscollection.findOne({username: item['username']}).then(function(user) {
-            item['authGroups'] = user.authGroups;
-            ctr++;
-            if (ctr == entitlements.length) {
-              defer.resolve(entitlementCollection.insert(entitlements));
-            }
-          });
+          //Find this user in the user collection
+          userscollection.findOne({username: item['username']})
+            .then(function(user) {
+              ctr++;
+              //Get this user's authgroup to store in entitlements collection.
+              item['authGroups'] = user.authGroups;
+              //Check to see if the downloaded entitlements for this user are
+              //different than the current one in the user's collection.
+              if (arrayExtended.difference(item['entitlements'],
+                  user['entitlements']).length > 0) {
+                //If different, update the user collection and set the diff flag
+                userscollection.findAndModify({
+                  query: {username: item['username']},
+                  update: {$set: {entitlements: item['entitlements']}}
+                }, {
+                  new: false,
+                  upsert: false
+                });
+                diff = true;
+              }
+              //Check to see if we've processed all the entitlements
+              if (ctr == entitlements.length) {
+                //If so, see if the diff flag has been set. If set, that means
+                //there have been some differences, so store the collection
+                if (diff) {
+                  defer.resolve(entitlementCollection.insert(entitlements));
+                } else {
+                  //If not, no differences, so no need to store.
+                  defer.resolve();
+                }
+              }
+            });
         });
         return defer.promise;
       }
