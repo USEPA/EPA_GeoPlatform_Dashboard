@@ -813,15 +813,16 @@ DownloadGPOusers.prototype.getGPOentitlements = function() {
         //Set up defer to wait to insert until all entitlements have been
         //processed.
         var defer = self.Q.defer();
-        entitlements = JSON.parse(response[0].body)['userEntitlements'];
+        var userEntitlements = JSON.parse(response[0].body)['userEntitlements'];
         //Loop through the entitlements, one user at a time.
-        entitlements.forEach(function(item) {
+        userEntitlements.forEach(function(item) {
+          ctr++;
           //Create a new field for download date
           item['date'] = Date.now();
+          //Push doc.field to the array now
           //Find this user in the user collection
-          userscollection.findOne({username: item['username']})
+          return userscollection.findOne({username: item['username']})
             .then(function(user) {
-              ctr++;
               //Get this user's authgroup to store in entitlements collection.
               item['authGroups'] = user.authGroups;
               //Check to see if the downloaded entitlements for this user are
@@ -829,27 +830,27 @@ DownloadGPOusers.prototype.getGPOentitlements = function() {
               if (arrayExtended.difference(item['entitlements'],
                   user['entitlements']).length > 0) {
                 //If different, update the user collection and set the diff flag
-                userscollection.findAndModify({
-                  query: {username: item['username']},
-                  update: {$set: {entitlements: item['entitlements']}}
-                }, {
-                  new: false,
-                  upsert: false
-                });
                 diff = true;
+                return userscollection.update({username: item['username']},
+                  {$set: {entitlements: item['entitlements']}});
               }
-              //Check to see if we've processed all the entitlements
-              if (ctr == entitlements.length) {
-                //If so, see if the diff flag has been set. If set, that means
-                //there have been some differences, so store the collection
-                if (diff) {
-                  defer.resolve(entitlementCollection.insert(entitlements));
-                } else {
-                  //If not, no differences, so no need to store.
-                  defer.resolve();
-                }
+            })
+            .then(function() {
+              //After processed all entitlements, insert into collection
+              if (ctr == userEntitlements.length) {
+                return self.Q.fcall(function() {
+                  if (diff) {
+                    return entitlementCollection.insert(userEntitlements);
+                  }
+                })
+                //Unless no difference, then don't insert
+                .then(function() {
+                  return defer.resolve(userEntitlements);
+                });
               }
+
             });
+
         });
         return defer.promise;
       }
