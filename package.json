@@ -12,7 +12,8 @@
     "install-local": "npm install -g mocha & npm install",
     "test": "mocha",
     "download": "node scripts/downloadGPOdata && node scripts/downloadGPOusers &&  node scripts/downloadEDGitems && node scripts/runAudit",
-    "backup": "node ./scripts/backup.js"
+    "backup": "node ./scripts/backup.js",
+    "downloadAndBackup": "npm download && npm backup"
   },
   "dependencies": {
     "app-root-path": "~1.0.0",
