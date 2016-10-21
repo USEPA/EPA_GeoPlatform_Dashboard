@@ -1,0 +1,5 @@
+<script id="environmentView" type="text/html">
+<h2 class="sub-header">GeoPlatform Hosting Environment (GPHE) - ArcGIS Servers</h2>
+<p>Work on this pane is still in progress. When complete, this pane will allow administrators to review all of the map services hosted in the GeoPlatform Hosting Environment and conduct audit checks for metadata, life cycle management, and uptime.</p>
+<table id="environmentTable" class="table table-hover table-bordered table-responsive"></table>
+</script>

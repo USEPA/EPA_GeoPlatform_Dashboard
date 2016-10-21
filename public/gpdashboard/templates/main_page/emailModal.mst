@@ -1,0 +1,18 @@
+<script id="emailModal" type="text/html">
+<div class="modal-dialog modal-lg" role="document">
+    <div class="modal-content">
+        <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <h4 class="modal-title" id="helpModalLabel">Auth Group Email Addresses</h4>
+        </div>
+        <div class="modal-body">
+            <label>Copy & paste into your email client</label>
+            <textarea id="emailList" class="form-control" rows="6" placeholder="Description"></textarea>
+            <button id="copyEmails" class="btn btn-primary btn-xs" onclick="egam.models.gpoUsers.copyEmails()">Copy this email list to clipboard</button>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+        </div>
+    </div>
+</div>
+</script>

@@ -26,7 +26,7 @@ egam.models.gpoItemCheckList.PageModelClass = function() {
   self.sponsoreeAuthGroups = ko.observableArray(
       egam.communityUser.authGroups);
   self.confirm = ko.observable();
-
+  self.checklistName = ko.observable();
   //Only these fields will be returned from gpoItems/list endpoint
   self.resultFields = {
     _id: 1,
@@ -77,6 +77,7 @@ egam.models.gpoItemCheckList.PageModelClass.prototype.init = function() {
       //on close with out clear checkboxes
       $('#checkListModal').on('hidden.bs.modal', function(e) {
         self.confirm(false);
+        self.checklistName("");
         //egam.pages.gpoItems.table.uncheckAll();
       });
       //on closing of checklist details modal clear fields
@@ -174,14 +175,34 @@ egam.models.gpoItemCheckList.FullModelClass = function(doc, index, parent) {
   this.parent = parent;
   //The index in array for this item
   this.index = index;
+
+  if(!doc().approval['IMOemail']){
+    doc().approval['IMOemail'] = null;
+  }
+  if(!doc().approval['ISOemail']){
+    doc().approval['ISOemail'] = null;
+  }
+  this.IMOaudit = ko.observable(false);
+  this.ISOaudit = ko.observable(false);
+
   //This is the doc
   this.doc = ko.observable(ko.mapping.fromJS(ko.utils.unwrapObservable(doc)));
+
+  this.doc().approval.IMOemail.subscribe(function(evt){
+    var email_regex = /^[a-zA-Z0-9._-]+@epa\.gov$/i;
+    self.IMOaudit(email_regex.test(self.doc().approval.IMOemail()));
+  }.bind(self));
+
+  this.doc().approval.ISOemail.subscribe(function(evt){
+    var email_regex = /^[a-zA-Z0-9._-]+@epa\.gov$/i;
+    self.ISOaudit(email_regex.test(self.doc().approval.ISOemail()));
+  }.bind(self));
+
   //This is where to store full info about keyed by id
   this.itemDocs = null;
   
   //Could Add a computed observable to store Checklist item names with the ids
   //http://localhost:3000/gpdashboard/gpoItems/list?query={%22id%22:{%22$in%22:[%2240894bca74de46d4b92abd8fd0a5160e%22]}}&projection={%22fields%22:{%22id%22:1,%22title%22:1}}
-
 };
 
 //Data here is the actual array of JSON documents that came back from the
@@ -238,10 +259,11 @@ egam.models.gpoItemCheckList.DetailsModel.prototype.makeChecklistPublic = functi
     _id: item.selected().doc()._id(),
     approval: {
       status: 'approved',
-      ISOemail: $('#isoInputEmail').val(),//'ISOemail',
-      IMOemail: $('#imoInputEmail').val(),// 'IMOemail'
+      ISOemail: item.selected().doc().approval.ISOemail(), //'ISOemail',
+      IMOemail: item.selected().doc().approval.IMOemail(), // 'IMOemail'
     }
   };
+
   var publicApproval = {updateDocs:JSON.stringify(approvalPost)};
 
   // Post to mongo

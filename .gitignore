@@ -45,3 +45,6 @@ config/nodeEnv.js
 
 #temp directory
 /tmp/
+
+#bower components
+public/gpdashboard/bower_components/
