@@ -127,6 +127,11 @@ egam.models.gpoUsers.PageModelClass.prototype.init = function() {
       //Set All External Users button to be the active button initially
       self.table.dataTable.buttons(0).active(true);
 
+      $('#gpoUsersModal').on('hidden.bs.modal', function () {
+        $('#SponsoredOrg').val('');
+        $('#spDescription').val('');
+      })
+
       //Now stop showing loading message that page is load
       $('div#loadingMsg').addClass('hidden');
       self.$pageElement.removeClass('hidden');

@@ -98,7 +98,9 @@ UpdateGPOchecklist.prototype.checkApproval = function() {
         //Force the approval status date to today
         self.updateDoc.approval.statusDate = new Date();
         //has perms if admin in authgroup on checklist
-        return doc && self.user.authGroups.indexOf(doc.submission.authGroup) > -1 ;
+//        return doc && self.user.authGroups.indexOf(doc.submission.authGroup) > -1 ;
+        //Actually just let any admin approve as long as the _id exists (a doc is returned)
+        return doc && 1==1;
       });
   } else {
     return false;
@@ -226,7 +228,7 @@ UpdateGPOchecklist.prototype.sendIsoImoEmail = function(){
         }
 
         //read the template from file.
-        return Q.ninvoke(fs, 'readFile', appRoot + '\\templates\\emails\\ISO_IMO_approval.txt', 'utf8')
+        return Q.ninvoke(fs, 'readFile', appRoot + '\\public\\gpdashboard\\templates\\emails\\ISO_IMO_approval.mst', 'utf8')
       })
       .then(function (template){
         mustache.parse(template);
