@@ -83,6 +83,9 @@ egam.models.gpoUsers.PageModelClass = function() {
   //PageModel
   self.authGroups = egam.communityUser.authGroups;
 
+  //Set up the authGroups dropdown
+  self.setAuthGroupsDropdown(egam.communityUser.ownerIDsByAuthGroup);
+
   //Set up the details control now which is part of this Model Class
   self.details = new egam.models.gpoUsers.DetailsModel(self);
 };
@@ -138,6 +141,65 @@ egam.models.gpoUsers.PageModelClass.prototype.init = function() {
       defer.resolve();
     });
   return defer;
+};
+
+egam.models.gpoUsers.PageModelClass.prototype.setAuthGroupsDropdown = function(ownerIDsByAuthGroup) {
+  var self = this;
+  var dropAuthGroups = $('#dropAuthGroupsUsers');
+  dropAuthGroups.on('change', function() {
+    var reOwnerIDs = '';
+    if (this.value) {
+      var ownerIDs = ownerIDsByAuthGroup[this.value];
+      reOwnerIDs = ownerIDs.join('|');
+    }
+    //Make sure the dataTable has been created in case this event is fired before that (it is being fired when dropdown created)
+    if (self.table.dataTable) {
+      self.table.dataTable.column('.ownerColumnForAuthGroupSearch')
+          .search(reOwnerIDs, true, false)
+          .draw();
+    }
+    // Also set the download link
+    var authgroup = this.value;
+    //Pass authgroup to email list function. If no authgroup, pass empty string
+    var emailFunc = $('#emailAuthgroupsCSVallUsers').attr('onclick');
+    $('#emailAuthgroupsCSVallUsers').attr('onclick',
+        emailFunc.replace(/(\(.*\))/, '(\'' + authgroup + '\')'));
+    if (authgroup) {
+      $('#downloadAuthgroupsCSVallUsers').addClass('hidden');
+      $('#downloadAuthgroupsCSVregionsUsers').removeClass('hidden');
+      var href = $('#downloadAuthgroupsCSVregionsUsers').attr('href');
+
+      // Tack on authgroup to the end of the route to get csv. Note: use ^ and $
+      // to get exact match because it matches regex(Region 1 and 10 would be
+      // same if not). Also we are using authGroup by name so need to escape
+      // ( and ) which is offices like (OAR)
+      // TODO: Not sure about this code, I've had a few weird bugs with this in
+      // TODO: action where my dashboard is sent to a 404 error page upon
+      // TODO: clicking download users CSV in the GUI -- looked like an escaping
+      // TODO: issue to me
+      //Maybe this could be cleaned up to use the group ID instead
+      var escapeAuthGroup = authgroup.replace(/\(/g, '%5C(')
+          .replace(/\)/g, '%5C)');
+      href = href.substring(0, href.lastIndexOf('/') + 1) + '^' +
+          escapeAuthGroup + '$';
+      $('#downloadAuthgroupsCSVregionsUsers').attr('href', href);
+    } else {
+      $('#downloadAuthgroupsCSVallUsers').removeClass('hidden');
+      $('#downloadAuthgroupsCSVregionsUsers').addClass('hidden');
+    }
+  });
+  var authGroups = Object.keys(ownerIDsByAuthGroup);
+  authGroups.sort();
+
+  dropAuthGroups[0].options.length = 0;
+
+  if (authGroups.length > 1) {
+    dropAuthGroups.append($('<option>', {value: ''}).text('All'));
+  }
+
+  $.each(authGroups, function(index, authGroup) {
+    dropAuthGroups.append($('<option>', {value: authGroup}).text(authGroup));
+  });
 };
 
 //This is limited model which is used for the table rows. It is condensed so that table loads faster
