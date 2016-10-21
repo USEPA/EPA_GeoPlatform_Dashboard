@@ -8,14 +8,14 @@
         <span>Auth Group:</span>
     </div>
     <div class="col-xs-3 text-left" style="padding: 20px 5px 0px 5px">
-        <select id="dropAuthGroups" class="search form-control input-sm text-muted"></select>
+        <select id="dropAuthGroupsUsers" class="search form-control input-sm text-muted"></select>
     </div>
     <div class="col-xs-1" style="padding-top: 15px">
-        <a id="downloadAuthgroupsCSVall" href="gpoUsers/list.csv" class="">Download User List</a>
+        <a id="downloadAuthgroupsCSVallUsers" href="gpoUsers/list.csv" class="">Download User List</a>
+        <a id="downloadAuthgroupsCSVregionsUsers" href="gpoUsers/list.csv/authGroups/" class="hidden">download users</a>
     </div>
     <div class="col-xs-1" style="padding-top: 15px">
-        <a id="emailAuthgroupsCSVall" onclick="egam.models.gpoUsers.buildEmailMyUsersLink()">Email Users</a>
-        <a id="downloadAuthgroupsCSVregions" href="gpoUsers/list.csv/authGroups/" class="hidden">download users</a>
+        <a id="emailAuthgroupsCSVallUsers" onclick="egam.models.gpoUsers.buildEmailMyUsersLink()">Email Users</a>
     </div>
     <h2 class="sub-header" style="padding-top: 40px"></h2>
 </div>
@@ -56,6 +56,7 @@
                         {data:'latestSponsor().reason'},
                         {data:{_:function (row) {return egam.utilities.formatDate(row.latestSponsor().startDate)},sort:'latestSponsor().startDate'},type:'num'},
                         {data:{_:function (row) {return egam.utilities.formatDate(row.latestSponsor().endDate)},sort:'latestSponsor().endDate'},type:'num'},
+                        {data:'latestSponsor().username'},
                     ]
                     }">
     <thead>
@@ -106,6 +107,7 @@
                                 <input class="search form-control input-sm" style="width:9em" placeholder="Search By End Date">
                             </span>
         </th>
+        <th class="ownerColumnForAuthGroupSearch" style="display:none"></th>
     </tr>
     </thead>
     <tbody>
