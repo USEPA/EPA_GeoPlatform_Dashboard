@@ -20,6 +20,9 @@ a, span, tr, h4:hover {
   cursor:default;
 }
 
+#checkListModal .modal-dialog {
+  width: 1145px;
+}
 /*
  * Global add-ons
  */

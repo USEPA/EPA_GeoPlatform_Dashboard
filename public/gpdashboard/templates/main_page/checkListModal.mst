@@ -58,6 +58,7 @@
                                     {data:null, sortable: false},
                                     {data:'doc().submission.name'},
                                     {data:'doc().submission.owner'},
+                                    {data:'doc().submission.authGroup'},
                                     {data:{_:function (row) {return egam.utilities.formatDate(row.doc().submission.submitDate)},sort:'doc().submission.submitDate'},type:'num'},
                                     {data:'doc().approval.status'}
                                     ]
@@ -68,17 +69,22 @@
                 <span onclick="event.stopPropagation();">
                                               </span>
                         </th>
-                        <th class="col-xs-3">Request Name<br>
+                        <th class="col-xs-1">Request Name<br>
                             <span onclick="event.stopPropagation();">
                                                 <input class="search form-control input-sm" placeholder="Search By Request Name">
                                             </span>
                         </th>
-                        <th class="col-xs-3">Requested By<br>
+                        <th class="col-xs-1">Requested By<br>
                             <span onclick="event.stopPropagation();">
                                                 <select class="search form-control input-sm"><option value="">All</option></select>
                                             </span>
                         </th>
-                        <th class="col-xs-2">Submit Date<br>
+                        <th class="col-xs-2">AuthGroup<br>
+                            <span onclick="event.stopPropagation();">
+                                <select class="search form-control input-sm"><option value="">All</option></select>
+                             </span>
+                        </th>
+                        <th class="col-xs-1">Submit Date<br>
                             <span onclick="event.stopPropagation();">
                                                 <input class="search form-control input-sm" placeholder="Search By Submit Date">
                                             </span>
@@ -102,6 +108,7 @@
                         </td>
                         <td data-bind="text: doc().submission.name"></td>
                         <td data-bind="text: doc().submission.owner"></td>
+                        <td data-bind="text: doc().submission.authGroup"></td>
                         <td data-bind="text: egam.utilities.formatDate(doc().submission.submitDate)"></td>
                         <td data-bind="text: doc().approval.status"></td>
                     </tr>
