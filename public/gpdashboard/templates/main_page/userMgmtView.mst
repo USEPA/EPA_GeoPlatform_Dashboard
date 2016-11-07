@@ -21,27 +21,25 @@
 </div>
 
 <p>Work on this pane is still in progress. This page allows administrators to manage the sponsorship of external accounts. Please view the help for additional guidance.</p>
+<div class="row">
+    <div class="col-md-7 btn-group" role="group" data-toggle="buttons" style="margin-bottom: 5px">
+        <label class="btn btn-default active" id="externalUsers">
+            <input type="radio" name="sponFilter">All External Users</input>
+        </label>
+        <label class="btn btn-default" id="sponsoredUsers">
+            <input type="radio" name="sponFilter">Sponsored</input>
+        </label>
+        <label class="btn btn-default" id="unsponsoredUsers">
+            <input name="sponFilter" type="radio">Unsponsored </input>
+        </label>
+    </div>
+</div>
 <table id="gpoUsersTable" class="table table-hover table-bordered table-responsive" data-bind="dataTable:
                 {
                     deferRender: true,
                     dataSource: egam.pages.gpoUsers.table.items,
                     rowTemplate: 'GPOusersRowTemplate',
                     options: {paging: true,
-                        dom: 'Bfrtip',
-                        buttons: [
-                        {
-                            extend: 'userTableFilter',
-                            text: 'All External Users',
-                        },
-                          {
-                            extend: 'userTableFilter',
-                            text: 'Sponsored',
-                          },
-                          {
-                            extend: 'userTableFilter',
-                            text: 'Unsponsored',
-                          },
-                        ],
                         order: [
                           [1, 'asc'],
                         ],},
