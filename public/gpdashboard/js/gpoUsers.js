@@ -147,12 +147,7 @@ egam.models.gpoUsers.PageModelClass.prototype.setAuthGroupsDropdown = function(o
       var ownerIDs = ownerIDsByAuthGroup[this.value];
       reOwnerIDs = ownerIDs.join('|');
     }
-    //Make sure the dataTable has been created in case this event is fired before that (it is being fired when dropdown created)
-    if (self.table.dataTable) {
-      self.table.dataTable.column('.ownerColumnForAuthGroupSearch')
-          .search(reOwnerIDs, true, false)
-          .draw();
-    }
+    
     // Also set the download link
     var authgroup = this.value;
     //Pass authgroup to email list function. If no authgroup, pass empty string
