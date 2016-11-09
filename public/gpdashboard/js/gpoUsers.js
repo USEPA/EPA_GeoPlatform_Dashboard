@@ -40,40 +40,6 @@ egam.models.gpoUsers.PageModelClass = function() {
     sponsors: 1,
   };
 
-  //Set events for user table filter buttons
-  $.fn.dataTable.ext.buttons.userTableFilter = {
-    className: 'buttons-alert',
-    action: function(e, dt, node, config) {
-
-      // Alert( this.text() );
-      var userTable = self.table.dataTable;
-
-      // Console.log(e);
-      var searchVal;
-      if (this.text() == 'All External Users') {
-        searchVal = '.*';
-        this.active(true);
-        userTable.button(1).active(false);
-        userTable.button(2).active(false);
-      }else if (this.text() == 'Sponsored') {
-        searchVal = '.+';
-        this.active(true);
-        userTable.button(0).active(false);
-        userTable.button(2).active(false);
-      }else if (this.text() == 'Unsponsored') {
-        searchVal = '^' + '$';
-        this.active(true);
-        userTable.button(0).active(false);
-        userTable.button(1).active(false);
-      }
-
-      userTable
-          .column(3)
-          .search(searchVal, true, false)
-          .draw();
-    },
-  };
-
   //This is instance of the table class that does all the table stuff.
   //Pass empty array of items initially
    self.table = new egam.controls.Table([],
@@ -85,6 +51,7 @@ egam.models.gpoUsers.PageModelClass = function() {
 
   //Set up the authGroups dropdown
   self.setAuthGroupsDropdown(egam.communityUser.ownerIDsByAuthGroup);
+  self.setFilterButtons();
 
   //Set up the details control now which is part of this Model Class
   self.details = new egam.models.gpoUsers.DetailsModel(self);
@@ -143,6 +110,34 @@ egam.models.gpoUsers.PageModelClass.prototype.init = function() {
   return defer;
 };
 
+egam.models.gpoUsers.PageModelClass.prototype.setFilterButtons = function() {
+  var self = this;
+
+  var extUsers = $('#externalUsers');
+  var sponUsers = $('#sponsoredUsers');
+  var unsponUsers = $('#unsponsoredUsers');
+
+  extUsers.on('click', filterUsers);
+  sponUsers.on('click', filterUsers);
+  unsponUsers.on('click', filterUsers);
+
+  function filterUsers(evt){
+    var searchText;
+    if (self.table.dataTable) {
+      if(evt.currentTarget.id == 'externalUsers'){
+        searchText = '.*';
+      }else if(evt.currentTarget.id == 'sponsoredUsers'){
+        searchText = '.+';
+      }else if(evt.currentTarget.id == 'unsponsoredUsers'){
+        searchText = '^' + '$';
+      }
+      self.table.dataTable.column(3)
+          .search(searchText, true, false)
+          .draw();
+    }
+  }
+};
+
 egam.models.gpoUsers.PageModelClass.prototype.setAuthGroupsDropdown = function(ownerIDsByAuthGroup) {
   var self = this;
   var dropAuthGroups = $('#dropAuthGroupsUsers');
@@ -152,12 +147,7 @@ egam.models.gpoUsers.PageModelClass.prototype.setAuthGroupsDropdown = function(o
       var ownerIDs = ownerIDsByAuthGroup[this.value];
       reOwnerIDs = ownerIDs.join('|');
     }
-    //Make sure the dataTable has been created in case this event is fired before that (it is being fired when dropdown created)
-    if (self.table.dataTable) {
-      self.table.dataTable.column('.ownerColumnForAuthGroupSearch')
-          .search(reOwnerIDs, true, false)
-          .draw();
-    }
+    
     // Also set the download link
     var authgroup = this.value;
     //Pass authgroup to email list function. If no authgroup, pass empty string
