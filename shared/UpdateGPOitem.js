@@ -44,7 +44,7 @@ UpdateGPOitem.prototype.checkPermission = function() {
     .then(function(doc) {
       //If owner ID of this object is accessible by user then update otherwise
       //return error
-      if (self.session.user.ownerIDs.indexOf(doc.owner) >= 0) {
+      if (doc && self.session.user.ownerIDs.indexOf(doc.owner) >= 0) {
         self.updateOwner = doc.owner;
         hasPermission = true;
       }

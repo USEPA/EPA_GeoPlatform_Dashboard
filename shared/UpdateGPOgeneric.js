@@ -88,9 +88,9 @@ UpdateGPOgeneric.prototype.update = function(updateDoc) {
       self.utilities.getHandleError(self.resObject,'UpdateError')(err);
     })
 //If update was a success
-    .then(function() {if (self.onUpdateSuccess &&
-                          self.resObject.errors.length == 0) {
-      self.onUpdateSuccess()
+    .then(function() {
+      if (self.onUpdateSuccess && self.resObject.errors.length == 0) {
+        return self.onUpdateSuccess();
     }})
     .then(function() {
       //Now that update is done we can finally return result
@@ -157,17 +157,25 @@ UpdateGPOgeneric.prototype.updateRemote = function() {
   }
 
   return this.hr.callAGOL(requestPars)
-    .then(function(body) {return self.handleUpdateResponse(body)});
+    .then(function(body) {
+      return self.handleUpdateResponse(body)});
 };
 
 UpdateGPOgeneric.prototype.parseFormData = function(obj,slice) {
   var mySlice = {};
 
   slice.forEach(function(key) {
+    //Note: If obj value is equal to true or false then make that a string. Was crashing ESRI not being string
+    //Don't want others to have to figure out this nightmare
+    if (obj[key]==true) {obj[key]="true"}
+    if (obj[key]==false) {obj[key]="false"}
+
     if (Array.isArray(obj[key])) {
       mySlice[key] = obj[key].join(',');
     }else {
       //Needs to be at least empty string
+      //I would think we wouldn't have field in slice if it wasn't in object but ESRI seems to ignore the empty fields
+      //Will look into getting not including non existent fields in slice
       mySlice[key] = obj[key] || '';
     }
   });

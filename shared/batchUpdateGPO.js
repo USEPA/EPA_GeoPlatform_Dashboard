@@ -18,7 +18,7 @@ module.exports = function(updateDocs, getUpdateClassInstance, updateName,
 
   if (useSync) {
     console.log('Updating using Sync');
-    updateGPOfunction = updateGPOaync;
+    updateGPOfunction = updateGPOsync;
   } else {
     if (AsyncRowLimit === null) {
       console.log('Updating using Full Async ');
