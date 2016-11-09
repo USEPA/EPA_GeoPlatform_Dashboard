@@ -50,6 +50,7 @@ var DownloadGPOusers = function() {
   this.orgID = null;
   //Set the mongoDB url
   this.mongoDBurl = null;
+  this.listingID = null;
 
   this.request = require('request');
   this.Q = require('q');
@@ -185,6 +186,8 @@ DownloadGPOusers.prototype.downloadInner = function() {
     .then(self.getSelfInvokedFunction(self.getLocalGPOids))
     .then(self.getSelfInvokedFunction(getGPOusers))
     .then(self.getSelfInvokedFunction(getGPOgroups))
+    .then(self.getSelfInvokedFunction(self.getListingId))
+    .then(self.getSelfInvokedFunction(self.getGPOentitlements))
     .then(self.getSelfInvokedFunction(self.removeLocalGPOitems))
     .then(self.getSelfInvokedFunction(self.getOwnerIDs))
     .catch(function(err) {
@@ -279,6 +282,32 @@ DownloadGPOusers.prototype.getOrgId = function() {
   var requestPars = {method: 'get', url: url, qs: parameters};
 
   return this.hr.callAGOL(requestPars, {id: 'orgID'});
+};
+
+//Get listing ID for use in looking up user license information
+DownloadGPOusers.prototype.getListingId = function() {
+  var self = this;
+  if (this.listingID) {
+    this.hr.saved.listingID = this.listingID;
+    return this.listingID;
+  }
+
+  var url = this.portal + '/sharing/rest/content/listings';
+
+  var parameters = {
+    token: this.hr.saved.token,
+    f: 'json',
+    q: 'title:"ArcGIS Pro"'};
+  //Pass parameters via form attribute
+  var requestPars = {method: 'get', url: url, qs: parameters};
+
+  return this.Q.nfcall(this.request, requestPars)
+  .then(function(response) {
+    if (response[0].statusCode == 200) {
+      var listings = JSON.parse(response[0].body)['listings'];
+      self.hr.saved.listingId = listings[0]['itemId'];
+    }
+  });
 };
 
 //Routines for gettting all the items metadata from AGOL (Have to do this so we
@@ -753,6 +782,79 @@ DownloadGPOusers.prototype.getGPOgroupsAsync = function() {
   //done until it runs process.exit in done. chain was NOT waiting before and
   //process exit was executing and data data not being retrieved
   return defer.promise
+};
+
+
+
+//Function for downloading licensing information from AGOL
+DownloadGPOusers.prototype.getGPOentitlements = function() {
+  var self = this;
+  var arrayExtended = require('array-extended');
+  var entitlementCollection = self.monk.get('GPOuserEntitlements');
+  var userscollection = self.monk.get('GPOusers');
+  //Need to get the listing ID for ArcGIS Pro. In the future may have more.
+  var url = this.portal + '/sharing/rest/content/listings/' +
+    this.hr.saved.listingId + '/userEntitlements';
+
+  var parameters = {
+    token: this.hr.saved.token,
+    f: 'json'
+  };
+
+  var requestPars = {method: 'get', url: url, qs: parameters};
+  var entitlements = [];
+  //Get entitlements
+  return this.Q.nfcall(this.request, requestPars)
+    .then(function(response) {
+      if (response[0].statusCode == 200) {
+        var ctr = 0;
+        //Flag for detecting changes
+        var diff = false;
+        //Set up defer to wait to insert until all entitlements have been
+        //processed.
+        var defer = self.Q.defer();
+        var userEntitlements = JSON.parse(response[0].body)['userEntitlements'];
+        //Loop through the entitlements, one user at a time.
+        userEntitlements.forEach(function(item) {
+          ctr++;
+          //Create a new field for download date
+          item['date'] = Date.now();
+          //Push doc.field to the array now
+          //Find this user in the user collection
+          return userscollection.findOne({username: item['username']})
+            .then(function(user) {
+              //Get this user's authgroup to store in entitlements collection.
+              item['authGroups'] = user.authGroups;
+              //Check to see if the downloaded entitlements for this user are
+              //different than the current one in the user's collection.
+              if (arrayExtended.difference(item['entitlements'],
+                  user['entitlements']).length > 0) {
+                //If different, update the user collection and set the diff flag
+                diff = true;
+                return userscollection.update({username: item['username']},
+                  {$set: {entitlements: item['entitlements']}});
+              }
+            })
+            .then(function() {
+              //After processed all entitlements, insert into collection
+              if (ctr == userEntitlements.length) {
+                return self.Q.fcall(function() {
+                  if (diff) {
+                    return entitlementCollection.insert(userEntitlements);
+                  }
+                })
+                //Unless no difference, then don't insert
+                .then(function() {
+                  return defer.resolve(userEntitlements);
+                });
+              }
+
+            });
+
+        });
+        return defer.promise;
+      }
+    })
 };
 
 DownloadGPOusers.prototype.removeLocalGPOitems = function() {
