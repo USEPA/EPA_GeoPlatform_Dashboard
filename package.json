@@ -13,7 +13,7 @@
     "test": "mocha",
     "download": "node scripts/downloadGPOdata && node scripts/downloadGPOusers &&  node scripts/downloadEDGitems && node scripts/runAudit",
     "backup": "node ./scripts/backup.js",
-    "downloadAndBackup": "npm download && npm backup"
+    "downloadAndBackup": "npm run download && npm run backup"
   },
   "dependencies": {
     "app-root-path": "~1.0.0",
