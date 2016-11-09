@@ -29,23 +29,26 @@ function UpdateGPOitemAccess(collections,session,config) {
 }
 
 UpdateGPOitemAccess.prototype.checkPermission = function() {
+  //Check if logged in user can update these items (and get the checklist items)
   var self = this;
   var Q = require('q');
 
-  //Check if logged in user can update this user
-  var self = this;
-  var Q = require('q');
-
-  //If logged in user is admin and also in authgroup on checklist they have permission
+  //If logged in user is admin they have permission
   if (self.user.isAdmin) {
     //hit db to get the authgroup for checklist approving
     return Q(self.collections.checklists.findById(self.updateDoc.checkListID,{fields:{'submission.items':1,'submission.authGroup':1}}))
       .then(function (doc) {
         //Set the items that will go public (actually a list of ids but the key for the update will be id)
-        self.updateDoc.id = doc.submission.items;
-        self.updateDoc.access = 'public';
-        //has perms if admin in authgroup on checklist
-        return doc && self.user.authGroups.indexOf(doc.submission.authGroup) > -1 ;
+        if (doc) {
+          self.updateDoc.id = doc.submission.items;
+          self.updateDoc.access = 'public';
+          return true;
+          //has perms if admin in authgroup on checklist
+          //Actually as long as there is a doc let admins change access now
+          //return self.user.authGroups.indexOf(doc.submission.authGroup) > -1 ;
+        } else {
+          return false;
+        }
       });
   } else {
     return false;

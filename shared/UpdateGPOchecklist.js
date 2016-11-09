@@ -173,10 +173,19 @@ UpdateGPOchecklist.prototype.makePublic = function(dbDoc){
 
   if(self.updateDoc.approval.status == 'approved'){
 
-    var UpdateGPOclass = require(appRoot + '/shared/UpdateGPOitemAccess');
+    var UpdateAccessclass = require(appRoot + '/shared/UpdateGPOitemAccess');
 
     //This function will get the Update Class Instance needed to run .update
-    var updateAccess = new UpdateGPOclass(self.collections, self.session, self.config);
+    var updateAccess = new UpdateAccessclass(self.collections, self.session, self.config);
+
+    var UpdateGPOprotectedClass = require(appRoot + '/shared/UpdateGPOitemProtected');
+    //This function will get the Update Class Instance needed to run .update
+    var getUpdateClassInstance = function(row) {
+      var updateGPOprotected = new UpdateGPOprotectedClass(self.collections, self.session, self.config);
+      return updateGPOprotected;
+    };
+    //This function handles the batch update process and is reusable
+    var batchUpdateGPO = require(appRoot  + '/shared/batchUpdateGPO');
 
     //Just need to supply the checkListID so that all items on that checklist will be made public
     return updateAccess.update({checkListID:self.updateDoc["_id"]})
@@ -184,8 +193,17 @@ UpdateGPOchecklist.prototype.makePublic = function(dbDoc){
         //If error in the class then throw it to be caught
         if (updateAccess.resObject.errors.length>0) throw(updateAccess.resObject.errors);
       })
+      .then(function() {
+        updateDocs = updateAccess.updateDoc.id.map(function (id) {return {id:id,protected:true}});
+        return batchUpdateGPO(updateDocs,getUpdateClassInstance,'Item','id',false,5);
+//        return batchUpdateGPO(updateDocs,getUpdateClassInstance,'Item Protected','id',true,0);
+      })
+      .then(function(resObject) {
+        //If error in the class then throw it to be caught
+        if (resObject.errors && resObject.errors.length>0) throw(resObject.errors);
+      })
       .catch(function(error){
-        throw(new Error('Error Making Items Public on GPO'));
+        throw(new Error('Error Making Items Public on GPO:' + error.stack));
       })
   }
 };
