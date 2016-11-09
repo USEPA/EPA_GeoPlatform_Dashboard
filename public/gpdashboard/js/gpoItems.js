@@ -609,9 +609,11 @@ egam.models.gpoItems.TagControlsClass.prototype.selectOrg = function() {
     office = 'REG';
   }
   this.$officeTagSelect.val(office).change();
+  this.tagToAdd.Office(office);
   //If there authGroup is a region then select the region number
   if (office = 'REG' && /REG /.exec(ownerEDGauthGroup)) {
     this.$orgTagSelect.val(ownerEDGauthGroup);
+    this.tagToAdd.Org(ownerEDGauthGroup);
   }
 };
 
