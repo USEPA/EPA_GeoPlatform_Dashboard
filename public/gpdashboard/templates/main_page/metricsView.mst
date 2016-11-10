@@ -1,11 +1,21 @@
 <script id="metricsView" type="text/html">
-<div id="metricsTable" class="table-responsive">
-    <h2 class="sub-header">GPO Metrics</h2>
-    <div class="jumbotron vertical-center">
-        <div class="text-center">
-            <h1 class="alert alert-warning">Site Under Construction</h1>
-            <p>We are currently building something awesome that will be available soon!</p>
+    <div class="row">
+        <div id="fluctuation-chart">
+            <strong>Days by Fluctuation(%)</strong>
+            <span class="reset" style="display: none;">range: <span class="filter"></span></span>
+            <a class="reset" href="javascript:fluctuationChart.filterAll();dc.redrawAll();" style="display: none;">reset</a>
+
+            <div class="clearfix"></div>
         </div>
     </div>
-</div>
+    <div class="row">
+        <div>
+            <div class="dc-data-count">
+                <span class="filter-count"></span> selected out of <span class="total-count"></span> records | <a
+                    href="javascript:dc.filterAll(); dc.renderAll();">Reset All</a>
+            </div>
+        </div>
+        <table class="table table-hover dc-data-table">
+        </table>
+    </div>
 </script>
