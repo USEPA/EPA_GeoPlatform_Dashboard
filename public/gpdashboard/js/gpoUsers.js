@@ -226,8 +226,20 @@ egam.models.gpoUsers.FullModelClass = function(doc, index, parent) {
   this.parent = parent;
   //The index in array for this item
   this.index = index;
+
   //This is the doc
   this.doc = ko.observable(ko.mapping.fromJS(doc));
+
+  //Have to return this for latest sponsor when no sponsor because jquery datatables actually wants the field in the first column
+  //this.emptySponsor = {username:null,organization:null,authGroup:"",reason:null,description:null,startDate:null,endDate:null};
+  
+  this.latestSponsor = ko.computed(function() {
+    if (this.doc().sponsors ) {//&& this.doc().sponsors().length > 0
+      return this.doc().sponsors()[this.doc().sponsors().length - 1];
+    } else {
+      return {username:null,organization:null,authGroup:"",reason:null,description:null,startDate:null,endDate:null};
+    }
+  },this);
 
   this.sponsoreeAuthGroups = ko.observableArray(
       egam.communityUser.authGroups);
