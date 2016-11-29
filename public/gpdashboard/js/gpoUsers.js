@@ -98,9 +98,9 @@ egam.models.gpoUsers.PageModelClass.prototype.init = function() {
       self.table.dataTable.buttons(0).active(true);
 
       $('#gpoUsersModal').on('hidden.bs.modal', function () {
-        $('#SponsoredOrg').val('');
-        $('#spDescription').val('');
-      })
+        // $('#SponsoredOrg').val('');
+        // $('#spDescription').val('');
+      });
 
       //Now stop showing loading message that page is load
       $('div#loadingMsg').addClass('hidden');
@@ -237,9 +237,11 @@ egam.models.gpoUsers.FullModelClass = function(doc, index, parent) {
     if (this.doc().sponsors ) {//&& this.doc().sponsors().length > 0
       return this.doc().sponsors()[this.doc().sponsors().length - 1];
     } else {
-      return {username:null,organization:null,authGroup:"",reason:null,description:null,startDate:null,endDate:null};
+      return {username:null,organization:ko.observable(),authGroup:"",reason:ko.observable(),description:ko.observable(),startDate:null,endDate:null};
     }
   },this);
+
+  //this.organization = ko.observable();
 
   this.sponsoreeAuthGroups = ko.observableArray(
       egam.communityUser.authGroups);
@@ -293,16 +295,16 @@ egam.models.gpoUsers.DetailsModel.prototype.update = function() {
   var endDate = sponsorDate + defaultDuration * 24 * 3600 * 1000;
 
   // Get assigned authGroup from dropdown
-  var userAuthDrop = $('#UserAuthDrop');
-  var authGroup = userAuthDrop[0]
-      .options[userAuthDrop[0].selectedIndex].value;
+  // var userAuthDrop = $('#UserAuthDrop');
+  // var authGroup = userAuthDrop[0]
+  //     .options[userAuthDrop[0].selectedIndex].value;
 
   // Get other fields
   //The details model for sponsor should be bound with knockout so we don't have to do this type of stuff
-  var org = $('#SponsoredOrg').val();
-  var descript = $('#spDescription').val();
-  var reason = $('#spPurpose');
-  var reasonSelected = reason[0].options[reason[0].selectedIndex].value;
+  // var org = $('#SponsoredOrg').val();
+  // var descript = $('#spDescription').val();
+  // var reason = $('#spPurpose');
+  // var reasonSelected = reason[0].options[reason[0].selectedIndex].value;
 
   // Create updateDoc to post back to mongo
 
@@ -312,12 +314,12 @@ egam.models.gpoUsers.DetailsModel.prototype.update = function() {
       username: egam.communityUser.username,
       startDate: sponsorDate,
       endDate: endDate,
-      authGroup: authGroup,
-      reason: reasonSelected,
-      organization: org,
-      description: descript
+      authGroup: self.selected().latestSponsor().authGroup,
+      reason: self.selected().latestSponsor().reason,
+      organization: self.selected().latestSponsor().organization,
+      description: self.selected().latestSponsor().description
     },
-    authGroup: authGroup
+    authGroup: self.selected().latestSponsor().authGroup
   };
 
   var myUserData = {};
@@ -329,7 +331,7 @@ egam.models.gpoUsers.DetailsModel.prototype.update = function() {
   //Need to initialize the sponsors array if it isn't there before push
   if (!unmapped.sponsors) unmapped.sponsors = [];
   unmapped.sponsors.push(updateUserData.sponsor);
-  unmapped.authGroups.push(authGroup);
+  unmapped.authGroups.push(self.selected().latestSponsor().authGroup);
 
   ko.mapping.fromJS(unmapped, self.selected().doc());
 
@@ -354,7 +356,7 @@ egam.models.gpoUsers.DetailsModel.prototype.update = function() {
     },
   });
   $('#gpoUsersModal').modal('hide');
-  $('#updateAuth').hide();
+  //$('#updateAuth').hide();
 
   console.log('Post back updated GPO Users');
 };
