@@ -237,7 +237,7 @@ egam.models.gpoUsers.FullModelClass = function(doc, index, parent) {
     if (this.doc().sponsors ) {//&& this.doc().sponsors().length > 0
       return this.doc().sponsors()[this.doc().sponsors().length - 1];
     } else {
-      return {username:null,organization:ko.observable(),authGroup:"",reason:ko.observable(),description:ko.observable(),startDate:null,endDate:null};
+      return {username:null,organization:ko.observable(),authGroup:ko.observable(),reason:ko.observable(),description:ko.observable(),startDate:null,endDate:null};
     }
   },this);
 
