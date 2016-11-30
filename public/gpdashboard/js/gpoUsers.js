@@ -241,13 +241,8 @@ egam.models.gpoUsers.FullModelClass = function(doc, index, parent) {
     }
   },this);
 
-  //this.organization = ko.observable();
-
   this.sponsoreeAuthGroups = ko.observableArray(
       egam.communityUser.authGroups);
-
-  //Doc of changed fields
-  //this.changeDoc = {};
 
 };
 
@@ -293,18 +288,6 @@ egam.models.gpoUsers.DetailsModel.prototype.update = function() {
   var sD = new Date();
   var sponsorDate = sD.getTime();
   var endDate = sponsorDate + defaultDuration * 24 * 3600 * 1000;
-
-  // Get assigned authGroup from dropdown
-  // var userAuthDrop = $('#UserAuthDrop');
-  // var authGroup = userAuthDrop[0]
-  //     .options[userAuthDrop[0].selectedIndex].value;
-
-  // Get other fields
-  //The details model for sponsor should be bound with knockout so we don't have to do this type of stuff
-  // var org = $('#SponsoredOrg').val();
-  // var descript = $('#spDescription').val();
-  // var reason = $('#spPurpose');
-  // var reasonSelected = reason[0].options[reason[0].selectedIndex].value;
 
   // Create updateDoc to post back to mongo
 
@@ -360,8 +343,6 @@ egam.models.gpoUsers.DetailsModel.prototype.update = function() {
 
   console.log('Post back updated GPO Users');
 };
-
-
 
 //Query the endpoint for user email list for auth group selected
 egam.models.gpoUsers.buildEmailMyUsersLink = function(group) {
