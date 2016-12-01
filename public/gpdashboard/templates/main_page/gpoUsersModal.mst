@@ -9,9 +9,10 @@
             <div class="form-group">
                 <label for="SponsoredOrg" data-bind="text: selected().doc().fullName"></label>
             </div>
-            <div class="form-group">
+            <div class="form-group" data-bind="css:{'has-error': !selected().latestSponsor().reason()}">
                 <label for="spPurpose">Reason:</label>
-                <select class="form-control" id="spPurpose">
+                <select class="form-control" id="spPurpose" data-bind="value: selected().latestSponsor().reason">
+                    <option value="">Please Select a Reason</option>
                     <option value="Emergency Response">Emergency Response</option>
                     <option value="Other Federal Agency">Other Federal Agency</option>
                     <option value="State Agency">State Agency</option>
@@ -19,22 +20,22 @@
                     <option value="Long Term GIS Support">Long Term GIS Support</option>
                 </select>
             </div>
-            <div class="form-group">
+            <div class="form-group" data-bind="css:{'has-error': !selected().latestSponsor().organization()}">
                 <label for="SponsoredOrg">Organization:</label>
-                <input class="form-control" id="SponsoredOrg" type="text" style="width: 100%">
+                <input class="form-control" id="SponsoredOrg" type="text" style="width: 100%" data-bind="value: selected().latestSponsor().organization, valueUpdate:'afterkeydown'">
+            </div>
+            <div class="form-group" data-bind="css:{'has-error': !selected().latestSponsor().description()}">
+                <label for="spDescription">Description:</label>
+                <textarea class="form-control" rows="5" id="spDescription" style="min-width: 100%" data-bind="value: selected().latestSponsor().description, valueUpdate:'afterkeydown'"></textarea>
             </div>
             <div class="form-group">
-                <label for="spDescription">Description:</label>
-                <textarea class="form-control" rows="5" id="spDescription" style="min-width: 100%"></textarea>
-            </div>
-            <div class="form-group" id="updateAuth">
                 <label for="UserAuthDrop">Choose an Authoritative Group:</label>
-                <select class="form-control" id="UserAuthDrop" data-bind="options: selected().sponsoreeAuthGroups" style="width: 100%"></select>
+                <select class="form-control" id="UserAuthDrop" data-bind="options: selected().sponsoreeAuthGroups, value: selected().latestSponsor().authGroup, valueUpdate: 'afterkeydown'" style="width: 100%"></select>
             </div>
         </div>
         <div class="modal-footer">
             <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-            <button type="button" id="userSponorSave" class="btn btn-primary" data-bind="click: update">Confirm</button>
+            <button type="button" id="userSponorSave" class="btn btn-primary" data-bind="click: update, enable: selected().latestSponsor().reason && selected().latestSponsor().organization && selected().latestSponsor().description">Confirm</button>
         </div>
     </div>
 </div>
