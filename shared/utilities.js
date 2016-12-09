@@ -344,6 +344,20 @@ utilities.batchUpdateDB = function(collection,docs,idField) {
   return defer.promise;
 };
 
+//This are functions to use Mongo collection like a key value store.
+//It saves a _key field and every other field is considered a field in value object
+utilities.getDBkeyValue = function (collection,key) {
+  var Q = require('Q');
+  return Q(collection.findOne({'_key':key}, {}));
+};
+
+utilities.setDBkeyValue = function (collection,key,value) {
+  var Q = require('Q');
+  //If they try to set variable called _key it will be overwritten
+  value['_key'] = key;
+  return Q(collection.update({'_key':key}, {$set:value},{upsert:true}));
+};
+
 // Moved to Utilities to create a more generic function that can be used by 
 // multiple tables (e.g. GPO & EDG)
 utilities.genericRouteListCreation = function(app, req, res,
@@ -526,6 +540,64 @@ utilities.getUserFromSession = function(req,res) {
       'LoginRequired')('Must be logged in to make this request.'));
   }
   return user;
+};
+
+utilities.runExternalCommand = function (cmd) {
+  //pass log if you want to log the results. by default it is true
+  var Q = require('Q');
+  var defer = Q.defer();
+
+  var exec = require('child_process').exec;
+  exec(cmd, function(err, stdout, stderr) {
+    if (err) {
+      defer.reject(err);
+    }
+
+    if (stderr) {
+      defer.reject('Standard Out returned : ' + stdout + '\r\n Standard Error returned: ' + stderr);
+    } else {
+      defer.resolve(stdout);
+    }
+  });
+
+  return defer.promise;
+};
+
+utilities.isInt = function (value) {
+  var x;
+  if (isNaN(value)) {
+    return false;
+  }
+  x = parseFloat(value);
+  return (x | 0) === x;
+};
+
+//Helper that just stream out a file
+utilities.streamFileAsResponse = function (res,filePath,contentType) {
+  var fs = require('fs');
+  var stat = fs.statSync(filePath);
+
+  //if no content type try to get it from the extension
+  if (! contentType) {
+    // If extension is not standard then default to 'text/plain'
+    contentType = utilities.getContentTypeFromExtension(filePath) || 'text/plain';
+  }
+  res.writeHead(200, {
+    'Content-Type': contentType,
+    'Content-Length': stat.size
+  });
+
+  var readStream = fs.createReadStream(filePath);
+  //We replaced all the event handlers with a simple call to readStream.pipe()
+  readStream.pipe(res);
+};
+
+//Helper that just stream out a file
+utilities.getContentTypeFromExtension = function (file) {
+    var path = require('path');
+    var contentTypes = {html:'text/html',js:'application/javascript',json:'application/json'};
+    var ext = path.extname(file).replace('.','');
+    return contentTypes[ext] || null;
 };
 
 module.exports = utilities;

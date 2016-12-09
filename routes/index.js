@@ -2,11 +2,13 @@ module.exports = function(app) {
   var express = require('express');
   var router = express.Router();
   var request = require('request');
+  var Q = require('q');
+
+  var appRoot = app.get('appRoot');
+  var utilities = require(appRoot + '/shared/utilities');
+  var config = app.get('config');
 
   router.use('/login', function(req, res, next) {
-    var utilities = require(app.get('appRoot') + '/shared/utilities');
-    var config = app.get('config');
-
     //Use community/self to get user info including the group info portals/self
     //gets user as part of portal info but no groups
     var url = config.portal + '/sharing/rest/community/self';
@@ -78,8 +80,6 @@ module.exports = function(app) {
 
       var user = req.session.user;
 
-      var appRoot = app.get('appRoot');
-
       //Get the auth groups from the config file
       var authgroupsCollection = appRoot + '/config/authGroups.js';
 
@@ -108,8 +108,6 @@ module.exports = function(app) {
         //save them in Session
         .then(function(ownerIDsByAuthGroup) {
           user.ownerIDsByAuthGroup = ownerIDsByAuthGroup;
-          req.session.user = user;
-          resObject.body.user = user;
         })
         //Now get all of the ownerIDs this user can see based on their auth
         //group membership (if they are an admin)
@@ -121,6 +119,9 @@ module.exports = function(app) {
         .then(function(ownerIDs) {
           //Note: Super user will see all ownerIDs
           user.ownerIDs= ownerIDs;
+          //Make sure the session and returned user is up to date 
+          req.session.user = user;
+          resObject.body.user = user;
           return resObject;
         });
 
@@ -134,9 +135,11 @@ module.exports = function(app) {
         return false;
       }
 
-      var Q = require('q');
       var user = req.session.user;
-      var config = app.get('config');
+
+      //check if user is also in opsUsers group from config file
+      user.isOpsUser = (config.opsUsers && config.opsUsers.indexOf(user.username) >= 0 );
+
       if (!config.superUserGroup || !user.groups) {
         return false;
       }
@@ -274,18 +277,7 @@ module.exports = function(app) {
   //Get shared/Audit.js from client http reference to Public folder
   //Not sure if this is going to work with caching etc
   router.use('/js/Audit.js', function(req, res, next) {
-    var fs = require('fs');
-    var filePath = app.get('appRoot') + '/shared/Audit.js';
-    var stat = fs.statSync(filePath);
-
-    res.writeHead(200, {
-      'Content-Type': 'application/javascript',
-      'Content-Length': stat.size,
-    });
-
-    var readStream = fs.createReadStream(filePath);
-    //We replaced all the event handlers with a simple call to readStream.pipe()
-    readStream.pipe(res);
+    return utilities.streamFileAsResponse(res,appRoot + '/shared/Audit.js');
   });
 
   router.use('/nodeEnv', function(req, res) {
