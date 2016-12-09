@@ -44,7 +44,8 @@
     "require-reload": "~0.2.2",
     "sanitize-html": "~1.11.3",
     "serve-favicon": "~2.3.0",
-    "tasks-queue": "~0.0.2"
+    "tasks-queue": "~0.0.2",
+    "minimist": "~1.2.0"
   },
   "devDependencies": {
     "grunt": "~0.4.5",

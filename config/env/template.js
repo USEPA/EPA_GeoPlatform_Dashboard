@@ -1,6 +1,12 @@
 //Enter the url of the mongo DB 
 var mongoDBurl='mongodb://localhost:27017/egam';
 module.exports = {
+    host: {
+      protocol: 'http',
+      name:'localhost',
+      port:3000,
+      baseURL: function () {return protocol + '://' + name + ':' port}
+    },
     AGOLorgID: "cJ9YHowT8TU7DUyn",
     AGOLadminCredentials:
     {username: "",password: "",appID:"",appSecretDisable:"",expiration:1440},
@@ -20,9 +26,10 @@ module.exports = {
       ,admins: "aaron.evans@cgi.com;brett.gaines@cgi.com;bryan.chastain@cgi.com;dyarnell@innovateteam.com;Hultgren.Torrin@epa.gov",defaultFrom: "egam@epa.gov"
       ,disabled: true},
     superUserGroup: "",
+    opsUsers: ['aaron.evans_EPA'],
     scripts:
     {downloadGPOdata:
-    {onlyGetMetaData:true}}
+    {onlyGetMetaData:true}},
     //Primary backup location for mongodump
     backupPath: '../backup',
     //Secondary backup for copying contents of primary backup to secondary
