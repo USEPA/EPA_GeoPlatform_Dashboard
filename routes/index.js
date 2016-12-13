@@ -300,9 +300,9 @@ module.exports = function(app) {
     res.end();
   });
 
-  router.use('/dumbTest', function(req, res) {
-    res.send('Just a dumb test');
-  });
+//  router.use('/dumbTest', function(req, res) {
+//    res.send('Just a dumb test');
+//  });
 
   return router;
 };
