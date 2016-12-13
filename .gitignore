@@ -4,6 +4,8 @@ logs/*
 #gitignore just in here as placeholder so that log folder created when cloning
 !logs/.gitignore
 #allows ops log folder created when cloning
+!logs/ops/
+logs/ops/*
 !logs/ops/.gitignore
 
 # Runtime data
