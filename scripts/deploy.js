@@ -15,18 +15,22 @@ runExternalCommand.catch=false;
 var MonkClass = require('monk');
 var monk = MonkClass(config.mongoDBurl);
 
+//If on production don't install dev stuff. Probably should just get rid of node inspector stuff actually
+var npmInstallFlag = ' --production';
+if (config.env=='local' ) npmInstallFlag = '';
+
 return runGitCommands()
-  .then(runExternalCommand.getRunFunction('npm install'))
+  .then(runExternalCommand.getRunFunction('npm install' + npmInstallFlag))
   .then(runExternalCommand.getRunFunction('bower install'))
   .then(runExternalCommand.getRunFunction('pm2 reload egam'))
 //  .then(runExternalCommand.getRunFunction('whoami'))
   //Have to put last catch here to catch errors they are not being caught internally above
   .catch(function (error) {
-    runExternalCommand.output.stderr.push({cmd:'Error Not Caught Individually',output:error});
+    runExternalCommand.errors.push({cmd:'Error Not Caught Individually',output:error});
   })
   .then(setDeploymentFinished)
   .catch(function (error) {
-    runExternalCommand.output.stderr.push({cmd:'Set Deployment Status To Finished',output:error});
+    runExternalCommand.errors.push({cmd:'Set Deployment Status To Finished',output:error});
   })
   .then(sendDeploymentEmail)
   .done(function () {
@@ -72,8 +76,7 @@ function sendDeploymentEmail() {
   .then(function (template){
     mustache.parse(template);
     var finishDate = new Date();
-    var hasErrors = runExternalCommand.output.stderr.length>0;
-    var emailBody = mustache.render(template,{date:finishDate,output:runExternalCommand.output,hasErrors:hasErrors});
+    var emailBody = mustache.render(template,{date:finishDate,output:runExternalCommand.output,errors:runExternalCommand.errors});
     //CreateEmailObject
   
     var fromAddress = config.email.defaultFrom;//FromAddress in config file

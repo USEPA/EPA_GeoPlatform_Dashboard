@@ -553,11 +553,9 @@ utilities.runExternalCommand = function (cmd) {
       defer.reject(err);
     }
 
-    if (stderr) {
-      defer.reject('Standard Out returned : ' + stdout + '\r\n Standard Error returned: ' + stderr);
-    } else {
-      defer.resolve(stdout);
-    }
+    //send back both stdout and stderr to let consumer decide what to do with them.
+    //Don't consider stderr messages to mean we will reject or throw and error that will be caught necessarily
+    defer.resolve({stdout:stdout,stderr:stderr});
   });
 
   return defer.promise;
