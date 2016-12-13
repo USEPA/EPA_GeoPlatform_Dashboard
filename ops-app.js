@@ -101,6 +101,7 @@ app.set('deployStatus',{user:null,start:null,finish:null});
 var routes = require('./routes/ops/index');
 var deployRoute = require('./routes/ops/deploy');
 var authRoute  = require('./routes/ops/auth');
+var redirectRoute = require('./routes/redirect');
 
 //Check if user has authorization before you continuing on
 app.use('/gpdashboard-ops', authRoute(app));
@@ -108,6 +109,8 @@ app.use('/gpdashboard-ops', authRoute(app));
 app.use('/gpdashboard-ops', routes(app));
 //Hit this for deployment
 app.use('/gpdashboard-ops/deploy', deployRoute(app));
+//Since everything is in gpdashboard-ops folder for proxy. need host:30001/ to redirect to /gpdashboard-ops/
+app.use('/', redirectRoute('/gpdashboard-ops/'));
 
 // Catch 404 and forward to error handler
 app.use(function(req, res, next) {

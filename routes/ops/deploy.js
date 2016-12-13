@@ -47,22 +47,22 @@ module.exports = function(app) {
           //Have to put last catch here to catch errors they are not being caught internally above
           .catch(function (error) {
             console.error("Error Not Caught Individually: " + error);
-            runExternalCommand.output.stderr.push({cmd:'Error Not Caught Individually',output:error});
+            runExternalCommand.errors.push({cmd:'Error Not Caught Individually',output:error});
           })
           .then(function () {
-            hasError = (runExternalCommand.output.stderr.length>0);
-            return {status:'started',output:runExternalCommand.output}
+            hasError = (runExternalCommand.errors.length>0);
+            return {status:'started',output:runExternalCommand.output,errors:runExternalCommand.errors}
           });
       })
       .then(function (output) {
-        return res.json(output);
+        return res.json({body:output});
       })
       .catch(function (error) {
         hasError = true;
         return res.json({errors: [error.stack || error.message || error]});
       })
       .done(function () {
-        //If there were any command or caught error
+        //If any command had an error individually or error caught on end
         if (hasError) {
           return setDeployStatus({finish:new Date()});
         }
@@ -73,8 +73,8 @@ module.exports = function(app) {
     //This just adds finish date to deploy status object stored in the app.
     //Now if somebody calls to start deployment it will be able to start
     return setDeployStatus({finish:new Date()})
-      .then(function (output) {
-        return res.json({status:'finished'});
+      .then(function () {
+        return res.json({body:{status:'finished'}});
       })
       .catch(function (error) {
         return res.json({errors:[error.stack || error.message || error]});
