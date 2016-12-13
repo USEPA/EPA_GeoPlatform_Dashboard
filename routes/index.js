@@ -42,6 +42,19 @@ module.exports = function(app) {
       //If they are already logged into the session don't do it all over again
       console.log('USER ALREADY IN SESSION: ' + loggedInUser.username);
       res.json({errors: [], body: {user: req.session.user}});
+    } else if (! username || ! token) {
+      var reqMessage = '';
+      if(! username) reqMessage += ' username';
+      if(! token) {
+        if(reqMessage){
+          reqMessage += ' and';
+          reqMessage = 's' + reqMessage;
+        }
+        reqMessage += ' token';
+      }
+      reqMessage = 'Required field' + reqMessage + ' not provided';
+      utilities.getHandleError(resObject, 'RequiredFields')(reqMessage);
+      res.json(resObject);
     } else {
       console.log('Logging In User : ' + username);
       hr.callAGOL(requestPars)
@@ -58,7 +71,8 @@ module.exports = function(app) {
 
     function handleResponse(body) {
       var user = hr.current;
-      if (username === user.username) {
+      //make sure username is not undefined in case they didn't supply it
+      if (username && username === user.username) {
         //Save the user to the session
         if ('session' in req) {
           req.session.token = token;

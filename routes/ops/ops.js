@@ -5,9 +5,7 @@ gpdashboard_ops.deploy = {
    return gpdashboard_ops.utilities.hitEndpoint('deploy/start')
      .then(function (out) {
        console.log(out);
-       var template = $('#template_deploy_' + out.status).html() || $('#template_deploy_error').html();
-       
-       //hasErrors:out.stderr.length>0
+       var template = $('#template_deploy_' + out.body.status).html() || $('#template_deploy_error').html();
        
        var data = {date:new Date(),response:out};
        gpdashboard_ops.utilities.loadResponse('#results',template,data);

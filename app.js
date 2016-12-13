@@ -114,8 +114,7 @@ app.use('/gpdashboard/gpoitems', gpoitems(app));
 app.use('/gpdashboard/gpousers', gpousers(app));
 app.use('/gpdashboard/edgitems', edgitems(app));
 app.use('/gpdashboard/gpochecklists', gpochecklists(app));
-//Since everything is in gpdashboard now. need localhost:3000/ to redirect to
-//gpdashboard/
+//Since everything is in gpdashboard now. need localhost:3000/ to redirect to /gpdashboard/
 app.use('/', redirectRoute());
 
 // Catch 404 and forward to error handler
