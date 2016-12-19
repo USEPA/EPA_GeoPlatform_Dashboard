@@ -36,9 +36,9 @@ var ids = {
     'EPA Office of Land and Emergency Management (OLEM)':
         {id: '0119e92ad1a54e76a0451499676a7c73',edgName: 'OLEM'},
     'EPA Office of Water (OW)':
-        {id: 'a3508d2ae77d48a4ae160233898512ec',edgName: 'OW'},
-    'GP Dashboard Superuser Group':
-        {id: 'd8c85eae60e942cb99ab641f49012814',edgName: ''},
+        {id: 'a3508d2ae77d48a4ae160233898512ec',edgName: 'OW'}
+//    'GP Dashboard Superuser Group':
+//        {id: 'd8c85eae60e942cb99ab641f49012814',edgName: ''},
   };
 var names = Object.keys(ids);
 module.exports = {ids: ids,names: names};

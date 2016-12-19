@@ -110,6 +110,20 @@ require([
           //Show the user name now that loggged in
           $('#userId').show();
 
+          //Hide show ops page and set link
+          if (egam.communityUser.isOpsUser) {
+            $('#devOpsMenu').show();
+            $('#devOpsTab a').attr('href','/gpdashboard-ops/')
+              .click(function(ev) {
+                //This stuff so that tab isn't highlighted when clicked but will be still when hovered
+                ev.stopPropagation();
+                $(this).blur();
+              });
+          }else {
+            $('#devOpsMenu').hide();
+            $('#devOpsTab a').attr('href','');
+          }
+
           //Now that all the user stuff is set up load the first page which is
           //the GPO items page for now
           loadGPOitemsPage();

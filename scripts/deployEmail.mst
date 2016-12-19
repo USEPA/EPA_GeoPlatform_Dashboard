@@ -1,0 +1,39 @@
+<body style='font-family:sans-serif'>
+<style>
+pre{
+    white-space: pre-line;
+}
+</style>
+GP Dashboard was deployed on {{date}}.<br>
+<br>
+{{#errors.length}}
+<strong style='color:red'>Errors Produced by Commands when Deploying Application</strong><br><br>
+<div style='margin-left:20px'>
+{{#errors}}
+  <strong>{{cmd}}:</strong>
+  <div style='margin:10px 0px;'>
+  <table ><tr><td style='padding:5px;border:1px solid #ccc;background:#f5f5f5'>
+    <pre style='margin:0px;'>{{message}}</pre>
+    <pre style='font-size:0px'>&nbsp;</pre>
+  </td></tr></table>
+  </div>
+{{/errors}}
+</div>
+{{/errors.length}}
+
+<strong style='color:blue'>Output Produced by Commands when Deploying Application:</strong><br><br>
+<div style='margin-left:20px'>
+{{#output}}
+  <strong>{{cmd}}:</strong>
+  <div style='margin:10px 0px;'>
+  <table ><tr><td style='padding:5px;border:1px solid #ccc;background:#f5f5f5'>
+<pre style='margin:0px'>stdout:
+{{message.stdout}}
+stderr:
+{{message.stderr}}</pre>
+     <pre style='font-size:0px'>&nbsp;</pre>
+  </td></tr></table>
+  </div>
+{{/output}}
+</div>
+</body>
