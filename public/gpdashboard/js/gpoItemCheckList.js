@@ -171,6 +171,7 @@ egam.models.gpoItemCheckList.RowModelClass = function(doc, index) {
 //This is the FULL model which binds to the modal allowing 2 way data binding and updating etc
 egam.models.gpoItemCheckList.FullModelClass = function(doc, index, parent) {
   var self = this;
+
   //The pageModel this belows to
   this.parent = parent;
   //The index in array for this item
@@ -200,6 +201,7 @@ egam.models.gpoItemCheckList.FullModelClass = function(doc, index, parent) {
 
   //This is where to store full info about keyed by id
   this.itemDocs = null;
+  this.emailTextBody = null;
   
   //Could Add a computed observable to store Checklist item names with the ids
   //http://localhost:3000/gpdashboard/gpoItems/list?query={%22id%22:{%22$in%22:[%2240894bca74de46d4b92abd8fd0a5160e%22]}}&projection={%22fields%22:{%22id%22:1,%22title%22:1}}
@@ -230,6 +232,29 @@ egam.models.gpoItemCheckList.DetailsModel.prototype.select = function(item) {
     .then(function (itemDocs) {
 //Let the array of item docs just be a field on the full model that can be used
       fullRowModel.itemDocs = itemDocs;
+//get the text of email template
+      $.ajax({
+          url: "./templates/emails/ISO_IMO_approval.mst",
+          async: false,
+          success: function (data){
+              param = {};
+              param.owner = {
+                "fullName":"David Yarnell",
+                "email": "dyarnell@innovateteam.com"
+              } //fullRowModel.doc().submission.owner;
+              param.admin = {
+                "fullName": egam.communityUser.fullName,
+                "email": egam.communityUser.email
+              }
+              param.AuthGroup = fullRowModel.doc().submission.authGroup;
+              param.titles = fullRowModel.itemDocs;
+
+              var emailBody = Mustache.render(data,param);
+              console.log("Read Success :: ", emailBody);
+              fullRowModel.emailTextBody = ko.observable(emailBody);
+              //pageExecute.fileContents = data;
+          }
+      });
 //Now set the selected field on the details model with the full row model that includes itemDocs
       self.selected(fullRowModel);
 
