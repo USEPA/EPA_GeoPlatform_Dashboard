@@ -228,40 +228,46 @@ egam.models.gpoItemCheckList.DetailsModel.prototype.select = function(item) {
   var fullRowModel = new egam.models.gpoItemCheckList.FullModelClass(item.doc, item.index, self);
 
   //Get the titles before is bound
-  return self.getItemDocs(fullRowModel.doc().submission.items)
+  return self.getItemDocs(fullRowModel.doc().submission.items())
     .then(function (itemDocs) {
 //Let the array of item docs just be a field on the full model that can be used
-      fullRowModel.itemDocs = itemDocs;
+        fullRowModel.itemDocs = itemDocs;
 //get the text of email template
-      $.ajax({
-          url: "./templates/emails/ISO_IMO_approval.mst",
-          async: false,
-          success: function (data){
-              param = {};
-              param.owner = {
-                "fullName":"David Yarnell",
-                "email": "dyarnell@innovateteam.com"
-              } //fullRowModel.doc().submission.owner;
-              param.admin = {
-                "fullName": egam.communityUser.fullName,
-                "email": egam.communityUser.email
-              }
-              param.AuthGroup = fullRowModel.doc().submission.authGroup;
-              param.titles = fullRowModel.itemDocs;
+        $.ajax({
+            url: "./templates/emails/ISO_IMO_approval.mst",
+            async: false,
+            success: function (data1) {
+                return self.getOwnerInfo(fullRowModel.doc().submission.owner)
+                    .then(function (user) {
+                        // console.log("this is the user ::", data1);
+                        // var param = {};
+                        // param.admin = {
+                        //     "fullName": egam.communityUser.fullName,
+                        //     "email": egam.communityUser.email
+                        // };
+                        // param.owner = {
+                        //   "fullName":user["0"].fullName,
+                        //   "email": user["0"].email
+                        // };
+                        // param.AuthGroup = fullRowModel.doc().submission.authGroup;
+                        // param.titles = fullRowModel.itemDocs;
+                        //
+                        // emailBody = Mustache.render(data1, param);
 
-              var emailBody = Mustache.render(data,param);
-              console.log("Read Success :: ", emailBody);
-              fullRowModel.emailTextBody = ko.observable(emailBody);
-              //pageExecute.fileContents = data;
-          }
-      });
-//Now set the selected field on the details model with the full row model that includes itemDocs
-      self.selected(fullRowModel);
+                        // fullRowModel.emailTextBody = ko.observable(emailBody);
 
-      if (!self.bound) {
-        ko.applyBindings(self, document.getElementById('gpoCheckListDetailsModal'));
-        self.bound = true;
-      }
+                        self.selected(fullRowModel);
+
+                        if (!self.bound) {
+                            ko.applyBindings(self, document.getElementById('gpoCheckListDetailsModal'));
+                            self.bound = true;
+                        }
+                    });
+            },
+            error: function(er){
+                console.log("There was an error :: ", er);
+            }
+        });
     });
 };
 
@@ -273,6 +279,13 @@ egam.models.gpoItemCheckList.DetailsModel.prototype.getItemDocs = function(ids) 
   return egam.utilities.queryEndpoint("gpoItems/list",query,projection)
 };
 
+egam.models.gpoItemCheckList.DetailsModel.prototype.getOwnerInfo = function(user) {
+    user = ko.utils.unwrapObservable(user);
+    var query = {username: user};
+    var projection = {fields:{'username':1, 'fullName':1, 'email':1}};
+
+    return egam.utilities.queryEndpoint("gpousers/list",query,projection)
+};
 
 
 //Post to mongo to make items public
@@ -286,6 +299,7 @@ egam.models.gpoItemCheckList.DetailsModel.prototype.makeChecklistPublic = functi
       status: 'approved',
       ISOemail: item.selected().doc().approval.ISOemail(), //'ISOemail',
       IMOemail: item.selected().doc().approval.IMOemail(), // 'IMOemail'
+      emailBody: item.selected().emailTextBody(),
     }
   };
 
@@ -319,6 +333,8 @@ egam.models.gpoItemCheckList.DetailsModel.prototype.makeChecklistPublic = functi
       });
 //Clear out the checked items in case something is checked
       egam.pages.gpoItems.table.checkAll('id',false);
+      //Send Email
+
     },
     error: function(jqXHR, textStatus, errorThrown) {
       // Handle errors here
