@@ -4,7 +4,15 @@
  * Module dependencies.
  */
 
-var app = require('../app');
+//Read in any arguments passed such as app and port
+var parseArgs = require('minimist');
+//first 2 args are node location and script location
+var args = require('minimist')(process.argv.slice(2));
+
+var appName = args.app || 'app';
+var port = args.port || 3000;
+
+var app = require('../' + appName);
 var debug = require('debug')('gpintel:server');
 var http = require('http');
 
@@ -12,7 +20,7 @@ var http = require('http');
  * Get port from environment and store in Express.
  */
 
-var port = normalizePort(process.env.PORT || '3000');
+port = normalizePort(process.env.PORT || port);
 app.set('port', port);
 
 /**

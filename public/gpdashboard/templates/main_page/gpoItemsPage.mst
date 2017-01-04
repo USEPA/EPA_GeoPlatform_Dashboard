@@ -15,23 +15,24 @@
     <div class="col-xs-6 col-sm-3">
         <h4 style="white-space:nowrap;">Auth Groups
         </h4>
-        <a data-toggle="tooltip" data-placement="left" title="Show/Hide Auth Groups"><span id="authGroupsCount" class="text-muted" data-toggle="collapse" href="#collapseExample" aria-expanded="false" aria-controls="collapseExample" data-bind="text:Object.keys(egam.communityUser.ownerIDsByAuthGroup).length"></span></a>
-        <div class="collapse" id="collapseExample">
-            <select id="dropAuthGroups" class="search form-control input-sm ">
-            </select>
-            <a id="downloadAuthgroupsCSVall" href="gpoUsers/list.csv" class="">Download User List</a></br>
-            <a id="emailAuthgroupsCSVall" onclick="egam.models.gpoUsers.buildEmailMyUsersLink()">Email Users</a>
-            <a id="downloadAuthgroupsCSVregions" href="gpoUsers/list.csv/authGroups/" class="hidden">download users</a>
-        </div>
+        <span id="authGroupsCount" class="text-muted" data-bind="text:Object.keys(egam.communityUser.ownerIDsByAuthGroup).length"></span>
+
     </div>
 </div>
 <h3 class="sub-header"></h3>
-
-<div class="btn-group" role="group" style="margin-bottom: 5px">
-    <button type="button" id="makePublic" class="btn btn-default" data-bind="enable: $root.table.checkedRows().length > 0, click: function(){return egam.pages.gpoItemCheckList.showGPOCheckList()}">Make Public</button>
-    <button class="btn btn-primary" type="button" data-bind="click: function(){return egam.pages.gpoItemCheckList.adminCheckLists()}">
-        Requests <span class="badge" data-bind="text: pendingChecklistCount"></span>
-    </button>
+<div class="row">
+    <div class="col-md-7 btn-group" role="group" style="margin-bottom: 5px">
+        <button type="button" id="makePublic" class="btn btn-default" data-bind="enable: $root.table.checkedRows().length > 0, click: function(){return egam.pages.gpoItemCheckList.showGPOCheckList()}">Make Public</button>
+        <button class="btn btn-primary" type="button" data-bind="click: function(){return egam.pages.gpoItemCheckList.adminCheckLists()}">
+            Requests <span class="badge" data-bind="text: pendingChecklistCount"></span>
+        </button>
+    </div>
+    <div class="col-md-2 text-right" style="padding: 5px 1px 5px 5px">
+        <label style="font-weight: normal">Auth Groups:</label>
+    </div>
+        <div class="col-md-3 text-left" style="padding-right: 5px">
+            <select id="dropAuthGroups" class="search form-control input-sm"></select>
+        </div>
 </div>
 <!-- Note: needed to use type:'num' below so that doc.modified was treated like a number '<row <col-sm-6 l><col-sm-6 f>><t><ip>'-->
 <table id="gpoItemsTable" class="table table-hover table-bordered table-responsive" data-bind="dataTable:

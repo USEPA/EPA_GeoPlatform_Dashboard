@@ -12,7 +12,8 @@
     "install-local": "npm install -g mocha & npm install",
     "test": "mocha",
     "download": "node scripts/downloadGPOdata && node scripts/downloadGPOusers &&  node scripts/downloadEDGitems && node scripts/runAudit",
-    "backup": "node ./scripts/backup.js"
+    "backup": "node ./scripts/backup.js",
+    "downloadAndBackup": "npm run download && npm run backup"
   },
   "dependencies": {
     "app-root-path": "~1.0.0",
@@ -43,7 +44,8 @@
     "require-reload": "~0.2.2",
     "sanitize-html": "~1.11.3",
     "serve-favicon": "~2.3.0",
-    "tasks-queue": "~0.0.2"
+    "tasks-queue": "~0.0.2",
+    "minimist": "~1.2.0"
   },
   "devDependencies": {
     "grunt": "~0.4.5",

@@ -28,6 +28,9 @@ module.exports = function(app) {
       query.owner = {$in: user.ownerIDs};
     }
 
+//using this just to test that app reloaded in pm2
+//    query.owner = {$in: ['dumdum']};
+
     //Let front end decided on getting only public
     //query.access = "public";
     //For testing only let superUser see public for now

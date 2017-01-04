@@ -48,3 +48,9 @@ config/nodeEnv.js
 
 #bower components
 public/gpdashboard/bower_components/
+
+#this is npm run log file that gets created on error
+npm-debug.log
+
+#this is where pm2 files are stored
+.pm2/

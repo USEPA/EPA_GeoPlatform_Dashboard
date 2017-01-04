@@ -18,7 +18,7 @@ egam.controls.Table = function(items,elementSelector,RowModelClass,resultsName) 
   // ResultsName is the name of the results in object returned by endpoint (default='results'). for edg stuff it is dataSet
   this.resultsName = resultsName || 'results';
   //Set the default timeout. It can also be passed to init
-  this.timeOut = 15000;
+  this.timeOut = 25000;
   //list of checked row
   this.checkedRows = ko.observableArray();
   //This is the index of rows checked

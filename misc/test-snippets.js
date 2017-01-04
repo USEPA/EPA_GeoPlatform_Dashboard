@@ -1,7 +1,49 @@
+//Just a file for testing snippets with different node ideas
+
 var Q = require('q');
 
-var fs = require('fs');
 
+var MonkClass = require('monk');
+
+var monk = MonkClass('mongodb://localhost:27017/egam');
+var usersCollection = monk.get('GPOusers');
+
+var diff = true;
+var ctr = true;
+
+Q(usersCollection.findOne({username: 'aaron.evans_EPA'}))
+  .then(function(user) {
+    if (diff) {
+      var defer1 = Q.defer();
+      //If different, update the user collection and set the diff flag
+      setTimeout(function () {
+        console.log("udpate");
+        defer1.resolve(true);
+      },2000);
+      return defer1.promise;
+    }
+
+  })
+  .done(function () {
+    if (ctr ) {
+      return Q.fcall(function () {
+          if (diff) {
+            console.log("insert");
+            return true;
+          }
+        })
+        .then(function () {
+          console.log("defer");
+          return true;
+        });
+    }
+
+  });
+
+console.log("end");
+return;
+
+var fs = require('fs');
 var mustache = require('mustache');
 
 //var templateString = "GPO project {{name}} submitted by {{submittedBy}} on {{submitDate}} was made public by {{approvedBy}} on {{approveDate}}{{#each items}} <a href='https://epa.maps.arcgis.com/home/item.html?id={{}}'>{{title}}</a>{{/each}}";

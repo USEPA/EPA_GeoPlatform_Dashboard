@@ -40,40 +40,6 @@ egam.models.gpoUsers.PageModelClass = function() {
     sponsors: 1,
   };
 
-  //Set events for user table filter buttons
-  $.fn.dataTable.ext.buttons.userTableFilter = {
-    className: 'buttons-alert',
-    action: function(e, dt, node, config) {
-
-      // Alert( this.text() );
-      var userTable = self.table.dataTable;
-
-      // Console.log(e);
-      var searchVal;
-      if (this.text() == 'All External Users') {
-        searchVal = '.*';
-        this.active(true);
-        userTable.button(1).active(false);
-        userTable.button(2).active(false);
-      }else if (this.text() == 'Sponsored') {
-        searchVal = '.+';
-        this.active(true);
-        userTable.button(0).active(false);
-        userTable.button(2).active(false);
-      }else if (this.text() == 'Unsponsored') {
-        searchVal = '^' + '$';
-        this.active(true);
-        userTable.button(0).active(false);
-        userTable.button(1).active(false);
-      }
-
-      userTable
-          .column(3)
-          .search(searchVal, true, false)
-          .draw();
-    },
-  };
-
   //This is instance of the table class that does all the table stuff.
   //Pass empty array of items initially
    self.table = new egam.controls.Table([],
@@ -82,6 +48,10 @@ egam.models.gpoUsers.PageModelClass = function() {
   //Have to set authGroups in this context so knockout has access to it from
   //PageModel
   self.authGroups = egam.communityUser.authGroups;
+
+  //Set up the authGroups dropdown
+  self.setAuthGroupsDropdown(egam.communityUser.ownerIDsByAuthGroup);
+  self.setFilterButtons();
 
   //Set up the details control now which is part of this Model Class
   self.details = new egam.models.gpoUsers.DetailsModel(self);
@@ -127,12 +97,99 @@ egam.models.gpoUsers.PageModelClass.prototype.init = function() {
       //Set All External Users button to be the active button initially
       self.table.dataTable.buttons(0).active(true);
 
+      $('#gpoUsersModal').on('hidden.bs.modal', function () {
+        // $('#SponsoredOrg').val('');
+        // $('#spDescription').val('');
+      });
+
       //Now stop showing loading message that page is load
       $('div#loadingMsg').addClass('hidden');
       self.$pageElement.removeClass('hidden');
       defer.resolve();
     });
   return defer;
+};
+
+egam.models.gpoUsers.PageModelClass.prototype.setFilterButtons = function() {
+  var self = this;
+
+  var extUsers = $('#externalUsers');
+  var sponUsers = $('#sponsoredUsers');
+  var unsponUsers = $('#unsponsoredUsers');
+
+  extUsers.on('click', filterUsers);
+  sponUsers.on('click', filterUsers);
+  unsponUsers.on('click', filterUsers);
+
+  function filterUsers(evt){
+    var searchText;
+    if (self.table.dataTable) {
+      if(evt.currentTarget.id == 'externalUsers'){
+        searchText = '.*';
+      }else if(evt.currentTarget.id == 'sponsoredUsers'){
+        searchText = '.+';
+      }else if(evt.currentTarget.id == 'unsponsoredUsers'){
+        searchText = '^' + '$';
+      }
+      self.table.dataTable.column(3)
+          .search(searchText, true, false)
+          .draw();
+    }
+  }
+};
+
+egam.models.gpoUsers.PageModelClass.prototype.setAuthGroupsDropdown = function(ownerIDsByAuthGroup) {
+  var self = this;
+  var dropAuthGroups = $('#dropAuthGroupsUsers');
+  dropAuthGroups.on('change', function() {
+    var reOwnerIDs = '';
+    if (this.value) {
+      var ownerIDs = ownerIDsByAuthGroup[this.value];
+      reOwnerIDs = ownerIDs.join('|');
+    }
+    
+    // Also set the download link
+    var authgroup = this.value;
+    //Pass authgroup to email list function. If no authgroup, pass empty string
+    var emailFunc = $('#emailAuthgroupsCSVallUsers').attr('onclick');
+    $('#emailAuthgroupsCSVallUsers').attr('onclick',
+        emailFunc.replace(/(\(.*\))/, '(\'' + authgroup + '\')'));
+    if (authgroup) {
+      $('#downloadAuthgroupsCSVallUsers').addClass('hidden');
+      $('#downloadAuthgroupsCSVregionsUsers').removeClass('hidden');
+      var href = $('#downloadAuthgroupsCSVregionsUsers').attr('href');
+
+      // Tack on authgroup to the end of the route to get csv. Note: use ^ and $
+      // to get exact match because it matches regex(Region 1 and 10 would be
+      // same if not). Also we are using authGroup by name so need to escape
+      // ( and ) which is offices like (OAR)
+      // TODO: Not sure about this code, I've had a few weird bugs with this in
+      // TODO: action where my dashboard is sent to a 404 error page upon
+      // TODO: clicking download users CSV in the GUI -- looked like an escaping
+      // TODO: issue to me
+      //Maybe this could be cleaned up to use the group ID instead
+      var escapeAuthGroup = authgroup.replace(/\(/g, '%5C(')
+          .replace(/\)/g, '%5C)');
+      href = href.substring(0, href.lastIndexOf('/') + 1) + '^' +
+          escapeAuthGroup + '$';
+      $('#downloadAuthgroupsCSVregionsUsers').attr('href', href);
+    } else {
+      $('#downloadAuthgroupsCSVallUsers').removeClass('hidden');
+      $('#downloadAuthgroupsCSVregionsUsers').addClass('hidden');
+    }
+  });
+  var authGroups = Object.keys(ownerIDsByAuthGroup);
+  authGroups.sort();
+
+  dropAuthGroups[0].options.length = 0;
+
+  if (authGroups.length > 1) {
+    dropAuthGroups.append($('<option>', {value: ''}).text('All'));
+  }
+
+  $.each(authGroups, function(index, authGroup) {
+    dropAuthGroups.append($('<option>', {value: authGroup}).text(authGroup));
+  });
 };
 
 //This is limited model which is used for the table rows. It is condensed so that table loads faster
@@ -169,14 +226,23 @@ egam.models.gpoUsers.FullModelClass = function(doc, index, parent) {
   this.parent = parent;
   //The index in array for this item
   this.index = index;
+
   //This is the doc
   this.doc = ko.observable(ko.mapping.fromJS(doc));
 
+  //Have to return this for latest sponsor when no sponsor because jquery datatables actually wants the field in the first column
+  //this.emptySponsor = {username:null,organization:null,authGroup:"",reason:null,description:null,startDate:null,endDate:null};
+  
+  this.latestSponsor = ko.computed(function() {
+    if (this.doc().sponsors ) {//&& this.doc().sponsors().length > 0
+      return this.doc().sponsors()[this.doc().sponsors().length - 1];
+    } else {
+      return {username:null,organization:ko.observable(),authGroup:ko.observable(),reason:ko.observable(),description:ko.observable(),startDate:null,endDate:null};
+    }
+  },this);
+
   this.sponsoreeAuthGroups = ko.observableArray(
       egam.communityUser.authGroups);
-
-  //Doc of changed fields
-  //this.changeDoc = {};
 
 };
 
@@ -223,18 +289,6 @@ egam.models.gpoUsers.DetailsModel.prototype.update = function() {
   var sponsorDate = sD.getTime();
   var endDate = sponsorDate + defaultDuration * 24 * 3600 * 1000;
 
-  // Get assigned authGroup from dropdown
-  var userAuthDrop = $('#UserAuthDrop');
-  var authGroup = userAuthDrop[0]
-      .options[userAuthDrop[0].selectedIndex].value;
-
-  // Get other fields
-  //The details model for sponsor should be bound with knockout so we don't have to do this type of stuff
-  var org = $('#SponsoredOrg').val();
-  var descript = $('#spDescription').val();
-  var reason = $('#spPurpose');
-  var reasonSelected = reason[0].options[reason[0].selectedIndex].value;
-
   // Create updateDoc to post back to mongo
 
   var updateUserData = {
@@ -243,12 +297,12 @@ egam.models.gpoUsers.DetailsModel.prototype.update = function() {
       username: egam.communityUser.username,
       startDate: sponsorDate,
       endDate: endDate,
-      authGroup: authGroup,
-      reason: reasonSelected,
-      organization: org,
-      description: descript
+      authGroup: self.selected().latestSponsor().authGroup,
+      reason: self.selected().latestSponsor().reason,
+      organization: self.selected().latestSponsor().organization,
+      description: self.selected().latestSponsor().description
     },
-    authGroup: authGroup
+    authGroup: self.selected().latestSponsor().authGroup
   };
 
   var myUserData = {};
@@ -260,7 +314,7 @@ egam.models.gpoUsers.DetailsModel.prototype.update = function() {
   //Need to initialize the sponsors array if it isn't there before push
   if (!unmapped.sponsors) unmapped.sponsors = [];
   unmapped.sponsors.push(updateUserData.sponsor);
-  unmapped.authGroups.push(authGroup);
+  unmapped.authGroups.push(self.selected().latestSponsor().authGroup);
 
   ko.mapping.fromJS(unmapped, self.selected().doc());
 
@@ -285,12 +339,10 @@ egam.models.gpoUsers.DetailsModel.prototype.update = function() {
     },
   });
   $('#gpoUsersModal').modal('hide');
-  $('#updateAuth').hide();
+  //$('#updateAuth').hide();
 
   console.log('Post back updated GPO Users');
 };
-
-
 
 //Query the endpoint for user email list for auth group selected
 egam.models.gpoUsers.buildEmailMyUsersLink = function(group) {
@@ -307,7 +359,9 @@ egam.models.gpoUsers.buildEmailMyUsersLink = function(group) {
     success: function(rdata, textStatus, jqXHR) {
       //console.log('Success Querying for Email List');
       //Add email list to the textarea
-      $('#emailList').val(rdata.map(function(a) {return a.email}).join(';'));
+      $('#emailList').val(rdata.filter(function(a) {
+        return a.email ? true : false;
+      }).map(function(a) {return a.email}).join(';'));
       //Show email list modal
       $('#emailModal').modal('show');
     },

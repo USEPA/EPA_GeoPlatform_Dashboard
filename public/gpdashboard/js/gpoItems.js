@@ -159,33 +159,7 @@ egam.models.gpoItems.PageModelClass.prototype.setAuthGroupsDropdown = function(o
     }
     // Also set the download link
     var authgroup = this.value;
-    //Pass authgroup to email list function. If no authgroup, pass empty string
-    var emailFunc = $('#emailAuthgroupsCSVall').attr('onclick');
-    $('#emailAuthgroupsCSVall').attr('onclick',
-      emailFunc.replace(/(\(.*\))/, '(\'' + authgroup + '\')'));
-    if (authgroup) {
-      $('#downloadAuthgroupsCSVall').addClass('hidden');
-      $('#downloadAuthgroupsCSVregions').removeClass('hidden');
-      var href = $('#downloadAuthgroupsCSVregions').attr('href');
 
-      // Tack on authgroup to the end of the route to get csv. Note: use ^ and $
-      // to get exact match because it matches regex(Region 1 and 10 would be
-      // same if not). Also we are using authGroup by name so need to escape
-      // ( and ) which is offices like (OAR)
-      // TODO: Not sure about this code, I've had a few weird bugs with this in
-      // TODO: action where my dashboard is sent to a 404 error page upon
-      // TODO: clicking download users CSV in the GUI -- looked like an escaping
-      // TODO: issue to me
-      //Maybe this could be cleaned up to use the group ID instead
-      var escapeAuthGroup = authgroup.replace(/\(/g, '%5C(')
-        .replace(/\)/g, '%5C)');
-      href = href.substring(0, href.lastIndexOf('/') + 1) + '^' +
-        escapeAuthGroup + '$';
-      $('#downloadAuthgroupsCSVregions').attr('href', href);
-    } else {
-      $('#downloadAuthgroupsCSVall').removeClass('hidden');
-      $('#downloadAuthgroupsCSVregions').addClass('hidden');
-    }
   });
   var authGroups = Object.keys(ownerIDsByAuthGroup);
   authGroups.sort();
@@ -635,9 +609,11 @@ egam.models.gpoItems.TagControlsClass.prototype.selectOrg = function() {
     office = 'REG';
   }
   this.$officeTagSelect.val(office).change();
+  this.tagToAdd.Office(office);
   //If there authGroup is a region then select the region number
   if (office = 'REG' && /REG /.exec(ownerEDGauthGroup)) {
     this.$orgTagSelect.val(ownerEDGauthGroup);
+    this.tagToAdd.Org(ownerEDGauthGroup);
   }
 };
 
