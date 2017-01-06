@@ -44,7 +44,7 @@
                 <div class="panel" data-bind="css: {'panel-warning': selected().doc().approval.status()!='approved'}">
                     <div class="panel-heading" data-bind="visible: selected().doc().approval.status()!='approved'">Enter email for IMO and ISO</div>
                     <div class="panel-body">
-                        <div class="input-group" data-bind="css:{'has-error': !selected().IMOaudit() && selected().doc().approval.status()!='approved'}">
+                        <div class="input-group" data-bind="css:{'has-error':!selected().IMOaudit()&&selected().doc().approval.status()!='approved'}">
                             <span class="input-group-addon" id="IMOemail">IMO email</span>
                             <input type="text" id="imoInputEmail" class="form-control" data-bind="value: selected().doc().approval.IMOemail, disable: selected().doc().approval.status()==='approved', valueUpdate:'afterkeydown'" aria-describedby="IMOemail">
                         </div>
@@ -68,7 +68,7 @@
         </div>
         <div class="modal-footer">
             <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-            <button type="button" class="btn btn-primary" data-bind="click: makeChecklistPublic, visible: egam.portalUser.role == 'org_admin', disable: selected().doc().approval.status()=='approved' || !selected().IMOaudit() || !selected().ISOaudit()" >Make Items Public</button>
+            <button type="button" class="btn btn-primary" data-bind="click: makeChecklistPublic, visible: egam.portalUser.role == 'org_admin' ,disable:selected().doc().approval.status()=='approved'||!selected().IMOaudit()||!selected().ISOaudit()" >Make Items Public</button>
         </div>
     </div>
     <!-- /.modal-content -->

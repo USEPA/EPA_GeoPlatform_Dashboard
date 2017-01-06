@@ -232,29 +232,30 @@ egam.models.gpoItemCheckList.DetailsModel.prototype.select = function(item) {
     .then(function (itemDocs) {
 //Let the array of item docs just be a field on the full model that can be used
         fullRowModel.itemDocs = itemDocs;
+
 //get the text of email template
         $.ajax({
             url: "./templates/emails/ISO_IMO_approval.mst",
             async: false,
             success: function (data1) {
-                return self.getOwnerInfo(fullRowModel.doc().submission.owner)
+                return self.getOwnerInfo(fullRowModel.doc().submission.owner())
                     .then(function (user) {
-                        // console.log("this is the user ::", data1);
-                        // var param = {};
-                        // param.admin = {
-                        //     "fullName": egam.communityUser.fullName,
-                        //     "email": egam.communityUser.email
-                        // };
-                        // param.owner = {
-                        //   "fullName":user["0"].fullName,
-                        //   "email": user["0"].email
-                        // };
-                        // param.AuthGroup = fullRowModel.doc().submission.authGroup;
-                        // param.titles = fullRowModel.itemDocs;
-                        //
-                        // emailBody = Mustache.render(data1, param);
 
-                        // fullRowModel.emailTextBody = ko.observable(emailBody);
+                        var param = {};
+                        param.admin = {
+                            "fullName": egam.communityUser.fullName,
+                            "email": egam.communityUser.email
+                        };
+                        param.owner = {
+                          "fullName":user["0"].fullName,
+                          "email": user["0"].email
+                        };
+                        param.AuthGroup = fullRowModel.doc().submission.authGroup;
+                        param.titles = fullRowModel.itemDocs;
+
+                        emailBody = Mustache.render(data1, param);
+
+                        fullRowModel.emailTextBody = ko.observable(emailBody);
 
                         self.selected(fullRowModel);
 
@@ -276,7 +277,7 @@ egam.models.gpoItemCheckList.DetailsModel.prototype.getItemDocs = function(ids) 
   var query = {id:{$in:ids}};
   var projection = {"fields":{"id":1,"title":1}};
 
-  return egam.utilities.queryEndpoint("gpoItems/list",query,projection)
+  return egam.utilities.queryEndpoint("gpoitems/list? showAll=true",query,projection)
 };
 
 egam.models.gpoItemCheckList.DetailsModel.prototype.getOwnerInfo = function(user) {

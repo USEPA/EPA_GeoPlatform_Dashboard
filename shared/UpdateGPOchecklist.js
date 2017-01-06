@@ -256,7 +256,13 @@ UpdateGPOchecklist.prototype.sendIsoImoEmail = function(){
         var fromAddress = self.config.email.defaultFrom;//FromAddress in config file
         var toAddress = self.updateDoc.approval.IMOemail + ',' + self.updateDoc.approval.ISOemail;
         var emailSubject = 'Request for GPO Item to be made Public';//EmailsSubject
-        var html = emailBody;
+
+        var html;
+        if(self.updateDoc.approval.emailBody){
+            html = self.updateDoc.approval.emailBody;
+        }else{
+            html = emailBody; //self.updateDoc.approval.emailBody;
+        }
 
         return sendEmail.send(fromAddress,toAddress, emailSubject, emailBody, html)
       })
