@@ -316,5 +316,63 @@ module.exports = function(app) {
     //End of update endpoint
   });
 
+  router.use('/addExternal', function(req, res) {
+    var utilities = require(app.get('appRoot') + '/shared/utilities');
+
+    //Get the stored/logged in user. If not logged in this error message sent to user
+    var user = utilities.getUserFromSession(req,res);
+
+    //If user not created then don't go on. getUserFromSession(res) already sent login error message to user
+    if (!user) {
+      return false;
+    }
+
+    var monk = app.get('monk');
+    var config = app.get('config');
+
+    var collections = {};
+    collections.users = monk.get('GPOusers');
+
+    var error = null;
+    //This function gets input for both POST and GET for now
+    var updateDocs = utilities.getRequestInputs(req).addDocs;
+    try {
+      updateDocs = JSON.parse(updateDocs);
+    }catch (ex) {
+      return res.json(utilities.getHandleError({},'InvalidJSON')('Add Doc is not valid JSON.'));
+    }
+
+    //If they pass an array of docs don't support multiple thumbnails for now.
+    //Can add later when we know how front end will pass them
+    if (!Array.isArray(updateDocs)) {
+      updateDocs = [updateDocs];
+    }
+
+    //Set up the method to run the updates with
+    var useSync = false;
+    var asyncRowLimit = 5;
+
+    var UpdateGPOclass = require(app.get('appRoot') + 'shared/AddExternalGPOuser');
+
+    //This function will get the Update Class Instance needed to run .update
+    var getUpdateClassInstance = function(row) {
+      var updateInstance = new UpdateGPOclass(collections,req.session,config);
+      //Don't need to add anything else like thumbnail to the instance, just return the instance
+      return updateInstance;
+    };
+
+    //This function handles the batch update process and is reusable
+    var batchUpdateGPO = require(app.get('appRoot') + '/shared/batchUpdateGPO');
+    batchUpdateGPO(updateDocs,getUpdateClassInstance,'External User','username',useSync,asyncRowLimit)
+      .catch(function(err) {
+        res.json(utilities.getHandleError({},'UpdateError')('Error running batchUpdateGPO.' + err.stack));
+      })
+      .done(function(resObjects) {
+        res.json(resObjects);
+      });
+
+    //End of addExternal endpoint
+  });
+
   return router;
 };

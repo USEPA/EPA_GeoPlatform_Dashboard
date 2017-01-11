@@ -8,7 +8,7 @@ module.exports = function(updateDocs, getUpdateClassInstance, updateName,
   var hr = new hrClass();
 
   //This is global result object that will be passed back to user
-  var resObjects = {errors: []};
+  var resObjects = {errors: [], body: []};
   //To keep count when looping over promises
   var updateGPOrow = 1;
   //Function we will use to update set with this variable
@@ -70,18 +70,20 @@ module.exports = function(updateDocs, getUpdateClassInstance, updateName,
     updateGPOrow += 1;
 
     return updateGPOinstance.update(updateDoc)
-      .then(function() {
+      .then(function(resObject) {
         //Update the resObjects and update the count
         //if (updateGPOinstance.resObject.errors.length>0) resObjects.errors.push(updateGPOinstance.resObject.errors);
         //even if no errors add to array. at end if there are no errors
         //for any doc then return null.
         resObjects.errors.push(updateGPOinstance.resObject.errors);
+        resObjects.body.push(updateGPOinstance.resObject.body);
       })
       .catch(function(err) {
         resObjects.errors.push('Error updating ' + updateDoc[updateID] +
           ' : ' + err.message);
         console.error('Error updating Single GPO ' + updateName + ' ' +
           updateDoc[updateID] + ' : ' + err.stack);
+        resObjects.body.push(updateGPOinstance.resObject.body);
       })
   }
 
