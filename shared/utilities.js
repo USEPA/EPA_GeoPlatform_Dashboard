@@ -63,7 +63,8 @@ utilities.getHandleError = function(resObject,code) {
     }
     var message = error.message || error;
     resObject.errors.push({message: message, code: code});
-    resObject.body = null;
+    //Don't null out body anymore so we can stash stuff here that might be helpful
+    //resObject.body = null;
     console.error('getHandleError  ' + (error.stack || error));
     return resObject;
   }

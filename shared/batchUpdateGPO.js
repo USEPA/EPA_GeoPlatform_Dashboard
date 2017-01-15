@@ -1,5 +1,5 @@
 module.exports = function(updateDocs, getUpdateClassInstance, updateName,
-                          updateID, useSync, AsyncRowLimit) {
+                          updateID, useSync, AsyncRowLimit, updateCommand) {
   //UpdateClassMembers are extra members to UpdateClass such as thumbnail
   //updateClassConstructorArgs are args passed to constructor
   var Q = require('q');
@@ -16,6 +16,8 @@ module.exports = function(updateDocs, getUpdateClassInstance, updateName,
   //This is instance of the update class
   var updateGPOinstance = null;
 
+  //Added this so that other commands other than update could be called with this batch function
+  var updateCommand = updateCommand || 'update';
   if (useSync) {
     console.log('Updating using Sync');
     updateGPOfunction = updateGPOsync;
@@ -69,7 +71,9 @@ module.exports = function(updateDocs, getUpdateClassInstance, updateName,
     //This only needed for sync loop which goes in order
     updateGPOrow += 1;
 
-    return updateGPOinstance.update(updateDoc)
+    //Usually updateCommand is "update" but this allows other functions to run over batch
+    return updateGPOinstance[updateCommand].call(updateGPOinstance, updateDoc)
+//    return updateGPOinstance.update(updateDoc)
       .then(function(resObject) {
         //Update the resObjects and update the count
         //if (updateGPOinstance.resObject.errors.length>0) resObjects.errors.push(updateGPOinstance.resObject.errors);
