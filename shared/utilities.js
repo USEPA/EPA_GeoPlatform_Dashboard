@@ -640,5 +640,14 @@ utilities.getToken = function(portal,credentials) {
     });
 };
 
+//Have to do this because when the function in .then is called it is called
+//from global scope
+utilities.getSelfInvokedFunction = function(f) {
+  var self = this;
+  return function(x) {
+    return f.call(self,x);
+  }
+};
+
 module.exports = utilities;
 
