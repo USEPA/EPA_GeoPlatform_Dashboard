@@ -174,6 +174,34 @@ AddGPOuser.prototype.checkExternal = function(checkDoc) {
 
 AddGPOuser.prototype.checkUsername = function(username) {
   var self = this;
+  //The last suggestion will be the last one that was not nothing
+  var lastSuggestion = null;
+  var currentSuggestion = null;
+
+  var count = 0;
+  //set limit so we don't get in infinite loop
+  var limit = 10;
+  var whileCondition = function () {
+    count += 1;
+    console.log("count " + count);
+    return (count == 1 || currentSuggestion) && count<limit;
+  };
+  var promiseFunction = function () {
+    return self.checkUsernameInner(username,count)
+      .then(function (suggested) {
+        console.log(suggested);
+        if (suggested) lastSuggestion = suggested;
+        currentSuggestion = suggested;
+      });
+  };
+  return self.hr.promiseWhile(whileCondition, promiseFunction)
+    .then(function () {
+      return lastSuggestion;
+    });
+};
+
+AddGPOuser.prototype.checkUsernameInner = function(username,count) {
+  var self = this;
 
   var url = self.config.portal + '/sharing/rest/community/checkUsernames/';
 //  var qs = {f: 'json'};
@@ -185,14 +213,22 @@ AddGPOuser.prototype.checkUsername = function(username) {
       //return suggested only if it is different than requested
       var suggested = body.usernames[0].suggested;
       if (Array.isArray(body.usernames) && body.usernames.length>0 && body.usernames[0].requested!=suggested) {
-        // Esri attachs number to very end but we want number before the _EPAEXT
+        var duplicateNumber = count+1;
+        //If they pass a count then use the next number is series to distinguish this duplicate username. otherwise use what ESRI returns.
         var reEPAEXT = RegExp("_EPAEXT(\\d+)$");
-        return suggested.replace(reEPAEXT,"") + suggested.match(reEPAEXT)[1] + "_EPAEXT";
+        if (! count ) {
+          // Esri attachs number to very end but we want number before the _EPAEXT
+          duplicateNumber = suggested.match(reEPAEXT)[1];
+        }
+        console.log("dup num " + duplicateNumber);
+        return suggested.replace(reEPAEXT,"") + duplicateNumber + "_EPAEXT";
       }else {
         return null;
       }
     });
 };
+
+
 
 AddGPOuser.prototype.inviteUser = function() {
   var self = this;
