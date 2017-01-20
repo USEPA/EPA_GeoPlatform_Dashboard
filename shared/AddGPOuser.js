@@ -79,19 +79,14 @@ AddGPOuser.prototype.addExternal = function(addDoc) {
 
   return self.checkUsername(addDoc.username)
     .then(function(suggested) {
+      if (suggested) addDoc.username = suggested;
+    })
+    .then(function () {return self.inviteUser()})
+    .then(function () {return self.getRemoteUser()})
+    .then(function (user) {return self.addLocalUser(user)})
+    .then(function (user) {
       if (! self.resObject.body) self.resObject.body = {};
-      self.resObject.body.requested = addDoc.username;
-      if (suggested) {
-        self.utilities.getHandleError(self.resObject,'UsernameTaken')
-        (self.updateName + ' ' + addDoc.username + ' is already in system. Try suggested username: ' + suggested);
-        self.resObject.body.suggested = suggested;
-        return false;
-      }else {
-        //Invite User then Get this New User From AGOL and Update Local Mongo
-        return self.inviteUser()
-          .then(function () {return self.getRemoteUser()})
-          .then(function (user) {return self.addLocalUser(user)});
-      }
+      self.resObject.body.user = user;
     })
     .catch(function(err) {
       console.error('Error running AddExternalGPOuser.update for ' +
@@ -179,17 +174,15 @@ AddGPOuser.prototype.checkUsername = function(username) {
   var currentSuggestion = null;
 
   var count = 0;
-  //set limit so we don't get in infinite loop
-  var limit = 10;
+  //set limit so we don't get in infinite loop.  Must set higher than expected number of duplicate users
+  var limit = 1000;
   var whileCondition = function () {
     count += 1;
-    console.log("count " + count);
     return (count == 1 || currentSuggestion) && count<limit;
   };
   var promiseFunction = function () {
     return self.checkUsernameInner(username,count)
       .then(function (suggested) {
-        console.log(suggested);
         if (suggested) lastSuggestion = suggested;
         currentSuggestion = suggested;
       });
@@ -202,11 +195,15 @@ AddGPOuser.prototype.checkUsername = function(username) {
 
 AddGPOuser.prototype.checkUsernameInner = function(username,count) {
   var self = this;
+  var reEPAEXT = RegExp("_EPAEXT(\\d*)$");
 
   var url = self.config.portal + '/sharing/rest/community/checkUsernames/';
 //  var qs = {f: 'json'};
   var qs = {token: self.session.token,f: 'json'};
-  var requestPars = {method: 'post', url: url, formData: {usernames: username}, qs: qs };
+  var formData = {usernames: username};
+  if (count > 1) formData.usernames = username.replace(reEPAEXT,"") + count.toString() + "_EPAEXT";
+
+  var requestPars = {method: 'post', url: url, formData: formData, qs: qs };
 
   return self.hr.callAGOL(requestPars)
     .then(function (body) {
@@ -214,14 +211,14 @@ AddGPOuser.prototype.checkUsernameInner = function(username,count) {
       var suggested = body.usernames[0].suggested;
       if (Array.isArray(body.usernames) && body.usernames.length>0 && body.usernames[0].requested!=suggested) {
         var duplicateNumber = count+1;
+        var usernamePart = username.replace(reEPAEXT,"");
         //If they pass a count then use the next number is series to distinguish this duplicate username. otherwise use what ESRI returns.
-        var reEPAEXT = RegExp("_EPAEXT(\\d+)$");
         if (! count ) {
           // Esri attachs number to very end but we want number before the _EPAEXT
           duplicateNumber = suggested.match(reEPAEXT)[1];
+          usernamePart = suggested.replace(reEPAEXT,"");
         }
-        console.log("dup num " + duplicateNumber);
-        return suggested.replace(reEPAEXT,"") + duplicateNumber + "_EPAEXT";
+        return usernamePart + duplicateNumber + "_EPAEXT";
       }else {
         return null;
       }
