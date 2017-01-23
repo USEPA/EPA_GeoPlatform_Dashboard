@@ -63,7 +63,8 @@ utilities.getHandleError = function(resObject,code) {
     }
     var message = error.message || error;
     resObject.errors.push({message: message, code: code});
-    resObject.body = null;
+    //Don't null out body anymore so we can stash stuff here that might be helpful
+    //resObject.body = null;
     console.error('getHandleError  ' + (error.stack || error));
     return resObject;
   }
@@ -637,6 +638,15 @@ utilities.getToken = function(portal,credentials) {
     .then(function () {
       return hr.saved.token;
     });
+};
+
+//Have to do this because when the function in .then is called it is called
+//from global scope
+utilities.getSelfInvokedFunction = function(f) {
+  var self = this;
+  return function(x) {
+    return f.call(self,x);
+  }
 };
 
 module.exports = utilities;
