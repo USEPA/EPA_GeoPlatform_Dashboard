@@ -13,60 +13,31 @@ if (!env) {
   env = 'local';
 }
 
-//save the environment to put the config object at end. env variable changes as we are inheriting diff envs below
-var saveEnv = env;
-
-//If local environment then start with full staging config and merge in local
+//Get the config for the env (local, staging, production)
 //config (local config overrides)
-var localconfig = null;
-if (env === 'local') {
-  try {
-    localconfig = require('./env/' + env);
-  }
-  catch (e) {
-    localconfig = null;
-    //Console.log('Configuration File: ' + env + '.js does not exist:' + e);
-  }
-  //Set env to staging now to use that as a base for local before local
-  //overrides
-  env = 'staging';
-}
-
-//If dev environment then start with full production config and merge in dev
-//config (dev config overrides)
-//Not local get local over riding dev over riding prod
-var stgconfig = null;
-if (env === 'staging') {
-  try {
-    stgconfig = require('./env/' + env);
-  }
-  catch (e) {
-    stgconfig = null;
-    //Console.log('Configuration File: ' + env + '.js does not exist');
-  }
-  //Set env to production now to use that as a base for local before local
-  //overrides
-  env = 'production';
-}
-
-//If config doesn't exist then log an error doesn't exist
+var envconfig = null;
 try {
-  config = require('./env/' + env);
+  envconfig = require('./env/' + env);
 }
 catch (e) {
-  //Console.log('Configuration File: ' + env + '.js does not exist');
+  envconfig = null;
+  console.error('Configuration File: ' + env + '.js does not exist:' + e);
 }
 
-//Now merge in stgconfig if it exists
-if (stgconfig) {
-  merge.recursive(config, stgconfig);
+//Get the default config
+try {
+  config = require('./env/default');
 }
-//Now merge in localconfig if it exists
-if (localconfig) {
-  merge.recursive(config, localconfig);
+catch (e) {
+  console.error('Configuration File: default.js does not exist');
+}
+
+//Now merge in env config with default config
+if (envconfig) {
+  merge.recursive(config, envconfig);
 }
 
 //save the environment on the config object also in case caller needs to reference it
-config.env = saveEnv;
+config.env = env;
 
 module.exports = config;
