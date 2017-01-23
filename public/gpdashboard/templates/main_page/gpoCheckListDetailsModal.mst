@@ -54,14 +54,24 @@
                             <input type="text" id="isoInputEmail" class="form-control" data-bind="value: selected().doc().approval.ISOemail, disable: selected().doc().approval.status()==='approved', valueUpdate:'afterkeydown'" aria-describedby="ISOemail">
                         </div>
                         <span id="isohelpBlock" class="help-block"><a href="http://intranet.epa.gov/oei/saiso/ISSO.html" target="_blank">Emails for ISO can be found here</a></span>
-                        <div class="input-group">
-                            <span class="input-group-addon" id="checkListEmailCCLabel">CC</span>
-                            <input type="text" id="checkListEmailCC" class="form-control" data-bind="valueUpdate:'afterkeydown'" aria-describedby="checkListEmailCCLabel">
+                        <div class="input-group" data-bind="visible: selected().doc().approval.status()!='approved'">
+
+                              <input type="checkbox" data-bind="checked: selected().emailEdit, click: loadEmailTemplate" /> Customize Email
                         </div>
-                        <div class="form-group has-success" >
-                            <label>Email Body</label>
-                            <textarea class="form-control" id="checklistEmailBox" data-bind="wysiwyg: selected().emailTextBody, valueUpdate: 'afterkeydown'" rows="6" placeholder="Description"></textarea>
-                        </div>
+
+                          <div class="input-group" data-bind="visible: selected().emailEdit" >
+                              <span class="input-group-addon" id="checkListEmailCCLabel">CC</span>
+                              <input type="text" id="checkListEmailCC" class="form-control" data-bind="valueUpdate:'afterkeydown'" aria-describedby="checkListEmailCCLabel">
+                          </div>
+
+                          <div class="form-group has-success" data-bind="visible: selected().emailEdit">
+                              <label>Email Body</label>
+                              <textarea class="form-control" id="checklistEmailBox" data-bind="wysiwyg: selected().emailTextBody, valueUpdate: 'afterkeydown'" rows="6" placeholder="Description"></textarea>
+                          </div>
+
+
+
+
                     </div>
                 </div>
             </div>

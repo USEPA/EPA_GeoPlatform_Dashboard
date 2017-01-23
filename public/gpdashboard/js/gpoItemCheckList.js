@@ -185,6 +185,7 @@ egam.models.gpoItemCheckList.FullModelClass = function(doc, index, parent) {
   }
   this.IMOaudit = ko.observable(false);
   this.ISOaudit = ko.observable(false);
+  this.emailEdit =ko.observable(false);
 
   //This is the doc
   this.doc = ko.observable(ko.mapping.fromJS(ko.utils.unwrapObservable(doc)));
@@ -247,8 +248,8 @@ egam.models.gpoItemCheckList.DetailsModel.prototype.select = function(item) {
                             "email": egam.communityUser.email
                         };
                         param.owner = {
-                          "fullName":user["0"].fullName,
-                          "email": user["0"].email
+                            "fullName":user["0"].fullName,
+                            "email": user["0"].email
                         };
                         param.AuthGroup = fullRowModel.doc().submission.authGroup;
                         param.titles = fullRowModel.itemDocs;
@@ -268,7 +269,9 @@ egam.models.gpoItemCheckList.DetailsModel.prototype.select = function(item) {
             error: function(er){
                 console.log("There was an error :: ", er);
             }
-        });
+//         });
+
+
     });
 };
 
@@ -288,10 +291,18 @@ egam.models.gpoItemCheckList.DetailsModel.prototype.getOwnerInfo = function(user
     return egam.utilities.queryEndpoint("gpousers/list",query,projection)
 };
 
+egam.models.gpoItemCheckList.DetailsModel.prototype.loadEmailTemplate = function(item) {
+    console.log("this is the item");
+};
 
 //Post to mongo to make items public
 egam.models.gpoItemCheckList.DetailsModel.prototype.makeChecklistPublic = function(item) {
   var self = this;
+
+  //Get CC address list
+  var ccList = $('#checkListEmailCC').val();
+  var emailEdited = $('#collapseEditEmail').attr('aria-expanded');
+
   //object to send to endpoint for request to make an checklist public
   //localhost/gpdashboard/gpochecklists/update?updateDocs={"_id":"577c3677f54235d82ebbc4b3","approval":{"status":"approved","ISOemail":"iso@test.com","IMOemail":"imo@test.com"}}
   var approvalPost = {
@@ -301,6 +312,7 @@ egam.models.gpoItemCheckList.DetailsModel.prototype.makeChecklistPublic = functi
       ISOemail: item.selected().doc().approval.ISOemail(), //'ISOemail',
       IMOemail: item.selected().doc().approval.IMOemail(), // 'IMOemail'
       emailBody: item.selected().emailTextBody(),
+      ccAdd: ccList
     }
   };
 
@@ -334,7 +346,7 @@ egam.models.gpoItemCheckList.DetailsModel.prototype.makeChecklistPublic = functi
       });
 //Clear out the checked items in case something is checked
       egam.pages.gpoItems.table.checkAll('id',false);
-      //Send Email
+
 
     },
     error: function(jqXHR, textStatus, errorThrown) {
