@@ -2,6 +2,15 @@
 
 var Q = require('q');
 
+var appRoot = require('app-root-path');
+var utilities = require(appRoot + '/shared/utilities');
+var splitPathDriveLetter = utilities.splitPathDriveLetter(appRoot.path);
+console.log(appRoot.path);
+console.log(splitPathDriveLetter[0]);
+console.log(splitPathDriveLetter[1]);
+
+
+return;
 
 var MonkClass = require('monk');
 

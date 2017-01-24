@@ -19,6 +19,12 @@ var monk = MonkClass(config.mongoDBurl);
 var npmInstallFlag = ' --production';
 if (config.env=='local' ) npmInstallFlag = '';
 
+//Have to set the HOMEPATH env variable so that .pm2/ directory with logs, etc. will be put in app root
+//Strip drive letter off path. This is what pm2 seems to want
+var splitPathDriveLetter = utilities.splitPathDriveLetter(appRoot.path);
+process.env['HOMEDRIVE'] = splitPathDriveLetter[0];
+process.env['HOMEPATH'] = splitPathDriveLetter[1];
+
 return runGitCommands()
   .then(runExternalCommand.getRunFunction('npm install' + npmInstallFlag))
   .then(runExternalCommand.getRunFunction('bower install'))
