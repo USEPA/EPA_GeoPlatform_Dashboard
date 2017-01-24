@@ -816,13 +816,13 @@ DownloadGPOusers.prototype.getGPOentitlements = function() {
         var userEntitlements = JSON.parse(response[0].body)['userEntitlements'];
         //Loop through the entitlements, one user at a time.
         userEntitlements.forEach(function(item) {
-          ctr++;
           //Create a new field for download date
           item['date'] = Date.now();
           //Push doc.field to the array now
           //Find this user in the user collection
           return userscollection.findOne({username: item['username']})
             .then(function(user) {
+              ctr++;
               //Get this user's authgroup to store in entitlements collection.
               item['authGroups'] = user.authGroups;
               //Check to see if the downloaded entitlements for this user are
