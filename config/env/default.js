@@ -42,7 +42,7 @@ module.exports = {
       ,admins: 'aaron.evans@cgi.com;brett.gaines@cgi.com;bryan.chastain@cgi.com;dyarnell@innovateteam.com;Hultgren.Torrin@epa.gov',defaultFrom: 'egam@epa.gov'
       ,disabled: true},
     superUserGroup: 'GP Dashboard Superuser Group',
-    opsUsers: ['aaron.evans_EPA','thultgre_EPA','dyarnell_EPA'],
+    opsUsers: ['aaron.evans_EPA','thultgre_EPA','dyarnell_EPA','Chastain.Bryan_EPA'],
     scripts:
     {downloadGPOdata:
     {onlyGetMetaData:true}},
