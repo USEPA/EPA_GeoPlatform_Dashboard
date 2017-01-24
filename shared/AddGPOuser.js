@@ -4,10 +4,10 @@ var Q = require('Q');
 
 var UpdateGPOgenericClass = require(appRoot + '/shared/UpdateGPOgeneric');
 //Call parent constructor and then use child constructor stuff too
-utilities.inheritClass(UpdateGPOgenericClass,AddExternalGPOuser);
+utilities.inheritClass(UpdateGPOgenericClass,AddGPOuser);
 
 //Name this function so that class name will come up in debugger, etc.
-function AddExternalGPOuser(collections,session,config) {
+function AddGPOuser(collections,session,config) {
   //Run the parent constructor first
   // "username" is the updateKey used for updating
   // "user" is just updateName which is text used on errors, logging, etc
@@ -32,8 +32,7 @@ function AddExternalGPOuser(collections,session,config) {
 
 }
 
-//can't really use the generic update here. Have to write a custom update method. Really should be called "add" but to reuse batch update class it calls .update
-AddExternalGPOuser.prototype.update = function(addDoc) {
+AddGPOuser.prototype.addExternal = function(addDoc) {
   var self = this;
 
   if (!self.session.user.isAdmin) {
@@ -42,10 +41,10 @@ AddExternalGPOuser.prototype.update = function(addDoc) {
     return Q.fcall(function() {return false});
   }
 
-  //If there are no fields or now key field in update Doc then return
-  if (Object.keys(addDoc).length === 0) {
-    self.utilities.getHandleError(self.resObject,'EmptyAddDoc')
-    ('Update doc for ' + self.updateName + ' does not have any fields ');
+  //If no AddDoc passed then return error
+  if (!addDoc || typeof addDoc != 'object') {
+    self.utilities.getHandleError(self.resObject,'AddDocMissing')
+    ('Add doc for ' + self.updateName + ' is missing or not an object ');
     return Q.fcall(function() {return false});
   }
 
@@ -80,18 +79,14 @@ AddExternalGPOuser.prototype.update = function(addDoc) {
 
   return self.checkUsername(addDoc.username)
     .then(function(suggested) {
-      if (suggested) {
-        self.utilities.getHandleError(self.resObject,'UsernameTaken')
-        (self.updateName + ' ' + addDoc.username + ' is already in system. Try suggested username: ' + suggested);
-        if (! self.resObject.body) self.resObject.body = {};
-        self.resObject.body.suggested = suggested;
-        return false;
-      }else {
-        //Invite User then Get this New User From AGOL and Update Local Mongo
-        return self.inviteUser()
-          .then(function () {return self.getRemoteUser()})
-          .then(function (user) {return self.addLocalUser(user)});
-      }
+      if (suggested) addDoc.username = suggested;
+    })
+    .then(function () {return self.inviteUser()})
+    .then(function () {return self.getRemoteUser()})
+    .then(function (user) {return self.addLocalUser(user)})
+    .then(function (user) {
+      if (! self.resObject.body) self.resObject.body = {};
+      self.resObject.body.user = user;
     })
     .catch(function(err) {
       console.error('Error running AddExternalGPOuser.update for ' +
@@ -110,29 +105,129 @@ AddExternalGPOuser.prototype.update = function(addDoc) {
     });
 };
 
-AddExternalGPOuser.prototype.checkUsername = function(username) {
+AddGPOuser.prototype.checkExternal = function(checkDoc) {
   var self = this;
+
+  if (!self.session.user.isAdmin) {
+    self.utilities.getHandleError(self.resObject,'InvalidAccess')
+    ('You do not have Access to Check External User ');
+    return Q.fcall(function() {return false});
+  }
+
+  //If no checkDoc passed or not object then return error
+  if (!checkDoc || typeof checkDoc != 'object') {
+    self.utilities.getHandleError(self.resObject,'CheckDocMissing')
+    ('Add doc for ' + self.updateName + ' is missing or not an object ');
+    return Q.fcall(function() {return false});
+  }
+
+  //Require userName or first and lastname
+  if (!(checkDoc.firstname && checkDoc.lastname) && ! checkDoc.username) {
+    self.utilities.getHandleError(self.resObject,'RequiredFieldsMissing')
+    ('Either First and Last Name or Username is required for checking username.');
+    return Q.fcall(function() {return false});
+  }
+
+  //If there is no username passed then use first and last name get username (lastfirst_EPAEXT)
+  //ESRI uses email to get username in it's "suggestion" but EPA wants last and first
+  if (! checkDoc.username) {
+    checkDoc.username = checkDoc.lastname.toLowerCase() + '.' + checkDoc.firstname.toLowerCase() + '_EPAEXT';
+  }
+
+  //If passed username does not have _EPAEXT at end then force it to do so
+  if (! /_EPAEXT$/.test(checkDoc.username)) {
+    checkDoc.username += '_EPAEXT';
+  }
+
+  if (checkDoc) {
+    self.updateDoc = checkDoc;
+  }
+
+  return self.checkUsername(checkDoc.username)
+    .then(function(suggested) {
+      if (! self.resObject.body) self.resObject.body = {};
+      self.resObject.body.requested = checkDoc.username;
+      if (suggested) {
+        self.utilities.getHandleError(self.resObject,'UsernameTaken')
+        ('username ' + checkDoc.username + ' is already in system. Try suggested username: ' + suggested);
+        self.resObject.body.suggested = suggested;
+        return false;
+      }else {
+      }
+    })
+    .catch(function(err) {
+      console.error('Error running AddExternalGPOuser.update for ' +
+        self.updateName + ' ' + checkDoc.username +
+        ' : ' + err.stack) ;
+      self.utilities.getHandleError(self.resObject,'UpdateError')(err);
+    })
+    .then(function() {
+      //Now that update is done we can finally return result
+      return self.resObject;
+    });
+};
+
+AddGPOuser.prototype.checkUsername = function(username) {
+  var self = this;
+  //The last suggestion will be the last one that was not nothing
+  var lastSuggestion = null;
+  var currentSuggestion = null;
+
+  var count = 0;
+  //set limit so we don't get in infinite loop.  Must set higher than expected number of duplicate users
+  var limit = 1000;
+  var whileCondition = function () {
+    count += 1;
+    return (count == 1 || currentSuggestion) && count<limit;
+  };
+  var promiseFunction = function () {
+    return self.checkUsernameInner(username,count)
+      .then(function (suggested) {
+        if (suggested) lastSuggestion = suggested;
+        currentSuggestion = suggested;
+      });
+  };
+  return self.hr.promiseWhile(whileCondition, promiseFunction)
+    .then(function () {
+      return lastSuggestion;
+    });
+};
+
+AddGPOuser.prototype.checkUsernameInner = function(username,count) {
+  var self = this;
+  var reEPAEXT = RegExp("_EPAEXT(\\d*)$");
 
   var url = self.config.portal + '/sharing/rest/community/checkUsernames/';
 //  var qs = {f: 'json'};
   var qs = {token: self.session.token,f: 'json'};
-  var requestPars = {method: 'post', url: url, formData: {usernames: username}, qs: qs };
+  var formData = {usernames: username};
+  if (count > 1) formData.usernames = username.replace(reEPAEXT,"") + count.toString() + "_EPAEXT";
+
+  var requestPars = {method: 'post', url: url, formData: formData, qs: qs };
 
   return self.hr.callAGOL(requestPars)
     .then(function (body) {
       //return suggested only if it is different than requested
       var suggested = body.usernames[0].suggested;
       if (Array.isArray(body.usernames) && body.usernames.length>0 && body.usernames[0].requested!=suggested) {
-        // Esri attachs number to very end but we want number before the _EPAEXT
-        var reEPAEXT = RegExp("_EPAEXT(\\d+)$");
-        return suggested.replace(reEPAEXT,"") + suggested.match(reEPAEXT)[1] + "_EPAEXT";
+        var duplicateNumber = count+1;
+        var usernamePart = username.replace(reEPAEXT,"");
+        //If they pass a count then use the next number is series to distinguish this duplicate username. otherwise use what ESRI returns.
+        if (! count ) {
+          // Esri attachs number to very end but we want number before the _EPAEXT
+          duplicateNumber = suggested.match(reEPAEXT)[1];
+          usernamePart = suggested.replace(reEPAEXT,"");
+        }
+        return usernamePart + duplicateNumber + "_EPAEXT";
       }else {
         return null;
       }
     });
 };
 
-AddExternalGPOuser.prototype.inviteUser = function() {
+
+
+AddGPOuser.prototype.inviteUser = function() {
   var self = this;
 
   var url = self.config.portal + '/sharing/rest/portals/self/invite';
@@ -175,7 +270,7 @@ AddExternalGPOuser.prototype.inviteUser = function() {
     });
 };
 
-AddExternalGPOuser.prototype.getInviteEmail = function() {
+AddGPOuser.prototype.getInviteEmail = function() {
   var self = this;
   var fs = require('fs');
   var mustache = require('mustache');
@@ -199,7 +294,7 @@ AddExternalGPOuser.prototype.getInviteEmail = function() {
     })
 };
 
-AddExternalGPOuser.prototype.getInviteSponsor = function(sponsor) {
+AddGPOuser.prototype.getInviteSponsor = function(sponsor) {
   var self = this;
   var loggedInInfo = {
       fullName:self.session.user.fullName,
@@ -227,7 +322,7 @@ AddExternalGPOuser.prototype.getInviteSponsor = function(sponsor) {
   });
 };
 
-AddExternalGPOuser.prototype.getRemoteUser = function() {
+AddGPOuser.prototype.getRemoteUser = function() {
   var self = this;
 
   var url = self.config.portal + '/sharing/rest/community/users/' + self.updateDoc.username;
@@ -247,7 +342,7 @@ AddExternalGPOuser.prototype.getRemoteUser = function() {
     });
 };
 
-AddExternalGPOuser.prototype.addLocalUser = function(user) {
+AddGPOuser.prototype.addLocalUser = function(user) {
   var self = this;
   //Not sure why I limited the user saved to mongo in DownloadGPOusers.js to these fields and those that updateAuthGroupsAndOwnerIDs.updateAuthGroups add
   //First just put these limited fields in and then use updateAuthGroup to add email,role,isAdmin,etc
@@ -267,4 +362,4 @@ AddExternalGPOuser.prototype.addLocalUser = function(user) {
 
 
 
-module.exports = AddExternalGPOuser;
+module.exports = AddGPOuser;

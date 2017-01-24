@@ -63,7 +63,8 @@ utilities.getHandleError = function(resObject,code) {
     }
     var message = error.message || error;
     resObject.errors.push({message: message, code: code});
-    resObject.body = null;
+    //Don't null out body anymore so we can stash stuff here that might be helpful
+    //resObject.body = null;
     console.error('getHandleError  ' + (error.stack || error));
     return resObject;
   }
@@ -639,17 +640,26 @@ utilities.getToken = function(portal,credentials) {
     });
 };
 
+//Have to do this because when the function in .then is called it is called
+//from global scope
+utilities.getSelfInvokedFunction = function(f) {
+  var self = this;
+  return function(x) {
+    return f.call(self,x);
+  }
+};
+
 utilities.splitPathDriveLetter = function(path) {
   var drive;
   var reStrip = /^([a-zA-Z]):/;
 //Make the drive letter was actually found
   var driveMatch = path.match(reStrip);
-  if (driveMatch.length > 0)  {
+  if (driveMatch.length > 0) {
     drive = driveMatch[1];
   }
 //Strip drive letter off path. This is what pm2 seems to want
-  var path = path.replace(reStrip,"");
-  return [drive,path];
+  var path = path.replace(reStrip, "");
+  return [drive, path];
 };
 
 module.exports = utilities;
