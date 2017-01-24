@@ -649,5 +649,18 @@ utilities.getSelfInvokedFunction = function(f) {
   }
 };
 
+utilities.splitPathDriveLetter = function(path) {
+  var drive;
+  var reStrip = /^([a-zA-Z]):/;
+//Make the drive letter was actually found
+  var driveMatch = path.match(reStrip);
+  if (driveMatch.length > 0) {
+    drive = driveMatch[1];
+  }
+//Strip drive letter off path. This is what pm2 seems to want
+  var path = path.replace(reStrip, "");
+  return [drive, path];
+};
+
 module.exports = utilities;
 
