@@ -12,17 +12,9 @@ var mongoStore = require('connect-mongo')(session);
 var mongo = require('mongodb');
 var MonkClass = require('monk');
 
-var routes = require('./routes/index');
-var gpoitems = require('./routes/gpoitems');
-var gpousers = require('./routes/gpousers');
-var edgitems = require('./routes/edgitems');
-var licenseitems = require('./routes/licenseitems');
-var gpochecklists = require('./routes/gpochecklists');
-var redirectRoute = require('./routes/redirect');
-
 var app = express();
 
-console.log('GP Dashboard app.js started on:  ' + new Date());
+console.log('GP Dashboard ops-app.js started on:  ' + new Date());
 
 //Get the app root
 var appRoot = require('app-root-path') + '/';
@@ -60,26 +52,19 @@ utilities.getGridFSobject(app);
 var TasksQueues = require(appRoot + '/shared/TasksQueues');
 app.set('tasksQueues',new TasksQueues(500));
 
-// Gpintel, no engine needed - view engine setup
-//app.set('views', path.join(__dirname, 'views'));
-//app.set('view engine', 'jade');
-
-// Uncomment after placing your favicon in /public
-//app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
-
 // Create a write stream (in append mode)
-var accessLogStream = fs.createWriteStream(__dirname + '/logs/access.log', {
-  flags: 'a',
+var accessLogStream = fs.createWriteStream(__dirname + '/logs/ops/access.log', {
+  flags: 'a'
 });
 
 // Setup the logger
 app.use(logger('combined', {
-  stream: accessLogStream,
+  stream: accessLogStream
 }));
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({
-  extended: false,
+  extended: false
 }));
 app.use(cookieParser());
 
@@ -98,26 +83,34 @@ app.use(session(sessionOptions));
 //Now setup the email transporter
 var sendEmail = require(appRoot + '/shared/sendEmail');
 sendEmail.send(config.email.defaultFrom, config.email.admins,
-  'GP Dashboard Express Server Started','GP Dashboard Express' +
+  'GP Dashboard Ops Express Server Started','GP Dashboard Ops Express' +
   ' server was started on ' + new Date() +
   '. This could possibly be due to automatic restart after server crash' +
-  ' due to uncaught exceptions. Check logs/errors.log for uncaught exceptions.')
+  ' due to uncaught exceptions. Check logs/ops/errors.log for uncaught exceptions.')
   .catch(function(error) {console.error(error)});
 
-// Static route for serving out our front-end Tool
-app.use(express.static(path.join(__dirname, 'public')));
+//Set up a place to store the status of deployment.
+// Can't really use a task queue because deploy script fired from schedule task.
+// Couldn't get node server to actually execute deploy script with highest privileges the right way. works at first then crashes after few reloads.
+app.set('deployStatus',{user:null,start:null,finish:null});
 
-//In order to get through firewall need rewrite from port 80 to port 3000 via
-//reverse proxy
-//Therefore need a base directory for the app
-app.use('/gpdashboard', routes(app));
-app.use('/gpdashboard/gpoitems', gpoitems(app));
-app.use('/gpdashboard/gpousers', gpousers(app));
-app.use('/gpdashboard/edgitems', edgitems(app));
-app.use('/gpdashboard/licenseitems', licenseitems(app));
-app.use('/gpdashboard/gpochecklists', gpochecklists(app));
-//Since everything is in gpdashboard now. need localhost:3000/ to redirect to /gpdashboard/
-app.use('/', redirectRoute());
+// Static route for serving out our front-end Tool
+//Don't do static pages for now because don't want the ops tool to be public
+//app.use(express.static(path.join(__dirname, 'public')));
+
+var routes = require('./routes/ops/index');
+var deployRoute = require('./routes/ops/deploy');
+var authRoute  = require('./routes/ops/auth');
+var redirectRoute = require('./routes/redirect');
+
+//Check if user has authorization before you continuing on
+app.use('/gpdashboard-ops', authRoute(app));
+//This is the base path for ops app
+app.use('/gpdashboard-ops', routes(app));
+//Hit this for deployment
+app.use('/gpdashboard-ops/deploy', deployRoute(app));
+//Since everything is in gpdashboard-ops folder for proxy. need host:30001/ to redirect to /gpdashboard-ops/
+app.use('/', redirectRoute('/gpdashboard-ops/'));
 
 // Catch 404 and forward to error handler
 app.use(function(req, res, next) {

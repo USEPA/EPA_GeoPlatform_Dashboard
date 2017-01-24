@@ -3,6 +3,10 @@
 logs/*
 #gitignore just in here as placeholder so that log folder created when cloning
 !logs/.gitignore
+#allows ops log folder created when cloning
+!logs/ops/
+logs/ops/*
+!logs/ops/.gitignore
 
 # Runtime data
 pids
@@ -51,3 +55,6 @@ public/gpdashboard/bower_components/
 
 #this is npm run log file that gets created on error
 npm-debug.log
+
+#this is where pm2 files are stored
+.pm2/

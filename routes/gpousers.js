@@ -257,8 +257,48 @@ module.exports = function(app) {
         })
     }
   }
-
+  
   router.use('/update', function(req, res) {
+    //collections,updateDocsName,UpdateGPOclassPath,updateName,updateID, updateCommand
+    var args = {
+      updateDocsName: 'updateDocs',
+      UpdateGPOclassPath: 'shared/UpdateGPOuser',
+      updateName: 'User'
+    };
+    return callBatchUpdateGPOusers(req,res,args);
+  });
+
+  router.use('/addExternal', function(req, res) {
+    //collections,updateDocsName,UpdateGPOclassPath,updateName,updateID, updateCommand
+    var args = {
+      updateDocsName: 'addDocs',
+      UpdateGPOclassPath: 'shared/AddGPOuser',
+      updateName: 'External User',
+      updateCommand: 'addExternal'
+    };
+    return callBatchUpdateGPOusers(req,res,args);
+  });
+
+  router.use('/checkExternal', function(req, res) {
+    //collections,updateDocsName,UpdateGPOclassPath,updateName,updateID, updateCommand
+    var args = {
+      updateDocsName: 'checkDocs',
+      UpdateGPOclassPath: 'shared/AddGPOuser',
+      updateName: 'External User',
+      updateCommand: 'checkExternal'
+    };
+    return callBatchUpdateGPOusers(req,res,args);
+  });
+
+  function callBatchUpdateGPOusers(req,res,args) {
+    var monk = app.get('monk');
+    if (! args.collections) args.collections = {users: monk.get('GPOusers')};
+    if (! args.updateID) args.updateID = "username";
+
+    return callBatchUpdateGPO(req,res,args);
+  }
+  function callBatchUpdateGPO(req,res,args) {
+    //collections,updateDocsName,UpdateGPOclassPath,updateName,updateID, updateCommand
     var utilities = require(app.get('appRoot') + '/shared/utilities');
 
     //Get the stored/logged in user. If not logged in this error message sent to user
@@ -272,16 +312,13 @@ module.exports = function(app) {
     var monk = app.get('monk');
     var config = app.get('config');
 
-    var usersCollection = monk.get('GPOusers');
-    var extensionsCollection = monk.get('GPOuserExtensions');
-
     var error = null;
     //This function gets input for both POST and GET for now
-    var updateDocs = utilities.getRequestInputs(req).updateDocs;
+    var updateDocs = utilities.getRequestInputs(req)[args.updateDocsName];
     try {
       updateDocs = JSON.parse(updateDocs);
     }catch (ex) {
-      return res.json(utilities.getHandleError({},'InvalidJSON')('Update Doc is not valid JSON.'));
+      return res.json(utilities.getHandleError({},'InvalidJSON')(args.updateDocsName + ' is not valid JSON.'));
     }
 
     //If they pass an array of docs don't support multiple thumbnails for now.
@@ -294,18 +331,18 @@ module.exports = function(app) {
     var useSync = false;
     var asyncRowLimit = 5;
 
-    var UpdateGPOclass = require(app.get('appRoot') + 'shared/UpdateGPOuser');
+    var UpdateGPOclass = require(app.get('appRoot') + args.UpdateGPOclassPath);
 
     //This function will get the Update Class Instance needed to run .update
     var getUpdateClassInstance = function(row) {
-      var updateInstance = new UpdateGPOclass(usersCollection,extensionsCollection,req.session,config);
+      var updateInstance = new UpdateGPOclass(args.collections,req.session,config);
       //Don't need to add anything else like thumbnail to the instance, just return the instance
       return updateInstance;
     };
 
     //This function handles the batch update process and is reusable
     var batchUpdateGPO = require(app.get('appRoot') + '/shared/batchUpdateGPO');
-    batchUpdateGPO(updateDocs,getUpdateClassInstance,'User','username',useSync,asyncRowLimit)
+    return batchUpdateGPO(updateDocs,getUpdateClassInstance,args.updateName,args.updateID,useSync,asyncRowLimit,args.updateCommand)
       .catch(function(err) {
         res.json(utilities.getHandleError({},'UpdateError')('Error running batchUpdateGPO.' + err.stack));
       })
@@ -313,8 +350,6 @@ module.exports = function(app) {
         res.json(resObjects);
       });
 
-    //End of update endpoint
-  });
-
+  }
   return router;
 };
