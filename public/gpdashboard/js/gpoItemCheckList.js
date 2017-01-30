@@ -269,7 +269,7 @@ egam.models.gpoItemCheckList.DetailsModel.prototype.select = function(item) {
             error: function(er){
                 console.log("There was an error :: ", er);
             }
-//         });
+         });
 
 
     });
