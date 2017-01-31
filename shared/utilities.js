@@ -244,6 +244,30 @@ utilities.streamDocsFromDB = function(collection,query,projection) {
   return defer.promise;
 };
 
+utilities.getMax = function(collection,field) {
+
+  var Q = require('q');
+
+  var project = {};
+  project[field] = 1;
+
+  return Q.ninvoke(collection.col,'aggregate',
+    [
+      {
+        $group: {
+          "_id": 1,
+          "maxVal": { "$max": "$date" },
+        },
+      },
+      {
+        $project: {"maxVal": 1},
+      }
+    ])
+    .then(function(docs) {
+      return docs[0].maxVal;
+    });
+};
+
 utilities.getDistinctArrayFromDBaggregate = function(collection,query,field) {
   //Using Aggregate was VERY slow for 11,000 gpoitems on owner
 

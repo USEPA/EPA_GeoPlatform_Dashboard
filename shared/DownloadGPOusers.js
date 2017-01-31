@@ -803,6 +803,7 @@ DownloadGPOusers.prototype.getGPOentitlements = function() {
 
   var requestPars = {method: 'get', url: url, qs: parameters};
   var entitlements = [];
+  var downloadDate = Date.now();
   //Get entitlements
   return this.Q.nfcall(this.request, requestPars)
     .then(function(response) {
@@ -817,7 +818,7 @@ DownloadGPOusers.prototype.getGPOentitlements = function() {
         //Loop through the entitlements, one user at a time.
         userEntitlements.forEach(function(item) {
           //Create a new field for download date
-          item['date'] = Date.now();
+          item['date'] = downloadDate;
           //Push doc.field to the array now
           //Find this user in the user collection
           return userscollection.findOne({username: item['username']})

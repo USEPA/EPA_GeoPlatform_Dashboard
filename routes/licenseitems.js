@@ -4,6 +4,9 @@ module.exports = function(app) {
   var Q = require('q');
   //To allow multipart/form-data ie. File uploads
   var fs = require('fs');
+  var monk = app.get('monk');
+  var config = app.get('config');
+  var utilities = require(app.get('appRoot') + '/shared/utilities');
 
   var multer = require('multer');
   var upload = multer({ dest: app.get('appRoot') + '/tmp/'});
@@ -14,18 +17,9 @@ module.exports = function(app) {
   });
 
   //Function to export EDG audit failures to CSV
-  function licenseExportAudit(req, res) {
+  function licenseExportAudit(req, res, isCSV) {
     var utilities = require(app.get('appRoot') + '/shared/utilities');
 
-    //Get the stored/logged in user. If not logged in this error message sent
-    //to user
-    var user = utilities.getUserFromSession(req,res);
-
-    //If user not created then don't go on. getUserFromSession(res) already sent
-    //login error message to user
-    if (!user) {
-      return false;
-    }
     var monk = app.get('monk');
     var config = app.get('config');
 
@@ -48,7 +42,7 @@ module.exports = function(app) {
 
       var syncJson2csv = deasync(json2csv);
       var outArray = [];
-      var outFile = 'edgAudit';
+      var outFile = 'userEntitlements';
 
       outFile += '.csv';
       res.attachment(outFile);
@@ -76,66 +70,27 @@ module.exports = function(app) {
 
 
   router.use('/list', function(req, res) {
-    var utilities = require(app.get('appRoot') + '/shared/utilities');
+    var query = {};
+    var projection = {};
 
-    //Get the stored/logged in user. If not logged in this error message sent
-    //to user
-    var user = utilities.getUserFromSession(req,res);
+    // Simple call for EDG - just straight pull from Mongo
+    utilities.genericRouteListCreation(app, req, res, 'GPOuserEntitlements',
+      query, projection);
+  });
 
-    //If user not created then don't go on. getUserFromSession(res) already sent
-    //login error message to user
-    if (!user) {
-      return false;
-    }
-    var monk = app.get('monk');
-    var config = app.get('config');
+  router.use('/listcurrent', function(req, res) {
+    var query = {};
+    var projection = {};
 
     var GPOuserEntitlements = monk.get('GPOuserEntitlements');
-    var userscollection = monk.get('GPOusers');
-
-    streamLicense()
-      .catch(function(err) {
-        console.error('Error getting License stream: ' + err)
+    // Simple call for EDG - just straight pull from Mongo
+    utilities.getMax(GPOuserEntitlements, 'date')
+      .then(function(max) {
+        utilities.genericRouteListCreation(app, req, res, 'GPOuserEntitlements',
+          {date:max}, projection);
       })
-      .done(function() {
-        res.end()
-      });
-
-    function streamLicense() {
-      var json2csv = require('json2csv');
-      //Deasync will make json2csv sync so we can stream in order
-      var deasync = require('deasync');
-      var merge = require('merge');
-
-      var syncJson2csv = deasync(json2csv);
-      var outArray = [];
-      var outFile = 'edgAudit';
-
-      outFile += '.csv';
-      res.attachment(outFile);
-
-      var defer = Q.defer();
-      GPOuserEntitlements.find({}, {stream: true})
-        .each(function(doc) {
-          //Push doc.field to the array now
-          userscollection.findOne({username: doc.username}).then(function(user) {
-            var outDoc = merge.recursive({}, doc);
-            //Then add field and reason to the outDoc
-            outDoc.authGroups = user.authGroups;
-            outArray.push(outDoc);
-          });
-        })
-        .error(function(err) {
-          defer.reject('Error getting Array From DB: ' + err);
-        })
-        .success(function() {
-          //Write to CSV
-          res.write(syncJson2csv({data: outArray, hasCSVColumnTitle: true}));
-          defer.resolve(outArray);
-        });
-      return defer.promise;
-    }
   });
+
 
   return router;
 };

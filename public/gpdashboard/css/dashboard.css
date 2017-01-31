@@ -274,8 +274,15 @@ a, span, tr, h4:hover {
     align:right;
     width:50px;
   }
+  .col-md-4, .col-sm-6 {
+    padding-right: 5px;
+    padding-left: 5px;
+  }
+  .dc-chart g.row text {
+    fill: #000;
+  }
+  #licenseslider {
+    width: 495px;
+    margin-left: 20px;
+  }
 
-.col-md-4, .col-sm-6 {
-  padding-right: 5px;
-  padding-left: 5px;
-}
