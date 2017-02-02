@@ -271,7 +271,6 @@ egam.models.gpoItemCheckList.DetailsModel.prototype.select = function(item) {
             }
          });
 
-
     });
 };
 

@@ -26,7 +26,7 @@ module.exports = function(app) {
 
     //Only return gpo items where this user can see the owner's items
     //Super user is not limited by ownerIDs though
-    if (!user.isSuperUser && !user.isAdmin && !showAll) {
+    if (!user.isSuperUser && !(user.isAdmin && showAll)) {
       query.owner = {$in: user.ownerIDs};
     }
 
