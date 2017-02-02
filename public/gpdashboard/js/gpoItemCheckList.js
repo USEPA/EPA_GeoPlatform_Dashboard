@@ -84,6 +84,7 @@ egam.models.gpoItemCheckList.PageModelClass.prototype.init = function() {
       $('#gpoCheckListDetailsModal').on('hidden.bs.modal', function(e) {
         $('#isoInputEmail').val('');
         $('#imoInputEmail').val('');
+        $('#checkListEmailCC').val('');
       });
 
        defer.resolve();
@@ -185,7 +186,6 @@ egam.models.gpoItemCheckList.FullModelClass = function(doc, index, parent) {
   }
   this.IMOaudit = ko.observable(false);
   this.ISOaudit = ko.observable(false);
-  this.emailEdit =ko.observable(false);
 
   //This is the doc
   this.doc = ko.observable(ko.mapping.fromJS(ko.utils.unwrapObservable(doc)));
@@ -301,7 +301,6 @@ egam.models.gpoItemCheckList.DetailsModel.prototype.makeChecklistPublic = functi
 
   //Get CC address list
   var ccList = $('#checkListEmailCC').val();
-  var emailEdited = $('#collapseEditEmail').attr('aria-expanded');
 
   //object to send to endpoint for request to make an checklist public
   //localhost/gpdashboard/gpochecklists/update?updateDocs={"_id":"577c3677f54235d82ebbc4b3","approval":{"status":"approved","ISOemail":"iso@test.com","IMOemail":"imo@test.com"}}

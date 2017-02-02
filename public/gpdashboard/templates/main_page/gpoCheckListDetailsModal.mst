@@ -65,9 +65,6 @@
                               <textarea class="form-control" id="checklistEmailBox" data-bind="wysiwyg: selected().emailTextBody, valueUpdate: 'afterkeydown'" rows="6" placeholder="Description"></textarea>
                           </div>
 
-
-
-
                     </div>
                 </div>
             </div>
