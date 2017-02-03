@@ -12,7 +12,7 @@ module.exports = function(app) {
     var loggedInUser = utilities.getUserFromSession(req);
 
     //If the user is not in the list of opsUsers hardcoded into config file then don't let them see this page
-    if (!config.opsUsers || config.opsUsers.indexOf(loggedInUser.username) < 0 ) {
+    if (!loggedInUser || !config.opsUsers || config.opsUsers.indexOf(loggedInUser.username) < 0 ) {
       res.status(403).send('Forbidden');
     } else {
       //If they make it past authorization then they can go on to next step
