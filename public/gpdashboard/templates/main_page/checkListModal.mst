@@ -65,7 +65,7 @@
                     <thead>
                     <tr>
                         <th class="col-xs-1">
-                <span onclick="event.stopPropagation();">
+                            <span onclick="event.stopPropagation();">
                                               </span>
                         </th>
                         <th class="col-xs-3">Request Name<br>
