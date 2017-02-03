@@ -54,6 +54,7 @@ sendEmail.send = function(from,to,subject,body,html,cc,bcc) {
         from: from,
         to: to,
         cc: cc,
+        bcc: bcc,
         subject: subject,
         text: body,
         html: html
