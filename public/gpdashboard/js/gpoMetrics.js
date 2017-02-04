@@ -1,20 +1,18 @@
+var timeChart;
 function loadDC() {
-  var timeChart = dc.seriesChart('#time-chart');
+  timeChart = dc.seriesChart('#time-chart');
   var authGroupsChart = dc.rowChart('#authgroups-chart');
   var licenseCount = dc.dataCount('.dc-data-count');
-  var licenseTable = dc.dataTable('.dc-data-table');
+  //var licenseTable = dc.dataTable('.dc-data-table');
   var curDate;
+  var ndx;
   egam.utilities.getDataStash('availableAuthgroups',
     'gpoitems/authGroups');
 
   //```javascript
   d3.json('licenseitems/list', function (data) {
-    var timeFormat = d3.time.format("%Y-%m-%d");
-
-    //See the [crossfilter API](https://github.com/square/crossfilter/wiki/API-Reference) for reference.
-    var ndx = crossfilter(data);
-    var all = ndx.groupAll();
-
+    ndx = crossfilter(data);
+    // Get abbreviations for AuthGroups and store null values as Not Assigned
     data.forEach(function (d) {
       d.date = new Date(d.date);
       if (d.authGroups) {
@@ -28,34 +26,67 @@ function loadDC() {
       }
     });
 
-    // Counts per weekday
-    var authGroups = ndx.dimension(function(d) {
-      return [d.authGroups, d.date];
-    });
-    var authGroupsGroup = authGroups.group();
-
+    // Get min/max dates and current date
     var xMin = d3.min(data, function(d){ return Math.min(d.date); });
     var xMax = d3.max(data, function(d){ return Math.max(d.date); });
     var curDate = xMax;
 
-    var runDimension = ndx.dimension(function(d) {return [d.authGroups, d.date]; });
+
+    $('#authGroupExport').attr('href',
+      'licenseitems/listauthgroups.csv/date/' + curDate);
+    $('#licenseExport').attr('href',
+      'licenseitems/list.csv/date/' + curDate);
+
+    // Time chart grouped by date & authgroup
+    var runDimension = ndx.dimension(function(d) {
+      return [d.authGroups, d.date];
+    });
+    // Get counts
     var runGroup = runDimension.group().reduceCount();
 
-    var updateReferenceLine = function(chart, xVal) {
+    // Slider grouped by date
+    var dateDimension = ndx.dimension(function(d) {
+      return d['date'];
+    });
+    var dateGroup = dateDimension.group();
 
-      var left_y = 0, right_y = 60; // use real statistics here!
-      var extra_data = [{x: chart.x()(xVal), y: chart.y()(left_y)}, {x: chart.x()(xVal), y: chart.y()(right_y)}];
+    // Counts per authGroup
+    var authGroups = ndx.dimension(function(d) {
+      return d.authGroups;
+    });
+    // For authgroups use reductio to create an exception for selected date.
+    // This allows us to get counts of authgroups on this date without affecting
+    // the time chart.
+    var authGroupsGroup = reductio()
+      .exception(function(d) { return +d.date; })
+      .exceptionCount(true)
+      (authGroups.group());
+
+    // Time chart
+
+    // Function to add vertical reference line to time chart for selected time
+    var updateReferenceLine = function(chart, xVal) {
+      // From y=0 to 60
+      var left_y = 0, right_y = 60;
+      // Set it at selected value on x-axis
+      var extra_data = [{x: chart.x()(xVal), y: chart.y()(left_y)},
+        {x: chart.x()(xVal), y: chart.y()(right_y)}];
+      // Calculate line
       var line = d3.svg.line()
         .x(function(d) { return d.x; })
         .y(function(d) { return d.y; })
         .interpolate('linear');
+      // Select chart
       var chartBody = chart.select('g.chart-body');
+      // Append data
       var path = chartBody.selectAll('path.extra').data([extra_data]);
+      // Add path with red stroke
       path.enter().append('path').attr({
         class: 'extra',
         stroke: 'red',
         id: 'extra-line'
       });
+      // Draw line
       path.attr('d', line);
     };
 
@@ -63,41 +94,161 @@ function loadDC() {
       .width(600)
       .height(400)
       .margins({top: 20, right: 90, bottom: 20, left: 20})
+      // This is a series chart, which is basically multiple line charts stacked
+      // together.
       .chart(function(c) { return dc.lineChart(c).interpolate('basis'); })
-      .x(d3.time.scale()
-        .domain([xMin, xMax]))
+      .x(d3.time.scale().domain([xMin, xMax]))
       .brushOn(false)
       .clipPadding(10)
       .elasticY(true)
       .dimension(runDimension)
       .group(runGroup)
- //     .mouseZoomable(true)
+      // AuthGroup sets the series
       .seriesAccessor(function(d) {return d.key[0];})
+      // Key is date
       .keyAccessor(function(d) {return +d.key[1];})
+      // Value is count by date/group
       .valueAccessor(function(d) {return +d.value;})
-      //.legend(dc.legend().x(515).y(50).horizontal(0))
+      .colors(d3.scale.category20())
       .on('renderlet', function(chart) {
+        // On chart render, add reference line
         updateReferenceLine(chart, curDate);
       });
 
-    var myColors = d3.scale.category20()
-      .domain(timeChart.legendables().map(function(x) {
-        return x.name
-      }));
-    timeChart.colors(myColors);
 
-    var dateDimension = ndx.dimension(function(d) {
-      return d['date'];
+    // AuthGroups chart
+    var tip = d3.tip()
+      .attr('class', 'd3-tip')
+      .offset([0, 0])
+      .html(function (d) {
+        return '';
+      });
+
+    // Get value (count) of selected authGroup at current date
+    var authGroupValue = function(d) {
+      // Just get rows for the current date
+      var val = d.value.values.filter(function(e) {
+        return +e[0] == curDate;
+      });
+      // If a count exists, return it
+      if (val[0]) {
+        val = val[0][1];
+      } else {
+        // Otherwise return 0 (e.g. no AuthGroup for this date)
+        val = 0;
+      }
+      return val;
+    };
+
+    // Row chart
+    authGroupsChart
+      .width(300)
+      .height(400)
+      .margins({top: 20, left: 10, right: 10, bottom: 20})
+      .group(authGroupsGroup)
+      .dimension(authGroups)
+      .label(function(d) { return d.key; })
+      // Title sets the row text
+      .title(authGroupValue)
+      .elasticX(true)
+      .colors(d3.scale.category20())
+      .valueAccessor(authGroupValue)
+      .xAxis().ticks(4);
+
+    // Get a count of all licenses for the current date
+    var authGroupMatches = function() {
+      var total = 0;
+      authGroupsChart.group().all().forEach(function(group) {
+        var match = group.value.values.filter(function(e) {
+          return +e[0] == curDate;
+        });
+        if (match[0]) {
+          total += match[0][1];
+        } else {
+          total += 0;
+        }
+      });
+      return total;
+    };
+
+    //#### Data Count
+    licenseCount /* dc.dataCount('.dc-data-count', 'chartGroup'); */
+      .dimension({size: authGroupMatches})
+      .group({value: function() {
+        var authGroupAll = reductio()
+          .groupAll(function(r) {
+            if (+r.date == curDate) {
+              return [r];
+            }
+            return [];
+          })
+          .count(true)
+          (ndx.groupAll());
+        var total = authGroupMatches();
+        return total < authGroupAll.value().length ?
+          total : authGroupAll.value().length;
+      } })
+      .html({
+        some: '<strong>%filter-count</strong> selected out of <strong>%total-count</strong> records' +
+        ' | <a href=\'javascript:dc.filterAll(); dc.renderAll();\'>Reset All</a>',
+        all: '<strong>%filter-count</strong> total licenses provisioned on this date.'
+      });
+
+    //#### Data Table
+    var dataDim = ndx.dimension(function(d) {
+      return d.username;
+    });
+    var datatable = $("#data-table").DataTable({
+      "bPaginate": true,
+      "bLengthChange": false,
+      "bFilter": false,
+      "bSort": true,
+      "bInfo": false,
+      "bAutoWidth": false,
+      "bDeferRender": true,
+      "aaData": dataDim.top(Infinity).filter(function(d) {
+        return +d.date == curDate;
+      }),
+      "pageLength": 25,
+      "bDestroy": true,
+      "order": [[ 1, 'asc' ], [ 0, 'asc' ]],
+      "aoColumns": [
+        { "mData": "username", "sDefaultContent": ""},
+        { "mData": "authGroups", "sDefaultContent": ""},
+        { "mData": "lastLogin",
+          "sDefaultContent": " ",
+          "render": function(data) {
+            return new Date(data);
+          }
+        }
+      ]
     });
 
-    var dateGroup = dateDimension.group();
+    function RefreshTable() {
+      dc.events.trigger(function () {
+        alldata = dataDim.top(Infinity).filter(function(d) {
+          return +d.date == curDate;
+        });
+        datatable.clear();
+        datatable.rows.add(alldata);
+        datatable.draw();
+      });
+    }
 
+    for (var i = 0; i < dc.chartRegistry.list().length; i++) {
+      var chartI = dc.chartRegistry.list()[i];
+      chartI.on("filtered", RefreshTable);
+    }
+
+    // Time slider
+
+    // Get a list of all dates in the dataset for the slider values
     var validDates = dateGroup.all().map(function(d) {
       return d.key;
     });
-
+    // Object for storing dates as percentage of slider
     var sliderRange = {};
-
+    // Loop through all dates and calculate the percentage from start to finish
     validDates.forEach(function(d) {
       var pct = (d - xMin)/(xMax - xMin);
       if (pct == 0) {
@@ -109,143 +260,63 @@ function loadDC() {
       }
     });
 
-    var skipSlider = document.getElementById('licenseslider');
-
+    // Get the div for the slider
+    var skipSlider = $('#licenseslider')[0];
+    // Create a noUiSlider using the dates as range and final date as current
     noUiSlider.create(skipSlider, {
       range: sliderRange,
       snap: true,
       start: xMax
     });
-
+    // Get date label div
     var dateValues = [
-      document.getElementById('event-start'),
-      document.getElementById('event-end')
+      $('#event-start')[0]
     ];
-
-    skipSlider.noUiSlider.on('update', function( values, handle ) {
-      //skipSlider.innerHTML = validDates[values[handle]];
+    // On slider update, update label and move reference line
+    skipSlider.noUiSlider.on('update', function(values, handle) {
       dateValues[handle].innerHTML = new Date(+values[handle]);
       if (timeChart.y()) {
         curDate = values[handle];
         updateReferenceLine(timeChart, curDate);
       }
     });
-
+    // When slider is done moving, update charts
     skipSlider.noUiSlider.on('set', function( values, handle ) {
       curDate = values[handle];
-      licenseTable.group(function(d) {
-        if (+d.date == curDate) {
-          return 'Users'
-        }
-      });
+
+      $('#authGroupExport').attr('href',
+        'licenseitems/listauthgroups.csv/date/' + curDate);
+      $('#licenseExport').attr('href',
+        'licenseitems/list.csv/date/' + curDate);
+
+      RefreshTable();
+
+      authGroupsGroup = reductio()
+        .exception(function(d) { return +d.date; })
+        .exceptionCount(true)
+        (authGroups.group());
       authGroupsChart
-        .group(filterActionType(authGroupsGroup, curDate))
-        .colors(d3.scale.category20());
+        .group(authGroupsGroup);
+
       licenseCount
-        .dimension({size: function() {
-          return authGroupsChart.group().value();
+        .dimension({size: authGroupMatches})
+        .group({value: function() {
+          var authGroupAll = reductio()
+            .groupAll(function(r) {
+              if (+r.date == curDate) {
+                return [r];
+              }
+              return [];
+            })
+            .count(true)
+            (ndx.groupAll());
+          var total = authGroupMatches();
+          return total < authGroupAll.value().length ?
+            total : authGroupAll.value().length;
         } });
 
       customRenderAll();
     });
-
-    function filterActionType(source_group, xVal) {
-      var all = source_group.all().filter(function(d) {
-        return +d.key[1] == xVal;
-      });
-      var total = 0;
-      all.forEach(function(g) {
-        total += g.value;
-      });
-      return {
-        all: function () {
-          return all;
-        },
-        value: function() {
-          return total;
-        }
-      };
-    }
-
-    var tip = d3.tip()
-      .attr('class', 'd3-tip')
-      .offset([0, 0])
-      .html(function (d) {
-        return '';
-      });
-
-    authGroupsChart /* dc.rowChart('#day-of-week-chart', 'chartGroup') */
-      .width(300)
-      .height(400)
-      .margins({top: 20, left: 10, right: 10, bottom: 20})
-      .group(filterActionType(authGroupsGroup, curDate))
-      .dimension(authGroups)
-      // Assign colors to each value in the x scale domain
-      .ordinalColors(['#3182bd', '#6baed6', '#9ecae1', '#c6dbef', '#dadaeb'])
-      .label(function (d) {
-        return d.key[0];
-      })
-      // Title sets the row text
-      .title(function (d) {
-        return d.value;
-      })
-      .elasticX(true)
-      .colors(myColors)
-      .xAxis().ticks(4);
-
-
-    //#### Data Count
-
-    licenseCount /* dc.dataCount('.dc-data-count', 'chartGroup'); */
-      .dimension({size: function() {
-        return authGroupsChart.group().value();
-      } })
-      .group({value: function() {
-        return authGroupsChart.group().value() < ndx.groupAll().value() ?
-          authGroupsChart.group().value() : ndx.groupAll().value();
-      } })
-      // (_optional_) `.html` sets different html when some records or all records are selected.
-      // `.html` replaces everything in the anchor with the html given using the following function.
-      // `%filter-count` and `%total-count` are replaced with the values obtained.
-      .html({
-        some: '<strong>%filter-count</strong> selected out of <strong>%total-count</strong> records' +
-        ' | <a href=\'javascript:dc.filterAll(); dc.renderAll();\'>Reset All</a>',
-        all: '<strong>%filter-count</strong> total licenses provisioned on this date.'
-      });
-
-    //#### Data Table
-    licenseTable /* dc.dataTable('.dc-data-table', 'chartGroup') */
-      .dimension(ndx.dimension(function(d) {return d.username}))
-      // Data table does not use crossfilter group but rather a closure
-      // as a grouping function
-      .group(function(d) {
-        if (+d.date == curDate) {
-          return 'Users'
-        }
-      })
-      // (_optional_) max number of records to be shown, `default = 25`
-      .size(Infinity)
-      // There are several ways to specify the columns; see the data-table documentation.
-      // This code demonstrates generating the column header automatically based on the columns.
-      .columns([
-        // Use the `d.date` field; capitalized automatically
-        'username',
-        // Use `d.open`, `d.close`
-        'authGroups',
-        'lastLogin'
-      ])
-      .showGroups(false)
-      // (_optional_) sort using the given field, `default = function(d){return d;}`
-      .sortBy(function (d) {
-        return d.authGroups + d.username.toUpperCase();
-      })
-      // (_optional_) sort order, `default = d3.ascending`
-      .order(d3.ascending)
-      // (_optional_) custom renderlet to post-process chart using [D3](http://d3js.org)
-      .on('renderlet', function (table) {
-        table.selectAll('.dc-table-group').classed('info', true);
-      });
-
 
     var customRenderAll = function() {
       //simply call `.renderAll()` to render all charts on the page
@@ -265,12 +336,14 @@ function loadDC() {
           timeChart.legendReset();
           tip.hide;
         });
-      $($('.dc-data-table tbody')[1]).css('display', 'none');
-      console.log(ndx + authGroups + authGroupsGroup);
+
     };
+
+    window.customRenderAll = customRenderAll;
 
     customRenderAll();
 
   });
+
 
 }

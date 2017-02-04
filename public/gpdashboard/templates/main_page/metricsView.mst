@@ -3,15 +3,12 @@
         <div id="time-chart">
             <strong>AuthGroup ArcGIS Pro Licenses Over Time</strong>
             <span class="reset" style="display: none;">range: <span class="filter"></span></span>
-            <a class="reset" href="javascript:timeChart.filterAll();dc.redrawAll();" style="display: none;">reset</a>
 
             <div class="clearfix"></div>
         </div>
         <div id="authgroups-chart">
             <strong>ArcGIS Pro Licenses by AuthGroup</strong>
-            <span class="reset" style="display: none;">range: <span class="filter"></span></span>
-            <a class="reset" href="javascript:authGroupsChart.filterAll();dc.redrawAll();" style="display: none;">reset</a>
-
+            <a id="authGroupExport" class="btn btn-primary" href="licenseitems/listauthgroups.csv">Export</a>
             <div class="clearfix"></div>
         </div>
     </div>
@@ -19,16 +16,23 @@
         <div id="licenseslider">
         </div>
         <span id="event-start"></span>
-        <span id="event-end"></span>
     </div>
     <div class="row">
         <div>
             <div class="dc-data-count">
                 <span class="filter-count"></span> selected out of <span class="total-count"></span> records | <a
-                    href="javascript:dc.filterAll(); dc.renderAll();">Reset All</a>
+                    href="javascript:dc.filterAll(); customRenderAll();">Reset All</a>
             </div>
+
+            <a id="licenseExport" class="btn btn-primary" href="licenseitems/list.csv">Export</a>
         </div>
-        <table class="table table-hover dc-data-table">
+        <table id="data-table" class="table table-hover dc-data-table">
+            <thead>
+            <th>Username</th>
+            <th>Auth Group</th>
+            <th>Last ArcGIS Pro Use</th>
+            </thead>
         </table>
+
     </div>
 </script>
