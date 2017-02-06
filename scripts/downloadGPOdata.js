@@ -38,7 +38,7 @@ downloadGPOdata.AsyncAuditRowLimit = 100;
 //For overnight script we want to get slash and metadata so set to false
 //For testing overnight to only get metadata set it to true, will be much faster
 //Other application of DownloadGPOdata.
-downloadGPOdata.onlyGetMetaData = downloadGPOdataConfig.onlyGetMetaData | true;
+downloadGPOdata.onlyGetMetaData = downloadGPOdataConfig.onlyGetMetaData | false;
 
 //This will make execution must faster since we don not have to download all
 //remote items and only need to download modified
