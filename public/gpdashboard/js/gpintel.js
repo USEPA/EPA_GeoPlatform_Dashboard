@@ -142,6 +142,8 @@ $(document).ready(function() {
   $(document).on('click', '.nav li', function(e) {
     $('.nav-sidebar li').removeClass('active');
     $(this).addClass('active');
+    // Hide loading msg
+    $('div#loadingMsg').addClass('hidden');
     var view = $(this).find(':first').attr('id');
     $('#' + view + 'View').collapse('show');
     $('.view').not(document.getElementById(view)).collapse('hide');
