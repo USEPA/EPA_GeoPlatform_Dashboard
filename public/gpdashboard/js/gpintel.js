@@ -124,6 +124,8 @@ $(document).ready(function() {
       body_class: 'form-group has-success form-control',
     };
 
+    loadDC();
+
     // Load the GPHE table
     $.getScript('js/gphedata.js')
       .done(function(script, textStatus) {

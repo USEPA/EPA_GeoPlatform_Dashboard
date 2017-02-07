@@ -16,6 +16,7 @@ var routes = require('./routes/index');
 var gpoitems = require('./routes/gpoitems');
 var gpousers = require('./routes/gpousers');
 var edgitems = require('./routes/edgitems');
+var licenseitems = require('./routes/licenseitems');
 var gpochecklists = require('./routes/gpochecklists');
 var redirectRoute = require('./routes/redirect');
 
@@ -113,6 +114,7 @@ app.use('/gpdashboard', routes(app));
 app.use('/gpdashboard/gpoitems', gpoitems(app));
 app.use('/gpdashboard/gpousers', gpousers(app));
 app.use('/gpdashboard/edgitems', edgitems(app));
+app.use('/gpdashboard/licenseitems', licenseitems(app));
 app.use('/gpdashboard/gpochecklists', gpochecklists(app));
 //Since everything is in gpdashboard now. need localhost:3000/ to redirect to /gpdashboard/
 app.use('/', redirectRoute());
