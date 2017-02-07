@@ -1,4 +1,7 @@
 function loadDC() {
+  $('div#loadingMsg').removeClass('hidden');
+  $('#metricsView').addClass('hidden');
+
   var timeChart = dc.seriesChart('#time-chart');
   var authGroupsChart = dc.rowChart('#authgroups-chart');
   var licenseCount = dc.dataCount('.dc-data-count');
@@ -9,6 +12,9 @@ function loadDC() {
 
   // Call the licenseitems route to get full collection of Pro licenses
   d3.json('licenseitems/list', function(data) {
+
+    $('div#loadingMsg').addClass('hidden');
+    $('#metricsView').removeClass('hidden');
     ndx = crossfilter(data);
     // Get abbreviations for AuthGroups and store null values as Not Assigned
     data.forEach(function(d) {

@@ -124,8 +124,6 @@ $(document).ready(function() {
       body_class: 'form-group has-success form-control',
     };
 
-    loadDC();
-
     // Load the GPHE table
     $.getScript('js/gphedata.js')
       .done(function(script, textStatus) {
@@ -151,13 +149,15 @@ $(document).ready(function() {
     $('.view').not(document.getElementById(view)).collapse('hide');
     if (e.target.hash == '#edgView') {
       loadEDGitemsPage();
-    }else if (e.target.hash == '#userMgmtView') {
+    } else if (e.target.hash == '#userMgmtView') {
       // Only load user table the first time user click on userMgmtView
       populateUserMngntTable();
       // if (!egam.gpoUsers.isLoaded) {
       //   populateUserMngntTable();
       //   egam.gpoUsers.isLoaded = true;
       // }
+    } else if (e.target.hash == '#metricsView') {
+      loadDC();
     }
   });
 
