@@ -130,7 +130,7 @@ egam.models.gpoItems.PageModelClass.prototype.calculateStats = function() {
     }
   });
 
-  if (publicPassingCount) {
+  if (publicCount) {
     self.percentPublicPassing(
       Math.round((publicPassingCount / publicCount) * 100));
   }else {

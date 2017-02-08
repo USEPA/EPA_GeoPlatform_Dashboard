@@ -105,6 +105,7 @@ UpdateAuthGroupsAndOwnerIDs.prototype.updateAuthGroupsInner = function(user) {
   //later to find OwnerIDs
   //Note have to save a bunch of extra stuff here that is on the full
   //community/portal user object but not on the user search result object
+  //NOTE: maybe update user could just by copy of full user and then add the extra authGroup,isExternal, etc....
   var updateUser = {
     username: user.username,
     email: user.email,
@@ -114,6 +115,8 @@ UpdateAuthGroupsAndOwnerIDs.prototype.updateAuthGroupsInner = function(user) {
     isExternal: isExternal,
     groups: groups,
     provider: user.provider,
+    //Now also get whether esri Access is enabled which is saved in userType
+    userType: user.userType
   };
   if (isAdmin) {
     console.log('Updated Info:' + JSON.stringify(updateUser));

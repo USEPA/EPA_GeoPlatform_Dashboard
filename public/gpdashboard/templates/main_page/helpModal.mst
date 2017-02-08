@@ -66,14 +66,14 @@
                             <!--Accordion-->
                             <div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">
                                 <div class="panel panel-default">
-                                    <div class="panel-heading" role="tab" id="headingOne">
+                                    <div class="panel-heading" role="tab" id="contentTableHeading">
                                         <h4 class="panel-title">
-                                            <a role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                                            <a role="button" data-toggle="collapse" data-parent="#accordion" href="#contentTableCollapse" aria-expanded="true" aria-controls="contentTableCollapse">
                                                 GeoPlatform Online Content Table
                                             </a>
                                         </h4>
                                     </div>
-                                    <div id="collapseOne" class="panel-collapse collapse in" role="tabpanel" aria-labelledby="headingOne">
+                                    <div id="contentTableCollapse" class="panel-collapse collapse in" role="tabpanel" aria-labelledby="contentTableHeading">
                                         <div class="panel-body">
                                             <p>The GPO Content table displays the GPO items. The columns of the table are defined below:</p>
                                             <table class="table table-bordered">
@@ -108,14 +108,14 @@
                                     </div>
                                 </div>
                                 <div class="panel panel-default">
-                                    <div class="panel-heading" role="tab" id="headingTwo">
+                                    <div class="panel-heading" role="tab" id="filteringTableHeading">
                                         <h4 class="panel-title">
-                                            <a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+                                            <a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordion" href="#filteringTableCollapse" aria-expanded="false" aria-controls="filteringTableCollapse">
                                                 Searching and Filtering Table
                                             </a>
                                         </h4>
                                     </div>
-                                    <div id="collapseTwo" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingTwo">
+                                    <div id="filteringTableCollapse" class="panel-collapse collapse" role="tabpanel" aria-labelledby="filteringTableHeading">
                                         <div class="panel-body">
                                             <p>Searching - You can search the GPO content table by entering a word or phrase to search by in the search text box in
                                                 the top right corner of the table. This will search all items and columns.</p>
@@ -125,14 +125,14 @@
                                     </div>
                                 </div>
                                 <div class="panel panel-default">
-                                    <div class="panel-heading" role="tab" id="headingThree">
+                                    <div class="panel-heading" role="tab" id="detailsHeading">
                                         <h4 class="panel-title">
-                                            <a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
+                                            <a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordion" href="#detailsCollapse" aria-expanded="false" aria-controls="detailsCollapse">
                                                 Item Details
                                             </a>
                                         </h4>
                                     </div>
-                                    <div id="collapseThree" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingThree">
+                                    <div id="detailsCollapse" class="panel-collapse collapse" role="tabpanel" aria-labelledby="detailsHeading">
                                         <div class="panel-body">
                                             <p>The item details for a GPO item in the table can be displayed by clicking on the row. The item details
                                                 display the following information for an item. The validation rules are based on the <a href="https://edg.epa.gov/metadata/webhelp/en/gptlv10/inno/GenericMetadataGuide.pdf" target="_blank">EPA Generic Metadata Styleguide</a>, please read the full guide for additional recommendations.</p>
@@ -186,14 +186,14 @@
                                     </div>
                                 </div>
                                 <div class="panel panel-default">
-                                    <div class="panel-heading" role="tab" id="headingFour">
+                                    <div class="panel-heading" role="tab" id="editingHeading">
                                         <h4 class="panel-title">
-                                            <a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseFour" aria-expanded="false" aria-controls="collapseFour">
+                                            <a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordion" href="#editingCollapse" aria-expanded="false" aria-controls="editingCollapse">
                                                 Editing Item Details
                                             </a>
                                         </h4>
                                     </div>
-                                    <div id="collapseFour" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingFour">
+                                    <div id="editingCollapse" class="panel-collapse collapse" role="tabpanel" aria-labelledby="editingHeading">
                                         <div class="panel-body">
                                             <p>Editing Item Details - An items details can be edited by changing the value in the textbox next to the item detail that you wish to change.</p>
                                             <p>Changing Item Thumbnail - The thumbnail for an item can also be changed by clicking the change button under the thumbnail preview and
@@ -206,12 +206,73 @@
                                         </div>
                                     </div>
                                 </div>
+                                <div class="panel panel-default">
+                                    <div class="panel-heading" role="tab" id="publicOwnerHeading">
+                                        <h4 class="panel-title">
+                                            <a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordion" href="#publicOwnerCollapse" aria-expanded="false" aria-controls="publicOwnerCollapse">
+                                                Making Items Public - Required steps for item owner
+                                            </a>
+                                        </h4>
+                                    </div>
+                                    <div id="publicOwnerCollapse" class="panel-collapse collapse" role="tabpanel" aria-labelledby="publicOwnerHeading">
+                                        <div class="panel-body">                                           
+                                            <ol>
+                                            <li>Locate and identify the items in the GPO Content table that you want evaluated for public sharing. <i>Searching and filtering within the table can facilitate this process.</i> Check the box to the left of each item to be evaluated for public sharing. Items highlighted in pink do not pass validation and cannot be checked. Remember to check ALL related items needing evaluation. <i>Standalone items that are not a part of an overall group of related items must have individual requests for evaluation, however, related items may be grouped into one evaluation request.</i></li>
+                                            <li>Click the "Make Public" button to activate EPA GPO Public Content Checklist.</li>
+                                            <li>Enter a project name that describes your item (or group of related items). For example, "USEPA Clean Power Plan map journal, web map, and layers" describes a group of items you are submitting for evaluation: A story map and the items that are its constituent parts.</li>
+                                            <li>Review the six content standards listed on the Checklist, check the box next to your name, and click "Confirm". Once "Confirm" is clicked, a request for GP Administrator evaluation will be generated and placed under the "Requests" button.</li>
+                                            <li>Inform your GP Administrator that you have a pending request for GPO items to be evaluated for public approval. A future version of the Dashboard will generate an automatic notification to your GP Administrator.</li>
+                                            </ol>
+                                         </div>
+                                    </div>
+                                </div>
+                                <div class="panel panel-default">
+                                    <div class="panel-heading" role="tab" id="publicAdminHeading">
+                                        <h4 class="panel-title">
+                                            <a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordion" href="#publicAdminCollapse" aria-expanded="false" aria-controls="publicAdminCollapse">
+                                                Making Items Public - Required steps for Administrator
+                                            </a>
+                                        </h4>
+                                    </div>
+                                    <div id="publicAdminCollapse" class="panel-collapse collapse" role="tabpanel" aria-labelledby="publicAdminHeading">
+                                        <div class="panel-body">  
+                                            <ol>
+                                            <li>Click the "Requests" button above the GPO Content table. A pop-up window is activated showing all pending requests for public sharing.</li>
+                                            <li>Locate the item owner’s request for public sharing and click the "Details" button. A new pop-up window, "Checklist Details" is activated.</li>
+                                            <li>Review items listed under the "Items" header to ensure all content and documentation standards are met. Examine each item listed by clicking on the item name. The item’s GPO details page will open in a new browser window.</li>
+                                            <li>Approve or reject the items. To approve, use the "Checklist Details" pop-up window. Enter your organization’s IMO and ISO email addresses and click "Make Items Public". The owner’s item sharing is updated to "Public" and your IMO and ISO will receive email notification informing them about the new public content item. To reject the items click "Close".</li>
+                                            <li>Inform the item owner that their request for public sharing has been approved and the item is now publicly available, or has been rejected with the reason for the decision to reject. A future version of the Dashboard will allow the GP Administrator to inform the item owner about the approval or rejection of their request directly from the Dashboard.</li>
+                                            </ol>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="panel panel-default">
+                                    <div class="panel-heading" role="tab" id="publicGeneralHeading">
+                                        <h4 class="panel-title">
+                                            <a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordion" href="#publicGeneralCollapse" aria-expanded="false" aria-controls="publicGeneralCollapse">
+                                                Making Items Public - General Information
+                                            </a>
+                                        </h4>
+                                    </div>
+                                    <div id="publicGeneralCollapse" class="panel-collapse collapse" role="tabpanel" aria-labelledby="publicGeneralHeading">
+                                        <div class="panel-body">
+                                            <p>The process to publicly share a GPO content item requires: <ol><li>item owner’s confirmation that the item meets content standards and is fully documented</li><li>GP Administrator’s confirmation that the item is ready for public sharing.</li></ol></p>
+                                            <h5>Content and documentation standards for public GPO items:</h5>
+                                            <ul><li>The item may not contain any sensitive data or data that is otherwise inappropriate for sharing with the public. Sensitive data is: "any information, the loss, misuse, or unauthorized access to or modification of which could adversely affect the national interest or the conduct of federal programs, or the privacy to which individuals are entitled undersection 552a of title 5, United States Code (the Privacy Act), but which has not been specifically authorized under criteria established by an Executive Order or an Act of Congress to be kept in the interest of national defense or foreign."</li>
+                                            <li>The item has been through the appropriate <a href="https://www.epa.gov/product-review" target="_blank">product review</a> process as outlined by your organization.</li>
+                                            <li>Metadata on the content item details page is complete and consistent with the <a href="https://edg.epa.gov/metadata/webhelp/en/gptlv10/inno/GenericMetadataGuide.pdf#page=39" target="_blank">GeoPlatform metadata best practices guide</a>. Information or links to where the data depicted in the map can be found are included in the metadata.</li>
+                                            <li>The item is consistent with established best practices for look and feel. We recommend using <a href="http://blogs.esri.com/esri/arcgis/2012/05/03/using-a-mapmaking-checklist-for-map-design/" target="_blank">a mapmaking checklist for map design</a>.</li>
+                                            <li>The item meets all appropriate <a href="https://www.epa.gov/privacy" target="_blank">EPA Privacy Act</a> policy requirements.</li>
+                                            <li>Once the item has been made public any subsequent edits to the content item will be consistent with the guidance in this checklist.</li>
+                                            </ul>
+                                         </div>
+                                    </div>
+                                </div>
                             </div>
                             <!--end Accordion-->
                             <div>
                             </div>
                         </div>
-
                         <div role="tabpanel" class="tab-pane" id="UserManagement">
                             <h4>User Management</h4>
                             <p>This page allows administrators to manage the sponsorship of external (non-single-sign-on) accounts. Every external account must have a sponsor, and accounts must be reviewed and renewed every 90 days, or the account will be automatically disabled. Disabled accounts will be cleaned up periodically with their content items transferred to the most recent sponsor. The table shows the status of each account, when their account was last renewed, and when they are due for renewal. Any administrator may sponsor or renew the sponsorship of any external account.</p>

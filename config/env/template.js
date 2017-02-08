@@ -27,6 +27,7 @@ module.exports = {
     AGOLadminCredentials:
     {username: "",password: "",appID:"",appSecretDisable:"",expiration:1440},
     portal: "https://epa.maps.arcgis.com",
+    AGOLexternalUserRoleID: "jmc1ObdWfBTH6NAN",
 //saveUninitialized:false,resave:false limits resaving of session data that is unchanged or uninitialized
 //Enter any string for secret, something somebody would never guess
     sessionOptions: {secret:"lolwutbro",saveUninitialized:false,resave:false},

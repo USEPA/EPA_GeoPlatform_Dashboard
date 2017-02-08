@@ -63,7 +63,8 @@ utilities.getHandleError = function(resObject,code) {
     }
     var message = error.message || error;
     resObject.errors.push({message: message, code: code});
-    resObject.body = null;
+    //Don't null out body anymore so we can stash stuff here that might be helpful
+    //resObject.body = null;
     console.error('getHandleError  ' + (error.stack || error));
     return resObject;
   }
@@ -596,6 +597,47 @@ utilities.getContentTypeFromExtension = function (file) {
     var contentTypes = {html:'text/html',js:'application/javascript',json:'application/json'};
     var ext = path.extname(file).replace('.','');
     return contentTypes[ext] || null;
+};
+
+utilities.getToken = function(portal,credentials) {
+  var appRoot = require('app-root-path');
+
+  var hrClass = require(appRoot + '/shared/HandleGPOresponses');
+  var hr = new hrClass();
+
+  var tokenURL = null;
+  var parameters = null;
+  var tokenFieldName = null;
+  if (credentials.appID && credentials.appSecret) {
+    tokenURL = portal + '/sharing/oauth2/token?';
+    parameters = {
+      client_id: credentials.appID,
+      client_secret: credentials.appSecret,
+      grant_type: 'client_credentials',
+      expiration: credentials.expiration
+    };
+    tokenFieldName = 'access_token';
+  } else {
+    tokenURL = portal + '/sharing/rest/generateToken?';
+    parameters = {
+      username: credentials.username,
+      password: credentials.password,
+      client: 'referer',
+      referer: portal,
+      expiration: credentials.expiration,
+      f: 'json'
+    };
+    tokenFieldName = 'token';
+  }
+  //Pass parameters via form attribute
+  var requestPars = {method: 'post', url: tokenURL, form: parameters};
+
+  var keyMap = {};
+  keyMap[tokenFieldName] = 'token';
+  return hr.callAGOL(requestPars, keyMap)
+    .then(function () {
+      return hr.saved.token;
+    });
 };
 
 module.exports = utilities;
