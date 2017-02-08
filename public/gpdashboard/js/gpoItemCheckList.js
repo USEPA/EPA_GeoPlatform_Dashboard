@@ -84,6 +84,7 @@ egam.models.gpoItemCheckList.PageModelClass.prototype.init = function() {
       $('#gpoCheckListDetailsModal').on('hidden.bs.modal', function(e) {
         $('#isoInputEmail').val('');
         $('#imoInputEmail').val('');
+        $('#checkListEmailCC').val('');
       });
 
        defer.resolve();
@@ -171,6 +172,7 @@ egam.models.gpoItemCheckList.RowModelClass = function(doc, index) {
 //This is the FULL model which binds to the modal allowing 2 way data binding and updating etc
 egam.models.gpoItemCheckList.FullModelClass = function(doc, index, parent) {
   var self = this;
+
   //The pageModel this belows to
   this.parent = parent;
   //The index in array for this item
@@ -200,6 +202,7 @@ egam.models.gpoItemCheckList.FullModelClass = function(doc, index, parent) {
 
   //This is where to store full info about keyed by id
   this.itemDocs = null;
+  this.emailTextBody = null;
   
   //Could Add a computed observable to store Checklist item names with the ids
   //http://localhost:3000/gpdashboard/gpoItems/list?query={%22id%22:{%22$in%22:[%2240894bca74de46d4b92abd8fd0a5160e%22]}}&projection={%22fields%22:{%22id%22:1,%22title%22:1}}
@@ -226,17 +229,48 @@ egam.models.gpoItemCheckList.DetailsModel.prototype.select = function(item) {
   var fullRowModel = new egam.models.gpoItemCheckList.FullModelClass(item.doc, item.index, self);
 
   //Get the titles before is bound
-  return self.getItemDocs(fullRowModel.doc().submission.items)
+  return self.getItemDocs(fullRowModel.doc().submission.items())
     .then(function (itemDocs) {
 //Let the array of item docs just be a field on the full model that can be used
-      fullRowModel.itemDocs = itemDocs;
-//Now set the selected field on the details model with the full row model that includes itemDocs
-      self.selected(fullRowModel);
+        fullRowModel.itemDocs = itemDocs;
 
-      if (!self.bound) {
-        ko.applyBindings(self, document.getElementById('gpoCheckListDetailsModal'));
-        self.bound = true;
-      }
+//get the text of email template
+        $.ajax({
+            url: "./templates/emails/ISO_IMO_approval.mst",
+            async: false,
+            success: function (data1) {
+                return self.getOwnerInfo(fullRowModel.doc().submission.owner())
+                    .then(function (user) {
+
+                        var param = {};
+                        param.admin = {
+                            "fullName": egam.communityUser.fullName,
+                            "email": egam.communityUser.email
+                        };
+                        param.owner = {
+                            "fullName":user["0"].fullName,
+                            "email": user["0"].email
+                        };
+                        param.AuthGroup = fullRowModel.doc().submission.authGroup;
+                        param.titles = fullRowModel.itemDocs;
+
+                        emailBody = Mustache.render(data1, param);
+
+                        fullRowModel.emailTextBody = ko.observable(emailBody);
+
+                        self.selected(fullRowModel);
+
+                        if (!self.bound) {
+                            ko.applyBindings(self, document.getElementById('gpoCheckListDetailsModal'));
+                            self.bound = true;
+                        }
+                    });
+            },
+            error: function(er){
+                console.log("There was an error :: ", er);
+            }
+         });
+
     });
 };
 
@@ -245,14 +279,28 @@ egam.models.gpoItemCheckList.DetailsModel.prototype.getItemDocs = function(ids) 
   var query = {id:{$in:ids}};
   var projection = {"fields":{"id":1,"title":1}};
 
-  return egam.utilities.queryEndpoint("gpoItems/list",query,projection)
+  return egam.utilities.queryEndpoint("gpoitems/list? showAll=true",query,projection)
 };
 
+egam.models.gpoItemCheckList.DetailsModel.prototype.getOwnerInfo = function(user) {
+    user = ko.utils.unwrapObservable(user);
+    var query = {username: user};
+    var projection = {fields:{'username':1, 'fullName':1, 'email':1}};
 
+    return egam.utilities.queryEndpoint("gpousers/list",query,projection)
+};
+
+egam.models.gpoItemCheckList.DetailsModel.prototype.loadEmailTemplate = function(item) {
+    console.log("this is the item");
+};
 
 //Post to mongo to make items public
 egam.models.gpoItemCheckList.DetailsModel.prototype.makeChecklistPublic = function(item) {
   var self = this;
+
+  //Get CC address list
+  var ccList = $('#checkListEmailCC').val();
+
   //object to send to endpoint for request to make an checklist public
   //localhost/gpdashboard/gpochecklists/update?updateDocs={"_id":"577c3677f54235d82ebbc4b3","approval":{"status":"approved","ISOemail":"iso@test.com","IMOemail":"imo@test.com"}}
   var approvalPost = {
@@ -261,6 +309,8 @@ egam.models.gpoItemCheckList.DetailsModel.prototype.makeChecklistPublic = functi
       status: 'approved',
       ISOemail: item.selected().doc().approval.ISOemail(), //'ISOemail',
       IMOemail: item.selected().doc().approval.IMOemail(), // 'IMOemail'
+      emailBody: item.selected().emailTextBody(),
+      ccAdd: ccList
     }
   };
 
@@ -294,6 +344,8 @@ egam.models.gpoItemCheckList.DetailsModel.prototype.makeChecklistPublic = functi
       });
 //Clear out the checked items in case something is checked
       egam.pages.gpoItems.table.checkAll('id',false);
+
+
     },
     error: function(jqXHR, textStatus, errorThrown) {
       // Handle errors here

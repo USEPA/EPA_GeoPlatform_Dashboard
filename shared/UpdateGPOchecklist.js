@@ -246,19 +246,29 @@ UpdateGPOchecklist.prototype.sendIsoImoEmail = function(){
         }
 
         //read the template from file.
-        return Q.ninvoke(fs, 'readFile', appRoot + '\\public\\gpdashboard\\templates\\emails\\ISO_IMO_approval.mst', 'utf8')
+        if(self.updateDoc.approval.emailBody){
+            return null;
+        }else {
+            return Q.ninvoke(fs, 'readFile', appRoot + '\\public\\gpdashboard\\templates\\emails\\ISO_IMO_approval.mst', 'utf8')
+        }
       })
       .then(function (template){
-        mustache.parse(template);
-        var emailBody = mustache.render(template,templateFields);
-        //CreateEmailObject
 
+        //CreateEmailObject
         var fromAddress = self.config.email.defaultFrom;//FromAddress in config file
         var toAddress = self.updateDoc.approval.IMOemail + ',' + self.updateDoc.approval.ISOemail;
+        var ccAddresses = self.updateDoc.approval.ccAdd;
         var emailSubject = 'Request for GPO Item to be made Public';//EmailsSubject
-        var html = emailBody;
 
-        return sendEmail.send(fromAddress,toAddress, emailSubject, emailBody, html)
+        var html;
+        if(self.updateDoc.approval.emailBody){
+            html = self.updateDoc.approval.emailBody;
+        }else{
+            mustache.parse(template);
+            html = mustache.render(template,templateFields); //self.updateDoc.approval.emailBody;
+        }
+
+        return sendEmail.send(fromAddress,toAddress, emailSubject, emailBody, html ,ccAddresses)
       })
       .catch(function(error){
         throw(new Error('Error Sending Checklist IMO/ISO Email'));

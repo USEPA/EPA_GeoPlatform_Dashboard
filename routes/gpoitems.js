@@ -22,9 +22,11 @@ module.exports = function(app) {
       return false;
     }
 
-    //Only return gpo itmes where this user can see the owner's items
+    var showAll = utilities.getRequestInputs(req).showAll;
+
+    //Only return gpo items where this user can see the owner's items
     //Super user is not limited by ownerIDs though
-    if (!user.isSuperUser) {
+    if (!user.isSuperUser && !(user.isAdmin && showAll)) {
       query.owner = {$in: user.ownerIDs};
     }
 
