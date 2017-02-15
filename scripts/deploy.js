@@ -25,7 +25,26 @@ var splitPathDriveLetter = utilities.splitPathDriveLetter(appRoot.path);
 process.env['HOMEDRIVE'] = splitPathDriveLetter[0];
 process.env['HOMEPATH'] = splitPathDriveLetter[1];
 
-return runGitCommands()
+//Read in any arguments passed such as app and port
+var parseArgs = require('minimist');
+//first 2 args are node location and script location
+var args = require('minimist')(process.argv.slice(2));
+
+//have arg call --useStash which means branch found from opsStash deployStatus
+//Can also pass branch
+
+var branch = null;
+var useStash = false;
+//In case they pass --useStash=true handle that too but only need to pass --useStash
+if (args && (args.useStash===true || args.useStash==="true")) useStash=args.useStash;
+
+var stash = null;
+
+Q.fcall(function () {
+          if (useStash) return getDeployStatus();
+        })
+  .then(getBranch)
+  .then(runGitCommands)
   .then(runExternalCommand.getRunFunction('npm install' + npmInstallFlag))
   .then(runExternalCommand.getRunFunction('bower install'))
   .then(runExternalCommand.getRunFunction('pm2 reload egam'))
@@ -52,24 +71,58 @@ function runGitCommands() {
     if (config.env=='production') {
       source = 'nccstg';
       target = 'nccprod';
+      //if on prod and there is no branch given then assume source is same as target or nccprod
+      //This used if we want to just merge or branch into prod outside of this deployment utility
+      if (! branch) source=target;
     }
-    //Just to make sure we are on target branch. It always should be
-    return runExternalCommand.getRunFunction('git checkout ' + target)()
-        //Just to make sure target is up to date. It always should be
-        .then(runExternalCommand.getRunFunction('git pull origin ' + target))
-        //This does the real work. It pull source branch into the target branch we are sitting on. (pull is a fetch from remote origin and merge into current branch)
-        .then(runExternalCommand.getRunFunction('git pull origin ' + source))
-      //This will push the new target branch with merged source back up to remote origin (Bit Bucket)
-      .then(runExternalCommand.getRunFunction('git push origin ' + target));
+    //If branch being deployed set use that as source. If no branch set then just use default source
+    if (branch) {
+      source=branch;
+    }else {
+      //kind of weird I guess but setting global branch variable to source if it is empty so we can display in email later if needed
+      branch=source;
+    }
+
+    return Q.fcall(function () {return true})
+      //Just to make sure we are on target branch. It always should be
+      .then(runExternalCommand.getRunFunction('git checkout ' + target))
+      //Just to make sure target is up to date. It always should be
+      .then(runExternalCommand.getRunFunction('git pull origin ' + target))
+      //This does the real work. It pull source branch into the target branch we are sitting on. (pull is a fetch from remote origin and merge into current branch)
+      .then(function (out) {
+        //If we don't want to merge in source to target but are locally merging branches into target then source will be set to target and don't need to pull target twice
+            if (source != target) runExternalCommand.getRunFunction('git pull origin ' + source)(out)
+      })
+    //This will push the new target branch with merged source back up to remote origin (Bit Bucket)
+    .then(runExternalCommand.getRunFunction('git push origin ' + target));
   }else {
     return Q.fcall(function () {return false});
   }
 
 }
 
+function getBranch() {
+//Get branch from stash if using it
+  if (stash && stash.branch) branch=stash.branch;
+//If the pass branch though it will override anything in stash
+//In case they pass just --branch arg.branch is true which don't want to set branch to true!
+  if (args && args.branch && typeof args.branch !== true ) branch=args.branch;
+  return branch;
+}
+
+function getDeployStatus() {
+  var collection = monk.get('OpsStash');
+  return utilities.getDBkeyValue(collection,'deployStatus')
+    .then(function (obj) {
+      stash = obj;
+      return stash;
+    });
+}
+
 function setDeploymentFinished() {
   var collection = monk.get('OpsStash');
-  return utilities.setDBkeyValue(collection,'deployStatus',{finish:new Date()});
+  //clear username and branch also so it is ensured not to be old user/branch
+  return utilities.setDBkeyValue(collection,'deployStatus',{finish:new Date(),username:null,branch:null});
 }
 
 function sendDeploymentEmail() {
@@ -82,7 +135,10 @@ function sendDeploymentEmail() {
   .then(function (template){
     mustache.parse(template);
     var finishDate = new Date();
-    var emailBody = mustache.render(template,{date:finishDate,output:runExternalCommand.output,errors:runExternalCommand.errors});
+    //Get the stashed user name that deployed this
+    var username = null;
+    if (stash) username = stash.username;
+    var emailBody = mustache.render(template,{date:finishDate,username:username,branch:branch ? branch : 'None',output:runExternalCommand.output,errors:runExternalCommand.errors});
     //CreateEmailObject
   
     var fromAddress = config.email.defaultFrom;//FromAddress in config file

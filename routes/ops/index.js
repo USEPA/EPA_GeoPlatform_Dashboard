@@ -29,6 +29,11 @@ module.exports = function(app) {
     return utilities.streamFileAsResponse(res,appRoot + '/public/gpdashboard/bower_components/mustache/mustache.js');
   });
 
+  router.use('/nodeEnv', function(req, res) {
+    var env = require(app.get('appRoot') + 'config/nodeEnv');
+    res.write(env);
+    res.end();
+  });
 
   return router;
 };

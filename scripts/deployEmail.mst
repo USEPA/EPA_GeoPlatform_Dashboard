@@ -4,7 +4,7 @@ pre{
     white-space: pre-line;
 }
 </style>
-GP Dashboard was deployed on {{date}}.<br>
+GP Dashboard branch <strong>{{branch}}</strong> was deployed by <strong>{{username}}</strong> on {{date}}.<br>
 <br>
 {{#errors.length}}
 <strong style='color:red'>Errors Produced by Commands when Deploying Application</strong><br><br>
