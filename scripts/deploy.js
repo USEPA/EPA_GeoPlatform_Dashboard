@@ -89,12 +89,15 @@ function runGitCommands() {
       //Just to make sure target is up to date. It always should be
       .then(runExternalCommand.getRunFunction('git pull origin ' + target))
       //This does the real work. It pull source branch into the target branch we are sitting on. (pull is a fetch from remote origin and merge into current branch)
-      .then(function (out) {
+      .then(function () {
         //If we don't want to merge in source to target but are locally merging branches into target then source will be set to target and don't need to pull target twice
-            if (source != target) runExternalCommand.getRunFunction('git pull origin ' + source)(out)
+        if (source != target) runExternalCommand.getRunFunction('git pull origin ' + source)()
       })
     //This will push the new target branch with merged source back up to remote origin (Bit Bucket)
-    .then(runExternalCommand.getRunFunction('git push origin ' + target));
+      .then(function () {
+        //If we don't want to merge in source to target but are locally merging branches into target then source will be set to target and don't need to push target back to origin because it didn't change
+        if (source != target) runExternalCommand.getRunFunction('git push origin ' + target)()
+      });
   }else {
     return Q.fcall(function () {return false});
   }
