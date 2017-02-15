@@ -36,7 +36,7 @@ module.exports = function(app) {
     if (inputs.limit) to = from + inputs.limit-1;
 
     return Q.fcall(function () {return true})
-      .then(runExternalCommand.getRunFunction('git fetch --prune')())
+      .then(runExternalCommand.getRunFunction('git fetch --prune'))
       .then(runExternalCommand.getRunFunction('git for-each-ref --sort=-committerdate --format="%(refname:short)\t%(committerdate:short)" refs/remotes'))
       .then(function (out) {
         return Q.ninvoke(csvLib, 'parse', runExternalCommand.output[0].message.stdout, {columns: ['name','lastCommitDate'], delimiter: '\t',from:from,to:to})
