@@ -19,7 +19,12 @@
                 <ul>
                     <li>
                         <a href="#" onclick="gpdashboard_ops.deploy.start();return false;">deploy:</a> This will schedule application
-                        changes to be deployed by updating git repo, updating npm/bower, and reloading app using pm2.
+                        changes to be deployed by updating git repo, updating npm/bower, and reloading app using pm2.<br>
+                        <strong>Branch:</strong> <input id="deployBranch" style="width:17em" />&nbsp;&nbsp;<a href="#" onclick="gpdashboard_ops.branches.fetch();return false;">fetch</a><br>
+                            <select id="deployBranches"  style="width:25em;display:none"></select><br>
+                        <em id="emptyBranchMessageLocal" style="display:none">Git commands not executed on local envt so Branch irrelevant</em>
+                        <em id="emptyBranchMessageStaging" style="display:none">If Empty defaults to nccdev</em>
+                        <em id="emptyBranchMessageProduction" style="display:none">If Empty no branch is merged</em>
                     </li>
                 </ul>
             </div>

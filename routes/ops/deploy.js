@@ -14,6 +14,16 @@ module.exports = function(app) {
     var deployStatus;
     var hasError = false;
 
+    var errors = [];
+    var inputs = utilities.getCleanRequestInputs(req, errors);
+
+    if (errors.length > 0) {
+      return res.json({errors: [errors.join('\n')]});
+    }
+
+    var branch = inputs.branch;
+    var loggedInUser = app.get('loggedInUser') || {};
+
     getDeployStatus()
       .then(function (status) {
         deployStatus = status || {};
@@ -22,12 +32,12 @@ module.exports = function(app) {
           deployInProgress=true;
         }else {
           //Now set up deployStatus to denote there is deployment in progress
-          var loggedInUser = utilities.getUserFromSession(req);
 
           return setDeployStatus({
-            user:loggedInUser.username,
+            username:loggedInUser.username,
             start:new Date(),
-            finish:null
+            finish:null,
+            branch:branch
           });
         }
       })

@@ -10,6 +10,7 @@ module.exports = function(app) {
   router.use('/*', function(req, res, next) {
     //Get the logged in user. note don't pass res as second arg because don't want to error out if not logged in!
     var loggedInUser = utilities.getUserFromSession(req);
+    app.set('loggedInUser',loggedInUser);
 
     //If the user is not in the list of opsUsers hardcoded into config file then don't let them see this page
     if (!loggedInUser || !config.opsUsers || config.opsUsers.indexOf(loggedInUser.username) < 0 ) {

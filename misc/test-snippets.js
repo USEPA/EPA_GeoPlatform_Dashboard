@@ -4,6 +4,125 @@ var Q = require('q');
 
 var appRoot = require('app-root-path');
 var utilities = require(appRoot + '/shared/utilities');
+
+var MonkClass = require('monk');
+
+var monk = MonkClass('mongodb://localhost:27017/egam');
+
+var async =  require('async');
+var array_extended =  require('array-extended');
+
+//var parseArgs = require('minimist');
+//first 2 args are node location and script location
+//var args = require('minimist')(process.argv.slice(2));
+//console.log(args);
+//return;
+
+var runExternalCommand = require(appRoot + '/shared/runExternalCommand')();
+runExternalCommand.logToConsole=false;
+
+var csvLib = require('csv');
+
+//try the git fetch / local for each route
+Q.fcall(function () {return true})
+  //  .then(runExternalCommand.getRunFunction('git fetch --prune')())
+  .then(runExternalCommand.getRunFunction('git for-each-ref --sort=-committerdate --format="%(refname)\t%(committerdate:short)" refs/heads refs/remotes'))
+  .then(function (out) {
+    return Q.ninvoke(csvLib, 'parse', runExternalCommand.output[0].message.stdout, {columns: ['branch','lastCommitDate'], delimiter: '\t'})
+  })
+  .then(function (rows) {
+    console.log(rows);
+  });
+
+return;
+
+//      .then(runExternalCommand.getRunFunction('whoami'))
+//Have to put last catch here to catch errors they are not being caught internally above
+
+
+//This would have been a decent route to getting branches but don't want to deal with authentication
+//Note sure if I like having to save my passwords on the servers for anyone to look at
+//Maybe I can get OAUTH to work
+// var request = require('request');
+//Have to url decode @ sign with %40
+var url = 'https://aaevans:9699257T%40g!77@alm.cgifederal.com/scm/rest/api/latest/projects/NGSIT/repos/egam/branches';
+//url = 'http://tegasigns.com';
+console.log(url);
+var requestPars = {method: 'get', url: url};
+
+Q.nfcall(request, requestPars)
+  .then(function (res) {
+    console.log("res");
+    var resObj = JSON.parse(res[0].body);
+
+    console.log(resObj.values.map(function (x) {return x.id}));
+  })
+  .catch(function (err) {
+    console.log("err");
+    console.error(err);
+  });
+
+return;
+var cmd = '"C:\\Program Files (x86)\\Git\\bin\\sh.exe" --login -i -c "curl -u aaevans:9699257T@g\\!77 https://alm.cgifederal.com/scm/rest/api/latest/projects/NGSIT/repos/egam/branches"';
+runExternalCommand.getRunFunction(cmd)()
+.then(function () {
+  console.log(runExternalCommand.output[0].message.stdout)
+});
+
+return;
+
+//This was REALLY slow and didn't have updated local info
+runExternalCommand.getRunFunction('git ls-remote')()
+  .then(function () {
+    csvLib.parse(runExternalCommand.output[0].message.stdout
+      ,{columns:['lastcommit','branch'],delimiter:'\t'}
+      ,function (err,rows) {
+        getCommitDates(rows) ;
+    });
+  });
+
+
+function getCommitDates(commits) {
+  var count = 1;
+//  console.log(commits.length);
+  var sortedCommits = null;
+  async.each(commits,function (commit,done) {
+    getCommitDate(commit.lastcommit)
+      .then(function (d) {
+        commit.date = d;
+//        console.log(commit.branch);
+//        console.log(count);
+        count+=1;
+        done();
+      })
+  },function (error) {
+    console.error(error);
+    sortedCommits = array_extended.sort(commits, function(a, b){return b.date-a.date});
+    console.log(sortedCommits.slice(0,10));
+  });
+
+}
+function getCommitDate(commit) {
+  var Q = require('Q');
+//  return Q.fcall(function () {return 1});
+  var cmd = 'git show -s --format="%ct" ' + commit;
+//  console.log(cmd);
+  return utilities.runExternalCommand(cmd)
+    .then(function (x) {
+      try {
+        x = parseInt(x.stdout.trim());
+      }
+      catch (e) {
+        x = null;
+      }
+      return x;
+    })
+   .catch(function () {
+     return 0;
+   });
+}
+return ;
+
 var splitPathDriveLetter = utilities.splitPathDriveLetter(appRoot.path);
 console.log(appRoot.path);
 console.log(splitPathDriveLetter[0]);
@@ -12,9 +131,6 @@ console.log(splitPathDriveLetter[1]);
 
 return;
 
-var MonkClass = require('monk');
-
-var monk = MonkClass('mongodb://localhost:27017/egam');
 var usersCollection = monk.get('GPOusers');
 
 var diff = true;
@@ -635,7 +751,7 @@ tq.setVar('value',0);
 
 tq.execute();
 
-tq.on('sample task', process);
+tq.on('sample task', processTask);
 
 
 var long = function () {
@@ -653,7 +769,7 @@ var short = function () {
 tq.pushTask('sample task',long);
 tq.pushTask('sample task',short);
 
-function process(jinn,promise) {
+function processTask(jinn,promise) {
   console.log("process");
   promise().then(function () {jinn.done()}); // important!
 }
@@ -670,7 +786,7 @@ if (1==0) {
   q.setMinTime(500);
   q.setVar('value',0);
 
-  q.on('sample task', process);
+  q.on('sample task', processTask);
   q.on('stop', logResults);
 
   q.execute();
@@ -680,7 +796,7 @@ if (1==0) {
   q.pushTask('sample task',{n:98});
   q.pushTask('sample task',{n:33});
 
-  function process(jinn,data) {
+  function processTask(jinn,data) {
     var q = jinn.getQueue();
     q.setVar('value', data.n + ' ' + q.getVar('value'));
     console.log(q.getVar('value'));
@@ -693,7 +809,7 @@ if (1==0) {
 
 return
 
-  utilities.streamify('foo\n').pipe(process.stdout);
+  utilities.streamify('foo\n').pipe(processTask.stdout);
 
 
 disp = 'attachment; filename="SCAT.sd"'
