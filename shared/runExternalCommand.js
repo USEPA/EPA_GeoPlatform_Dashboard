@@ -30,6 +30,7 @@ self.getRunFunction = function (cmd) {
           var outCombined = 'stdout : ' + out.stdout + '\r\n stderr: ' + out.stderr;
           if (self.logToConsole!==false) console.log('Output running command = ' + cmd + ': \r\n' + outCombined);
           self.output.push({cmd:cmd,message:out});
+          return out;
         })
         .catch(function (error) {
           console.error('Error running command = ' + cmd + ': \r\n' + error);

@@ -34,15 +34,16 @@ module.exports = function(app) {
     if (inputs.offset) from = inputs.offset+1;
     var to;
     if (inputs.limit) to = from + inputs.limit-1;
-
     return Q.fcall(function () {return true})
       .then(runExternalCommand.getRunFunction('git fetch --prune'))
       .then(runExternalCommand.getRunFunction('git for-each-ref --sort=-committerdate --format="%(refname:short)\t%(committerdate:short)" refs/remotes'))
       .then(function (out) {
-        return Q.ninvoke(csvLib, 'parse', runExternalCommand.output[0].message.stdout, {columns: ['name','lastCommitDate'], delimiter: '\t',from:from,to:to})
+        //If any errors produced from commands then return them
+        if (runExternalCommand.errors.length>0) return res.json({errors:runExternalCommand.errors,body:null});
+        return Q.ninvoke(csvLib, 'parse', out.stdout, {columns: ['name','lastCommitDate'], delimiter: '\t',from:from,to:to})
       })
-    .then(function (output) {
-      return res.json({body:output});
+    .then(function (rows) {
+      return res.json({body:rows});
     })
       .catch(function (error) {
         return res.json({errors: [error.stack || error.message || error]});
