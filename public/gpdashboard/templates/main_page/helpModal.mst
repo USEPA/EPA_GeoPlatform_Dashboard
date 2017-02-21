@@ -262,16 +262,42 @@
                                             <li>Click the "Requests" button above the GPO Content table. A pop-up window is activated showing all pending requests for public sharing.</li>
                                             <li>Locate the item owner’s request for public sharing and click the "Details" button. A new pop-up window, "Checklist Details" is activated.</li>
                                             <li>Review items listed under the "Items" header to ensure all content and documentation standards are met. Examine each item listed by clicking on the item name. The item’s GPO details page will open in a new browser window.</li>
-                                            <li>To approve the request, use the "Checklist Details" pop-up window. Enter your organization’s IMO and ISO email addresses, edit the email text if necessary, and click "Make Items Public". The owner’s item sharing is updated to "Public" and your IMO and ISO will receive email notification informing them about the new public content item. If you do not approve the request click "Close" to dismiss the window. The unapproved items will remain pending.</li>
-                                            <li>Inform the item owner that their request for public sharing has been approved and the item is now publicly available. If you did not approve the request, inform the item owner about your decision not to approve. Be specific about why the request was not approved and that a re-evaluation may be requested once content or documentation problems are resolved. A future version of the Dashboard will allow the GP Administrator to inform the item owner about the status of their request directly from the Dashboard.</li>
+                                            <li>Approve or reject the items. To approve, use the "Checklist Details" pop-up window. Enter your organization’s IMO and ISO email addresses and click "Make Items Public". The owner’s item sharing is updated to "Public" and your IMO and ISO will receive email notification informing them about the new public content item. If you wish you may change the text of the notification email in the email body pane below. Note that this email body is preserved as a record of the transaction. You also have the option to enter additional email addresses of recipients who should receive a CC of the approval email. Multiple email addresses should be separated by semicolons. To leave the items in a pending state click "Close".</li>
+                                            <li>Inform the item owner that their request for public sharing has been approved and the item is now publicly available, or has been rejected with the reason for the decision to reject. A future version of the Dashboard will allow the GP Administrator to inform the item owner about the approval or rejection of their request directly from the Dashboard.</li>
                                             </ol>
                                         </div>
+                                    </div>
+                                </div>
+                                <div class="panel panel-default">
+                                    <div class="panel-heading" role="tab" id="publicGeneralHeading">
+                                        <h4 class="panel-title">
+                                            <a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordion" href="#publicGeneralCollapse" aria-expanded="false" aria-controls="publicGeneralCollapse">
+                                                Making Items Public - General Information
+                                            </a>
+                                        </h4>
+                                    </div>
+                                    <div id="publicGeneralCollapse" class="panel-collapse collapse" role="tabpanel" aria-labelledby="publicGeneralHeading">
+                                        <div class="panel-body">
+                                            <p>The process to publicly share a GPO content item requires: <ol><li>Item owner’s confirmation that the item meets content standards and is fully documented</li><li>GP Administrator’s confirmation that the item is ready for public sharing.</li></ol></p>
+                                            <h5>Content and documentation standards for public GPO items:</h5>
+                                            <ul><li>The item may not contain any sensitive data or data that is otherwise inappropriate for sharing with the public. Sensitive data is: "any information, the loss, misuse, or unauthorized access to or modification of which could adversely affect the national interest or the conduct of federal programs, or the privacy to which individuals are entitled undersection 552a of title 5, United States Code (the Privacy Act), but which has not been specifically authorized under criteria established by an Executive Order or an Act of Congress to be kept in the interest of national defense or foreign."</li>
+                                            <li>The item has been through the appropriate <a href="https://www.epa.gov/product-review" target="_blank">product review</a> process as outlined by your organization.</li>
+                                            <li>Metadata on the content item details page is complete and consistent with the <a href="https://edg.epa.gov/metadata/webhelp/en/gptlv10/inno/GenericMetadataGuide.pdf#page=39" target="_blank">GeoPlatform metadata best practices guide</a>. Information or links to where the data depicted in the map can be found are included in the metadata.</li>
+                                            <li>The item is consistent with established best practices for look and feel. We recommend using <a href="http://blogs.esri.com/esri/arcgis/2012/05/03/using-a-mapmaking-checklist-for-map-design/" target="_blank">a mapmaking checklist for map design</a>.</li>
+                                            <li>The item meets all appropriate <a href="https://www.epa.gov/privacy" target="_blank">EPA Privacy Act</a> policy requirements.</li>
+                                            <li>Once the item has been made public any subsequent edits to the content item will be consistent with the guidance in this checklist.</li>
+                                            </ul>
+                                         </div>
                                     </div>
                                 </div>
                             </div>
                             <!--end Accordion-->
                             <div>
                             </div>
+                        </div>
+                        <div role="tabpanel" class="tab-pane" id="gpoMetrics">
+                            <h4>GeoPlatform Online Metrics</h4>
+                            <p>There are plans to include a range of usage and compliance metrics for geoplatform content on this page, but at present the only available metric is ArcGIS Pro License usage, as a way of linking ArcGIS Pro usage to EPA organizational units. The charts illustrate how licenses have been assigned - not whether they are in active use. The charts and table are linked, and the time slider allows overall stats and license assignment to be shown for any given date. Clicking one of the bars in the chart will filter both the line chart and the table below for that auth group. The view can be reset by clicking the "Reset All" link above the user table. Clicking either "Export" button will allow you to download the visible data in a CSV file. The "Not Assigned" category represents GeoPlatform user accounts who do not belong to an AuthGroup. Generally these are external users who have not yet been sposored in this dashboard application. Please visit the User Management page to sponsor users.</p>
                         </div>
                         <div role="tabpanel" class="tab-pane" id="UserManagement">
                             <h4>User Management</h4>
