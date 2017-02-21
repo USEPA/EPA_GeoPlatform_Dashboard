@@ -273,6 +273,10 @@
                             <div>
                             </div>
                         </div>
+                        <div role="tabpanel" class="tab-pane" id="gpoMetrics">
+                            <h4>GeoPlatform Online Metrics</h4>
+                            <p>There are plans to include a range of usage and compliance metrics for geoplatform content on this page, but at present the only available metric is ArcGIS Pro License usage, as a way of linking ArcGIS Pro usage to EPA organizational units. The charts illustrate how licenses have been assigned - not whether they are in active use. The charts and table are linked, and the time slider allows overall stats and license assignment to be shown for any given date. Clicking one of the bars in the chart will filter both the line chart and the table below for that auth group. The view can be reset by clicking the "Reset All" link above the user table. Clicking either "Export" button will allow you to download the visible data in a CSV file. The "Not Assigned" category represents GeoPlatform user accounts who do not belong to an AuthGroup. Generally these are external users who have not yet been sposored in this dashboard application. Please visit the User Management page to sponsor users.</p>
+                        </div>
                         <div role="tabpanel" class="tab-pane" id="UserManagement">
                             <h4>User Management</h4>
                             <p>This page allows administrators to manage the sponsorship of external (non-single-sign-on) accounts. Every external account must have a sponsor, and accounts must be reviewed and renewed every 90 days, or the account will be automatically disabled. Disabled accounts will be cleaned up periodically with their content items transferred to the most recent sponsor. The table shows the status of each account, when their account was last renewed, and when they are due for renewal. Any administrator may sponsor or renew the sponsorship of any external account.</p>
