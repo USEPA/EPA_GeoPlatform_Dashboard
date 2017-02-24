@@ -94,7 +94,12 @@
                         </th>
                         <th class="col-xs-1">Approval<br>
                             <span onclick="event.stopPropagation();">
-                                                <select id="dropChecklistStatus" class="search form-control"><option value="">All</option></select>
+                                                <select id="dropChecklistStatus" class="search form-control">
+                                                    <option value="">All</option>
+                                                    <option value="pending">pending</option>
+                                                    <option value="approved">approved</option>
+                                                    <option value="rejected">rejected</option>
+                                                </select>
                                             </span>
                         </th>
                     </tr>

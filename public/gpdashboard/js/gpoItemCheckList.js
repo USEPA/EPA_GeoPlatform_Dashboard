@@ -88,6 +88,11 @@ egam.models.gpoItemCheckList.PageModelClass.prototype.init = function() {
         console.log(myAuthGroupsSearch);
 
         $('#dropChckLstAuthGroup option:first').after($('<option mult="true" re="true" value="' + myAuthGroupsSearch + '">My AuthGroups</option>'));
+        // is user is admin by default display pending checklists
+        if(egam.communityUser.isAdmin){
+            $('#dropChecklistStatus').val('pending');
+            $('#dropChecklistStatus').change();
+        }
 
       //on close with out clear checkboxes
       $('#checkListModal').on('hidden.bs.modal', function(e) {
