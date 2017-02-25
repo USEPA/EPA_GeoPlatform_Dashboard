@@ -74,6 +74,26 @@ egam.models.gpoItemCheckList.PageModelClass.prototype.init = function() {
     .then(function() {
       self.numOfChecklists();
 
+      //Add "My Auth Groups" to Auth Group filter
+        var myAuthGroupsSearch = '';
+        var myAuthGroupsLen = egam.communityUser.authGroups.length;
+
+        for(var i = 0; i <  myAuthGroupsLen; i++){
+           if(i == myAuthGroupsLen-1){
+               myAuthGroupsSearch =  myAuthGroupsSearch + $.fn.dataTable.util.escapeRegex(egam.communityUser.authGroups[i]);
+           }else{
+               myAuthGroupsSearch = myAuthGroupsSearch + $.fn.dataTable.util.escapeRegex(egam.communityUser.authGroups[i]) +'|';
+           }
+        }
+        console.log(myAuthGroupsSearch);
+
+        $('#dropChckLstAuthGroup option:first').after($('<option mult="true" re="true" value="' + myAuthGroupsSearch + '">My AuthGroups</option>'));
+        // is user is admin by default display pending checklists
+        if(egam.communityUser.isAdmin){
+            $('#dropChecklistStatus').val('pending');
+            $('#dropChecklistStatus').change();
+        }
+
       //on close with out clear checkboxes
       $('#checkListModal').on('hidden.bs.modal', function(e) {
         self.confirm(false);
