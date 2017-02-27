@@ -26,8 +26,16 @@ function loadDC() {
       d.date = new Date(d.date);
       if (d.authGroups) {
         if (d.authGroups.length > 0) {
-          d.authGroups = egam.dataStash
-            .availableAuthgroups.ids[d.authGroups[0]].edgName;
+          var oeiName = 'EPA Office of Environmental Information (OEI)';
+          if (d.authGroups.indexOf(oeiName) >= 0) {
+            // If one of user's groups is OEI, choose that one
+            d.authGroups = egam.dataStash
+              .availableAuthgroups.ids[oeiName].edgName;
+          } else {
+            // Otherwise just take the first
+            d.authGroups = egam.dataStash
+              .availableAuthgroups.ids[d.authGroups[0]].edgName;
+          }
         } else {
           d.authGroups = 'Not Assigned';
         }
@@ -265,7 +273,10 @@ function loadDC() {
           sDefaultContent: ' ',
           // Format date field as date
           render: function(data) {
-            return new Date(data);
+            if (data > 0) {
+              return new Date(data);
+            }
+            return 'N/A';
           }
         }
       ]
