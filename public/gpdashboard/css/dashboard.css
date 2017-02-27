@@ -61,6 +61,13 @@ a, span, tr, h4:hover {
   }
 }
 
+@media (min-width: 768px) {
+  .modal-xl {
+    width: 90%;
+    max-width:1250px;
+  }
+}
+
 /* Sidebar navigation */
 /*.nav-sidebar {*/
   /*margin-right: -21px; /!* 20px padding + 1px border *!/*/
