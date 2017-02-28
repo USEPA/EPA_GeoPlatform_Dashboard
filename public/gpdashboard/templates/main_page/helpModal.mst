@@ -15,6 +15,7 @@
                         <li role="presentation"><a href="#InitialView" aria-controls="InitialView" role="tab"
                                                    data-toggle="tab">Initial View</a></li>
                         <li role="presentation"><a href="#DashboardUse" aria-controls="DashboardUse" role="tab" data-toggle="tab">GeoPlatform Online Content</a></li>
+                        <li role="presentation"><a href="#gpoMetrics" aria-controls="gpoMetrics" role="tab" data-toggle="tab">GeoPlatform Online Metrics</a></li>
                         <li role="presentation"><a href="#UserManagement" aria-controls="UserManagement" role="tab" data-toggle="tab">User Management</a></li>
                         <li role="presentation"><a href="#Email" aria-controls="ContactUs" role="tab" data-toggle="tab">Contact Us</a></li>
                         <!--<li role="presentation"><a href="#settings" aria-controls="settings" role="tab" data-toggle="tab">Settings</a></li>-->
