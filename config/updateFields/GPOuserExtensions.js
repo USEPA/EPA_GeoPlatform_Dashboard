@@ -3,8 +3,10 @@
 module.exports = {
   fields: [
     'sponsors',
+    'entitlements'
   ],
   arrays: {
     sponsor: 'sponsors',
+    entitlement: 'entitlements'
   },
 };
