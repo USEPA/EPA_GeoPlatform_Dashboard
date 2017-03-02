@@ -1,5 +1,5 @@
 <script id="checkListModal" type="text/html">
-<div class="modal-dialog modal-lg">
+<div class="modal-dialog modal-xl">
     <div class="modal-content">
         <div class="modal-header">
             <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
@@ -58,6 +58,7 @@
                                     {data:null, sortable: false},
                                     {data:'doc().submission.name'},
                                     {data:'doc().submission.owner'},
+                                    {data:'doc().submission.authGroup'},
                                     {data:{_:function (row) {return egam.utilities.formatDate(row.doc().submission.submitDate)},sort:'doc().submission.submitDate'},type:'num'},
                                     {data:'doc().approval.status'}
                                     ]
@@ -78,6 +79,14 @@
                                                 <select class="search form-control input-sm"><option value="">All</option></select>
                                             </span>
                         </th>
+                        <th class="col-xs-3">Auth Group<br>
+                            <span onclick="event.stopPropagation();">
+                                        <select id="dropChckLstAuthGroup" class="search form-control input-sm">
+                                            <option value="">All</option>
+
+                                        </select>
+                                 </span>
+                        </th>
                         <th class="col-xs-2">Submit Date<br>
                             <span onclick="event.stopPropagation();">
                                                 <input class="search form-control input-sm" placeholder="Search By Submit Date">
@@ -85,7 +94,12 @@
                         </th>
                         <th class="col-xs-1">Approval<br>
                             <span onclick="event.stopPropagation();">
-                                                <select id="dropChecklistStatus" class="search form-control"><option value="">All</option></select>
+                                                <select id="dropChecklistStatus" class="search form-control">
+                                                    <option value="">All</option>
+                                                    <option value="pending">pending</option>
+                                                    <option value="approved">approved</option>
+                                                    <option value="rejected">rejected</option>
+                                                </select>
                                             </span>
                         </th>
                     </tr>
@@ -102,6 +116,7 @@
                         </td>
                         <td data-bind="text: doc().submission.name"></td>
                         <td data-bind="text: doc().submission.owner"></td>
+                        <td data-bind="text: doc().submission.authGroup"></td>
                         <td data-bind="text: egam.utilities.formatDate(doc().submission.submitDate)"></td>
                         <td data-bind="text: doc().approval.status"></td>
                     </tr>

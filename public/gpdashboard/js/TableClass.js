@@ -190,66 +190,71 @@ egam.controls.Table.prototype.customizeDataTable = function(refresh,selectColumn
 
   function addSelectEventHandler(select, column, columnIndex) {
     if (select.length > 0) {
-      select.off('change');
-      select.on('change', function() {
-        var val = $.fn.dataTable.util.escapeRegex(
-          $(this).val()
-        );
-        var text = $(this).find('option:selected').text();
-        column.search(val || !text ? '^' + val + '$' : '', true, false)
-          .draw();
-        //After search refresh the dropdowns to reflect search results
-        //pass columnIndex so selected column doesn't get refreshed (unless they select all)
-        self.customizeDataTable(true,val || !text ? columnIndex : null);
-      });
+        select.off('change');
+        select.on('change', function() {
+            //Note: If we want to put regex in select option values then need to say that using option attribute re="true"
+            var val = $(this).val();
+            var selected = $(this).find('option:selected');
 
-      if (select[0].options.length <= 1) {
-        //If this select originally had no options then mark that it can be
-        //refreshed
-        select.attr('refreshable',true);
-      }
-      //Don't create the options if they are already in there.
-      //(Unless a refresh is being forced)
-      if (!(refresh && select.attr('refreshable')) &&
-        select[0].options.length > 1) {
-        return;
-      }
-      //Don't redraw the select on column that was just selected
-      if (selectColumn === columnIndex) {
-        return;
-      }
+            if (selected.attr("re")!="true") {
+                val = $.fn.dataTable.util.escapeRegex(val);
+            }
+            var text = selected.text();
+            column.search(val || !text ? '^' + val + '$' : '', true, false)
+                .draw();
+            //After search refresh the dropdowns to reflect search results
+            //pass columnIndex so selected column doesn't get refreshed (unless they select all)
+            //Actual need to add something to explicity mark that select returns multiple categories (like My Authgroups)
+            var isMult = selected.attr("mult")=="true";
+            self.customizeDataTable(true,(val || !text) && !isMult ? columnIndex : null);
+        });
 
-      //Empty out all but first option which is "All"
-      var selectedValue = select.val();
-      var selectedText = select.find('option:selected').text();
-      select.find('option:gt(0)').remove();
-
-      //Simply just use data (don't need to use data-search attribute anymore
-      //possibly because dataTables binding sets data() different than ko cell
-      //contents)
-      column.data().unique().sort().each(function(data, index) {
-        //If the value is falsey but not zero then make it empty string
-        if (!data && data != 0) {
-          data = '';
+        //Note: Now refreshable is set via HTML for selects that you never want to refresh set refreshable=false
+        //This will end up making select.attr('refreshable')="false" which is string
+        var isRefreshable = select.attr('refreshable')!="false";
+        //If there are auto populated options don't try to add again UNLESS it is refresh being forced (and select is refreshable)
+        if (!(refresh && isRefreshable) && select.find('[auto=true]').length > 0) {
+            return;
         }
-        var selOptions = $(select[0].options).filter(function() { return $(this).html() == data; });
-        if (!selOptions.length > 0) {
-          select.append('<option value="' + data + '">' + data + '</option>');
+        //Don't redraw the select on column that was just selected
+        if (selectColumn === columnIndex) {
+            return;
         }
-      });
-      //Reset the selected value
-      //if sel value is '' then must select by text
-      if (selectedValue == '') {
-        $(select[0].options).filter(function() { return $(this).html() == selectedText; }).attr('selected','selected');
-      }else {
-        select.val(selectedValue);
-      }
-      //If the selectedValue doesn't exist then I guess add it and select 8t
-      if (select.val() != selectedValue) {
-        select.append('<option value="' + selectedValue + '">' +
-          selectedValue + '</option>');
-        select.val(selectedValue);
-      }
+
+        //Empty out all but first option which is "All"
+        var selectedValue = select.val();
+        var selectedText = select.find('option:selected').text();
+//      select.find('option:gt(0)').remove();
+        //If it was tagged as auto then it can be cleared out and automatically populated
+        select.find('[auto=true]').remove();
+
+        //Simply just use data (don't need to use data-search attribute anymore
+        //possibly because dataTables binding sets data() different than ko cell
+        //contents)
+        column.data().unique().sort().each(function(data, index) {
+            //If the value is falsey but not zero then make it empty string
+            if (!data && data != 0) {
+                data = '';
+            }
+            //This so that we only add unique values
+            var selOptions = $(select[0].options).filter(function() { return $(this).html() == data; });
+            if (!selOptions.length > 0) {
+                select.append('<option auto="true" value="' + data + '">' + data + '</option>');
+            }
+        });
+        //Reset the selected value
+        //if sel value is '' then must select by text
+        if (selectedValue == '') {
+            $(select[0].options).filter(function() { return $(this).html() == selectedText; }).attr('selected','selected');
+        }else {
+            select.val(selectedValue);
+        }
+        //If the selectedValue doesn't exist then I guess add it and select 8t
+        if (select.val() != selectedValue) {
+            select.append('<option auto="true" value="' + selectedValue + '">' +
+                selectedValue + '</option>');
+            select.val(selectedValue);
+        }
     }
   }
 

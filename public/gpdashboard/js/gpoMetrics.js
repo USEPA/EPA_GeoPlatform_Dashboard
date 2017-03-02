@@ -2,7 +2,12 @@ function loadDC() {
   $('div#loadingMsg').removeClass('hidden');
   $('#metricsView').addClass('hidden');
 
-  var timeChart = dc.seriesChart('#time-chart');
+  var COLORS_20 = ['#1f77b4', '#aec7e8', '#ff7f0e', '#ffbb78', '#2ca02c',
+    '#98df8a', '#d62728', '#ff9896', '#9467bd', '#c5b0d5', '#8c564b', '#c49c94',
+    '#e377c2', '#f7b6d2', '#7f7f7f', '#c7c7c7', '#bcbd22', '#dbdb8d', '#17becf',
+    '#9edae5'];
+
+  var timeChart = dc.lineChart('#time-chart');
   var authGroupsChart = dc.rowChart('#authgroups-chart');
   var licenseCount = dc.dataCount('.dc-data-count');
   var curDate;
@@ -21,8 +26,16 @@ function loadDC() {
       d.date = new Date(d.date);
       if (d.authGroups) {
         if (d.authGroups.length > 0) {
-          d.authGroups = egam.dataStash
-            .availableAuthgroups.ids[d.authGroups[0]].edgName;
+          var oeiName = 'EPA Office of Environmental Information (OEI)';
+          if (d.authGroups.indexOf(oeiName) >= 0) {
+            // If one of user's groups is OEI, choose that one
+            d.authGroups = egam.dataStash
+              .availableAuthgroups.ids[oeiName].edgName;
+          } else {
+            // Otherwise just take the first
+            d.authGroups = egam.dataStash
+              .availableAuthgroups.ids[d.authGroups[0]].edgName;
+          }
         } else {
           d.authGroups = 'Not Assigned';
         }
@@ -36,12 +49,26 @@ function loadDC() {
     var xMax = d3.max(data, function(d) { return Math.max(d.date); });
     curDate = xMax;
 
-    // Time chart grouped by date & authgroup
+    // Time chart grouped by date
     var runDimension = ndx.dimension(function(d) {
-      return [d.authGroups, d.date];
+      return d.date;
     });
-    // Get counts
-    var runGroup = runDimension.group().reduceCount();
+    // Get counts for each authgroup by date
+    var runGroup = reductio()
+      .custom({
+        add: function(p, v) {
+          p[v.authGroups] = (p[v.authGroups] || 0) + 1;
+          return p;
+        },
+        remove: function(p, v) {
+          p[v.authGroups] = (p[v.authGroups] || 0) - 1;
+          return p;
+        },
+        initial: function(p) {
+          return {};
+        }
+      })
+      (runDimension.group());
 
     // Slider grouped by date
     var dateDimension = ndx.dimension(function(d) {
@@ -61,6 +88,9 @@ function loadDC() {
       .exceptionCount(true)
       (authGroups.group());
 
+    // List of all authgroups with licenses in collection
+    var allAuthGroups = authGroupsGroup.all().map(function(d) { return d.key;});
+
     // Individual licenses by username for data table
     var dataDim = ndx.dimension(function(d) {
       return d.username;
@@ -70,9 +100,9 @@ function loadDC() {
 
     // Function to add vertical reference line to time chart for selected time
     var updateReferenceLine = function(chart, xVal) {
-      // From y=0 to 60
+      // From y=0 to 185
       var leftY = 0;
-      var rightY = 60;
+      var rightY = 185;
       // Set it at selected value on x-axis
       var extraData = [{x: chart.x()(xVal), y: chart.y()(leftY)},
         {x: chart.x()(xVal), y: chart.y()(rightY)}];
@@ -95,30 +125,39 @@ function loadDC() {
       path.attr('d', line);
     };
 
+    // Return selected authgroup count value
+    function sel_stack(i) {
+      return function(d) {
+        if (d.value[i]) {
+          return d.value[i];
+        }
+        return 0;
+      };
+    }
+
     timeChart
       .width(600)
       .height(400)
-      .margins({top: 20, right: 90, bottom: 20, left: 20})
-      // This is a series chart, which is basically multiple line charts stacked
-      // together.
-      .chart(function(c) { return dc.lineChart(c).interpolate('basis'); })
+      .margins({top: 20, right: 90, bottom: 20, left: 30})
       .x(d3.time.scale().domain([xMin, xMax]))
       .brushOn(false)
+      .renderArea(true)
       .clipPadding(10)
-      .elasticY(true)
       .dimension(runDimension)
-      .group(runGroup)
-      // AuthGroup sets the series
-      .seriesAccessor(function(d) {return d.key[0];})
-      // Key is date
-      .keyAccessor(function(d) {return +d.key[1];})
-      // Value is count by date/group
-      .valueAccessor(function(d) {return +d.value;})
-      .colors(d3.scale.category20())
+      // Manually add first group - rest added below
+      .group(runGroup, 'REG 10', sel_stack('REG 10'))
+      // Reverse colors to match authgroups chart
+      .colors(d3.scale.ordinal().range(
+        COLORS_20.slice(0, allAuthGroups.length).reverse()))
       .on('renderlet', function(chart) {
         // On chart render, add reference line
         updateReferenceLine(chart, curDate);
       });
+
+    // Stack the rest of the groups on top of the first
+    for (var j = authGroupsGroup.size() - 2; j >= 0; --j) {
+      timeChart.stack(runGroup, allAuthGroups[j], sel_stack(allAuthGroups[j]));
+    }
 
 
     // AuthGroups chart
@@ -156,7 +195,7 @@ function loadDC() {
       // Title sets the row text
       .title(authGroupValue)
       .elasticX(true)
-      .colors(d3.scale.category20())
+      .colors(d3.scale.ordinal().range(COLORS_20))
       .valueAccessor(authGroupValue)
       .xAxis().ticks(4);
 
@@ -234,7 +273,10 @@ function loadDC() {
           sDefaultContent: ' ',
           // Format date field as date
           render: function(data) {
-            return new Date(data);
+            if (data > 0) {
+              return new Date(data);
+            }
+            return 'N/A';
           }
         }
       ]
