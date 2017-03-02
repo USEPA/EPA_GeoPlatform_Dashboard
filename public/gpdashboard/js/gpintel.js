@@ -56,6 +56,10 @@ egam.dataStash = {};
 //   isLoaded: false,
 // };
 
+egam.gpoMetrics = {
+ isLoaded: false,
+};
+
 egam.templates.load = function(divID) {
   var deferred = $.Deferred();
   var templateFile = 'templates/main_page/' + divID + '.mst';
