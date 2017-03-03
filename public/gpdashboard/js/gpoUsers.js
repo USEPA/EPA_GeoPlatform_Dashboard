@@ -52,9 +52,12 @@ egam.models.gpoUsers.PageModelClass = function() {
   //Set up the authGroups dropdown
   self.setAuthGroupsDropdown(egam.communityUser.ownerIDsByAuthGroup);
   self.setFilterButtons();
+  //self.setCreateNewUser();
 
   //Set up the details control now which is part of this Model Class
   self.details = new egam.models.gpoUsers.DetailsModel(self);
+  self.newUser = new egam.models.gpoUsers.newUserModel(self);
+
 };
 
 egam.models.gpoUsers.PageModelClass.prototype.init = function() {
@@ -375,3 +378,80 @@ egam.models.gpoUsers.copyEmails = function() {
   $('#emailList').select();
   document.execCommand('copy');
 };
+
+egam.models.gpoUsers.newUserModel = function(item){
+    var self = this;
+
+    self.$element = $('gpoCreateUserModal');
+    //fields to create new User
+    self.userFirstName = ko.observable();
+    self.userLastName = ko.observable();
+    self.userEmail = ko.observable();
+    //fields to sponsor new user
+    self.userOrg = ko.observable();
+    self.userDesc = ko.observable();
+    self.posAuthGroups = ko.observableArray(
+        egam.communityUser.authGroups);
+    self.userUserName = ko.observable();
+
+    if (!self.bound) {
+        ko.applyBindings(self, document.getElementById('gpoCreateUserModal'));
+        self.bound = true;
+    }
+};
+
+egam.models.gpoUsers.newUserModel.prototype.update = function(){
+  var self = this;
+  //create new user object
+    var newUser = {
+        "email": self.userEmail(),
+        "firstname": self.userFirstName(),
+        "lastname": self.userLastName(),
+        "sponsor": egam.communityUser.username
+    };
+    var userData = {};
+    userData.addDocs = JSON.stringify(newUser);
+
+    console.log("test Create New user", userData);
+
+    $.ajax({
+        url: 'gpousers/addExternal',
+        type: 'POST',
+        data: userData,
+        cache: false,
+        dataType: 'json',
+        success: function(rdata, textStatus, jqXHR) {
+
+            console.log('Success: created new user');
+            self.userUserName = rdata.body[0].user.username;
+        },
+        error: function(jqXHR, textStatus, errorThrown) {
+            // Handle errors here
+            console.log('ERRORS: ' + textStatus);
+        }
+    });
+
+    //Get current data for sponsoring
+    // var defaultDuration = 90;
+    // var sD = new Date();
+    // var sponsorDate = sD.getTime();
+    // var endDate = sponsorDate + defaultDuration * 24 * 3600 * 1000;
+
+    // var updateUserData = {
+    //     username: self.selected().doc().username(),
+    //     sponsor: {
+    //         username: egam.communityUser.username,
+    //         startDate: sponsorDate,
+    //         endDate: endDate,
+    //         authGroup: self.selected().latestSponsor().authGroup,
+    //         reason: self.selected().latestSponsor().reason,
+    //         organization: self.selected().latestSponsor().organization,
+    //         description: self.selected().latestSponsor().description
+    //     },
+    //     authGroup: self.selected().latestSponsor().authGroup
+    // };
+    //
+    // var myUserData = {};
+    // myUserData.updateDocs = JSON.stringify(updateUserData);
+};
+
