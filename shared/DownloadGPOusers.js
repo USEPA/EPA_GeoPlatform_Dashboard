@@ -791,6 +791,7 @@ DownloadGPOusers.prototype.getGPOentitlements = function() {
   var self = this;
   var arrayExtended = require('array-extended');
   var entitlementCollection = self.monk.get('GPOuserEntitlements');
+  var extensionsCollection = self.monk.get('GPOuserExtensions');
   var userscollection = self.monk.get('GPOusers');
   //Need to get the listing ID for ArcGIS Pro. In the future may have more.
   var url = this.portal + '/sharing/rest/content/listings/' +
@@ -832,6 +833,12 @@ DownloadGPOusers.prototype.getGPOentitlements = function() {
                   user['entitlements']).length > 0) {
                 //If different, update the user collection and set the diff flag
                 diff = true;
+                //Add to user extensions for permanent storage of current
+                //entitlements
+                extensionsCollection.update({username: item['username']},
+                  {$set: {entitlements: item['entitlements']}}, {upsert: true});
+                //Manually add to users collection now since the call to the
+                //function to add the extensions to the users has already passed
                 return userscollection.update({username: item['username']},
                   {$set: {entitlements: item['entitlements']}});
               }
