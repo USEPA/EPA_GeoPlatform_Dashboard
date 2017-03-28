@@ -191,7 +191,7 @@ function updateExternalUser(item) {
   //update user (needs to be admin to update external users)
   var session = {user: {isAdmin: true,ownerIDs: []},token: hr.saved.token};
 
-  var updateInstance = new UpdateGPOclass(usersCollection, extensionsCollection,
+  var updateInstance = new UpdateGPOclass({users:usersCollection}, extensionsCollection,
                                           session,config);
 
   var updateDoc = {username: item.username};
