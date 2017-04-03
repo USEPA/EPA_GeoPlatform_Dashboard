@@ -6,7 +6,7 @@ var UpdateGPOgenericClass = require(appRoot + '/shared/UpdateGPOgeneric');
 utilities.inheritClass(UpdateGPOgenericClass,UpdateGPOuser);
 
 //Name this function so that class name will come up in debugger, etc.
-function UpdateGPOuser(collection,extensionsCollection,session,config) {
+function UpdateGPOuser(collections,extensionsCollection,session,config) {
   //Run the parent constructor first
   // "username" is the updateKey used for updating
   // "user" is just updateName which is text used on errors, logging, etc
@@ -14,14 +14,14 @@ function UpdateGPOuser(collection,extensionsCollection,session,config) {
       this,
       'username',
       'user',
-      collection,
+      collections.users,
       extensionsCollection,
       session,
       config
   );
 
   //Nothing extra in constructor for UpdateGPOuser
-
+  this.collections = collections;
 }
 
 UpdateGPOuser.prototype.checkPermission = function() {
@@ -39,7 +39,7 @@ UpdateGPOuser.prototype.checkPermission = function() {
     return Q.fcall(function() {return false});
   }
   //If external user and logged in user is admin then they can modifiy it
-  return Q(self.collection.findOne({username: self.updateDoc.username},{isExternal: 1}))
+  return Q(self.collections.users.findOne({username: self.updateDoc.username},{isExternal: 1}))
     .then(function(doc) {
       //If username not found then return false (maybe have error later but
       //should we expose this type of lookup?)
