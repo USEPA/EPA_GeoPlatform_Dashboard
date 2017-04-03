@@ -12,7 +12,7 @@
             <div>
                 <label for="spPurpose">Sponsored by:</label>
                     <select class="form-control" id="spSponsorList" data-bind="">
-                        <option value="">Select a Sponosr</option>
+                        <option value="">Select a Sponsor</option>
                         <option value="Emergency Response">Emergency Response</option>
                     </select>
             </div>
