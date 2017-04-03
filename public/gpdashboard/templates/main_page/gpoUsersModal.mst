@@ -7,14 +7,11 @@
         </div>
         <div class="modal-body">
             <div class="form-group">
-                <label for="SponsoredOrg" data-bind="text: selected().doc().fullName"></label>
-            </div>
-            <div>
-                <label for="spPurpose">Sponsored by:</label>
-                    <select class="form-control" id="spSponsorList" data-bind="">
-                        <option value="">Select a Sponosr</option>
-                        <option value="Emergency Response">Emergency Response</option>
-                    </select>
+                <label for="SponsoredOrg" data-bind="text: selected().doc().fullName"></label> Sponsored by:
+                <select class="form-control" id="spSponsorList" data-bind="">
+                    <option value="">Select a Sponosr</option>
+                    <option value="Emergency Response">Emergency Response</option>
+                </select>
             </div>
             <div class="form-group" data-bind="css:{'has-error': !selected().latestSponsor().reason()}">
                 <label for="spPurpose">Reason:</label>

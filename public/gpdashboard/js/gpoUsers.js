@@ -244,29 +244,37 @@ egam.models.gpoUsers.FullModelClass = function(doc, index, parent) {
   this.sponsoreeAuthGroups = ko.observableArray(
       egam.communityUser.authGroups);
 
-  this.potentialSponsor = ko.observableArray();
-    //load array of geoplatform user that are in the same authgroup as the current user
-    //http://localhost:3000/gpdashboard/gpoUsers/list
-    // var query ={};  //{isExternal: true};
-    // var projection = {
-    //     sort: {
-    //         modified: -1,
-    //     },
-    //     fields: fields,};
+  this.sponsorPicklist = ko.computed(function() {
+      //load array of geoplatform user that are in the same authgroup as the current user
+      //http://localhost:3000/gpdashboard/gpoUsers/list
+      var query ={};  //{isExternal: true};
+      var projection = {};
+          // sort: {
+          //     modified: -1,
+          // },
+          // fields: fields,};
+      userPicklist = [];
+      $.ajax({
+          type: 'POST',
+          url: 'gpoUsers/list',
+          data: {query: query, projection: projection},
+          dataType: 'json',
+          //Use default timeOut if it isn't passed
+          success: function (returnedData) {
+              console.log('Potentail Sponsors Data Received : ' + new Date());
+              if(returnedData){
 
-      // $.ajax({
-      //     type: 'POST',
-      //     url: 'gpoUsers/list',
-      //     data: {query: query, projection: projection},
-      //     dataType: 'json',
-      //     //Use default timeOut if it isn't passed
-      //     //timeout: timeOut || this.timeOut,
-      //     // success: function (returnedData) {
-      //     //     console.log('Potentail Sponsors Data Received : ' + new Date());
-      //     // },
-      // }
+                  returnedData.forEach(function(u){
+                      userPicklist.push({
+                          value: u.username,
+                          label: u.fullName
+                      })
+                  });
+              }
+          },
+      });
 
-
+  }, this);
 };
 
 //Data here is the actual array of JSON documents that came back from the
