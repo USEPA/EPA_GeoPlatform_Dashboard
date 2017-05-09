@@ -9,6 +9,13 @@
             <div class="form-group">
                 <label for="SponsoredOrg" data-bind="text: selected().doc().fullName"></label>
             </div>
+            <div>
+                <label for="spPurpose">Sponsored by:</label>
+                    <select class="form-control" id="spSponsorList" data-bind="">
+                        <option value="">Select a Sponsor</option>
+                        <option value="Emergency Response">Emergency Response</option>
+                    </select>
+            </div>
             <div class="form-group" data-bind="css:{'has-error': !selected().latestSponsor().reason()}">
                 <label for="spPurpose">Reason:</label>
                 <select class="form-control" id="spPurpose" data-bind="value: selected().latestSponsor().reason">
