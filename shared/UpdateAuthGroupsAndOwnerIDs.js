@@ -109,6 +109,8 @@ UpdateAuthGroupsAndOwnerIDs.prototype.updateAuthGroupsInner = function(user) {
   var updateUser = {
     username: user.username,
     email: user.email,
+    firstName: user.firstName,
+    lastName: user.lastName,
     role: user.role,
     authGroups: authGroups,
     isAdmin: isAdmin,
