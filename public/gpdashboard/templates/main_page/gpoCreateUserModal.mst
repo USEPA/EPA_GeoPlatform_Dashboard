@@ -1,0 +1,59 @@
+<script id="gpoCreateUserModal" type="text/html">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+              <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title">Create New User</h4>
+              </div>
+              <div class="modal-body">
+                  <div class="form-group">
+
+                            <label for="newUserFirstName">Enter user name:</label>
+                            <div>
+                                <div class="form-group row">
+                                  <div class="col-sm-5" data-bind="css:{'has-error': !userFirstName()}">
+                                    <input type="text" class="form-control" id="newUserFirstName" data-bind="value: userFirstName" placeholder="First" />
+                                  </div>
+                                  <div class="col-sm-6" data-bind="css:{'has-error': !userLastName()}">
+                                    <input type="text" class="form-control" id="newUserLastName" data-bind="value: userLastName" placeholder="Last" />
+                                  </div>
+                                </div>
+                            </div>
+
+                            <div class="form-group" data-bind="css:{'has-error': !emailAudit()}">
+                                <label for="newUserEmail">Email:</label>
+                                <input type="email" class="form-control" id="newUserEmail" data-bind="value: userEmail, valueUpdate:'afterkeydown'" placeholder="Email" style="width: 100%">
+                            </div>
+
+                            <div class="form-group" data-bind="css:{'has-error': !userReason()}">
+                                <label for="spPurpose">Reason:</label>
+                                <select class="form-control" id="newUserPurpose" data-bind="value: userReason" >
+                                    <option value="">Please Select a Reason</option>
+                                    <option value="Emergency Response">Emergency Response</option>
+                                    <option value="Other Federal Agency">Other Federal Agency</option>
+                                    <option value="State Agency">State Agency</option>
+                                    <option value="University">University</option>
+                                    <option value="Long Term GIS Support">Long Term GIS Support</option>
+                                </select>
+                            </div>
+                            <div class="form-group" data-bind="css:{'has-error': !userOrg()}">
+                                <label for="SponsoredOrg">Organization:</label>
+                                <input class="form-control" id="newUserSponsoredOrg" data-bind="value: userOrg"  type="text" style="width: 100%">
+                            </div>
+                            <div class="form-group" data-bind="css:{'has-error': !userDesc()}">
+                                <label for="spDescription">Description:</label>
+                                <textarea class="form-control" rows="5" id="newUserDescription" data-bind="value: userDesc" style="min-width: 100%"></textarea>
+                            </div>
+                            <div class="form-group" data-bind="css:{'has-error': !selectAuthGroup()}">
+                                <label for="UserAuthDrop">Choose an Authoritative Group:</label>
+                                <select class="form-control" id="newUserAuthDrop" data-bind="options:posAuthGroups, value: selectAuthGroup" style="width: 100%"></select>
+                            </div>
+                   </div>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" data-bind="click: update, enable:  userLastName && userFirstName && userEmail && userReason && userOrg && userDesc">Create and Sponsor User</button>
+              </div>
+        </div><!-- /.modal-content -->
+    </div>
+</script>
