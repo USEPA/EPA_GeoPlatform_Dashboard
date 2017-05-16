@@ -299,7 +299,7 @@ egam.models.gpoItemCheckList.DetailsModel.prototype.getItemDocs = function(ids) 
   var query = {id:{$in:ids}};
   var projection = {"fields":{"id":1,"title":1}};
 
-  return egam.utilities.queryEndpoint("gpoitems/list? showAll=true",query,projection)
+  return egam.utilities.queryEndpoint("gpoitems/list?showAll=true",query,projection)
 };
 
 egam.models.gpoItemCheckList.DetailsModel.prototype.getOwnerInfo = function(user) {

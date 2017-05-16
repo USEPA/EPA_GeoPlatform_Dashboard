@@ -244,37 +244,29 @@ egam.models.gpoUsers.FullModelClass = function(doc, index, parent) {
   this.sponsoreeAuthGroups = ko.observableArray(
       egam.communityUser.authGroups);
 
-  this.sponsorPicklist = ko.computed(function() {
-      //load array of geoplatform user that are in the same authgroup as the current user
-      //http://localhost:3000/gpdashboard/gpoUsers/list
-      var query ={};  //{isExternal: true};
-      var projection = {};
-          // sort: {
-          //     modified: -1,
-          // },
-          // fields: fields,};
-      userPicklist = [];
-      $.ajax({
-          type: 'POST',
-          url: 'gpoUsers/list',
-          data: {query: query, projection: projection},
-          dataType: 'json',
-          //Use default timeOut if it isn't passed
-          success: function (returnedData) {
-              console.log('Potentail Sponsors Data Received : ' + new Date());
-              if(returnedData){
+  //get potential sponsors list
+    var query ={};  //{isExternal: true};{id:{$in:ids}};
+    var projection = {};
 
-                  returnedData.forEach(function(u){
-                      userPicklist.push({
-                          value: u.username,
-                          label: u.fullName
-                      })
-                  });
+    this.sponsorPicklist = ko.observableArray([{
+      value: egam.communityUser.username,
+      label: egam.communityUser.fullName
+    }]);
+
+    egam.utilities.queryEndpoint("gpoUsers/list?showAll=true").then(function(a){
+      console.log("A List: ", a);
+        if(a){
+            a.forEach(function(u){
+              if(u.username == egam.communityUser.username){
+                  self.designatedSponsor = ko.observable(u);
               }
-          },
-      });
-
-  }, this);
+              self.sponsorPicklist.push({
+                  value: u.username,
+                  label: u.fullName
+              });
+            });
+        }
+    });
 };
 
 //Data here is the actual array of JSON documents that came back from the
@@ -325,7 +317,7 @@ egam.models.gpoUsers.DetailsModel.prototype.update = function() {
   var updateUserData = {
     username: self.selected().doc().username(),
     sponsor: {
-      username: egam.communityUser.username,
+      username: self.selected().designatedSponsor().value,
       startDate: sponsorDate,
       endDate: endDate,
       authGroup: self.selected().latestSponsor().authGroup,
@@ -349,7 +341,7 @@ egam.models.gpoUsers.DetailsModel.prototype.update = function() {
 
   ko.mapping.fromJS(unmapped, self.selected().doc());
 
-  // Post to mongo
+  //Post to mongo
   $.ajax({
     url: 'gpousers/update',
     type: 'POST',
