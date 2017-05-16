@@ -253,20 +253,31 @@ egam.models.gpoUsers.FullModelClass = function(doc, index, parent) {
       label: egam.communityUser.fullName
     }]);
 
-    egam.utilities.queryEndpoint("gpoUsers/list?showAll=true").then(function(a){
-      console.log("A List: ", a);
-        if(a){
-            a.forEach(function(u){
-              if(u.username == egam.communityUser.username){
-                  self.designatedSponsor = ko.observable(u);
-              }
-              self.sponsorPicklist.push({
-                  value: u.username,
-                  label: u.fullName
-              });
+};
+
+egam.models.gpoUsers.FullModelClass.prototype.refreshSponsorList = function(authGroup) {
+    var self = this;
+    this.sponsorPicklist = ko.observableArray([{
+        value: egam.communityUser.username,
+        label: egam.communityUser.fullName
+    }]);
+
+    var query = {authGroups:authGroup};
+    egam.utilities.queryEndpoint("gpoUsers/list?query=" + JSON.stringify(query) + "&showAll=true").then(function (a) {
+        console.log("A List: ", a);
+        if (a) {
+            a.forEach(function (u) {
+                if (u.username == egam.communityUser.username) {
+                    self.designatedSponsor = ko.observable(u);
+                }
+                self.sponsorPicklist.push({
+                    value: u.username,
+                    label: u.fullName
+                });
             });
         }
-    });
+
+    })
 };
 
 //Data here is the actual array of JSON documents that came back from the
@@ -289,6 +300,12 @@ egam.models.gpoUsers.DetailsModel.prototype.select = function(item) {
   //    Var fullRowModel = self.selectedCache[item.index] || new egam.gpoItems.FullModelClass(item.doc,self,item.index) ;
   var fullRowModel = new egam.models.gpoUsers.FullModelClass(ko.utils.unwrapObservable(item.doc), item.index, self);
   self.selected(fullRowModel);
+
+    var authGroup = "";
+    if (egam.communityUser.authGroups.length>0) {
+        authGroup = egam.communityUser.authGroups[0];
+    }
+    self.selected().refreshSponsorList(authGroup);
 
   if (!self.bound) {
     ko.applyBindings(self, document.getElementById('gpoUsersModal'));
