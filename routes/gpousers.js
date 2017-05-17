@@ -297,6 +297,8 @@ module.exports = function(app) {
   function callBatchUpdateGPOusers(req,res,args) {
     var monk = app.get('monk');
     if (! args.collections) args.collections = {users: monk.get('GPOusers')};
+    //if (! args.extensionCollection) args.extensionCollection = {users: monk.get('GPOuserExtension')};
+    if (! args.extensionCollection) args.extensionCollection = monk.get('GPOuserExtensions');
     if (! args.updateID) args.updateID = "username";
 
     return callBatchUpdateGPO(req,res,args);
@@ -339,7 +341,7 @@ module.exports = function(app) {
 
     //This function will get the Update Class Instance needed to run .update
     var getUpdateClassInstance = function(row) {
-      var updateInstance = new UpdateGPOclass(args.collections,req.session,config);
+      var updateInstance = new UpdateGPOclass(args.collections,args.extensionCollection,req.session,config);
       //Don't need to add anything else like thumbnail to the instance, just return the instance
       return updateInstance;
     };

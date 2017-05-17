@@ -7,7 +7,7 @@ var UpdateGPOgenericClass = require(appRoot + '/shared/UpdateGPOgeneric');
 utilities.inheritClass(UpdateGPOgenericClass,AddGPOuser);
 
 //Name this function so that class name will come up in debugger, etc.
-function AddGPOuser(collections,session,config) {
+function AddGPOuser(collections,extensionsCollection,session,config) {
   //Run the parent constructor first
   // "username" is the updateKey used for updating
   // "user" is just updateName which is text used on errors, logging, etc

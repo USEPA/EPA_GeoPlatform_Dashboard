@@ -52,9 +52,12 @@ egam.models.gpoUsers.PageModelClass = function() {
   //Set up the authGroups dropdown
   self.setAuthGroupsDropdown(egam.communityUser.ownerIDsByAuthGroup);
   self.setFilterButtons();
+  //self.setCreateNewUser();
 
   //Set up the details control now which is part of this Model Class
   self.details = new egam.models.gpoUsers.DetailsModel(self);
+  self.newUser = new egam.models.gpoUsers.newUserModel(self);
+
 };
 
 egam.models.gpoUsers.PageModelClass.prototype.init = function() {
@@ -352,7 +355,7 @@ egam.models.gpoUsers.DetailsModel.prototype.update = function() {
 
   // Create updateDoc to post back to mongo
 
-  var updateUserData = {
+  var updateUserData = ko.mapping.toJS({
     username: self.selected().doc().username(),
     sponsor: {
       username: self.selected().designatedSponsor().value,
@@ -364,10 +367,7 @@ egam.models.gpoUsers.DetailsModel.prototype.update = function() {
       description: self.selected().latestSponsor().description
     },
     authGroup: self.selected().latestSponsor().authGroup
-  };
-
-  var myUserData = {};
-  myUserData.updateDocs = JSON.stringify(updateUserData);
+  });
 
   //Could have maybe just directly changed self.selected().doc() instead of toJS and fromJS but would have to create observable array for user.sponsors if empty
   var unmapped = ko.mapping.toJS(self.selected().doc());
@@ -377,9 +377,14 @@ egam.models.gpoUsers.DetailsModel.prototype.update = function() {
   unmapped.sponsors.push(updateUserData.sponsor);
   unmapped.authGroups.push(self.selected().latestSponsor().authGroup);
 
+    if (unmapped.authGroups.indexOf(updateUserData.authGroup)<0) unmapped.authGroups.push(updateUserData.authGroup);
+
   ko.mapping.fromJS(unmapped, self.selected().doc());
 
-  //Post to mongo
+    var myUserData = {};
+    myUserData.updateDocs = JSON.stringify(updateUserData);
+
+  // Post to mongo
   $.ajax({
     url: 'gpousers/update',
     type: 'POST',
@@ -436,3 +441,134 @@ egam.models.gpoUsers.copyEmails = function() {
   $('#emailList').select();
   document.execCommand('copy');
 };
+
+egam.models.gpoUsers.newUserModel = function(item){
+    var self = this;
+
+    self.$element = $('gpoCreateUserModal');
+    //fields to create new User
+    self.userFirstName = ko.observable();
+    self.userLastName = ko.observable();
+    self.userEmail = ko.observable();
+    self.emailAudit = ko.observable(false);
+    //fields to sponsor new user
+    self.userReason = ko.observable();
+    self.userOrg = ko.observable();
+    self.userDesc = ko.observable();
+    self.posAuthGroups = ko.observableArray(
+        egam.communityUser.authGroups);
+    self.userUserName = ko.observable();
+    self.selectAuthGroup = ko.observable();
+
+    self.reset = function(){
+        self.userFirstName('');
+        self.userLastName('');
+        self.userEmail('');
+        self.emailAudit(false);
+
+        $("#newUserPurpose").val($("#newUserPurpose option:first").val());
+        self.userReason('');
+        self.userOrg('');
+        self.userDesc('');
+        self.userUserName('');
+    }
+
+    if (!self.bound) {
+        ko.applyBindings(self, document.getElementById('gpoCreateUserModal'));
+        self.bound = true;
+    }
+
+    self.userEmail.subscribe(function(evt){
+        var email_regex = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+        self.emailAudit(email_regex.test(self.userEmail()));
+    }.bind(self));
+};
+
+egam.models.gpoUsers.newUserModel.prototype.update = function(){
+  var self = this;
+  //create new user object
+    var newUser = {
+        "email": self.userEmail(),
+        "firstname": self.userFirstName(),
+        "lastname": self.userLastName(),
+        "sponsor": egam.communityUser.username
+    };
+    var userData = {};
+    userData.addDocs = JSON.stringify(newUser);
+
+    $.ajax({
+        url: 'gpousers/addExternal',
+        type: 'POST',
+        data: userData,
+        cache: false,
+        dataType: 'json',
+        success: function(rdata, textStatus, jqXHR) {
+
+            console.log('Success: created new user ', rdata);
+            var newUserName = rdata.body[0].user.username;
+
+            //get dates
+            var defaultDuration = 90;
+            var sD = new Date();
+            var sponsorDate = sD.getTime();
+            var endDate = sponsorDate + defaultDuration * 24 * 3600 * 1000;
+            //Get current data for sponsoring
+            var newUserSponsor = ko.mapping.toJS({
+                username: newUserName,
+                sponsor: {
+                    username: egam.communityUser.username,
+                    startDate: sponsorDate,
+                    endDate: endDate,
+                    authGroup: self.selectAuthGroup(),
+                    reason: self.userReason(),
+                    organization: self.userOrg(),
+                    description: self.userDesc()
+                },
+                authGroup: self.selectAuthGroup()
+            });
+            var newUserSponsorData = {};
+            newUserSponsorData.updateDocs = JSON.stringify(newUserSponsor);
+
+            $.ajax({
+                url: 'gpousers/update',
+                type: 'POST',
+                data: newUserSponsorData,
+                cache: false,
+                dataType: 'json',
+                success: function(rdata, textStatus, jqXHR) {
+                    console.log('Success: Posted new sponsor to Mongo', rdata);
+
+                    var newRow = {
+                            fullName: self.userFirstName(),
+                            email: self.userEmail(),
+                            sponsors: [{
+                                username: egam.communityUser.username,
+                                startDate: sponsorDate,
+                                endDate: endDate,
+                                authGroup: self.selectAuthGroup(),
+                                reason: self.userReason(),
+                                organization: self.userOrg(),
+                                description: self.userDesc()
+                            }]
+                        };
+
+                    egam.pages.gpoUsers.table.add([newRow], null, true);
+
+                    $('#gpoCreateUserModal').modal('hide');
+                    self.reset();
+                },
+                error: function(jqXHR, textStatus, errorThrown) {
+                    // Handle errors here
+                    console.log('ERRORS: ' + textStatus);
+                },
+            });
+
+        },
+        error: function(jqXHR, textStatus, errorThrown) {
+            // Handle errors here
+            console.log('ERRORS: ' + textStatus);
+        }
+    });
+
+};
+
