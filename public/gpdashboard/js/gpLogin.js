@@ -145,7 +145,11 @@ require([
     //Basically initialize the gpoItems page because that is the first page we
     //want to see on login
 
-    egam.pages.gpoItems.init()
+    //Before you initialize need to get the authGroup names so app will have them
+    return egam.utilities.getDataStash('availableAuthgroups', 'gpoitems/authGroups')
+      .then(function () {
+        return egam.pages.gpoItems.init();
+      })
       .then(function() {
         //Select only public items if admin
         if (egam.communityUser.isAdmin) {
