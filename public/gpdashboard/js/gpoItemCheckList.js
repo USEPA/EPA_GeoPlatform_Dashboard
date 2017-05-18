@@ -307,7 +307,7 @@ egam.models.gpoItemCheckList.DetailsModel.prototype.getOwnerInfo = function(user
     var query = {username: user};
     var projection = {fields:{'username':1, 'fullName':1, 'email':1}};
 
-    return egam.utilities.queryEndpoint("gpousers/list",query,projection)
+    return egam.utilities.queryEndpoint("gpousers/list?showAll=true",query,projection)
 };
 
 egam.models.gpoItemCheckList.DetailsModel.prototype.loadEmailTemplate = function(item) {
