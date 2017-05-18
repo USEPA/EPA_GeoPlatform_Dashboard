@@ -1,13 +1,19 @@
 var utilities = {};
 
 utilities.getRequestInputs = function(req,errors) {
-  //Get value from request form or querystring
-  //returns false if output is not a string (like an object or something)
+//Get value from request form or querystring
+//returns false if output is not a string (like an object or something)
+    var merge = require('merge');
 
-  var inputs = req.body;
-  if (req.method.toLowerCase() === 'get') inputs = req.query;
+//Make a new object so I'm not merging req.query into req.body
+    var inputs = merge.recursive({}, req.body);
 
-  return inputs;
+//Not this anymore. want to merge the query into the body
+//if (req.method.toLowerCase() === 'get') inputs = req.query;
+
+    inputs = merge.recursive(inputs, req.query);
+
+    return inputs;
 };
 
 utilities.getCleanRequestInputs = function(req,errors) {

@@ -87,9 +87,10 @@ module.exports = function(app) {
 
     //Let admins see all users if they pass showAll=true
     var showAll = utilities.getRequestInputs(req).showAll;
+    if (showAll==="true") showAll=true;
     if (findingExternalUsers) showAll = true;
 
-    if (!user.isSuperUser && !(user.isAdmin && showAll)) {
+    if (!user.isSuperUser && !(user.isAdmin && showAll===true)) {
       //Get the current query.username and save to make and AND with $in: user.ownerIDs
 
       var visibleUsers = user.ownerIDs;

@@ -240,44 +240,68 @@ egam.models.gpoUsers.FullModelClass = function(doc, index, parent) {
     if (this.doc().sponsors ) {//&& this.doc().sponsors().length > 0
       return this.doc().sponsors()[this.doc().sponsors().length - 1];
     } else {
-      return {username:null,organization:ko.observable(),authGroup:ko.observable(),reason:ko.observable(),description:ko.observable(),startDate:null,endDate:null};
+      var emptySponsor = {username:null,organization:ko.observable(),authGroup:ko.observable(),reason:ko.observable(),description:ko.observable(),startDate:null,endDate:null};
+      //initialize authGroup to be first authGroup of logged in user
+      if (egam.communityUser.authGroups.length>0) emptySponsor.authGroup(egam.communityUser.authGroups[0]);
+      return emptySponsor;
     }
   },this);
 
-  this.sponsoreeAuthGroups = ko.observableArray(
-      egam.communityUser.authGroups);
+  //Use ownerIDsByAuthGroup because it shows all the authgroups somebody can see not just those somebody is in ie. superusers can see all authgroups this way
+//  var authGroups = Object.keys(egam.communityUser.ownerIDsByAuthGroup);
+//  authGroups.sort();
 
-  this.sponsorPicklist = ko.computed(function() {
-      //load array of geoplatform user that are in the same authgroup as the current user
-      //http://localhost:3000/gpdashboard/gpoUsers/list
-      var query ={};  //{isExternal: true};
-      var projection = {};
-          // sort: {
-          //     modified: -1,
-          // },
-          // fields: fields,};
-      userPicklist = [];
-      $.ajax({
-          type: 'POST',
-          url: 'gpoUsers/list',
-          data: {query: query, projection: projection},
-          dataType: 'json',
-          //Use default timeOut if it isn't passed
-          success: function (returnedData) {
-              console.log('Potentail Sponsors Data Received : ' + new Date());
-              if(returnedData){
+//Only admin can see this and let admin see all authGroups. availableAuthgroups was already retrieved from server.
+  var authGroups = egam.dataStash['availableAuthgroups'].names;
+  this.sponsoreeAuthGroups = ko.observableArray(authGroups);
 
-                  returnedData.forEach(function(u){
-                      userPicklist.push({
-                          value: u.username,
-                          label: u.fullName
-                      })
+  this.latestSponsor().authGroup.subscribe(function(evt) {
+      self.refreshSponsorList();
+    }.bind(self));
+
+  //get potential sponsors list
+    var query ={};  //{isExternal: true};{id:{$in:ids}};
+    var projection = {};
+
+    this.designatedSponsor = ko.observable({
+      value: egam.communityUser.username,
+      label: egam.communityUser.fullName + ' (' + egam.communityUser.username + ')'
+    });
+    this.sponsorPicklist = ko.observableArray([this.designatedSponsor()]);
+    //manually get the sponsor list the first time
+    self.refreshSponsorList();
+};
+
+egam.models.gpoUsers.FullModelClass.prototype.refreshSponsorList = function(authGroup) {
+    var self = this;
+
+    self.sponsorPicklist.removeAll();
+    self.sponsorPicklist.push({
+      value: egam.communityUser.username,
+      label: egam.communityUser.fullName + ' (' + egam.communityUser.username + ')'
+    });
+
+    //if authGroup is not passed then get from latestSponsor which is bound to dropdown
+    if (arguments.length==0) authGroup = self.latestSponsor().authGroup();
+    //if authGroup falsey make it empty string so no users are returned
+    if (! authGroup) authGroup="";
+
+    var query = {authGroups:authGroup};
+    egam.utilities.queryEndpoint('gpoUsers/list?query=' + JSON.stringify(query) + '&showAll=true&projection={"sort":{"fullName":1}}').then(function (users) {
+        //console.log("users List: ", users);
+        if (users) {
+          users.forEach(function (u) {
+                if (u.username == egam.communityUser.username) {
+                } else {
+                  self.sponsorPicklist.push({
+                    value: u.username,
+                    label: u.fullName + ' (' + u.username + ')'
                   });
-              }
-          },
-      });
+                }
+            });
+        }
 
-  }, this);
+    })
 };
 
 //Data here is the actual array of JSON documents that came back from the
@@ -300,6 +324,12 @@ egam.models.gpoUsers.DetailsModel.prototype.select = function(item) {
   //    Var fullRowModel = self.selectedCache[item.index] || new egam.gpoItems.FullModelClass(item.doc,self,item.index) ;
   var fullRowModel = new egam.models.gpoUsers.FullModelClass(ko.utils.unwrapObservable(item.doc), item.index, self);
   self.selected(fullRowModel);
+
+    var authGroup = "";
+    if (egam.communityUser.authGroups.length>0) {
+        authGroup = egam.communityUser.authGroups[0];
+    }
+//    self.selected().refreshSponsorList(authGroup);
 
   if (!self.bound) {
     ko.applyBindings(self, document.getElementById('gpoUsersModal'));
@@ -328,7 +358,7 @@ egam.models.gpoUsers.DetailsModel.prototype.update = function() {
   var updateUserData = ko.mapping.toJS({
     username: self.selected().doc().username(),
     sponsor: {
-      username: egam.communityUser.username,
+      username: self.selected().designatedSponsor().value,
       startDate: sponsorDate,
       endDate: endDate,
       authGroup: self.selected().latestSponsor().authGroup,
