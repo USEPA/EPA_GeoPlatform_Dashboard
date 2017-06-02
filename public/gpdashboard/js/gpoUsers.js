@@ -271,7 +271,7 @@ egam.models.gpoUsers.FullModelClass = function(doc, index, parent) {
 //    });
 //  this.sponsorPicklist = ko.observableArray([this.designatedSponsor()]);
 
-  //This is object like {value,lable}
+  //This is object like {value,label}
     this.selectedSponsorOption = ko.observable();
     this.sponsorPicklist = ko.observableArray([]);
 
