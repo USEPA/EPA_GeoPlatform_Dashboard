@@ -384,17 +384,17 @@ egam.models.gpoItemCheckList.DetailsModel.prototype.selectIndex = function(index
 egam.models.gpoItemCheckList.PageModelClass.prototype.showGPOCheckList = function() {
 
   //make only request elements show
-  $('#requestElements').show();
-  $('#adminElements').hide();
+  $('.requestElements').show();
+  $('.adminElements').hide();
   $('#requestConfirm').show();
   $('#checkListModal').modal('toggle');
   return true;
 };
 
 egam.models.gpoItemCheckList.PageModelClass.prototype.adminCheckLists = function() {
-  $('#requestElements').hide();
+  $('.requestElements').hide();
   $('#requestConfirm').hide();
-  $('#adminElements').show();
+  $('.adminElements').show();
   $('#checkListModal').modal('toggle');
   return true;
 };
