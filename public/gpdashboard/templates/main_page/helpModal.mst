@@ -280,8 +280,22 @@
                         </div>
                         <div role="tabpanel" class="tab-pane" id="UserManagement">
                             <h4>User Management</h4>
-                            <p>This page allows administrators to manage the sponsorship of external (non-single-sign-on) accounts. Every external account must have a sponsor, and accounts must be reviewed and renewed every 90 days, or the account will be automatically disabled. Disabled accounts will be cleaned up periodically with their content items transferred to the most recent sponsor. The table shows the status of each account, when their account was last renewed, and when they are due for renewal. Any administrator may sponsor or renew the sponsorship of any external account.</p>
-                            <p>When sponsoring an external account, please select a reason for the sponsorship from the dropdown, enter the name of the external account holder's organization and an optional short description of the context, and select an authoritative group that member should be a part of for auditing purposes. If an account is subsequently sponsored by a different group, they will remain a member of all sponsoring authoritative groups until the account is disabled or they are manually removed from a group.</p>
+                            <p>This page allows administrators to manage the sponsorship of external (non-single-sign-on) accounts. The GeoPlatform Security Plan requires that every external account must have a sponsor, and accounts must be reviewed and renewed every 90 days, or the account will be automatically disabled. Disabled accounts will be cleaned up periodically with their content items transferred to the most recent sponsor. The table shows the status of each account, when their account was last renewed, and when they are due for renewal. Any administrator may sponsor or renew the sponsorship of any external account, though they may list an alternate GeoPlatform accountholder as the "sponsor" instead of themselves.</p>
+                            <p>New external users may be added to the GeoPlatform using the "Create New User" button at upper right. Please enter the user's first and last name, email address, select a reason for the sponsorship from the dropdown, enter the name of the external account holder's organization and an optional short description of the context, and select an authoritative group that member should be a part of for auditing purposes. If another GeoPlatform user should be listed as the sponsor, select that username from the dropdown - note that they must be in the same authoritative group. The new user will receive a notice via email from Esri that their account has been created and that they need to log in and set a password.</p>
+                            <p>An external user's sponsorship may be renewed at any time by a GeoPlatform administrator. If they have been previously sponsored, their information will be pre-populated, if not, please enter the requested information. If an external user is sponsored by a group that is different from their initial invitation or sponsorship, they will remain a member of all sponsoring authoritative groups until the account is disabled or they are manually removed from a group, even though the dashboard will only show their most recent sponsorship.</p>
+                            <p>Work in progress:</p>
+                            <ul>
+                                <li>Esri's default "set a new password" page does not provide guidance to new users about the actual EPA GeoPlatform password requirements. We have logged this as a bug and Esri is working on it (#ENH-000104563). In the meantime, please let your external users know that passwords must:
+                                <ul>
+                                    <li>Not match username.</li>
+                                    <li>Be at least 13 character(s) long.</li>
+                                    <li>Contain at least 1 letter(s) (A-Za-z).</li>
+                                    <li>Contain at least 1 number(s) (0-9).</li>
+                                </ul>
+                                </li>
+                                <li>We are working on implementing a notification system that will let users and their sponsors know via email that accounts will be expiring soon. Accounts will not expire or become disabled until this notification system is in place.</li>
+                                <li>We are working on adding the ability for EPA staff who are listed as sponsors but are not GeoPlatform Administrators to be able to renew sponsorships.</li>
+                            </ul>
                         </div>
                         <div role="tabpanel" class="tab-pane" id="Email">
                             <h4>Contact Us</h4>

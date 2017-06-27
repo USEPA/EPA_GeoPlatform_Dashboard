@@ -35,6 +35,7 @@ if (typeof egam.templates == 'undefined') {
     'gpoUsersModal',
     'edgItemsPage',
     'edgItemsModal',
+    'gpoCreateUserModal'
   ];
 }
 

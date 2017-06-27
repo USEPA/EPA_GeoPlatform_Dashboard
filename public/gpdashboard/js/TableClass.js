@@ -114,30 +114,53 @@ egam.controls.Table.prototype.init = function(endpoint, query, projection, resul
 //This adds array of docs (data) to the table after creating ko RowModelClass.
 //Also adds to the jquery DataTable and redraws
 //also can take a callback which fires for each item in array
-egam.controls.Table.prototype.add = function(data, callback) {
-  var self = this;
-  //Use this so we know when everything is loaded
-  var defer = $.Deferred();
+egam.controls.Table.prototype.add = function(data, callback, prepend) {
+    var self = this;
+    //Use this so we know when everything is loaded
+    var defer = $.Deferred();
 
-  var i;
-  for (i = 0; i < data.length; i++) {
-    //Now that Row Model is being used in table instead of Full Model it takes
-    //less than 1 second to load 14,000 vs 20 seconds before
-    var item = new self.RowModelClass(data[i], i);
-    self.items.push(item);
-    if (callback) {
-      callback(i);
+    var i;
+    //Need to know before size of items so we can slice out just the new items to add to jquery dataTable
+    var itemsBeforeSize = self.items.length;
+
+    for (i = 0; i < data.length; i++) {
+        //Now that Row Model is being used in table instead of Full Model it takes
+        //less than 1 second to load 14,000 vs 20 seconds before
+        var item = new self.RowModelClass(data[i], i);
+        self.items.push(item);
+
+        if (callback) {
+            callback(i);
+        }
     }
-  }
-  //Actually add the rows to the dataTable also and then redraw dataTable
-  //It just as fast (or maybe a bit faster) to add to dataTable after the ko
-  //applyBindings command was run
-  //Passing false to .draw() will not page or sort when redrawing
-  self.dataTable.rows.add(self.items).draw(false);
-  console.log('DataTable rows added ' + new Date());
-  defer.resolve();
+    //Actually add the rows to the dataTable also and then redraw dataTable
+    //It just as fast (or maybe a bit faster) to add to dataTable after the ko
+    //applyBindings command was run
+    //Passing false to .draw() will not page or sort when redrawing
+    if (prepend) {
+        //Add the items to end
+        self.dataTable.rows.add(self.items.slice(itemsBeforeSize));
+        //Save current page we are on
+        var currentPage = self.dataTable.page();
+        //Get the added stuff to show on last page and page to last page
+        self.dataTable
+            .search(self.dataTable.search())
+            .page(self.dataTable.page.info().pages-1)
+            .draw('page');
+        //Get the dom element for this last item to move
+        var tableBody = self.$element.find("tbody");
+        var tableRows = tableBody.find("tr");
+        var lastrow = tableRows[tableRows.length-1];
+        self.dataTable.page(currentPage).draw('page');
+        tableBody.prepend(lastrow);
+    } else {
+        self.dataTable.rows.add(self.items.slice(itemsBeforeSize)).draw(false);
+    }
 
-  return defer;
+    console.log('DataTable rows added ' + new Date());
+    defer.resolve();
+
+    return defer;
 };
 
 //Update the array of row model items and also the jquery dataTable then redraw

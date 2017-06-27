@@ -81,7 +81,7 @@
         </th>
         <th>Type<br>
             <span onclick="event.stopPropagation();">
-                            <select class="search form-control input-sm" style="width:18em"><option value="">All</option></select>
+                            <select class="search form-control input-sm" style="width:18em" ><option re="true" value="Feature Service|Feature Collection|CSV|KML|Shapefile|Service Definition">All</option></select>
                         </span>
         </th>
         <th>Folder<br>

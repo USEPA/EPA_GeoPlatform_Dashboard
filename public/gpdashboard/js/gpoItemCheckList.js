@@ -299,7 +299,7 @@ egam.models.gpoItemCheckList.DetailsModel.prototype.getItemDocs = function(ids) 
   var query = {id:{$in:ids}};
   var projection = {"fields":{"id":1,"title":1}};
 
-  return egam.utilities.queryEndpoint("gpoitems/list? showAll=true",query,projection)
+  return egam.utilities.queryEndpoint("gpoitems/list?showAll=true",query,projection)
 };
 
 egam.models.gpoItemCheckList.DetailsModel.prototype.getOwnerInfo = function(user) {
@@ -307,7 +307,7 @@ egam.models.gpoItemCheckList.DetailsModel.prototype.getOwnerInfo = function(user
     var query = {username: user};
     var projection = {fields:{'username':1, 'fullName':1, 'email':1}};
 
-    return egam.utilities.queryEndpoint("gpousers/list",query,projection)
+    return egam.utilities.queryEndpoint("gpousers/list?showAll=true",query,projection)
 };
 
 egam.models.gpoItemCheckList.DetailsModel.prototype.loadEmailTemplate = function(item) {
@@ -384,17 +384,17 @@ egam.models.gpoItemCheckList.DetailsModel.prototype.selectIndex = function(index
 egam.models.gpoItemCheckList.PageModelClass.prototype.showGPOCheckList = function() {
 
   //make only request elements show
-  $('#requestElements').show();
-  $('#adminElements').hide();
+  $('.requestElements').show();
+  $('.adminElements').hide();
   $('#requestConfirm').show();
   $('#checkListModal').modal('toggle');
   return true;
 };
 
 egam.models.gpoItemCheckList.PageModelClass.prototype.adminCheckLists = function() {
-  $('#requestElements').hide();
+  $('.requestElements').hide();
   $('#requestConfirm').hide();
-  $('#adminElements').show();
+  $('.adminElements').show();
   $('#checkListModal').modal('toggle');
   return true;
 };

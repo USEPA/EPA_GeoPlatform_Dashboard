@@ -7,7 +7,17 @@
         </div>
         <div class="modal-body">
             <div class="form-group">
-                <label for="SponsoredOrg" data-bind="text: selected().doc().fullName"></label>
+                <label for="SponsoredFullName" data-bind="text: selected().doc().fullName"></label>
+                (<label for="SponsoredUserName" data-bind="text: selected().doc().username"></label>)
+            </div>
+            <div class="form-group">
+                <label for="UserAuthDrop">Choose an Authoritative Group:</label>
+                <select class="form-control" id="UserAuthDrop"  data-bind="options: selected().sponsoreeAuthGroups, value: selected().latestSponsor().authGroup, valueUpdate: 'afterkeydown'" style="width: 100%"></select>
+            </div>
+            <div>
+                <label for="spPurpose">Sponsored by:</label>
+                    <select class="form-control" id="spSponsorList" data-bind="options: selected().sponsorPicklist(), optionsText: function(item){return item.label}, value: selected().selectedSponsorOption">
+                    </select>
             </div>
             <div class="form-group" data-bind="css:{'has-error': !selected().latestSponsor().reason()}">
                 <label for="spPurpose">Reason:</label>
@@ -18,6 +28,10 @@
                     <option value="State Agency">State Agency</option>
                     <option value="University">University</option>
                     <option value="Long Term GIS Support">Long Term GIS Support</option>
+                    <option value="Non Government Organization">Non Government Organization</option>
+                    <option value="Tribal Government">Tribal Government</option>
+                    <option value="Citizen Advisor">Citizen Advisor</option>
+                    <option value="Other">Other</option>
                 </select>
             </div>
             <div class="form-group" data-bind="css:{'has-error': !selected().latestSponsor().organization()}">
@@ -27,10 +41,6 @@
             <div class="form-group" data-bind="css:{'has-error': !selected().latestSponsor().description()}">
                 <label for="spDescription">Description:</label>
                 <textarea class="form-control" rows="5" id="spDescription" style="min-width: 100%" data-bind="value: selected().latestSponsor().description, valueUpdate:'afterkeydown'"></textarea>
-            </div>
-            <div class="form-group">
-                <label for="UserAuthDrop">Choose an Authoritative Group:</label>
-                <select class="form-control" id="UserAuthDrop" data-bind="options: selected().sponsoreeAuthGroups, value: selected().latestSponsor().authGroup, valueUpdate: 'afterkeydown'" style="width: 100%"></select>
             </div>
         </div>
         <div class="modal-footer">

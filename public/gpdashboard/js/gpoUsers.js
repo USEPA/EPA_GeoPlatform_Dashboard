@@ -52,9 +52,12 @@ egam.models.gpoUsers.PageModelClass = function() {
   //Set up the authGroups dropdown
   self.setAuthGroupsDropdown(egam.communityUser.ownerIDsByAuthGroup);
   self.setFilterButtons();
+  //self.setCreateNewUser();
 
   //Set up the details control now which is part of this Model Class
   self.details = new egam.models.gpoUsers.DetailsModel(self);
+  self.newUser = new egam.models.gpoUsers.newUserModel(self);
+
 };
 
 egam.models.gpoUsers.PageModelClass.prototype.init = function() {
@@ -237,13 +240,98 @@ egam.models.gpoUsers.FullModelClass = function(doc, index, parent) {
     if (this.doc().sponsors ) {//&& this.doc().sponsors().length > 0
       return this.doc().sponsors()[this.doc().sponsors().length - 1];
     } else {
-      return {username:null,organization:ko.observable(),authGroup:ko.observable(),reason:ko.observable(),description:ko.observable(),startDate:null,endDate:null};
+      var emptySponsor = {username:ko.observable(),organization:ko.observable(),authGroup:ko.observable(),reason:ko.observable(),description:ko.observable(),startDate:null,endDate:null};
+      //initialize authGroup to be first authGroup of logged in user
+      if (egam.communityUser.authGroups.length>0) emptySponsor.authGroup(egam.communityUser.authGroups[0]);
+      //initialize the user to be the logged in user
+      emptySponsor.username(egam.communityUser.username);
+      return emptySponsor;
     }
   },this);
 
-  this.sponsoreeAuthGroups = ko.observableArray(
-      egam.communityUser.authGroups);
+  //Use ownerIDsByAuthGroup because it shows all the authgroups somebody can see not just those somebody is in ie. superusers can see all authgroups this way
+//  var authGroups = Object.keys(egam.communityUser.ownerIDsByAuthGroup);
+//  authGroups.sort();
 
+//Only admin can see this and let admin see all authGroups. availableAuthgroups was already retrieved from server.
+  var authGroups = egam.dataStash['availableAuthgroups'].names;
+  this.sponsoreeAuthGroups = ko.observableArray(authGroups);
+
+  this.latestSponsor().authGroup.subscribe(function(evt) {
+      self.refreshSponsorList();
+    }.bind(self));
+
+  //get potential sponsors list
+    var query ={};  //{isExternal: true};{id:{$in:ids}};
+    var projection = {};
+
+//    this.designatedSponsor = ko.observable({
+//      value: egam.communityUser.username,
+//      label: egam.communityUser.fullName + ' (' + egam.communityUser.username + ')'
+//    });
+//  this.sponsorPicklist = ko.observableArray([this.designatedSponsor()]);
+
+  //This is object like {value,label}
+    this.selectedSponsorOption = ko.observable();
+    this.sponsorPicklist = ko.observableArray([]);
+
+    //manually get the sponsor list the first time
+    //Note have to pass the selected sponsor username because can't set value to be select value but select option object which is {value:,label:}.
+    //We aren't storing fullName on sponsor so just select by option item when creating option items in dropdown
+    //Could save fullName on Sponsor in db but would have to update existing DB . very weird knockout design that can't select by value only option item
+
+    self.refreshSponsorList();
+};
+
+egam.models.gpoUsers.FullModelClass.prototype.refreshSponsorList = function(authGroup,selectedSponsor) {
+    //pass authGroup and selectedSponsor otherwise it comes from self.latestSponsor
+    var self = this;
+
+    self.sponsorPicklist.removeAll();
+    self.sponsorPicklist.push({
+      value: egam.communityUser.username,
+      label: egam.communityUser.fullName + ' (' + egam.communityUser.username + ')'
+    });
+
+    //if authGroup is not passed then get from latestSponsor which is bound to dropdown (and get selected sponsor)
+    if (arguments.length==0) {
+      authGroup = self.latestSponsor ().authGroup();
+      selectedSponsor = self.latestSponsor().username();
+    }
+
+    //if authGroup falsey make it empty string so no users are returned
+    if (! authGroup) authGroup="";
+
+    var query = {authGroups:authGroup,isExternal:false};
+    egam.utilities.queryEndpoint('gpoUsers/list?query=' + JSON.stringify(query) + '&showAll=true&projection={"sort":{"fullName":1}}').then(function (users) {
+        //console.log("users List: ", users);
+        if (users) {
+          users.forEach(function (u) {
+                if (u.username == egam.communityUser.username) {
+                } else {
+                  var newOption = {
+                    value: u.username,
+                    label: u.fullName + ' (' + u.username + ')'
+                  };
+                  self.sponsorPicklist.push(newOption);
+                  if(selectedSponsor && selectedSponsor==u.username) self.selectedSponsorOption(newOption)
+                }
+            });
+        }
+
+    })
+};
+
+egam.models.gpoUsers.FullModelClass.prototype.selectSponsorListByValue = function(value) {
+  var self = this;
+
+  var selectedOption= null;
+  self.sponsorPicklist().every(function (option) {
+    if (option.value==value) selectedOption=option;
+    return !selectedOption;
+  });
+
+  self.selectedSponsorOption(selectedOption);
 };
 
 //Data here is the actual array of JSON documents that came back from the
@@ -266,6 +354,12 @@ egam.models.gpoUsers.DetailsModel.prototype.select = function(item) {
   //    Var fullRowModel = self.selectedCache[item.index] || new egam.gpoItems.FullModelClass(item.doc,self,item.index) ;
   var fullRowModel = new egam.models.gpoUsers.FullModelClass(ko.utils.unwrapObservable(item.doc), item.index, self);
   self.selected(fullRowModel);
+
+    var authGroup = "";
+    if (egam.communityUser.authGroups.length>0) {
+        authGroup = egam.communityUser.authGroups[0];
+    }
+//    self.selected().refreshSponsorList(authGroup);
 
   if (!self.bound) {
     ko.applyBindings(self, document.getElementById('gpoUsersModal'));
@@ -291,10 +385,10 @@ egam.models.gpoUsers.DetailsModel.prototype.update = function() {
 
   // Create updateDoc to post back to mongo
 
-  var updateUserData = {
+  var updateUserData = ko.mapping.toJS({
     username: self.selected().doc().username(),
     sponsor: {
-      username: egam.communityUser.username,
+      username: self.selected().selectedSponsorOption().value,
       startDate: sponsorDate,
       endDate: endDate,
       authGroup: self.selected().latestSponsor().authGroup,
@@ -303,10 +397,7 @@ egam.models.gpoUsers.DetailsModel.prototype.update = function() {
       description: self.selected().latestSponsor().description
     },
     authGroup: self.selected().latestSponsor().authGroup
-  };
-
-  var myUserData = {};
-  myUserData.updateDocs = JSON.stringify(updateUserData);
+  });
 
   //Could have maybe just directly changed self.selected().doc() instead of toJS and fromJS but would have to create observable array for user.sponsors if empty
   var unmapped = ko.mapping.toJS(self.selected().doc());
@@ -316,7 +407,12 @@ egam.models.gpoUsers.DetailsModel.prototype.update = function() {
   unmapped.sponsors.push(updateUserData.sponsor);
   unmapped.authGroups.push(self.selected().latestSponsor().authGroup);
 
+    if (unmapped.authGroups.indexOf(updateUserData.authGroup)<0) unmapped.authGroups.push(updateUserData.authGroup);
+
   ko.mapping.fromJS(unmapped, self.selected().doc());
+
+    var myUserData = {};
+    myUserData.updateDocs = JSON.stringify(updateUserData);
 
   // Post to mongo
   $.ajax({
@@ -375,3 +471,151 @@ egam.models.gpoUsers.copyEmails = function() {
   $('#emailList').select();
   document.execCommand('copy');
 };
+
+egam.models.gpoUsers.newUserModel = function(item){
+    var self = this;
+
+    self.$element = $('gpoCreateUserModal');
+    //fields to create new User
+    self.userFirstName = ko.observable();
+    self.userLastName = ko.observable();
+    self.userEmail = ko.observable();
+    self.emailAudit = ko.observable(false);
+    //fields to sponsor new user
+    self.userReason = ko.observable();
+    self.userOrg = ko.observable();
+    self.userDesc = ko.observable();
+    var authGroups = egam.dataStash['availableAuthgroups'].names;
+    self.posAuthGroups = ko.observableArray(authGroups);
+    self.sponsorPicklist = ko.observableArray([]);
+    self.userUserName = ko.observable();
+    //Just select the first auth group user is in
+    self.selectAuthGroup = ko.observable(egam.communityUser.authGroups[0]);
+    self.selectedSponsorOption = ko.observable();
+
+    self.reset = function(){
+        self.userFirstName('');
+        self.userLastName('');
+        self.userEmail('');
+        self.emailAudit(false);
+
+        $("#newUserPurpose").val($("#newUserPurpose option:first").val());
+        self.userReason('');
+        self.userOrg('');
+        self.userDesc('');
+        self.userUserName('');
+    }
+
+    if (!self.bound) {
+        ko.applyBindings(self, document.getElementById('gpoCreateUserModal'));
+        self.bound = true;
+    }
+
+    self.userEmail.subscribe(function(evt){
+        var email_regex = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+        self.emailAudit(email_regex.test(self.userEmail()));
+    }.bind(self));
+
+    //update the sponosor list when auth group changes
+    this.selectAuthGroup.subscribe(function(evt) {
+      self.refreshSponsorList(self.selectAuthGroup());
+    }.bind(self));
+
+    //manually get the sponsor list the first time
+    self.refreshSponsorList(self.selectAuthGroup());
+
+};
+
+//Reuse the code that refreshes sponsor
+egam.models.gpoUsers.newUserModel.prototype.refreshSponsorList = egam.models.gpoUsers.FullModelClass.prototype.refreshSponsorList;
+
+egam.models.gpoUsers.newUserModel.prototype.update = function(){
+  var self = this;
+  //create new user object
+    var newUser = {
+        "email": self.userEmail(),
+        "firstname": self.userFirstName(),
+        "lastname": self.userLastName(),
+        "sponsor": egam.communityUser.username
+    };
+    var userData = {};
+    userData.addDocs = JSON.stringify(newUser);
+
+    $.ajax({
+        url: 'gpousers/addExternal',
+        type: 'POST',
+        data: userData,
+        cache: false,
+        dataType: 'json',
+        success: function(rdata, textStatus, jqXHR) {
+
+            console.log('Success: created new user ', rdata);
+            var newUserName = rdata.body[0].user.username;
+
+            //get dates
+            var defaultDuration = 90;
+            var sD = new Date();
+            var sponsorDate = sD.getTime();
+            var endDate = sponsorDate + defaultDuration * 24 * 3600 * 1000;
+            //Get current data for sponsoring
+            var newUserSponsor = ko.mapping.toJS({
+                username: newUserName,
+                sponsor: {
+                    username: self.selectedSponsorOption().value,
+                    startDate: sponsorDate,
+                    endDate: endDate,
+                    authGroup: self.selectAuthGroup(),
+                    reason: self.userReason(),
+                    organization: self.userOrg(),
+                    description: self.userDesc()
+                },
+                authGroup: self.selectAuthGroup()
+            });
+            var newUserSponsorData = {};
+            newUserSponsorData.updateDocs = JSON.stringify(newUserSponsor);
+
+            $.ajax({
+                url: 'gpousers/update',
+                type: 'POST',
+                data: newUserSponsorData,
+                cache: false,
+                dataType: 'json',
+                success: function(rdata, textStatus, jqXHR) {
+                    console.log('Success: Posted new sponsor to Mongo', rdata);
+
+                    var newRow = {
+                            username: newUserName,
+                            fullName: (self.userFirstName() + ' ' + self.userLastName()),
+                            email: self.userEmail(),
+                            isExternal: true,
+                            sponsors: [{
+                                username: self.selectedSponsorOption().value,
+                                startDate: sponsorDate,
+                                endDate: endDate,
+                                authGroup: self.selectAuthGroup(),
+                                reason: self.userReason(),
+                                organization: self.userOrg(),
+                                description: self.userDesc()
+                            }]
+                        };
+
+                    egam.pages.gpoUsers.table.add([newRow], null, true);
+
+                    $('#gpoCreateUserModal').modal('hide');
+                    self.reset();
+                },
+                error: function(jqXHR, textStatus, errorThrown) {
+                    // Handle errors here
+                    console.log('ERRORS: ' + textStatus);
+                },
+            });
+
+        },
+        error: function(jqXHR, textStatus, errorThrown) {
+            // Handle errors here
+            console.log('ERRORS: ' + textStatus);
+        }
+    });
+
+};
+

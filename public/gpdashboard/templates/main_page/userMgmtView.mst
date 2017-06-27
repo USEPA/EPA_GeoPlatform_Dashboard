@@ -33,6 +33,9 @@
             <input name="sponFilter" type="radio">Unsponsored </input>
         </label>
     </div>
+    <div class="col-md-5">
+            <button class="btn btn-primary pull-right" id="createUserBtn" data-toggle="modal" data-target="#gpoCreateUserModal">Create New User</button>
+    </div>
 </div>
 <table id="gpoUsersTable" class="table table-hover table-bordered table-responsive" data-bind="dataTable:
                 {
