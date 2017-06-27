@@ -1,0 +1,142 @@
+<script id="gpoItemsPage" type="text/html">
+<div id="gpoContentHeader" class="row placeholders">
+    <div class="col-xs-6 col-sm-3">
+        <h4>Public Items Audit Result</h4>
+        <span id="percPublicPassingAudit" class="text-muted" data-bind="text:percentPublicPassing"></span> % Passing
+    </div>
+    <div class="col-xs-6 col-sm-3">
+        <h4>My Items</h4>
+        <span id="agoItems" class="text-muted" data-bind="text:myItemsCount"></span>
+    </div>
+    <div class="col-xs-6 col-sm-3">
+        <h4>My Groups</h4>
+        <span id="agoGroups" class="text-muted" data-bind="text:egam.communityUser.groups.length"></span>
+    </div>
+    <div class="col-xs-6 col-sm-3">
+        <h4 style="white-space:nowrap;">Auth Groups
+        </h4>
+        <span id="authGroupsCount" class="text-muted" data-bind="text:Object.keys(egam.communityUser.ownerIDsByAuthGroup).length"></span>
+
+    </div>
+</div>
+<h3 class="sub-header"></h3>
+<div class="row">
+    <div class="col-md-7 btn-group" role="group" style="margin-bottom: 5px">
+        <button type="button" id="makePublic" class="btn btn-default" data-bind="enable: $root.table.checkedRows().length > 0, click: function(){return egam.pages.gpoItemCheckList.showGPOCheckList()}">Make Public</button>
+        <button class="btn btn-primary" type="button" data-bind="click: function(){return egam.pages.gpoItemCheckList.adminCheckLists()}">
+            Requests <span class="badge" data-bind="text: pendingChecklistCount"></span>
+        </button>
+    </div>
+    <div class="col-md-2 text-right" style="padding: 5px 1px 5px 5px">
+        <label style="font-weight: normal">Auth Groups:</label>
+    </div>
+        <div class="col-md-3 text-left" style="padding-right: 5px">
+            <select id="dropAuthGroups" class="search form-control input-sm"></select>
+        </div>
+</div>
+<!-- Note: needed to use type:'num' below so that doc.modified was treated like a number '<row <col-sm-6 l><col-sm-6 f>><t><ip>'-->
+<table id="gpoItemsTable" class="table table-hover table-bordered table-responsive" data-bind="dataTable:
+                {
+                    deferRender: true,
+                    dataSource: egam.pages.gpoItems.table.items,
+                    rowTemplate: 'GPOitemsRowTemplate',
+                    options: {paging: true,
+                              aaSorting: [],
+                            },
+                    columns: [
+                    {data:null, sortable: false},
+                    {data:'doc().title'},
+                    {data:'doc().access'},
+                    {data:'doc().type'},
+                    {data:'ownerFolderTitle'},
+                    {data:'doc().numViews'},
+                    {data:'doc().owner'},
+                    {data:{_:function (row) {return egam.utilities.formatDate(row.doc().modified)},sort:'doc().modified'},type:'num'},
+                    {data:'complianceStatus'},
+                    {data:'doc().owner', sortable: false}
+                    ]
+                    }">
+    <thead>
+    <tr>
+        <th>
+        <span onclick="event.stopPropagation();">
+                               <input type="checkbox" data-bind="click: function(e,evt){return $root.table.checkAll('id',evt.target.checked)}"/>
+                          </span>
+        </th>
+        <th>Title<br>
+            <span onclick="event.stopPropagation();">
+                            <input class="search form-control input-sm" placeholder="Search By Title">
+                        </span>
+        </th>
+        <th class="accessColumn">Access<br>
+            <span onclick="event.stopPropagation();">
+                            <select id="dropAccess" class="search form-control input-sm">
+                                <option value="">All</option>
+                                <option value="public">public</option>
+                                <option value="org">org</option>
+                                <option value="shared">shared</option>
+                                <option value="private">private</option>
+                            </select>
+                        </span>
+        </th>
+        <th>Type<br>
+            <span onclick="event.stopPropagation();">
+                            <select class="search form-control input-sm" style="width:18em" ><option re="true" value="Feature Service|Feature Collection|CSV|KML|Shapefile|Service Definition">All</option></select>
+                        </span>
+        </th>
+        <th>Folder<br>
+            <span onclick="event.stopPropagation();">
+                            <select class="search form-control input-sm" style="width:18em"><option value="">All</option></select>
+                        </span>
+        </th>
+        <th>Views</th>
+        <th>Owner<br>
+            <span onclick="event.stopPropagation();">
+                            <select class="search form-control input-sm" style="width:18em"><option value="">All</option></select>
+                        </span>
+        </th>
+        <th>Modified<br>
+            <span onclick="event.stopPropagation();">
+                            <input class="search form-control input-sm" placeholder="Search By Modified Date">
+                        </span>
+        </th>
+        <th>Audit Status<br>
+            <span onclick="event.stopPropagation();">
+                            <select id="dropAuditStatus" class="search form-control input-sm">
+                                <option value="">All</option>
+                                <option value="Fail">Fail</option>
+                                <option value="Pass">Pass</option>
+                            </select>
+                        </span>
+        </th>
+        <th class="ownerColumnForAuthGroupSearch" style="display:none"></th>
+    </tr>
+    </thead>
+    <tfoot>
+
+    </tfoot>
+
+</table>
+
+<script id="GPOitemsRowTemplate" type="text/html">
+    <tr data-bind="css: {danger: !doc().AuditData.compliant}, click:function(item){return $root.details.select(item)}" data-toggle="modal" data-target="#gpoItemsModal">
+        <td>
+      <span onclick="event.stopPropagation();">
+                                <input type="checkbox" id="test" class="checkboxClass" data-bind="enable:  doc().owner == egam.portalUser.username && doc().AuditData.compliant, click: function(item, evt){ return $root.table.checkRow(item.doc().id,item.index,evt.target.checked)}">
+                            </span>
+        </td>
+        <td data-bind="text: doc().title"></td>
+        <td data-bind="text: doc().access"></td>
+        <td data-bind="text: doc().type"></td>
+        <td data-bind="text: ownerFolderTitle"></td>
+        <td data-bind="text: doc().numViews"></td>
+        <td data-bind="text: doc().owner"></td>
+        <td data-bind="text: egam.utilities.formatDate(doc().modified)"></td>
+        <td data-bind="css: {auditRowPass: doc().AuditData.compliant,auditRowFail: !doc().AuditData.compliant}">
+            <img class="pass" src="img/greenOK.jpg" alt="Pass" style="width:25px">
+            <img class="fail" src="img/warning.png" alt="Fail" style="width:25px">
+        </td>
+        <td data-bind="text: doc().owner" style="display:none"></td>
+    </tr>
+</script>
+</script>

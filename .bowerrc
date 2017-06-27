@@ -1,0 +1,4 @@
+{
+  "directory" : "public/gpdashboard/bower_components",
+  "shorthand-resolver": "https://github.com/{{owner}}/{{package}}.git"
+}

@@ -1,0 +1,124 @@
+<script id="edgItemsModal" type="text/html">
+<div class="modal-dialog modal-lg" role="document">
+    <div class="modal-content">
+        <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close" data-bind=""><span aria-hidden="true">&times;</span></button>
+            <h4 class="modal-title" id="edgDetailModalLabel">Item Details
+                <span><a class="glyphicon glyphicon-link" data-bind="attr: {href: selected().gpoLink}" target="_blank" aria-hidden="true" data-toggle="tooltip" data-placement="right" title="Go to Item in EDG"></a></span></h4>
+        </div>
+        <div class="modal-body">
+            <form id="edgDetailModalForm" role="form" data-toggle="validator" data-disable="false" enctype="multipart/form-data" method="post">
+                <div class="row form-group">
+                    <div class="col-md-12">
+                        <div class="form-group has-success" data-bind="css: {'has-error': selected().doc.AuditData.errors.title&&selected().doc.AuditData.errors.title.compliant===false}">
+                            <label for="edgDetailsTitle">Title</label>
+                            <input readonly class="form-control" id="edgDetailsTitle" data-bind="value: selected().doc.title" type="text">
+                            <!-- ko if: selected().doc.AuditData.errors.title -->
+                            <span class="help-block" data-bind="text: selected().doc.AuditData.errors.title.messages"></span>
+                            <!-- /ko -->
+                        </div>
+                        <div class="form-group has-success" data-bind="css: {'has-error': selected().doc.AuditData.errors.description&&selected().doc.AuditData.errors.description.compliant===false}">
+                            <label>Description</label>
+                            <textarea readonly class="form-control" id="edgDetailsDesc" rows="6" data-bind="value: selected().doc.description" placeholder="Description"></textarea>
+                            <!-- ko if: selected().doc.AuditData.errors.description -->
+                            <span class="help-block" data-bind="text: selected().doc.AuditData.errors.description.messages"></span>
+                            <!-- /ko -->
+                        </div>
+                        <div class="form-group has-success" data-bind="css: {'has-error': selected().doc.AuditData.errors.keyword&&selected().doc.AuditData.errors.keyword.compliant===false}">
+                            <label for="edgDetailsTagsList">Keywords</label>
+                            <select readonly id="edgDetailsTagsList" class="form-control" multiple="multiple" height="5" data-bind="options: selected().doc.keyword"> </select>
+                            <span class="help-block" data-bind="style: {display: !selected().doc.AuditData.errors.keyword.compliant ? 'block' : 'none'}, text: selected().doc.AuditData.errors.keyword.messages"></span>
+                        </div>
+                        <div class="form-group has-success" data-bind="css: {'has-error': selected().doc.AuditData.errors.modified&&selected().doc.AuditData.errors.modified.compliant===false}">
+                            <label for="edgDetailsModified">Last Update</label>
+                            <input readonly class="form-control" id="edgDetailsModified" data-bind="value: selected().doc.modified" type="text">
+                            <!-- ko if: selected().doc.AuditData.errors.modified -->
+                            <span class="help-block" data-bind="text: selected().doc.AuditData.errors.modified.messages"></span>
+                            <!-- /ko -->
+                        </div>
+                        <div class="form-group has-success" data-bind="css: {'has-error': selected().doc.AuditData.errors.publisher&&selected().doc.AuditData.errors.publisher.compliant===false}">
+                            <label for="edgDetailsPublisher">Publishing Organization</label>
+                            <input readonly class="form-control" id="edgDetailsPublisher" data-bind="value: selected().doc.publisher" type="text">
+                            <!-- ko if: selected().doc.AuditData.errors.publisher -->
+                            <span class="help-block" data-bind="text: selected().doc.AuditData.errors.publisher.messages"></span>
+                            <!-- /ko -->
+                        </div>
+                        <div class="form-group has-success" data-bind="css: {'has-error': selected().doc.AuditData.errors.contactPoint&&selected().doc.AuditData.errors.contactPoint.compliant===false}">
+                            <label for="edgDetailsContact">Publisher</label>
+                            <input readonly class="form-control" id="edgDetailsContact" data-bind="value: selected().doc.contactPoint" type="text">
+                            <!-- ko if: selected().doc.AuditData.errors.contactPoint -->
+                            <span class="help-block" data-bind="text: selected().doc.AuditData.errors.contactPoint.messages"></span>
+                            <!-- /ko -->
+                        </div>
+                        <div class="form-group has-success" data-bind="css: {'has-error': selected().doc.AuditData.errors.contactPointEmail&&selected().doc.AuditData.errors.contactPointEmail.compliant===false}">
+                            <label for="edgDetailsContactEmail">Publisher Email</label>
+                            <input readonly class="form-control" id="edgDetailsContactEmail" data-bind="value: selected().doc.contactPointEmail" type="text">
+                            <!-- ko if: selected().doc.AuditData.errors.contactPointEmail -->
+                            <span class="help-block" data-bind="text: selected().doc.AuditData.errors.contactPointEmail.messages"></span>
+                            <!-- /ko -->
+                        </div>
+                        <div class="form-group has-success" data-bind="css: {'has-error': selected().doc.AuditData.errors.identifier&&selected().doc.AuditData.errors.identifier.compliant===false}">
+                            <label for="edgDetailsIdentifier">Identifier</label>
+                            <input readonly class="form-control" id="edgDetailsIdentifier" data-bind="value: selected().doc.identifier" type="text">
+                            <!-- ko if: selected().doc.AuditData.errors.identifier -->
+                            <span class="help-block" data-bind="text: selected().doc.AuditData.errors.identifier.messages"></span>
+                            <!-- /ko -->
+                        </div>
+                        <div class="form-group has-success" data-bind="css: {'has-error': selected().doc.AuditData.errors.accessLevel&&selected().doc.AuditData.errors.accessLevel.compliant===false}">
+                            <label for="edgDetailsAccessLevel">Access Level</label>
+                            <input readonly class="form-control" id="edgDetailsAccessLevel" data-bind="value: selected().doc.accessLevel" type="text">
+                            <!-- ko if: selected().doc.AuditData.errors.accessLevel -->
+                            <span class="help-block" data-bind="text: selected().doc.AuditData.errors.accessLevel.messages"></span>
+                            <!-- /ko -->
+                        </div>
+                        <div class="form-group has-success" data-bind="css: {'has-error': selected().doc.AuditData.errors.license&&selected().doc.AuditData.errors.license.compliant===false}">
+                            <label for="edgDetailsLicense">Data License</label>
+                            <input readonly class="form-control" id="edgDetailsLicense" data-bind="value: selected().doc.license" type="text">
+                            <!-- ko if: selected().doc.AuditData.errors.license -->
+                            <span class="help-block" data-bind="text: selected().doc.AuditData.errors.license.messages"></span>
+                            <!-- /ko -->
+                        </div>
+                        <div class="form-group has-success" data-bind="css: {'has-error': selected().doc.AuditData.errors.spatial&&selected().doc.AuditData.errors.spatial.compliant===false}">
+                            <label for="edgDetailsSpatial">Spatial Extent</label>
+                            <input readonly class="form-control" id="edgDetailsSpatial" data-bind="value: selected().doc.spatial" type="text">
+                            <!-- ko if: selected().doc.AuditData.errors.spatial -->
+                            <span class="help-block" data-bind="text: selected().doc.AuditData.errors.spatial.messages"></span>
+                            <!-- /ko -->
+                        </div>
+                        <div class="form-group has-success" data-bind="css: {'has-error': selected().doc.AuditData.errors.programCode&&selected().doc.AuditData.errors.programCode.compliant===false}">
+                            <label for="title">Program Code</label>
+                            <input readonly class="form-control" id="edgDetailsPC" data-bind="value: selected().doc.programCode" type="text">
+                            <!-- ko if: selected().doc.AuditData.errors.programCode -->
+                            <span class="help-block" data-bind="text: selected().doc.AuditData.errors.programCode.messages"></span>
+                            <!-- /ko -->
+                        </div>
+                        <div class="form-group has-success" data-bind="css: {'has-error': selected().doc.AuditData.errors.accrualPeriodicity&&selected().doc.AuditData.errors.accrualPeriodicity.compliant===false}">
+                            <label for="edgDetailsAccrual">Update Frequency</label>
+                            <input readonly class="form-control" id="edgDetailsAccrual" data-bind="value: selected().doc.accrualPeriodicity" type="text">
+                            <!-- ko if: selected().doc.AuditData.errors.accrualPeriodicity -->
+                            <span class="help-block" data-bind="text: selected().doc.AuditData.errors.accrualPeriodicity.messages"></span>
+                            <!-- /ko -->
+                        </div>
+                        <div class="form-group has-success" data-bind="css: {'has-error': selected().doc.AuditData.errors.distribution&&selected().doc.AuditData.errors.distribution.compliant===false}">
+                            <label for="edgDetailsDistribution">Distribution</label>
+                            <!-- ko if: selected().doc.distribution -->
+                            <textarea readonly id="edgDetailsDistribution" class="form-control" rows="3" data-bind="value: selected().doc.distribution.join('\n')"> </textarea>
+                            <!-- /ko -->
+                            <!-- ko ifnot: selected().doc.distribution -->
+                            <textarea readonly class="form-control" rows="3"> </textarea>
+                            <!-- /ko -->
+                            <!-- ko if: selected().doc.AuditData.errors.distribution -->
+                            <span class="help-block" data-bind="text: selected().doc.AuditData.errors.distribution.messages"></span>
+                            <!-- /ko -->
+                        </div>
+                    </div>
+                </div>
+
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button type="button" id="closeEDGDetailsBtn" class="btn btn-default" data-dismiss="modal">Close</button>
+        </div>
+    </div>
+</div>
+</script>
