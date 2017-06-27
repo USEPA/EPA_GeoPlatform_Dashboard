@@ -39,7 +39,7 @@ module.exports = {
 //setting disabled:true will keep emails from sending
 //Can set to use a service like gmail by using {host:null,service:"gmail"}
     {smtp:{host:'smtp.rtpnc.epa.gov.disable',port:25,service:null,user: '',password: ''}
-      ,admins: 'aaron.evans@cgi.com;brett.gaines@cgi.com;bryan.chastain@cgi.com;dyarnell@innovateteam.com;Hultgren.Torrin@epa.gov',defaultFrom: 'egam@epa.gov'
+      ,admins: 'evans.aaron@epa.gov;chastain.bryan@epa.gov;dyarnell@innovateteam.com;Hultgren.Torrin@epa.gov',defaultFrom: 'egam@epa.gov'
       ,disabled: true},
     superUserGroup: 'GP Dashboard Superuser Group',
     opsUsers: ['aaron.evans_EPA','thultgre_EPA','dyarnell_EPA','Chastain.Bryan_EPA'],
