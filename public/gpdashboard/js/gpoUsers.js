@@ -240,9 +240,11 @@ egam.models.gpoUsers.FullModelClass = function(doc, index, parent) {
     if (this.doc().sponsors ) {//&& this.doc().sponsors().length > 0
       return this.doc().sponsors()[this.doc().sponsors().length - 1];
     } else {
-      var emptySponsor = {username:null,organization:ko.observable(),authGroup:ko.observable(),reason:ko.observable(),description:ko.observable(),startDate:null,endDate:null};
+      var emptySponsor = {username:ko.observable(),organization:ko.observable(),authGroup:ko.observable(),reason:ko.observable(),description:ko.observable(),startDate:null,endDate:null};
       //initialize authGroup to be first authGroup of logged in user
       if (egam.communityUser.authGroups.length>0) emptySponsor.authGroup(egam.communityUser.authGroups[0]);
+      //initialize the user to be the logged in user
+      emptySponsor.username(egam.communityUser.username);
       return emptySponsor;
     }
   },this);
@@ -263,16 +265,26 @@ egam.models.gpoUsers.FullModelClass = function(doc, index, parent) {
     var query ={};  //{isExternal: true};{id:{$in:ids}};
     var projection = {};
 
-    this.designatedSponsor = ko.observable({
-      value: egam.communityUser.username,
-      label: egam.communityUser.fullName + ' (' + egam.communityUser.username + ')'
-    });
-    this.sponsorPicklist = ko.observableArray([this.designatedSponsor()]);
+//    this.designatedSponsor = ko.observable({
+//      value: egam.communityUser.username,
+//      label: egam.communityUser.fullName + ' (' + egam.communityUser.username + ')'
+//    });
+//  this.sponsorPicklist = ko.observableArray([this.designatedSponsor()]);
+
+  //This is object like {value,label}
+    this.selectedSponsorOption = ko.observable();
+    this.sponsorPicklist = ko.observableArray([]);
+
     //manually get the sponsor list the first time
+    //Note have to pass the selected sponsor username because can't set value to be select value but select option object which is {value:,label:}.
+    //We aren't storing fullName on sponsor so just select by option item when creating option items in dropdown
+    //Could save fullName on Sponsor in db but would have to update existing DB . very weird knockout design that can't select by value only option item
+
     self.refreshSponsorList();
 };
 
-egam.models.gpoUsers.FullModelClass.prototype.refreshSponsorList = function(authGroup) {
+egam.models.gpoUsers.FullModelClass.prototype.refreshSponsorList = function(authGroup,selectedSponsor) {
+    //pass authGroup and selectedSponsor otherwise it comes from self.latestSponsor
     var self = this;
 
     self.sponsorPicklist.removeAll();
@@ -281,27 +293,45 @@ egam.models.gpoUsers.FullModelClass.prototype.refreshSponsorList = function(auth
       label: egam.communityUser.fullName + ' (' + egam.communityUser.username + ')'
     });
 
-    //if authGroup is not passed then get from latestSponsor which is bound to dropdown
-    if (arguments.length==0) authGroup = self.latestSponsor().authGroup();
+    //if authGroup is not passed then get from latestSponsor which is bound to dropdown (and get selected sponsor)
+    if (arguments.length==0) {
+      authGroup = self.latestSponsor ().authGroup();
+      selectedSponsor = self.latestSponsor().username();
+    }
+
     //if authGroup falsey make it empty string so no users are returned
     if (! authGroup) authGroup="";
 
-    var query = {authGroups:authGroup};
+    var query = {authGroups:authGroup,isExternal:false};
     egam.utilities.queryEndpoint('gpoUsers/list?query=' + JSON.stringify(query) + '&showAll=true&projection={"sort":{"fullName":1}}').then(function (users) {
         //console.log("users List: ", users);
         if (users) {
           users.forEach(function (u) {
                 if (u.username == egam.communityUser.username) {
                 } else {
-                  self.sponsorPicklist.push({
+                  var newOption = {
                     value: u.username,
                     label: u.fullName + ' (' + u.username + ')'
-                  });
+                  };
+                  self.sponsorPicklist.push(newOption);
+                  if(selectedSponsor && selectedSponsor==u.username) self.selectedSponsorOption(newOption)
                 }
             });
         }
 
     })
+};
+
+egam.models.gpoUsers.FullModelClass.prototype.selectSponsorListByValue = function(value) {
+  var self = this;
+
+  var selectedOption= null;
+  self.sponsorPicklist().every(function (option) {
+    if (option.value==value) selectedOption=option;
+    return !selectedOption;
+  });
+
+  self.selectedSponsorOption(selectedOption);
 };
 
 //Data here is the actual array of JSON documents that came back from the
@@ -358,7 +388,7 @@ egam.models.gpoUsers.DetailsModel.prototype.update = function() {
   var updateUserData = ko.mapping.toJS({
     username: self.selected().doc().username(),
     sponsor: {
-      username: self.selected().designatedSponsor().value,
+      username: self.selected().selectedSponsorOption().value,
       startDate: sponsorDate,
       endDate: endDate,
       authGroup: self.selected().latestSponsor().authGroup,
@@ -455,10 +485,13 @@ egam.models.gpoUsers.newUserModel = function(item){
     self.userReason = ko.observable();
     self.userOrg = ko.observable();
     self.userDesc = ko.observable();
-    self.posAuthGroups = ko.observableArray(
-        egam.communityUser.authGroups);
+    var authGroups = egam.dataStash['availableAuthgroups'].names;
+    self.posAuthGroups = ko.observableArray(authGroups);
+    self.sponsorPicklist = ko.observableArray([]);
     self.userUserName = ko.observable();
-    self.selectAuthGroup = ko.observable();
+    //Just select the first auth group user is in
+    self.selectAuthGroup = ko.observable(egam.communityUser.authGroups[0]);
+    self.selectedSponsorOption = ko.observable();
 
     self.reset = function(){
         self.userFirstName('');
@@ -482,7 +515,19 @@ egam.models.gpoUsers.newUserModel = function(item){
         var email_regex = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
         self.emailAudit(email_regex.test(self.userEmail()));
     }.bind(self));
+
+    //update the sponosor list when auth group changes
+    this.selectAuthGroup.subscribe(function(evt) {
+      self.refreshSponsorList(self.selectAuthGroup());
+    }.bind(self));
+
+    //manually get the sponsor list the first time
+    self.refreshSponsorList(self.selectAuthGroup());
+
 };
+
+//Reuse the code that refreshes sponsor
+egam.models.gpoUsers.newUserModel.prototype.refreshSponsorList = egam.models.gpoUsers.FullModelClass.prototype.refreshSponsorList;
 
 egam.models.gpoUsers.newUserModel.prototype.update = function(){
   var self = this;
@@ -516,7 +561,7 @@ egam.models.gpoUsers.newUserModel.prototype.update = function(){
             var newUserSponsor = ko.mapping.toJS({
                 username: newUserName,
                 sponsor: {
-                    username: egam.communityUser.username,
+                    username: self.selectedSponsorOption().value,
                     startDate: sponsorDate,
                     endDate: endDate,
                     authGroup: self.selectAuthGroup(),
@@ -539,10 +584,12 @@ egam.models.gpoUsers.newUserModel.prototype.update = function(){
                     console.log('Success: Posted new sponsor to Mongo', rdata);
 
                     var newRow = {
-                            fullName: self.userFirstName(),
+                            username: newUserName,
+                            fullName: (self.userFirstName() + ' ' + self.userLastName()),
                             email: self.userEmail(),
+                            isExternal: true,
                             sponsors: [{
-                                username: egam.communityUser.username,
+                                username: self.selectedSponsorOption().value,
                                 startDate: sponsorDate,
                                 endDate: endDate,
                                 authGroup: self.selectAuthGroup(),

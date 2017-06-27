@@ -3,10 +3,16 @@
     <div class="modal-content">
         <div class="modal-header">
             <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-            <h4 class="modal-title">EPA GPO Public Content Checklist</h4>
+            <div class="requestElements">
+                <h4 class="modal-title">EPA GPO Public Content Checklist</h4>
+                <span>GPO item owners: Use this form to request an evaluation of your items for public sharing. All items being evaluated must meet the public content standards listed below.</span>
+            </div>
+             <div class="adminElements">
+                <h4 class="modal-title">EPA GPO Public Content Evaluation and Approval List (for GP Administrator use only)</h4>
+            </div>           
         </div>
         <div class="modal-body">
-            <div id="requestElements">
+            <div class="requestElements">
                 <div class="row input-group" data-bind="css:{'has-error': !checklistName()}">
                     <span class="input-group-addon" id="projectName">Project Name</span>
                     <input type="text" id="requestName" class="form-control" data-bind="value:checklistName, valueUpdate:'afterkeydown'" aria-describedby="projectName"/>
@@ -23,7 +29,7 @@
                                 I certify that this item has been through the appropriate product review process as outlined by my organization. General information about product review is available here: <a href="http://www2.epa.gov/product-review">http://www2.epa.gov/product-review</a>
                             </li>
                             <li>
-                                I certify that metadata on the item’s registration page is complete and consistent with the GeoPlatform metadata best practices guide. Information or links to where the data depicted in the map can be foundare included in the metadata.
+                                I certify that metadata on the item details page is complete and consistent with the GeoPlatform metadata best practices guide. Information or links to where the data depicted in the map can be foundare included in the metadata.
                                 <a href="https://edg.epa.gov/metadata/webhelp/en/gptlv10/inno/GenericMetadataGuide.pdf#page=38">GenericMetadataGuide</a>
                             </li>
                             <li>
@@ -32,7 +38,7 @@
                             </li>
                             <li>
                                 I certify that the item meets all appropriate EPA Privacy Act policy requirements. Information is available here:
-                                <a href="http://www.epa.gov/privacy/policy/">http://www.epa.gov/privacy/policy/</a>
+                                <a href="http://www.epa.gov/privacy/">http://www.epa.gov/privacy/</a>
                             </li>
                             <li>
                                 I agree that once the item has been made public any subsequent edits to the content item will be consistent with the guidance in this checklist.
@@ -46,7 +52,7 @@
                     </div>
                 </div>
             </div>
-            <div id="adminElements" class="row panel panel-body">
+            <div class="adminElements row panel panel-body">
                 <table id="gpoItemsChecklistTable" class="table table-hover table-bordered table-responsive" data-bind="dataTable:
                                 {
                                     deferRender: true,
