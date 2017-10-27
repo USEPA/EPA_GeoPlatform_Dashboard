@@ -1840,15 +1840,18 @@ DownloadGPOdata.prototype.getOwnerFolder = function(id,historyID) {
 
   return self.Q.all([
       self.getOwnerFolderID(id),
-      self.getOwnerFolderNames(self.hr.saved.modifiedItemOwners[id]),
+      self.getOwnerFolderNames(self.hr.saved.modifiedItemOwners[id])
     ])
-    .spread(function(folderID,folderNames) {
+    .spread(function(itemInfo,folderNames) {
+      //can work on this later to update a bunch of stuff that is on item but not returned by search
+      var folderID = itemInfo.ownerFolder;
+      var size = itemInfo.size;
       var ownerFolder = {id: folderID,title: folderNames[folderID]};
       return self.Q.all([
         self.Q(self.itemsCollection.update({id: id},
-          {$set: {ownerFolder: ownerFolder}})),
+          {$set: {ownerFolder: ownerFolder,size: size}})),
         self.Q(self.historycollection.update({_id: historyID},
-          {$set: {'doc.ownerFolder': ownerFolder}})),
+          {$set: {'doc.ownerFolder': ownerFolder,'doc.size': size}}))
       ]);
     });
 };
@@ -1883,7 +1886,9 @@ DownloadGPOdata.prototype.getOwnerFolderID = function(id) {
           JSON.stringify(body.error)));
       }
       //      Console.log(body.ownerFolder);
-      return body.ownerFolder;
+      //Actually return an object so we can return size and other info also
+      //really since we are hitting this should update a bunch of missing stuff
+      return {ownerFolder:body.ownerFolder,size:body.size};
     })
     .catch(function (err) {
       self.downloadLogs.error('Error while getting getting Owner Folder ID for id = ' + id + ':', err);
